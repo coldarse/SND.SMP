@@ -1,0 +1,60 @@
+<form
+    class='form-horizontal'
+    autocomplete='off'
+    #createCurrencyModal='ngForm'
+    (ngSubmit)='save()'
+>
+    <abp-modal-header
+        [title]='isCreate == true? ("Add Currency" | localize) : ("Edit Currency" | localize)'
+        (onCloseClick)='bsModalRef.hide()'
+    ></abp-modal-header>
+    <div class='modal-body'>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='currency'>
+            {{ 'Currency' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='text'
+                class='form-control'
+                name='currency'
+                id='currency'
+                required
+                [(ngModel)]='currency.abbr'
+                #currencyModel='ngModel'
+                #currencyEl
+            />
+            <abp-validation-summary
+                [control]='currencyModel'
+                [controlEl]='currencyEl'
+            ></abp-validation-summary>
+            </div>
+        </div>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='description'>
+            {{ 'Description' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='text'
+                class='form-control'
+                name='description'
+                id='description'
+                required
+                [(ngModel)]='currency.description'
+                #descriptionModel='ngModel'
+                #descriptionEl
+            />
+            <abp-validation-summary
+                [control]='descriptionModel'
+                [controlEl]='descriptionEl'
+            ></abp-validation-summary>
+            </div>
+        </div>
+    </div>
+    <abp-modal-footer
+    [cancelDisabled]='saving'
+    [saveDisabled]='!createCurrencyModal.form.valid || saving'
+    (onCancelClick)='bsModalRef.hide()'
+    ></abp-modal-footer>
+</form>

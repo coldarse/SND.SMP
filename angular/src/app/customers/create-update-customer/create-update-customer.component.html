@@ -1,0 +1,311 @@
+<form
+    class='form-horizontal'
+    autocomplete='off'
+    #createCustomerModal='ngForm'
+    (ngSubmit)='save()'
+>
+    <abp-modal-header
+        [title]='isCreate == true? ("Add Customer" | localize) : ("Edit Customer" | localize)'
+        (onCloseClick)='bsModalRef.hide()'
+    ></abp-modal-header>
+    <div class='modal-body'>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='code'>
+            {{ 'Code' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='text'
+                class='form-control'
+                name='code'
+                id='code'
+                required
+                [(ngModel)]='customer.code'
+                #codeModel='ngModel'
+                #codeEl
+            />
+            <abp-validation-summary
+                [control]='codeModel'
+                [controlEl]='codeEl'
+            ></abp-validation-summary>
+            </div>
+        </div>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='companyName'>
+            {{ 'CompanyName' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='text'
+                class='form-control'
+                name='companyName'
+                id='companyName'
+                required
+                [(ngModel)]='customer.companyName'
+                #companyNameModel='ngModel'
+                #companyNameEl
+            />
+            <abp-validation-summary
+                [control]='companyNameModel'
+                [controlEl]='companyNameEl'
+            ></abp-validation-summary>
+            </div>
+        </div>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='emailAddress'>
+            {{ 'EmailAddress' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='text'
+                class='form-control'
+                name='emailAddress'
+                id='emailAddress'
+                required
+                [(ngModel)]='customer.emailAddress'
+                #emailAddressModel='ngModel'
+                #emailAddressEl
+            />
+            <abp-validation-summary
+                [control]='emailAddressModel'
+                [controlEl]='emailAddressEl'
+            ></abp-validation-summary>
+            </div>
+        </div>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='password'>
+            {{ 'Password' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='text'
+                class='form-control'
+                name='password'
+                id='password'
+                required
+                [(ngModel)]='customer.password'
+                #passwordModel='ngModel'
+                #passwordEl
+            />
+            <abp-validation-summary
+                [control]='passwordModel'
+                [controlEl]='passwordEl'
+            ></abp-validation-summary>
+            </div>
+        </div>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='addressLine1'>
+            {{ 'AddressLine1' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='text'
+                class='form-control'
+                name='addressLine1'
+                id='addressLine1'
+                required
+                [(ngModel)]='customer.addressLine1'
+                #addressLine1Model='ngModel'
+                #addressLine1El
+            />
+            <abp-validation-summary
+                [control]='addressLine1Model'
+                [controlEl]='addressLine1El'
+            ></abp-validation-summary>
+            </div>
+        </div>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='addressLine2'>
+            {{ 'AddressLine2' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='text'
+                class='form-control'
+                name='addressLine2'
+                id='addressLine2'
+                required
+                [(ngModel)]='customer.addressLine2'
+                #addressLine2Model='ngModel'
+                #addressLine2El
+            />
+            <abp-validation-summary
+                [control]='addressLine2Model'
+                [controlEl]='addressLine2El'
+            ></abp-validation-summary>
+            </div>
+        </div>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='city'>
+            {{ 'City' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='text'
+                class='form-control'
+                name='city'
+                id='city'
+                required
+                [(ngModel)]='customer.city'
+                #cityModel='ngModel'
+                #cityEl
+            />
+            <abp-validation-summary
+                [control]='cityModel'
+                [controlEl]='cityEl'
+            ></abp-validation-summary>
+            </div>
+        </div>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='state'>
+            {{ 'State' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='text'
+                class='form-control'
+                name='state'
+                id='state'
+                required
+                [(ngModel)]='customer.state'
+                #stateModel='ngModel'
+                #stateEl
+            />
+            <abp-validation-summary
+                [control]='stateModel'
+                [controlEl]='stateEl'
+            ></abp-validation-summary>
+            </div>
+        </div>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='country'>
+            {{ 'Country' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='text'
+                class='form-control'
+                name='country'
+                id='country'
+                required
+                [(ngModel)]='customer.country'
+                #countryModel='ngModel'
+                #countryEl
+            />
+            <abp-validation-summary
+                [control]='countryModel'
+                [controlEl]='countryEl'
+            ></abp-validation-summary>
+            </div>
+        </div>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='phoneNumber'>
+            {{ 'PhoneNumber' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='text'
+                class='form-control'
+                name='phoneNumber'
+                id='phoneNumber'
+                required
+                [(ngModel)]='customer.phoneNumber'
+                #phoneNumberModel='ngModel'
+                #phoneNumberEl
+            />
+            <abp-validation-summary
+                [control]='phoneNumberModel'
+                [controlEl]='phoneNumberEl'
+            ></abp-validation-summary>
+            </div>
+        </div>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='registrationNo'>
+            {{ 'RegistrationNo' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='text'
+                class='form-control'
+                name='registrationNo'
+                id='registrationNo'
+                required
+                [(ngModel)]='customer.registrationNo'
+                #registrationNoModel='ngModel'
+                #registrationNoEl
+            />
+            <abp-validation-summary
+                [control]='registrationNoModel'
+                [controlEl]='registrationNoEl'
+            ></abp-validation-summary>
+            </div>
+        </div>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='emailAddress2'>
+            {{ 'EmailAddress2' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='text'
+                class='form-control'
+                name='emailAddress2'
+                id='emailAddress2'
+                required
+                [(ngModel)]='customer.emailAddress2'
+                #emailAddress2Model='ngModel'
+                #emailAddress2El
+            />
+            <abp-validation-summary
+                [control]='emailAddress2Model'
+                [controlEl]='emailAddress2El'
+            ></abp-validation-summary>
+            </div>
+        </div>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='emailAddress3'>
+            {{ 'EmailAddress3' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='text'
+                class='form-control'
+                name='emailAddress3'
+                id='emailAddress3'
+                required
+                [(ngModel)]='customer.emailAddress3'
+                #emailAddress3Model='ngModel'
+                #emailAddress3El
+            />
+            <abp-validation-summary
+                [control]='emailAddress3Model'
+                [controlEl]='emailAddress3El'
+            ></abp-validation-summary>
+            </div>
+        </div>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='isActive'>
+            {{ 'IsActive' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='checkbox'
+                class='form-control'
+                name='isActive'
+                id='isActive'
+                [(ngModel)]='customer.isActive'
+                #isActiveModel='ngModel'
+                #isActiveEl
+            />
+            <abp-validation-summary
+                [control]='isActiveModel'
+                [controlEl]='isActiveEl'
+            ></abp-validation-summary>
+            </div>
+        </div>
+    </div>
+    <abp-modal-footer
+    [cancelDisabled]='saving'
+    [saveDisabled]='!createCustomerModal.form.valid || saving'
+    (onCancelClick)='bsModalRef.hide()'
+    ></abp-modal-footer>
+</form>

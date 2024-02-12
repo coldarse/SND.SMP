@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <AssetTargetFallback>$(AssetTargetFallback);portable-net45+win8+wp8+wpa81;</AssetTargetFallback>
+    <AssemblyName>SND.SMP.Migrator</AssemblyName>
+    <OutputType>Exe</OutputType>
+    <PackageId>SND.SMP.Migrator</PackageId>
+    <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
+    <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
+    <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Update="appsettings.json;log4net.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Abp.Castle.Log4Net" Version="9.1.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SND.SMP.Core\SND.SMP.Core.csproj" />
+    <ProjectReference Include="..\SND.SMP.EntityFrameworkCore\SND.SMP.EntityFrameworkCore.csproj" />
+  </ItemGroup>
+</Project>

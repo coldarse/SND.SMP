@@ -1,0 +1,39 @@
+<form
+    class='form-horizontal'
+    autocomplete='off'
+    #createEWalletTypeModal='ngForm'
+    (ngSubmit)='save()'
+>
+    <abp-modal-header
+        [title]='isCreate == true? ("Add EWalletType" | localize) : ("Edit EWalletType" | localize)'
+        (onCloseClick)='bsModalRef.hide()'
+    ></abp-modal-header>
+    <div class='modal-body'>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='type'>
+            {{ 'Type' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='text'
+                class='form-control'
+                name='type'
+                id='type'
+                required
+                [(ngModel)]='ewallettype.type'
+                #typeModel='ngModel'
+                #typeEl
+            />
+            <abp-validation-summary
+                [control]='typeModel'
+                [controlEl]='typeEl'
+            ></abp-validation-summary>
+            </div>
+        </div>
+    </div>
+    <abp-modal-footer
+    [cancelDisabled]='saving'
+    [saveDisabled]='!createEWalletTypeModal.form.valid || saving'
+    (onCancelClick)='bsModalRef.hide()'
+    ></abp-modal-footer>
+</form>
