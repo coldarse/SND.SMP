@@ -10,6 +10,11 @@ namespace SND.SMP.Authorization
         public const string Pages_Roles = "Pages.Roles";
 
         /* Define your permissions here */
+        public const string Pages_Wallet = "Pages.Wallet";
+        public const string Pages_Wallet_Create = "Pages.Wallet.Create";
+        public const string Pages_Wallet_Edit = "Pages.Wallet.Edit";
+        public const string Pages_Wallet_Delete = "Pages.Wallet.Delete";
+
         public const string Pages_Currency = "Pages.Currency";
         public const string Pages_Currency_Create = "Pages.Currency.Create";
         public const string Pages_Currency_Edit = "Pages.Currency.Edit";

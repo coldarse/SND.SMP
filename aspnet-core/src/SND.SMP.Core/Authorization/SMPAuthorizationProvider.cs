@@ -14,6 +14,11 @@ namespace SND.SMP.Authorization
             context.CreatePermission(PermissionNames.Pages_Tenants, L("Tenants"), multiTenancySides: MultiTenancySides.Host);
 
             /* Define your permissions here */
+            context.CreatePermission(PermissionNames.Pages_Wallet, L("Wallets"));
+            context.CreatePermission(PermissionNames.Pages_Wallet_Create, L("WalletsCreate"));
+            context.CreatePermission(PermissionNames.Pages_Wallet_Edit, L("WalletsEdit"));
+            context.CreatePermission(PermissionNames.Pages_Wallet_Delete, L("WalletsDelete"));
+
             context.CreatePermission(PermissionNames.Pages_Currency, L("Currencies"));
             context.CreatePermission(PermissionNames.Pages_Currency_Create, L("CurrenciesCreate"));
             context.CreatePermission(PermissionNames.Pages_Currency_Edit, L("CurrenciesEdit"));
