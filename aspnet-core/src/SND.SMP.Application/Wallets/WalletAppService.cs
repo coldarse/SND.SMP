@@ -23,7 +23,10 @@ namespace SND.SMP.Wallets
         }
         protected override IQueryable<Wallet> CreateFilteredQuery(PagedWalletResultRequestDto input)
         {
-            return Repository.GetAllIncluding().AsQueryable();
+            return Repository.GetAllIncluding()
+            .WhereIf(!input.Keyword.IsNullOrWhiteSpace(), x => x.Customer.Contains(input.Keyword))
+            .WhereIf(!input.Customer.IsNullOrWhiteSpace(), x => x.Customer.ToLower().Equals(input.Customer.ToLower()))
+            .AsQueryable();
         }
 
         public override async Task<WalletDto> CreateAsync(WalletDto input)
@@ -71,5 +74,6 @@ namespace SND.SMP.Wallets
         {
             return base.DeleteAsync(input);
         }
+
     }
 }

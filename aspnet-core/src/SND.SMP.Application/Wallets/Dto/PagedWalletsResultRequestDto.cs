@@ -7,7 +7,7 @@ namespace SND.SMP.Wallets
     public class PagedWalletResultRequestDto : PagedResultRequestDto
     {
         public string Keyword { get; set; }
-        public long? Customer { get; set; }
+        public string? Customer { get; set; }
         public long? EWalletType { get; set; }
         public long? Currency { get; set; }
     }
