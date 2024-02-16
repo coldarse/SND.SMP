@@ -13,5 +13,6 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\SND.SMP.Core\SND.SMP.Core.csproj" />
+    <ProjectReference Include="..\SND.SMP.EntityFrameworkCore\SND.SMP.EntityFrameworkCore.csproj" />
   </ItemGroup>
 </Project>

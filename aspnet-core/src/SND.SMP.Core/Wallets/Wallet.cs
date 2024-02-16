@@ -1,16 +1,15 @@
 using Abp.Domain.Entities;
-using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SND.SMP.Wallets
 {
 
-    public class Wallet : Entity
+    public class Wallet : Entity<string>
     {
         [Key]
         [Column(Order = 0)]
-        public long Customer { get; set; }
+        public string Customer { get; set; }
         [Key]
         [Column(Order = 1)]
         public long EWalletType { get; set; }
