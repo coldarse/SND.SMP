@@ -85,6 +85,28 @@ namespace SND.SMP.Wallets
             return base.DeleteAsync(input);
         }
 
+        public async Task<bool> UpdateEWalletAsync(UpdateWalletDto input)
+        {
+            var ewallet = await Repository.FirstOrDefaultAsync(x =>
+            (
+                x.Customer.Equals(input.OGCustomer) &&
+                x.EWalletType.Equals(input.OGEWalletType) &&
+                x.Currency.Equals(input.OGCurrency)
+            )) ?? throw new UserFriendlyException("No E-Wallet Found");
+
+            /* Remove Exisiting E-Wallet */
+            await Repository.DeleteAsync(ewallet);
+
+            /* Insert New E-Wallet */
+            var insert = await Repository.InsertAsync(new Wallet(){
+                Customer = input.Customer,
+                EWalletType = input.EWalletType,
+                Currency = input.Currency
+            }) ?? throw new UserFriendlyException("Error Updating EWallet");
+
+            return true;
+        }
+
         public async Task<EWalletDto> GetEWalletAsync(WalletDto input)
         {
             var ewallet = await Repository.FirstOrDefaultAsync(x =>
@@ -92,9 +114,7 @@ namespace SND.SMP.Wallets
                 x.Customer.Equals(input.Customer) &&
                 x.EWalletType.Equals(input.EWalletType) &&
                 x.Currency.Equals(input.Currency)
-            ));
-
-            if (ewallet is null) throw new UserFriendlyException("No E-Wallet Found");
+            )) ?? throw new UserFriendlyException("No E-Wallet Found");
 
             var ewallettype = await _eWalletTypeRepository.FirstOrDefaultAsync(x => x.Id.Equals(ewallet.EWalletType));
             var currency = await _currencyRepository.FirstOrDefaultAsync(x => x.Id.Equals(ewallet.Currency));
@@ -112,7 +132,7 @@ namespace SND.SMP.Wallets
 
             /* Get Available E-Wallet Types for this Customer */
             var eWalletTypes = await _eWalletTypeRepository.GetAllListAsync();
-            var availableEWalletTypes =  eWalletTypes.Where(x => !customerWallet.Any(y => y.EWalletType.Equals(x.Id))).ToList();
+            var availableEWalletTypes = eWalletTypes.Where(x => !customerWallet.Any(y => y.EWalletType.Equals(x.Id))).ToList();
             selectedEWallet.EWalletTypeList = availableEWalletTypes;
 
             /* Get Available Currencies for this Customer */
