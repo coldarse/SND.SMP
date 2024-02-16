@@ -98,13 +98,26 @@ namespace SND.SMP.Wallets
             await Repository.DeleteAsync(ewallet);
 
             /* Insert New E-Wallet */
-            var insert = await Repository.InsertAsync(new Wallet(){
+            var insert = await Repository.InsertAsync(new Wallet()
+            {
                 Customer = input.Customer,
                 EWalletType = input.EWalletType,
                 Currency = input.Currency
             }) ?? throw new UserFriendlyException("Error Updating EWallet");
 
             return true;
+        }
+
+        public async Task DeleteEWalletAsync(WalletDto input)
+        {
+            var ewallet = await Repository.FirstOrDefaultAsync(x =>
+            (
+                x.Customer.Equals(input.Customer) &&
+                x.EWalletType.Equals(input.EWalletType) &&
+                x.Currency.Equals(input.Currency)
+            )) ?? throw new UserFriendlyException("No E-Wallet Found");
+
+            await Repository.DeleteAsync(ewallet);
         }
 
         public async Task<EWalletDto> GetEWalletAsync(WalletDto input)
