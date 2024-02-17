@@ -1,11 +1,12 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpHeaders, HttpParams } from '@angular/common/http';
-import { catchError, retry, throwError } from 'rxjs';
-import { PagedCustomerResultRequestDto, CustomerDto } from './model';
+import { catchError, retry, throwError as _observableThrow, Observable } from 'rxjs';
+import { PagedWalletsResultRequestDto, UpdateWalletDto, WalletDto } from './model';
 import { AppConsts } from '@shared/AppConsts';
+import { ApiException } from '../service-proxies';
 
 @Injectable()
-export class CustomerService {
+export class WalletService {
 
     url = '';
     options_: any;
@@ -29,13 +30,20 @@ export class CustomerService {
             `Backend returned code ${error.status}, ` +
             `body was: ${error.error}`);
         }
-        return throwError(() => new Error(error.error.message));
+        return this.throwException(error.error.message, error.status, "", this.options_);
     }
 
-    //Create Customer
-    create(body: CustomerDto){
+    private throwException(message: string, status: number, response: string, headers: { [key: string]: any; }, result?: any): Observable<any> {
+        if (result !== null && result !== undefined)
+            return _observableThrow(result);
+        else
+            return _observableThrow(new ApiException(message, status, response, headers, null));
+    }
+
+    //Create Wallet
+    create(body: WalletDto){
         return this.http.post(
-            this.url + '/api/services/app/Customer/Create',
+            this.url + '/api/services/app/Wallet/Create',
             body,
             this.options_
         ).pipe(
@@ -44,10 +52,10 @@ export class CustomerService {
         )
     }
 
-    //Update Customer
-    update(body: CustomerDto){
+    //Update Wallet
+    update(body: WalletDto){
         return this.http.put(
-            this.url + '/api/services/app/Customer/Update',
+            this.url + '/api/services/app/Wallet/Update',
             body,
             this.options_
         ).pipe(
@@ -56,10 +64,10 @@ export class CustomerService {
         )
     }
 
-    //Delete Customer
+    //Delete Wallet
     delete(id: number){
         return this.http.delete(
-            this.url + `/api/services/app/Customer/Delete?Id=${id.toString()}`,
+            this.url + `/api/services/app/Wallet/Delete?Id=${id.toString()}`,
             this.options_
         ).pipe(
             retry(1),
@@ -67,10 +75,10 @@ export class CustomerService {
         )
     }
 
-    //Get Customer
+    //Get Wallet
     get(id: number){
         return this.http.get(
-            this.url + `/api/services/app/Customer/Get?Id=${id}`,
+            this.url + `/api/services/app/Wallet/Get?Id=${id}`,
             this.options_
         ).pipe(
             retry(1),
@@ -78,9 +86,9 @@ export class CustomerService {
         )
     }
 
-    //Get All Customers
-    getAll(body: PagedCustomerResultRequestDto){
-        let url_ = this.url + "/api/services/app/Customer/GetAll?";
+    //Get All Wallets
+    getAll(body: PagedWalletsResultRequestDto){
+        let url_ = this.url + "/api/services/app/Wallet/GetAll?";
 
         if (body.keyword === null)
             throw new Error("The parameter 'keyword' cannot be null.");
@@ -103,10 +111,13 @@ export class CustomerService {
         )
     }
 
-    //Get Company Name
-    getCompanyName(email: string){
-        return this.http.get(
-            this.url + `/api/services/app/Customer/GetCompanyName?email=${email}`,
+
+
+    // Update E-Wallet Async
+    updateEWalletAsync(body: UpdateWalletDto){
+        return this.http.put(
+            this.url + '/api/services/app/Wallet/UpdateEWallet',
+            body,
             this.options_
         ).pipe(
             retry(1),
@@ -114,14 +125,36 @@ export class CustomerService {
         )
     }
 
-    // Get All Customers without filter
-    getAllCustomers(){
-        return this.http.get(
-            this.url + `/api/services/app/Customer/GetAllCustomers`,
+    // Delete E-Wallet Async
+    deleteEWalletAsync(body: WalletDto){
+        return this.http.delete(
+            this.url + `/api/services/app/Wallet/DeleteEWallet?Customer=${body.customer}&EWalletType=${body.eWalletType}&Currency=${body.currency}`,
             this.options_
         ).pipe(
             retry(1),
             catchError(this.handleError),
         )
+    }
+
+    // Get E-Wallet Async
+    getEWalletAsync(body: WalletDto){
+        if(body.id != undefined){
+            return this.http.get(
+                this.url + `/api/services/app/Wallet/GetEWallet?Id=${body.id}`,
+                this.options_
+            ).pipe(
+                retry(1),
+                catchError(this.handleError),
+            )
+        }
+        else{
+            return this.http.get(
+                this.url + `/api/services/app/Wallet/GetEWallet?Customer=${body.customer}&EWalletType=${body.eWalletType}&Currency=${body.currency}`,
+                this.options_
+            ).pipe(
+                retry(1),
+                catchError(this.handleError),
+            )
+        }
     }
 }

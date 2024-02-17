@@ -9,3 +9,6 @@ export interface PagedEWalletTypeResultRequestDto extends PagedAndSortedResultRe
     keyword?: string;
     type?: string;
 }
+
+
+

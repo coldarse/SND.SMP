@@ -102,4 +102,15 @@ export class CurrencyService {
             catchError(this.handleError),
         )
     }
+
+    // Get All Currencies without filter
+    getCurrencies(){
+        return this.http.get(
+            this.url + `/api/services/app/Currency/GetCurrencies`,
+            this.options_
+        ).pipe(
+            retry(1),
+            catchError(this.handleError),
+        )
+    }
 }

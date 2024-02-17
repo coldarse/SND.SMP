@@ -11,6 +11,7 @@ using SND.SMP.Customers.Dto;
 using System.Runtime.CompilerServices;
 using SND.SMP.Users;
 using SND.SMP.Users.Dto;
+using System.Formats.Asn1;
 
 namespace SND.SMP.Customers
 {
@@ -27,7 +28,7 @@ namespace SND.SMP.Customers
         protected override IQueryable<Customer> CreateFilteredQuery(PagedCustomerResultRequestDto input)
         {
             return Repository.GetAllIncluding()
-                .WhereIf(!input.Keyword.IsNullOrWhiteSpace(), x => 
+                .WhereIf(!input.Keyword.IsNullOrWhiteSpace(), x =>
                     x.Code.Contains(input.Keyword) ||
                     x.CompanyName.Contains(input.Keyword) ||
                     x.EmailAddress.Contains(input.Keyword) ||
@@ -73,6 +74,11 @@ namespace SND.SMP.Customers
             var user = await _userAppService.CreateAsync(userdto);
 
             return MapToEntityDto(entity);
+        }
+
+        public async Task<List<Customer>> GetAllCustomers()
+        {
+            return await Repository.GetAllListAsync();
         }
     }
 }

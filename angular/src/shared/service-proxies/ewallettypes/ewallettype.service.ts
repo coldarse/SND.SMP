@@ -102,4 +102,15 @@ export class EWalletTypeService {
             catchError(this.handleError),
         )
     }
+
+    // Get All E-Wallet Types without filter
+    getEWalletTypes(){
+        return this.http.get(
+            this.url + `/api/services/app/EWalletType/GetEWalletTypes`,
+            this.options_
+        ).pipe(
+            retry(1),
+            catchError(this.handleError),
+        )
+    }
 }

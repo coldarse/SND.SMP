@@ -20,9 +20,14 @@ namespace SND.SMP.Currencies
         protected override IQueryable<Currency> CreateFilteredQuery(PagedCurrencyResultRequestDto input)
         {
             return Repository.GetAllIncluding()
-                .WhereIf(!input.Keyword.IsNullOrWhiteSpace(), x => 
+                .WhereIf(!input.Keyword.IsNullOrWhiteSpace(), x =>
                     x.Abbr.Contains(input.Keyword) ||
                     x.Description.Contains(input.Keyword)).AsQueryable();
+        }
+
+        public async Task<List<Currency>> GetCurrencies()
+        {
+            return await Repository.GetAllListAsync();
         }
     }
 }

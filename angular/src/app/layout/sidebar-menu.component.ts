@@ -80,6 +80,12 @@ export class SidebarMenuComponent extends AppComponentBase implements OnInit {
                 'far fa-circle',
                 'Pages.Customer'
             ),
+            new MenuItem(
+                this.l('Wallets'),
+                '/app/wallets',
+                'far fa-circle',
+                'Pages.Wallet'
+            ),
             new MenuItem(this.l('MultiLevelMenu'), '', 'fas fa-circle', '', [
                 new MenuItem('ASP.NET Boilerplate', '', 'fas fa-dot-circle', '', [
                     new MenuItem(

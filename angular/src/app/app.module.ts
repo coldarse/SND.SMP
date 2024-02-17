@@ -51,7 +51,9 @@ import { CustomersComponent } from './customers/customers.component';
 import { CreateUpdateCustomerComponent } from './customers/create-update-customer/create-update-customer.component';
 import { CustomerService } from '@shared/service-proxies/customers/customer.service';
 
-
+import { WalletsComponent } from './wallets/wallets.component';
+import { CreateUpdateWalletComponent } from './wallets/create-update-wallet/create-update-wallet.component';
+import { WalletService } from '@shared/service-proxies/wallets/wallet.service';
 
 
 @NgModule({
@@ -90,6 +92,8 @@ import { CustomerService } from '@shared/service-proxies/customers/customer.serv
         CreateUpdateEWalletTypeComponent,
         CustomersComponent,
         CreateUpdateCustomerComponent,
+        WalletsComponent,
+        CreateUpdateWalletComponent,
     ],
     imports: [
         CommonModule,
@@ -111,6 +115,7 @@ import { CustomerService } from '@shared/service-proxies/customers/customer.serv
         CurrencyService,
         EWalletTypeService,
         CustomerService,
+        WalletService,
     ]
 })
 export class AppModule {}

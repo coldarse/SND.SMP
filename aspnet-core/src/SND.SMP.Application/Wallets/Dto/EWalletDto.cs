@@ -1,8 +1,9 @@
 using System.Collections.Generic;
+using Abp.Application.Services.Dto;
 using SND.SMP.Currencies;
 using SND.SMP.EWalletTypes;
 
-public class EWalletDto
+public class EWalletDto : EntityDto<string>
 {
     public string Customer { get; set; }
     public long EWalletType { get; set; }

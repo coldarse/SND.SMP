@@ -20,8 +20,13 @@ namespace SND.SMP.EWalletTypes
         protected override IQueryable<EWalletType> CreateFilteredQuery(PagedEWalletTypeResultRequestDto input)
         {
             return Repository.GetAllIncluding()
-                .WhereIf(!input.Keyword.IsNullOrWhiteSpace(), x => 
+                .WhereIf(!input.Keyword.IsNullOrWhiteSpace(), x =>
                     x.Type.Contains(input.Keyword)).AsQueryable();
+        }
+
+        public async Task<List<EWalletType>> GetEWalletTypes()
+        {
+            return await Repository.GetAllListAsync();
         }
     }
 }
