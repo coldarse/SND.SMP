@@ -143,6 +143,11 @@ namespace SND.SMP.Roles
                 GrantedPermissionNames = grantedPermissions.Select(p => p.Name).ToList()
             };
         }
+
+        public async Task<Role> GetRoleByName(string role)
+        {
+            return await Repository.FirstOrDefaultAsync(x => x.Name.Equals(role));
+        }
     }
 }
 

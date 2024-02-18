@@ -18,6 +18,7 @@ export class AppSessionService {
     private _application: ApplicationInfoDto;
     private _customer: CustomerDto;
     private _companyName: string;
+    private _companyCode: string;
 
     constructor(
         private _sessionService: SessionServiceProxy,
@@ -58,9 +59,14 @@ export class AppSessionService {
         return (this._tenant ? this._tenant.tenancyName : '.') + '\\' + userName;
     }
 
-    getShowCustomerCompanyName(): string {
+    getShownCustomerCompanyName(): string {
         const companyName = this._companyName;
         return companyName;
+    }
+
+    getCompanyCode(): string {
+        const companyCode = this._companyCode;
+        return companyCode;
     }
 
 
@@ -72,8 +78,9 @@ export class AppSessionService {
                 this._tenant = result.tenant;
 
                 if(this._user){
-                    this._customerService.getCompanyName(this._user.emailAddress).subscribe((name: any) => {
-                        this._companyName = name.result;
+                    this._customerService.getCompanyNameAndCode(this._user.emailAddress).subscribe((name: any) => {
+                        this._companyName = name.result.name;
+                        this._companyCode = name.result.code;
                         resolve(true);
                     });
                 }

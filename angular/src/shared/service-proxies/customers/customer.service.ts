@@ -104,9 +104,9 @@ export class CustomerService {
     }
 
     //Get Company Name
-    getCompanyName(email: string){
+    getCompanyNameAndCode(email: string){
         return this.http.get(
-            this.url + `/api/services/app/Customer/GetCompanyName?email=${email}`,
+            this.url + `/api/services/app/Customer/GetCompanyNameAndCode?email=${email}`,
             this.options_
         ).pipe(
             retry(1),

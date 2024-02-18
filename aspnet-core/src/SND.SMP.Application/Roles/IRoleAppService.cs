@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 using Abp.Application.Services;
 using Abp.Application.Services.Dto;
+using SND.SMP.Authorization.Roles;
 using SND.SMP.Roles.Dto;
 
 namespace SND.SMP.Roles
@@ -12,5 +13,7 @@ namespace SND.SMP.Roles
         Task<GetRoleForEditOutput> GetRoleForEdit(EntityDto input);
 
         Task<ListResultDto<RoleListDto>> GetRolesAsync(GetRolesInput input);
+
+        Task<Role> GetRoleByName(string role);
     }
 }

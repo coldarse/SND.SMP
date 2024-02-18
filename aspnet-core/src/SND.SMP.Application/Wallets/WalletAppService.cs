@@ -3,6 +3,7 @@ using Abp.Application.Services;
 using Abp.Extensions;
 using Abp.Collections.Extensions;
 using Abp.Domain.Repositories;
+using Abp.Linq.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -35,9 +36,8 @@ namespace SND.SMP.Wallets
         protected override IQueryable<Wallet> CreateFilteredQuery(PagedWalletResultRequestDto input)
         {
             return Repository.GetAllIncluding()
-            .WhereIf(!input.Keyword.IsNullOrWhiteSpace(), x => x.Customer.Contains(input.Keyword))
-            .WhereIf(!input.Customer.IsNullOrWhiteSpace(), x => x.Customer.ToLower().Equals(input.Customer.ToLower()))
-            .AsQueryable();
+                .WhereIf(!input.Keyword.IsNullOrWhiteSpace(), x =>
+                    x.Customer.Contains(input.Keyword));
         }
 
         public override async Task<WalletDto> CreateAsync(WalletDto input)
@@ -63,26 +63,6 @@ namespace SND.SMP.Wallets
                     else throw new UserFriendlyException("You have already created a similar wallet. Please try again.");
                 }
             }
-        }
-
-        public override async Task<PagedResultDto<WalletDto>> GetAllAsync(PagedWalletResultRequestDto input)
-        {
-            return await base.GetAllAsync(input);
-        }
-
-        public override async Task<WalletDto> GetAsync(EntityDto<string> input)
-        {
-            return await base.GetAsync(input);
-        }
-
-        public override async Task<WalletDto> UpdateAsync(WalletDto input)
-        {
-            return await base.UpdateAsync(input);
-        }
-
-        public override Task DeleteAsync(EntityDto<string> input)
-        {
-            return base.DeleteAsync(input);
         }
 
         public async Task<bool> UpdateEWalletAsync(UpdateWalletDto input)

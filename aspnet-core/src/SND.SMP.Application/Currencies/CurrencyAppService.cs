@@ -6,6 +6,7 @@ using Abp.Domain.Repositories;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Abp.Linq.Extensions;
 using System.Threading.Tasks;
 using SND.SMP.Currencies.Dto;
 
@@ -22,7 +23,7 @@ namespace SND.SMP.Currencies
             return Repository.GetAllIncluding()
                 .WhereIf(!input.Keyword.IsNullOrWhiteSpace(), x =>
                     x.Abbr.Contains(input.Keyword) ||
-                    x.Description.Contains(input.Keyword)).AsQueryable();
+                    x.Description.Contains(input.Keyword));
         }
 
         public async Task<List<Currency>> GetCurrencies()

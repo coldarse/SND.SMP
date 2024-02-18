@@ -3,6 +3,7 @@ using Abp.Application.Services;
 using Abp.Extensions;
 using Abp.Collections.Extensions;
 using Abp.Domain.Repositories;
+using Abp.Linq.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,7 +22,7 @@ namespace SND.SMP.EWalletTypes
         {
             return Repository.GetAllIncluding()
                 .WhereIf(!input.Keyword.IsNullOrWhiteSpace(), x =>
-                    x.Type.Contains(input.Keyword)).AsQueryable();
+                    x.Type.Contains(input.Keyword));
         }
 
         public async Task<List<EWalletType>> GetEWalletTypes()

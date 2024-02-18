@@ -14,5 +14,7 @@ namespace SND.SMP.Users
         Task ChangeLanguage(ChangeUserLanguageDto input);
 
         Task<bool> ChangePassword(ChangePasswordDto input);
+
+        Task GetAndDeleteUserByUsername(string username);
     }
 }

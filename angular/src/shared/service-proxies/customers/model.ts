@@ -35,3 +35,8 @@ export interface PagedCustomerResultRequestDto extends PagedAndSortedResultReque
     emailAddress3?: string;
     isActive?: boolean;
 }
+
+export interface CompanyNameAndCode {
+    name: string;
+    code: string;
+}

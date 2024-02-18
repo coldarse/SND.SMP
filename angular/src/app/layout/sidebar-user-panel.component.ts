@@ -20,6 +20,6 @@ export class SidebarUserPanelComponent extends AppComponentBase
   }
 
   ngOnInit() {
-    this.shownLoginName = this.appSession.getShownLoginName().replace('.\\', '') == 'admin' ? this.appSession.getShownLoginName().replace('.\\', '') : this.appSession.getShowCustomerCompanyName();
+    this.shownLoginName = this.appSession.getShownLoginName().replace('.\\', '').includes('admin') ? this.appSession.getShownLoginName().replace('.\\', '') : this.appSession.getShownCustomerCompanyName();
   }
 }

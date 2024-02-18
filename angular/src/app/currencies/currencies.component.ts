@@ -107,7 +107,7 @@ export class CurrenciesComponent extends PagedListingComponentBase<CurrencyDto> 
 
           let tempCurrency = {
             id: element.id,
-            currency: element.abbr,
+            abbr: element.abbr,
             description: element.description,
           }
 

@@ -53,6 +53,13 @@ namespace SND.SMP.Users
             _logInManager = logInManager;
         }
 
+        protected override IQueryable<User> CreateFilteredQuery(PagedUserResultRequestDto input)
+        {
+            return Repository.GetAllIncluding(x => x.Roles)
+                .WhereIf(!input.Keyword.IsNullOrWhiteSpace(), x => x.UserName.Contains(input.Keyword) || x.Name.Contains(input.Keyword) || x.EmailAddress.Contains(input.Keyword))
+                .WhereIf(input.IsActive.HasValue, x => x.IsActive == input.IsActive);
+        }
+
         public override async Task<UserDto> CreateAsync(CreateUserDto input)
         {
             CheckCreatePermission();
@@ -159,12 +166,7 @@ namespace SND.SMP.Users
             return userDto;
         }
 
-        protected override IQueryable<User> CreateFilteredQuery(PagedUserResultRequestDto input)
-        {
-            return Repository.GetAllIncluding(x => x.Roles)
-                .WhereIf(!input.Keyword.IsNullOrWhiteSpace(), x => x.UserName.Contains(input.Keyword) || x.Name.Contains(input.Keyword) || x.EmailAddress.Contains(input.Keyword))
-                .WhereIf(input.IsActive.HasValue, x => x.IsActive == input.IsActive);
-        }
+        
 
         protected override async Task<User> GetEntityByIdAsync(long id)
         {
@@ -197,7 +199,7 @@ namespace SND.SMP.Users
             {
                 throw new Exception("There is no current user!");
             }
-            
+
             if (await _userManager.CheckPasswordAsync(user, input.CurrentPassword))
             {
                 CheckErrors(await _userManager.ChangePasswordAsync(user, input.NewPassword));
@@ -219,19 +221,19 @@ namespace SND.SMP.Users
             {
                 throw new UserFriendlyException("Please log in before attempting to reset password.");
             }
-            
+
             var currentUser = await _userManager.GetUserByIdAsync(_abpSession.GetUserId());
             var loginAsync = await _logInManager.LoginAsync(currentUser.UserName, input.AdminPassword, shouldLockout: false);
             if (loginAsync.Result != AbpLoginResultType.Success)
             {
                 throw new UserFriendlyException("Your 'Admin Password' did not match the one on record.  Please try again.");
             }
-            
+
             if (currentUser.IsDeleted || !currentUser.IsActive)
             {
                 return false;
             }
-            
+
             var roles = await _userManager.GetRolesAsync(currentUser);
             if (!roles.Contains(StaticRoleNames.Tenants.Admin))
             {
@@ -246,6 +248,12 @@ namespace SND.SMP.Users
             }
 
             return true;
+        }
+
+        public async Task GetAndDeleteUserByUsername(string username)
+        {
+            var user = await Repository.FirstOrDefaultAsync(x => x.UserName.Equals(username));
+            await _userManager.DeleteAsync(user);
         }
     }
 }

@@ -23,6 +23,7 @@ export class WalletsComponent extends PagedListingComponentBase<WalletDto> {
 
   keyword = '';
   wallets: any[] = [];
+  isAdmin = true;
 
   constructor(
     injector: Injector,
@@ -33,6 +34,7 @@ export class WalletsComponent extends PagedListingComponentBase<WalletDto> {
     private _modalService: BsModalService
   ){
     super(injector);
+    this.isAdmin = this.appSession.getShownLoginName().replace('.\\', '').includes('admin') ? true : false;
   }
 
   createWallet(){
@@ -44,7 +46,11 @@ export class WalletsComponent extends PagedListingComponentBase<WalletDto> {
     }
     this._walletService.getEWalletAsync(entity).subscribe((result: any) => {
       this._customerService.getAllCustomers().subscribe((customers: any) => {
-        this.showCreateOrEditWalletDialog(result.result, customers.result);
+        let custs = customers.result;
+        if(!this.isAdmin){
+          custs = custs.filter((x: CustomerDto) => x.code == this.appSession.getCompanyCode())
+        }
+        this.showCreateOrEditWalletDialog(result.result, custs);
       });
     });
   }
@@ -52,7 +58,11 @@ export class WalletsComponent extends PagedListingComponentBase<WalletDto> {
   editWallet(entity: WalletDto){
     this._walletService.getEWalletAsync(entity).subscribe((result: any) => {
       this._customerService.getAllCustomers().subscribe((customers: any) => {
-        this.showCreateOrEditWalletDialog(result.result, customers.result);
+        let custs = customers.result;
+        if(!this.isAdmin){
+          custs = custs.filter((x: CustomerDto) => x.code == this.appSession.getCompanyCode())
+        }
+        this.showCreateOrEditWalletDialog(result.result, custs);
       });
     });
   }
@@ -118,6 +128,9 @@ export class WalletsComponent extends PagedListingComponentBase<WalletDto> {
     pageNumber: number,
     finishedCallback: Function
   ): void {
+
+    if(!this.isAdmin) this.keyword = this.appSession.getCompanyCode();
+
     request.keyword = this.keyword;
     this._walletService
     .getAll(
@@ -144,8 +157,6 @@ export class WalletsComponent extends PagedListingComponentBase<WalletDto> {
             }
     
             this.wallets.push(tempWallet);
-
-            console.log(this.wallets);
           });
           this.showPaging(result.result, pageNumber);
         });
