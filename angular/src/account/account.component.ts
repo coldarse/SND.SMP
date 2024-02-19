@@ -9,6 +9,7 @@ import { AppComponentBase } from '@shared/app-component-base';
 
 @Component({
   templateUrl: './account.component.html',
+  styleUrl: './account.component.css',
   encapsulation: ViewEncapsulation.None
 })
 export class AccountComponent extends AppComponentBase implements OnInit {

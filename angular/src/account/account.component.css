@@ -1,0 +1,17 @@
+.login-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.card {
+    border-radius: 0.75rem;
+    min-width: 30rem;
+}
+
+.logo-text {
+    font-size: 1.5rem; 
+    display: flex; 
+    align-items: center;
+    justify-content: center;
+}
