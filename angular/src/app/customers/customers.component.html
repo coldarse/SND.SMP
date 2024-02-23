@@ -49,18 +49,18 @@
                             <thead class='bg-light'>
                             <tr>
                                 <th>{{ 'Code' | localize }}</th>
-                                <th>{{ 'CompanyName' | localize }}</th>
-                                <th>{{ 'EmailAddress' | localize }}</th>
-                                <th>{{ 'Password' | localize }}</th>
-                                <th>{{ 'AddressLine1' | localize }}</th>
-                                <th>{{ 'AddressLine2' | localize }}</th>
+                                <th>{{ 'Company Name' | localize }}</th>
+                                <th>{{ 'Email Address' | localize }}</th>
+                                <!-- <th>{{ 'Password' | localize }}</th> -->
+                                <th>{{ 'Address Line 1' | localize }}</th>
+                                <th>{{ 'Address Line 2' | localize }}</th>
                                 <th>{{ 'City' | localize }}</th>
                                 <th>{{ 'State' | localize }}</th>
                                 <th>{{ 'Country' | localize }}</th>
-                                <th>{{ 'PhoneNumber' | localize }}</th>
-                                <th>{{ 'RegistrationNo' | localize }}</th>
-                                <th>{{ 'EmailAddress2' | localize }}</th>
-                                <th>{{ 'EmailAddress3' | localize }}</th>
+                                <th>{{ 'Phone Number' | localize }}</th>
+                                <th>{{ 'Registration No' | localize }}</th>
+                                <th>{{ 'Email Address 2' | localize }}</th>
+                                <th>{{ 'Email Address 3' | localize }}</th>
                                 <th>{{ 'IsActive' | localize }}</th>
                                 <th style='width: 310px;' *ngIf='isButtonVisible("Edit") && isButtonVisible("Delete")'>{{ 'Actions' | localize }}</th>
                             </tr>
@@ -81,7 +81,7 @@
                                 <td>{{ customer.code }}</td>
                                 <td>{{ customer.companyName }}</td>
                                 <td>{{ customer.emailAddress }}</td>
-                                <td>{{ customer.password }}</td>
+                                <!-- <td>{{ customer.password }}</td> -->
                                 <td>{{ customer.addressLine1 }}</td>
                                 <td>{{ customer.addressLine2 }}</td>
                                 <td>{{ customer.city }}</td>
@@ -91,7 +91,8 @@
                                 <td>{{ customer.registrationNo }}</td>
                                 <td>{{ customer.emailAddress2 }}</td>
                                 <td>{{ customer.emailAddress3 }}</td>
-                                <td>{{ customer.isActive }}</td>
+                                <td *ngIf="customer.isActive" class="text-center" style="color: rgb(9, 145, 41);"><i class="fas fa-check-circle"></i></td>
+                                <td *ngIf="!customer.isActive" class="text-center" style="color: rgb(212, 5, 5);"><i class="fas fa-times-circle"></i></td>
                                 <td *ngIf='isButtonVisible("Edit") || isButtonVisible("Delete")'>
                                     <button
                                             type='button'
