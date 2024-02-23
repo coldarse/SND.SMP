@@ -1,0 +1,9 @@
+.login-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.login-box img {
+    width: 50px;
+}

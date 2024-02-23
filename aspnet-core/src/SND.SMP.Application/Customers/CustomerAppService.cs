@@ -70,9 +70,9 @@ namespace SND.SMP.Customers
             if (role is null)
             {
                 List<string> GrantedPermissions = new List<string>();
-                GrantedPermissions.Add("Pages.Customer.Create");
-                GrantedPermissions.Add("Pages.Customer.Delete");
-                GrantedPermissions.Add("Pages.Customer.Edit");
+                // GrantedPermissions.Add("Pages.Customer.Create");
+                // GrantedPermissions.Add("Pages.Customer.Delete");
+                // GrantedPermissions.Add("Pages.Customer.Edit");
                 GrantedPermissions.Add("Pages.Customer");
 
                 CreateRoleDto createRole = new CreateRoleDto()

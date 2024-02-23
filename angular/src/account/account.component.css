@@ -15,3 +15,13 @@
     align-items: center;
     justify-content: center;
 }
+
+.card-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.card-header img {
+    max-width: 75%;
+}
