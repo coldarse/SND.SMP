@@ -6,6 +6,7 @@ export interface WalletDto extends EntityDto<string> {
     customer: string;
     eWalletType: number;
     currency: number;
+    balance: number;
 }
 
 export interface PagedWalletsResultRequestDto extends PagedAndSortedResultRequestDto {
@@ -13,6 +14,7 @@ export interface PagedWalletsResultRequestDto extends PagedAndSortedResultReques
     customer?: string;
     eWalletType?: number;
     currency?: number;
+    balance?: number;
 }
 
 export interface EWalletDto extends EntityDto<string> {
@@ -23,6 +25,7 @@ export interface EWalletDto extends EntityDto<string> {
     currencyDesc: string;
     eWalletTypeList: EWalletTypeDto[];
     currencyList: CurrencyDto[];
+    balance: number;
 }
 
 export interface UpdateWalletDto {

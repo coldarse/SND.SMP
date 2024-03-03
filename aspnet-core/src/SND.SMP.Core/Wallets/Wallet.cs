@@ -16,5 +16,6 @@ namespace SND.SMP.Wallets
         [Key]
         [Column(Order = 2)]
         public long Currency { get; set; }
+        public float Balance { get; set; }
     }
 }

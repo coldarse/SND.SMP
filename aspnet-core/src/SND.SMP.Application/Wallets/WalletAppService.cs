@@ -119,7 +119,8 @@ namespace SND.SMP.Wallets
                     EWalletTypeDesc = "",
                     CurrencyDesc = "",
                     EWalletTypeList = eWalletTypes,
-                    CurrencyList = currencies
+                    CurrencyList = currencies,
+                    Balance = 0f
                 };
 
                 return selectedEWallet;
@@ -143,7 +144,8 @@ namespace SND.SMP.Wallets
                     EWalletType = ewallet.EWalletType,
                     Currency = ewallet.Currency,
                     EWalletTypeDesc = ewallettype.Type,
-                    CurrencyDesc = currency.Abbr
+                    CurrencyDesc = currency.Abbr,
+                    Balance = ewallet.Balance
                 };
 
                 var customerWallet = await Repository.GetAllListAsync(x => x.Customer.Equals(input.Customer));

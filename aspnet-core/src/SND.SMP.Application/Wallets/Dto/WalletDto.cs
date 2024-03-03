@@ -10,5 +10,6 @@ namespace SND.SMP.Wallets.Dto
         public string Customer { get; set; }
         public long EWalletType { get; set; }
         public long Currency { get; set; }
+        public float Balance { get; set; }
     }
 }

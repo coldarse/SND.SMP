@@ -153,9 +153,10 @@ export class WalletsComponent extends PagedListingComponentBase<WalletDto> {
               eWalletType: element.eWalletType,
               eWalletTypeDesc: ewallettype.type,
               currency: element.currency,
-              currencyDesc: currency.abbr
+              currencyDesc: currency.abbr,
+              balance: element.balance
             }
-    
+
             this.wallets.push(tempWallet);
           });
           this.showPaging(result.result, pageNumber);

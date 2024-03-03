@@ -51,6 +51,7 @@
                                 <th>{{ 'Customer' | localize }}</th>
                                 <th>{{ 'E-Wallet Type' | localize }}</th>
                                 <th>{{ 'Currency' | localize }}</th>
+                                <th>{{ 'Balance' | localize }}</th>
                                 <th style='width: 310px;' *ngIf='isButtonVisible("Edit") && isButtonVisible("Delete")'>{{ 'Actions' | localize }}</th>
                             </tr>
                             </thead>
@@ -70,6 +71,7 @@
                                 <td>{{ wallet.customer }}</td>
                                 <td>{{ wallet.eWalletTypeDesc }}</td>
                                 <td>{{ wallet.currencyDesc }}</td>
+                                <td>{{ wallet.balance }}</td>
                                 <td *ngIf='isButtonVisible("Edit") || isButtonVisible("Delete")'>
                                     <button
                                             type='button'

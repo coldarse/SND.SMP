@@ -36,6 +36,7 @@ namespace SND.SMP.EntityFrameworkCore
                 b.Property(x => x.Customer).HasColumnName(nameof(Wallet.Customer));
                 b.Property(x => x.EWalletType).HasColumnName(nameof(Wallet.EWalletType));
                 b.Property(x => x.Currency).HasColumnName(nameof(Wallet.Currency));
+                b.Property(x => x.Balance).HasColumnName(nameof(Wallet.Balance));
                 b.HasOne<Customer>().WithMany().HasForeignKey(x => x.Customer).HasPrincipalKey(x => x.Code);
                 b.HasOne<EWalletType>().WithMany().HasForeignKey(x => x.EWalletType);
                 b.HasOne<Currency>().WithMany().HasForeignKey(x => x.Currency);
