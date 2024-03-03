@@ -10,6 +10,11 @@ namespace SND.SMP.Authorization
         public const string Pages_Roles = "Pages.Roles";
 
         /* Define your permissions here */
+        public const string Pages_RateItem = "Pages.RateItem";
+        public const string Pages_RateItem_Create = "Pages.RateItem.Create";
+        public const string Pages_RateItem_Edit = "Pages.RateItem.Edit";
+        public const string Pages_RateItem_Delete = "Pages.RateItem.Delete";
+
         public const string Pages_Rate = "Pages.Rate";
         public const string Pages_Rate_Create = "Pages.Rate.Create";
         public const string Pages_Rate_Edit = "Pages.Rate.Edit";

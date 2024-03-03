@@ -4,6 +4,7 @@ using SND.SMP.Authorization.Roles;
 using SND.SMP.Authorization.Users;
 using SND.SMP.MultiTenancy;
 /* Using Definition */
+using SND.SMP.RateItems;
 using SND.SMP.Rates;
 using SND.SMP.Wallets;
 using SND.SMP.Currencies;
@@ -20,6 +21,7 @@ namespace SND.SMP.EntityFrameworkCore
         public DbSet<Currency> Currencies { get; set; }
         public DbSet<Wallet> Wallets { get; set; }
         public DbSet<Rate> Rates { get; set; }
+        public DbSet<RateItem> RateItems { get; set; }
         /* Define a DbSet for each entity of the application */
         
         public SMPDbContext(DbContextOptions<SMPDbContext> options)
@@ -32,6 +34,22 @@ namespace SND.SMP.EntityFrameworkCore
             base.OnModelCreating(builder);
 
             /* Define Tables */
+            builder.Entity<RateItem>(b =>
+            {
+                b.ToTable(SMPConsts.DbTablePrefix + "RateItems");
+                b.Property(x => x.RateId).HasColumnName(nameof(RateItem.RateId));
+                b.Property(x => x.ServiceCode).HasColumnName(nameof(RateItem.ServiceCode)).HasMaxLength(2);
+                b.Property(x => x.ProductCode).HasColumnName(nameof(RateItem.ProductCode)).HasMaxLength(10);
+                b.Property(x => x.CountryCode).HasColumnName(nameof(RateItem.CountryCode)).HasMaxLength(2);
+                b.Property(x => x.Total).HasColumnName(nameof(RateItem.Total)).HasPrecision(18, 2);
+                b.Property(x => x.Fee).HasColumnName(nameof(RateItem.Fee)).HasPrecision(18, 2);
+                b.Property(x => x.CurrencyId).HasColumnName(nameof(RateItem.CurrencyId));
+                b.Property(x => x.PaymentMode).HasColumnName(nameof(RateItem.PaymentMode)).HasMaxLength(20);
+                b.HasOne<Rate>().WithMany().HasForeignKey(x => x.RateId);
+                b.HasOne<Currency>().WithMany().HasForeignKey(x => x.CurrencyId);
+                b.HasKey(x => x.Id);
+            });
+
             builder.Entity<Rate>(b =>
             {
                 b.ToTable(SMPConsts.DbTablePrefix + "Rates");
