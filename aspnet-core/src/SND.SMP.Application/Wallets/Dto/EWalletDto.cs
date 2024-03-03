@@ -12,5 +12,5 @@ public class EWalletDto : EntityDto<string>
     public string CurrencyDesc { get; set; }
     public List<EWalletType> EWalletTypeList { get; set; }
     public List<Currency> CurrencyList { get; set; }
-    public float Balance { get; set; }
+    public decimal Balance { get; set; }
 }

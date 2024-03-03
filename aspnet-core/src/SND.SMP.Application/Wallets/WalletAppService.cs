@@ -117,7 +117,7 @@ namespace SND.SMP.Wallets
                     CurrencyDesc = "",
                     EWalletTypeList = eWalletTypes,
                     CurrencyList = currencies,
-                    Balance = 0f
+                    Balance = 0
                 };
 
                 return selectedEWallet;

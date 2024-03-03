@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SND.SMP.EntityFrameworkCore;
 
@@ -10,9 +11,11 @@ using SND.SMP.EntityFrameworkCore;
 namespace SND.SMP.Migrations
 {
     [DbContext(typeof(SMPDbContext))]
-    partial class SMPDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240303125132_Changed_Balance_To_Decimal")]
+    partial class Changed_Balance_To_Decimal
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1720,8 +1723,7 @@ namespace SND.SMP.Migrations
                         .HasColumnOrder(2);
 
                     b.Property<decimal>("Balance")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)")
+                        .HasColumnType("decimal(65,30)")
                         .HasColumnName("Balance");
 
                     b.Property<string>("Id")

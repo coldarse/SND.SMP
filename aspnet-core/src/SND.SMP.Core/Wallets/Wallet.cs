@@ -1,4 +1,5 @@
 using Abp.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -16,6 +17,6 @@ namespace SND.SMP.Wallets
         [Key]
         [Column(Order = 2)]
         public long Currency { get; set; }
-        public float Balance { get; set; }
+        public decimal Balance { get; set; }
     }
 }
