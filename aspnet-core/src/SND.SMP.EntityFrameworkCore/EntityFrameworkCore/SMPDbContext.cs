@@ -4,6 +4,7 @@ using SND.SMP.Authorization.Roles;
 using SND.SMP.Authorization.Users;
 using SND.SMP.MultiTenancy;
 /* Using Definition */
+using SND.SMP.Rates;
 using SND.SMP.Wallets;
 using SND.SMP.Currencies;
 using SND.SMP.EWalletTypes;
@@ -18,6 +19,7 @@ namespace SND.SMP.EntityFrameworkCore
         public DbSet<EWalletType> EWalletTypes { get; set; }
         public DbSet<Currency> Currencies { get; set; }
         public DbSet<Wallet> Wallets { get; set; }
+        public DbSet<Rate> Rates { get; set; }
         /* Define a DbSet for each entity of the application */
         
         public SMPDbContext(DbContextOptions<SMPDbContext> options)
@@ -30,6 +32,14 @@ namespace SND.SMP.EntityFrameworkCore
             base.OnModelCreating(builder);
 
             /* Define Tables */
+            builder.Entity<Rate>(b =>
+            {
+                b.ToTable(SMPConsts.DbTablePrefix + "Rates");
+                b.Property(x => x.CardName).HasColumnName(nameof(Rate.CardName)).HasMaxLength(50);
+                b.Property(x => x.Count).HasColumnName(nameof(Rate.Count));
+                b.HasKey(x => x.Id);
+            });
+
             builder.Entity<Wallet>(b =>
             {
                 b.ToTable(SMPConsts.DbTablePrefix + "Wallets");
