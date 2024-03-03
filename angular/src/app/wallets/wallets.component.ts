@@ -42,6 +42,7 @@ export class WalletsComponent extends PagedListingComponentBase<WalletDto> {
       customer: '',
       eWalletType: 0,
       currency: 0,
+      balance: 0,
       id: 'create'
     }
     this._walletService.getEWalletAsync(entity).subscribe((result: any) => {
@@ -154,7 +155,8 @@ export class WalletsComponent extends PagedListingComponentBase<WalletDto> {
               eWalletTypeDesc: ewallettype.type,
               currency: element.currency,
               currencyDesc: currency.abbr,
-              balance: element.balance
+              balance: element.balance,
+              id: element.id
             }
 
             this.wallets.push(tempWallet);

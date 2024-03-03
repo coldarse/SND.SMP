@@ -61,8 +61,25 @@ export class CreateUpdateWalletComponent
     this.wallet.currency = event.target.value;
   }
 
+  getCurrencyAbbr(id: number){
+    return this.wallet.currencyList.find(x => x.id == id).abbr;
+  }
+
+  getEWalletTypeAbbr(id: number){
+    const ewallettype = this.wallet.eWalletTypeList.find(x => x.id == id).type;
+
+    switch(ewallettype){
+      case 'Prepaid':
+        return 'PP';
+      case 'Credit Term':
+        return 'CT';
+    }
+  }
+
   save(): void {
     this.saving = true;
+
+    const walletName = this.wallet.customer  + this.getEWalletTypeAbbr(this.wallet.eWalletType) + this.getCurrencyAbbr(this.wallet.currency)
 
     if (this.wallet.id != null) {
       let update = true;
@@ -78,7 +95,8 @@ export class CreateUpdateWalletComponent
           ogCustomer: this.ogCustomer,
           currency: this.wallet.currency,
           eWalletType: this.wallet.eWalletType,
-          customer: this.wallet.customer
+          customer: this.wallet.customer,
+          id: walletName
         }
 
         this._walletService.updateEWalletAsync(updateValue).subscribe(
@@ -104,7 +122,9 @@ export class CreateUpdateWalletComponent
       let createValue : WalletDto = {
         customer: this.wallet.customer,
         eWalletType: this.wallet.eWalletType,
-        currency: this.wallet.currency
+        currency: this.wallet.currency,
+        balance: this.wallet.balance,
+        id: walletName
       }
 
       this._walletService.create(createValue).subscribe(

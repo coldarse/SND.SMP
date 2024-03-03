@@ -43,7 +43,6 @@ namespace SND.SMP.Wallets
         public override async Task<WalletDto> CreateAsync(WalletDto input)
         {
             var wallets = await Repository.GetAllListAsync(x => x.Customer.Equals(input.Customer));
-            input.Id = "";
             /* If Wallet does not exist */
             if (wallets.Count == 0) return await base.CreateAsync(input);
             /* If Wallet exist */
@@ -74,8 +73,6 @@ namespace SND.SMP.Wallets
                 x.Currency.Equals(input.OGCurrency)
             )) ?? throw new UserFriendlyException("No E-Wallet Found");
 
-            string id = ewallet.Id;
-
             /* Remove Exisiting E-Wallet */
             await Repository.DeleteAsync(ewallet);
 
@@ -85,7 +82,7 @@ namespace SND.SMP.Wallets
                 Customer = input.Customer,
                 EWalletType = input.EWalletType,
                 Currency = input.Currency,
-                Id = id
+                Id = input.Id
             }) ?? throw new UserFriendlyException("Error Updating EWallet");
 
             return true;

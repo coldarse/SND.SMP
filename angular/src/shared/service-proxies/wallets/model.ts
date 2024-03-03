@@ -29,6 +29,7 @@ export interface EWalletDto extends EntityDto<string> {
 }
 
 export interface UpdateWalletDto {
+    id: string;
     customer: string;
     eWalletType: number;
     currency: number;

@@ -6,4 +6,5 @@ public class UpdateWalletDto
     public string OGCustomer { get; set; }
     public long OGEWalletType { get; set; }
     public long OGCurrency { get; set; }
+    public string Id { get; set; }
 }
