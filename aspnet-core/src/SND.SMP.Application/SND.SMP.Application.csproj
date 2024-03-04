@@ -15,4 +15,7 @@
     <ProjectReference Include="..\SND.SMP.Core\SND.SMP.Core.csproj" />
     <ProjectReference Include="..\SND.SMP.EntityFrameworkCore\SND.SMP.EntityFrameworkCore.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="EPPlus" Version="7.0.9" />
+  </ItemGroup>
 </Project>
