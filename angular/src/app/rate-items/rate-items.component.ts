@@ -25,6 +25,7 @@ class PagedRateItemsRequestDto extends PagedRequestDto {
 export class RateItemsComponent extends PagedListingComponentBase<RateItemDto> {
   keyword = "";
   rateItems: any[] = [];
+  rates: any[] = [];
 
   constructor(
     injector: Injector,
@@ -42,12 +43,9 @@ export class RateItemsComponent extends PagedListingComponentBase<RateItemDto> {
 
   private showUploadRateItemDialog() {
     let uploadRateItemDialog: BsModalRef;
-    uploadRateItemDialog = this._modalService.show(
-      UploadRateItemComponent,
-      {
-        class: "modal-lg",
-      }
-    );
+    uploadRateItemDialog = this._modalService.show(UploadRateItemComponent, {
+      class: "modal-lg",
+    });
 
     uploadRateItemDialog.content.onSave.subscribe(() => {
       this.refresh();
@@ -57,6 +55,17 @@ export class RateItemsComponent extends PagedListingComponentBase<RateItemDto> {
   clearFilters(): void {
     this.keyword = "";
     this.getDataPage(1);
+  }
+
+  filter(input: any) {
+    if (input.toString() === "0") {
+      this.keyword = "";
+      this.getDataPage(1);
+    }
+    else{
+      this.keyword = input.toString();
+      this.getDataPage(1);
+    }
   }
 
   protected delete(entity: RateItemDto): void {
@@ -91,6 +100,9 @@ export class RateItemsComponent extends PagedListingComponentBase<RateItemDto> {
         this.rateItems = [];
         this._rateService.getRates().subscribe((rates: any) => {
           this._currencyService.getCurrencies().subscribe((currencies: any) => {
+            this.rates = rates.result;
+            
+
             result.result.items.forEach((element: RateItemDto) => {
               const rateCardName = rates.result.find(
                 (x) => x.id === element.rateId
@@ -116,6 +128,11 @@ export class RateItemsComponent extends PagedListingComponentBase<RateItemDto> {
               this.rateItems.push(tempRateItem);
             });
             this.showPaging(result.result, pageNumber);
+            this.rates.unshift({
+              id: 0,
+              cardName: 'All',
+              count: this.totalItems
+            });
           });
         });
       });

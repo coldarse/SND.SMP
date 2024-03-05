@@ -39,10 +39,7 @@ namespace SND.SMP.RateItems
         {
             return Repository.GetAllIncluding()
                 .WhereIf(!input.Keyword.IsNullOrWhiteSpace(), x =>
-                    x.ServiceCode.Contains(input.Keyword) ||
-                    x.ProductCode.Contains(input.Keyword) ||
-                    x.CountryCode.Contains(input.Keyword) ||
-                    x.PaymentMode.Contains(input.Keyword));
+                    x.RateId.ToString().Equals(input.Keyword));
         }
 
         [Consumes("multipart/form-data")]

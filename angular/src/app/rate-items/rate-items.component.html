@@ -19,7 +19,12 @@
         <div class='container-fluid'>
             <div class='card'>
                 <div class='card-header'>
-                    <div class='row'>
+                    <div class="row">
+                        <div class="col-md-6">
+                            Rate Card Names
+                        </div>
+                    </div>
+                    <div class='row mt-3'>
                         <!-- <div class='col-md-6'>&emsp;</div>
                         <div class='col-md-6'>
                             <div class='input-group'>
@@ -42,6 +47,11 @@
                                 />
                             </div>
                         </div> -->
+                        <div class="col-md-12">
+                            <button class="btn btn-primary mr-1" *ngFor="let rate of rates" (click)='filter(rate.id)'>
+                                {{rate.cardName}} ({{rate.count}})
+                            </button>
+                        </div>
                     </div>
                 </div>
                 <div class='card-body'>
