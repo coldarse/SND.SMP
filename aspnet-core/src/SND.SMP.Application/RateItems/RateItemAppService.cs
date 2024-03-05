@@ -3,6 +3,7 @@ using Abp.Application.Services;
 using Abp.Extensions;
 using Abp.Collections.Extensions;
 using Abp.Domain.Repositories;
+using Abp.Linq.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,7 +15,6 @@ using System.Data;
 using SND.SMP.Rates;
 using SND.SMP.Currencies;
 using OfficeOpenXml;
-using Microsoft.AspNetCore.Identity;
 using Abp.EntityFrameworkCore.Repositories;
 using Microsoft.EntityFrameworkCore;
 
@@ -42,18 +42,19 @@ namespace SND.SMP.RateItems
                     x.ServiceCode.Contains(input.Keyword) ||
                     x.ProductCode.Contains(input.Keyword) ||
                     x.CountryCode.Contains(input.Keyword) ||
-                    x.PaymentMode.Contains(input.Keyword)).AsQueryable();
+                    x.PaymentMode.Contains(input.Keyword));
         }
 
-        public async Task<List<RateItem>> UploadRateItemFile([FromForm] IFormFile file)
+        [Consumes("multipart/form-data")]
+        public async Task<List<RateItem>> UploadRateItemFile([FromForm] UploadRateItem input)
         {
-            if (file == null || file.Length == 0) return new List<RateItem>();
+            if (input.file == null || input.file.Length == 0) return new List<RateItem>();
 
             DataTable dataTable = new DataTable();
 
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
-            using (var package = new ExcelPackage(file.OpenReadStream()))
+            using (var package = new ExcelPackage(input.file.OpenReadStream()))
             {
                 ExcelWorksheet worksheet = package.Workbook.Worksheets[0];
 

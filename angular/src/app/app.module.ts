@@ -55,6 +55,11 @@ import { WalletsComponent } from './wallets/wallets.component';
 import { CreateUpdateWalletComponent } from './wallets/create-update-wallet/create-update-wallet.component';
 import { WalletService } from '@shared/service-proxies/wallets/wallet.service';
 
+import { RateItemsComponent } from './rate-items/rate-items.component';
+import { RateItemService } from '@shared/service-proxies/rate-items/rate-item.service';
+import { UploadRateItemComponent } from './rate-items/upload-rate-item/upload-rate-item.component';
+import { RateService } from '@shared/service-proxies/rates/rate.service';
+
 
 @NgModule({
     declarations: [
@@ -94,6 +99,8 @@ import { WalletService } from '@shared/service-proxies/wallets/wallet.service';
         CreateUpdateCustomerComponent,
         WalletsComponent,
         CreateUpdateWalletComponent,
+        RateItemsComponent,
+        UploadRateItemComponent,
     ],
     imports: [
         CommonModule,
@@ -116,6 +123,8 @@ import { WalletService } from '@shared/service-proxies/wallets/wallet.service';
         EWalletTypeService,
         CustomerService,
         WalletService,
+        RateItemService,
+        RateService,
     ]
 })
 export class AppModule {}

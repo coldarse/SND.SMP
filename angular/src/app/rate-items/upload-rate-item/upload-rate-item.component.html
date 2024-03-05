@@ -1,0 +1,27 @@
+<abp-modal-header
+  [title]="'Upload Rate Items' | localize"
+  (onCloseClick)="bsModalRef.hide()"
+></abp-modal-header>
+<div class="modal-body">
+  <div class="form-group row">
+    <label class="col-md-3 col-form-label" for="rateItemFile">
+      {{ "Rate Item Excel (.xlsx)" | localize }}
+    </label>
+    <div class="col-md-9">
+      <input
+        type="file"
+        class="file-upload"
+        name="rateItemFile"
+        id="rateItemFile"
+        (change)="handleUpload($event)"
+        accept=".xlsx"
+      />
+    </div>
+  </div>
+</div>
+<abp-modal-footer
+  [cancelDisabled]="saving"
+  [saveDisabled]="saving"
+  (onCancelClick)="bsModalRef.hide()"
+  (onSaveClick)="save()"
+></abp-modal-footer>

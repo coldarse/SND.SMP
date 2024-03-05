@@ -23,5 +23,10 @@ namespace SND.SMP.Rates
                 .WhereIf(!input.Keyword.IsNullOrWhiteSpace(), x => 
                     x.CardName.Contains(input.Keyword)).AsQueryable();
         }
+
+        public async Task<List<Rate>> GetRates()
+        {
+            return await Repository.GetAllListAsync();
+        }
     }
 }

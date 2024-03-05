@@ -13,6 +13,7 @@ import { CurrenciesComponent } from './currencies/currencies.component';
 import { EWalletTypesComponent } from './ewallettypes/ewallettypes.component';
 import { CustomersComponent } from './customers/customers.component';
 import { WalletsComponent } from './wallets/wallets.component';
+import { RateItemsComponent } from './rate-items/rate-items.component';
 
 @NgModule({
     imports: [
@@ -32,6 +33,7 @@ import { WalletsComponent } from './wallets/wallets.component';
                     { path: 'ewallettypes', data: { permission: 'Pages.EWalletType' }, component: EWalletTypesComponent, canActivate: [AppRouteGuard] },
                     { path: 'customers', data: { permission: 'Pages.Customer' }, component: CustomersComponent, canActivate: [AppRouteGuard] },
                     { path: 'wallets', data: { permission: 'Pages.Wallet' }, component: WalletsComponent, canActivate: [AppRouteGuard] },
+                    { path: 'rate-items', data: { permission: 'Pages.RateItem' }, component: RateItemsComponent, canActivate: [AppRouteGuard] },
                 ]
             }
         ])
