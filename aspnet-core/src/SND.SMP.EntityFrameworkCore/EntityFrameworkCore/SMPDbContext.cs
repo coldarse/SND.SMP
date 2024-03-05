@@ -10,6 +10,7 @@ using SND.SMP.Wallets;
 using SND.SMP.Currencies;
 using SND.SMP.EWalletTypes;
 using SND.SMP.Customers;
+using SND.SMP.CustomerTransactions;
 
 
 namespace SND.SMP.EntityFrameworkCore
@@ -22,8 +23,9 @@ namespace SND.SMP.EntityFrameworkCore
         public DbSet<Wallet> Wallets { get; set; }
         public DbSet<Rate> Rates { get; set; }
         public DbSet<RateItem> RateItems { get; set; }
+        public DbSet<CustomerTransaction> CustomerTransactions { get; set; }
         /* Define a DbSet for each entity of the application */
-        
+
         public SMPDbContext(DbContextOptions<SMPDbContext> options)
             : base(options)
         {
@@ -111,6 +113,19 @@ namespace SND.SMP.EntityFrameworkCore
                 b.HasAlternateKey(x => x.Code);
             });
 
+            builder.Entity<CustomerTransaction>(b =>
+            {
+                b.ToTable(SMPConsts.DbTablePrefix + "CustomerTransactions");
+                b.Property(x => x.Wallet).HasColumnName(nameof(CustomerTransaction.Wallet)).HasMaxLength(8);
+                b.Property(x => x.Customer).HasColumnName(nameof(CustomerTransaction.Customer)).HasMaxLength(10);
+                b.Property(x => x.PaymentMode).HasColumnName(nameof(CustomerTransaction.PaymentMode)).HasMaxLength(20);
+                b.Property(x => x.Currency).HasColumnName(nameof(CustomerTransaction.Currency)).HasMaxLength(3);
+                b.Property(x => x.TransactionType).HasColumnName(nameof(CustomerTransaction.TransactionType)).HasMaxLength(100);
+                b.Property(x => x.Amount).HasColumnName(nameof(CustomerTransaction.Amount)).HasPrecision(18, 2);
+                b.Property(x => x.ReferenceNo).HasColumnName(nameof(CustomerTransaction.ReferenceNo)).HasMaxLength(100);
+                b.Property(x => x.Description).HasColumnName(nameof(CustomerTransaction.Description)).HasMaxLength(100);
+                b.Property(x => x.TransactionDate).HasColumnName(nameof(CustomerTransaction.TransactionDate));
+            });
         }
     }
 }
