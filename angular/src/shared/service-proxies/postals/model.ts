@@ -8,6 +8,7 @@ export interface PostalDto extends EntityDto<number> {
     serviceDesc: string;
     productCode: string;
     productDesc: string;
+    itemTopUpValue: number;
 }
 
 export interface PagedPostalResultRequestDto extends PagedAndSortedResultRequestDto {
