@@ -4,6 +4,7 @@ using SND.SMP.Authorization.Roles;
 using SND.SMP.Authorization.Users;
 using SND.SMP.MultiTenancy;
 /* Using Definition */
+using SND.SMP.Postals;
 using SND.SMP.RateItems;
 using SND.SMP.Rates;
 using SND.SMP.Wallets;
@@ -24,6 +25,7 @@ namespace SND.SMP.EntityFrameworkCore
         public DbSet<Rate> Rates { get; set; }
         public DbSet<RateItem> RateItems { get; set; }
         public DbSet<CustomerTransaction> CustomerTransactions { get; set; }
+        public DbSet<Postal> Postals { get; set; }
         /* Define a DbSet for each entity of the application */
 
         public SMPDbContext(DbContextOptions<SMPDbContext> options)
@@ -36,6 +38,19 @@ namespace SND.SMP.EntityFrameworkCore
             base.OnModelCreating(builder);
 
             /* Define Tables */
+            builder.Entity<Postal>(b =>
+            {
+                b.ToTable(SMPConsts.DbTablePrefix + "Postals");
+                b.Property(x => x.PostalCode).HasColumnName(nameof(Postal.PostalCode)).HasMaxLength(5);
+                b.Property(x => x.PostalDesc).HasColumnName(nameof(Postal.PostalDesc)).HasMaxLength(30);
+                b.Property(x => x.ServiceCode).HasColumnName(nameof(Postal.ServiceCode)).HasMaxLength(10);
+                b.Property(x => x.ServiceDesc).HasColumnName(nameof(Postal.ServiceDesc)).HasMaxLength(30);
+                b.Property(x => x.ProductCode).HasColumnName(nameof(Postal.ProductCode)).HasMaxLength(10);
+                b.Property(x => x.ProductDesc).HasColumnName(nameof(Postal.ProductDesc)).HasMaxLength(30);
+                b.Property(x => x.ItemTopUpValue).HasColumnName(nameof(Postal.ItemTopUpValue)).HasPrecision(18, 2);
+                b.HasKey(x => x.Id);
+            });
+
             builder.Entity<RateItem>(b =>
             {
                 b.ToTable(SMPConsts.DbTablePrefix + "RateItems");

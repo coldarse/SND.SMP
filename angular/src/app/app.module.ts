@@ -39,6 +39,10 @@ import { SidebarLogoComponent } from './layout/sidebar-logo.component';
 import { SidebarUserPanelComponent } from './layout/sidebar-user-panel.component';
 import { SidebarMenuComponent } from './layout/sidebar-menu.component';
 /* Insert Import */
+import { PostalsComponent } from './postals/postals.component';
+import { CreateUpdatePostalComponent } from './postals/create-update-postal/create-update-postal.component';
+import { PostalService } from '@shared/service-proxies/postals/postal.service';
+
 import { CurrenciesComponent } from './currencies/currencies.component';
 import { CreateUpdateCurrencyComponent } from './currencies/create-update-currency/create-update-currency.component';
 import { CurrencyService } from '@shared/service-proxies/currencies/currency.service';
@@ -91,6 +95,8 @@ import { RateService } from '@shared/service-proxies/rates/rate.service';
         SidebarUserPanelComponent,
         SidebarMenuComponent,
         /* Insert Component */
+        PostalsComponent,
+        CreateUpdatePostalComponent,
         CurrenciesComponent,
         CreateUpdateCurrencyComponent,
         EWalletTypesComponent,
@@ -119,6 +125,7 @@ import { RateService } from '@shared/service-proxies/rates/rate.service';
     ],
     providers: [
         /* Insert Service */
+        PostalService,
         CurrencyService,
         EWalletTypeService,
         CustomerService,
