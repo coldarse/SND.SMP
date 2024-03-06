@@ -10,6 +10,11 @@ namespace SND.SMP.Authorization
         public const string Pages_Roles = "Pages.Roles";
 
         /* Define your permissions here */
+        public const string Pages_PostalCountry = "Pages.PostalCountry";
+        public const string Pages_PostalCountry_Create = "Pages.PostalCountry.Create";
+        public const string Pages_PostalCountry_Edit = "Pages.PostalCountry.Edit";
+        public const string Pages_PostalCountry_Delete = "Pages.PostalCountry.Delete";
+
         public const string Pages_PostalOrg = "Pages.PostalOrg";
         public const string Pages_PostalOrg_Create = "Pages.PostalOrg.Create";
         public const string Pages_PostalOrg_Edit = "Pages.PostalOrg.Edit";

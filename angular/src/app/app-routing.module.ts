@@ -9,6 +9,7 @@ import { TenantsComponent } from './tenants/tenants.component';
 import { RolesComponent } from 'app/roles/roles.component';
 import { ChangePasswordComponent } from './users/change-password/change-password.component';
 /* Insert Routing Import */
+import { PostalCountriesComponent } from './postalcountries/postalcountries.component';
 import { PostalsComponent } from './postals/postals.component';
 import { CurrenciesComponent } from './currencies/currencies.component';
 import { EWalletTypesComponent } from './ewallettypes/ewallettypes.component';
@@ -30,6 +31,7 @@ import { RateItemsComponent } from './rate-items/rate-items.component';
                     // { path: 'about', component: AboutComponent, canActivate: [AppRouteGuard] },
                     { path: 'update-password', component: ChangePasswordComponent, canActivate: [AppRouteGuard] },
                     /* Insert Path */
+                    { path: 'postalcountries', data: { permission: 'Pages.PostalCountry' }, component: PostalCountriesComponent, canActivate: [AppRouteGuard] },
                     { path: 'postals', data: { permission: 'Pages.Postal' }, component: PostalsComponent, canActivate: [AppRouteGuard] },
                     { path: 'currencies', data: { permission: 'Pages.Currency' }, component: CurrenciesComponent, canActivate: [AppRouteGuard] },
                     { path: 'ewallettypes', data: { permission: 'Pages.EWalletType' }, component: EWalletTypesComponent, canActivate: [AppRouteGuard] },
