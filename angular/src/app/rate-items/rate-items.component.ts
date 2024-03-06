@@ -27,6 +27,7 @@ export class RateItemsComponent extends PagedListingComponentBase<RateItemDto> {
   rateItems: any[] = [];
   rates: any[] = [];
 
+
   constructor(
     injector: Injector,
     private _rateItemService: RateItemService,
@@ -94,6 +95,7 @@ export class RateItemsComponent extends PagedListingComponentBase<RateItemDto> {
       .pipe(
         finalize(() => {
           finishedCallback();
+          this.isTableLoading = true;
         })
       )
       .subscribe((result: any) => {
@@ -101,14 +103,12 @@ export class RateItemsComponent extends PagedListingComponentBase<RateItemDto> {
         this._rateService.getRates().subscribe((rates: any) => {
           this._currencyService.getCurrencies().subscribe((currencies: any) => {
             this.rates = rates.result;
-            
-
             result.result.items.forEach((element: RateItemDto) => {
               const rateCardName = rates.result.find(
-                (x) => x.id === element.rateId
+                (x: any) => x.id === element.rateId
               );
               const currency = currencies.result.find(
-                (x) => x.id === element.currencyId
+                (x: any) => x.id === element.currencyId
               );
 
               let tempRateItem = {
@@ -127,11 +127,15 @@ export class RateItemsComponent extends PagedListingComponentBase<RateItemDto> {
 
               this.rateItems.push(tempRateItem);
             });
-            this.showPaging(result.result, pageNumber);
-            this.rates.unshift({
-              id: 0,
-              cardName: 'All',
-              count: this.totalItems
+            this._rateItemService.getAllRateItemsCount().subscribe((count: any) => {
+              this.showPaging(result.result, pageNumber);
+              this.rates.unshift({
+                id: 0,
+                cardName: 'All',
+                count: count.result
+              });
+
+              this.isTableLoading = false;
             });
           });
         });

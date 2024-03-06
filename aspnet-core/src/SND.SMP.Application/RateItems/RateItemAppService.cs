@@ -42,6 +42,12 @@ namespace SND.SMP.RateItems
                     x.RateId.ToString().Equals(input.Keyword));
         }
 
+        public async Task<int> GetAllRateItemsCount()
+        {
+            var allRateItemsList = await Repository.GetAllListAsync();
+            return allRateItemsList.Count();
+        }
+
         [Consumes("multipart/form-data")]
         public async Task<List<RateItem>> UploadRateItemFile([FromForm] UploadRateItem input)
         {

@@ -127,4 +127,15 @@ export class RateItemService {
         )
     }
 
+    //Get All Rate Items Count
+    getAllRateItemsCount(){
+        return this.http.get(
+            this.url + `/api/services/app/RateItem/GetAllRateItemsCount`,
+            this.options_
+        ).pipe(
+            retry(1),
+            catchError(this.handleError),
+        )
+    }
+
 }

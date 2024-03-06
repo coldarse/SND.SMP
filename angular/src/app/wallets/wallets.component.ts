@@ -139,6 +139,7 @@ export class WalletsComponent extends PagedListingComponentBase<WalletDto> {
     ).pipe(
       finalize(() => {
         finishedCallback();
+        this.isTableLoading = true;
       })
     )
     .subscribe((result: any) => {
@@ -162,6 +163,7 @@ export class WalletsComponent extends PagedListingComponentBase<WalletDto> {
             this.wallets.push(tempWallet);
           });
           this.showPaging(result.result, pageNumber);
+          this.isTableLoading = false;
         });
       });
     });
