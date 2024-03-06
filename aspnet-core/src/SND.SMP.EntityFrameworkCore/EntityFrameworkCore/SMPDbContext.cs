@@ -4,6 +4,7 @@ using SND.SMP.Authorization.Roles;
 using SND.SMP.Authorization.Users;
 using SND.SMP.MultiTenancy;
 /* Using Definition */
+using SND.SMP.PostalOrgs;
 using SND.SMP.Postals;
 using SND.SMP.RateItems;
 using SND.SMP.Rates;
@@ -26,6 +27,7 @@ namespace SND.SMP.EntityFrameworkCore
         public DbSet<RateItem> RateItems { get; set; }
         public DbSet<CustomerTransaction> CustomerTransactions { get; set; }
         public DbSet<Postal> Postals { get; set; }
+        public DbSet<PostalOrg> PostalOrgs { get; set; }
         /* Define a DbSet for each entity of the application */
 
         public SMPDbContext(DbContextOptions<SMPDbContext> options)
@@ -38,6 +40,13 @@ namespace SND.SMP.EntityFrameworkCore
             base.OnModelCreating(builder);
 
             /* Define Tables */
+            builder.Entity<PostalOrg>(b =>
+            {
+                b.ToTable(SMPConsts.DbTablePrefix + "PostalOrgs");
+                b.Property(x => x.Name).HasColumnName(nameof(PostalOrg.Name)).HasMaxLength(30);
+                b.HasKey(x => x.Id);
+            });
+
             builder.Entity<Postal>(b =>
             {
                 b.ToTable(SMPConsts.DbTablePrefix + "Postals");
