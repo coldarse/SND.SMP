@@ -10,7 +10,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using SND.SMP.RateItems.Dto;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Http;
 using System.Data;
 using SND.SMP.Rates;
 using SND.SMP.Currencies;
@@ -28,8 +27,8 @@ namespace SND.SMP.RateItems
 
         public RateItemAppService(
             IRepository<RateItem, long> repository,
-        IRepository<Rate, int> rateRepository,
-        IRepository<Currency, long> currencyRepository
+            IRepository<Rate, int> rateRepository,
+            IRepository<Currency, long> currencyRepository
         ) : base(repository)
         {
             _rateRepository = rateRepository;

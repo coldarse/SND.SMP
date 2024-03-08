@@ -1,9 +1,7 @@
 ﻿using Abp.Application.Services;
-using Abp.Application.Services.Dto;
 using Abp.Domain.Repositories;
 using Abp.Extensions;
 using Abp.Linq.Extensions;
-using SND.SMP.Currencies;
 using SND.SMP.CustomerTransactions.Dto;
 using System;
 using System.Collections.Generic;
@@ -30,7 +28,7 @@ namespace SND.SMP.CustomerTransactions
                     x.Amount.ToString("N2").Contains(input.Keyword) ||
                     x.ReferenceNo.Contains(input.Keyword) ||
                     x.Description.Contains(input.Keyword) ||
-                    x.TransactionDate.ToString("yyyyMMdd").Contains(input.Keyword)).AsQueryable();
+                    x.TransactionDate.ToString("yyyyMMdd").Contains(input.Keyword));
 
         }
 
