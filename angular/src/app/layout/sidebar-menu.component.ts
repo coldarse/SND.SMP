@@ -65,13 +65,13 @@ export class SidebarMenuComponent extends AppComponentBase implements OnInit {
             new MenuItem(
                 this.l('PostalCountries'),
                 '/app/postalcountries',
-                'far fa-circle',
+                'far fa-globe-asia',
                 'Pages.PostalCountry'
             ),
             new MenuItem(
                 this.l('Postals'),
                 '/app/postals',
-                'far fa-circle',
+                'fas fa-parachute-box',
                 'Pages.Postal'
             ),
             new MenuItem(
