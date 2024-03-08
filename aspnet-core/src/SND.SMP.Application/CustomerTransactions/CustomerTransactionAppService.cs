@@ -27,9 +27,12 @@ namespace SND.SMP.CustomerTransactions
                     x.PaymentMode.Contains(input.Keyword) ||
                     x.Currency.Contains(input.Keyword) ||
                     x.TransactionType.Contains(input.Keyword) ||
+                    x.Amount.ToString("N2").Contains(input.Keyword) ||
                     x.ReferenceNo.Contains(input.Keyword) ||
-                    x.Description.Contains(input.Keyword));
-    }
+                    x.Description.Contains(input.Keyword) ||
+                    x.TransactionDate.ToString("yyyyMMdd").Contains(input.Keyword)).AsQueryable();
+
+        }
 
         public async Task<List<CustomerTransaction>> GetCustomerTransactions()
         {

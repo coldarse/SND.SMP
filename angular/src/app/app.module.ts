@@ -69,6 +69,10 @@ import { UploadRateItemComponent } from './rate-items/upload-rate-item/upload-ra
 import { RateService } from '@shared/service-proxies/rates/rate.service';
 
 
+import { CustomerTransactionsComponent } from './customertransactions/customertransactions.component';
+import { CreateUpdateCustomerTransactionComponent } from './customertransactions/create-update-customertransaction/create-update-customertransaction.component';
+import { CustomerTransactionService } from '@shared/service-proxies/customertransactions/customertransaction.service';
+
 @NgModule({
     declarations: [
         AppComponent,
@@ -113,6 +117,8 @@ import { RateService } from '@shared/service-proxies/rates/rate.service';
         CreateUpdateWalletComponent,
         RateItemsComponent,
         UploadRateItemComponent,
+        CustomerTransactionsComponent,
+        CreateUpdateCustomerTransactionComponent,
     ],
     imports: [
         CommonModule,
@@ -139,6 +145,7 @@ import { RateService } from '@shared/service-proxies/rates/rate.service';
         WalletService,
         RateItemService,
         RateService,
+        CustomerTransactionService,
     ]
 })
 export class AppModule {}

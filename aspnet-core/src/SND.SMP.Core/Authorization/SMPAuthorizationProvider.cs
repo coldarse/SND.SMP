@@ -59,8 +59,13 @@ namespace SND.SMP.Authorization
             context.CreatePermission(PermissionNames.Pages_Customer_Edit, L("CustomersEdit"));
             context.CreatePermission(PermissionNames.Pages_Customer_Delete, L("CustomersDelete"));
 
+            context.CreatePermission(PermissionNames.Pages_CustomerTransaction, L("CustomerTransactions"));
+            context.CreatePermission(PermissionNames.Pages_CustomerTransaction_Create, L("CustomerTransactionsCreate"));
+            context.CreatePermission(PermissionNames.Pages_CustomerTransaction_Edit, L("CustomerTransactionsEdit"));
+            context.CreatePermission(PermissionNames.Pages_CustomerTransaction_Delete, L("CustomerTransactionsDelete"));
 
-        
+
+
         }
 
         private static ILocalizableString L(string name)

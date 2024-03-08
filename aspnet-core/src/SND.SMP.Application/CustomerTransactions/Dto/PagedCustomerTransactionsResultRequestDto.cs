@@ -15,7 +15,9 @@ namespace SND.SMP.CustomerTransactions.Dto
         public string PaymentMode { get; set; }
         public string Currency { get; set; }
         public string TransactionType { get; set; }
+        public decimal Amount { get; set; }
         public string ReferenceNo { get; set; }
         public string Description { get; set; }
+        public DateTime TransactionDate { get; set; }
     }
 }

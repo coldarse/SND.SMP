@@ -55,6 +55,10 @@ namespace SND.SMP.Authorization
         public const string Pages_Customer_Edit = "Pages.Customer.Edit";
         public const string Pages_Customer_Delete = "Pages.Customer.Delete";
 
+        public const string Pages_CustomerTransaction = "Pages.CustomerTransaction";
+        public const string Pages_CustomerTransaction_Create = "Pages.CustomerTransaction.Create";
+        public const string Pages_CustomerTransaction_Edit = "Pages.CustomerTransaction.Edit";
+        public const string Pages_CustomerTransaction_Delete = "Pages.CustomerTransaction.Delete";
 
     }
 }

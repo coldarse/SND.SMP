@@ -1,0 +1,186 @@
+<form
+    class='form-horizontal'
+    autocomplete='off'
+    #createCustomerTransactionModal='ngForm'
+    (ngSubmit)='save()'
+>
+    <abp-modal-header
+        [title]='isCreate == true? ("Add Customer Transaction" | localize) : ("Edit  Customer Transaction" | localize)'
+        (onCloseClick)='bsModalRef.hide()'
+    ></abp-modal-header>
+    <div class='modal-body'>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='wallet'>
+            {{ 'Wallet' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='text'
+                class='form-control'
+                name='wallet'
+                id='wallet'
+                required
+                [(ngModel)]='customerTransaction.wallet'
+                #walletModel='ngModel'
+                #walletEl
+            />
+            <abp-validation-summary
+                [control]='walletModel'
+                [controlEl]='walletEl'
+            ></abp-validation-summary>
+            </div>
+        </div>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='customer'>
+            {{ 'Customer' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='text'
+                class='form-control'
+                name='customer'
+                id='customer'
+                required
+                [(ngModel)]='customerTransaction.customer'
+                #customerModel='ngModel'
+                #customerEl
+            />
+            <abp-validation-summary
+                [control]='customerModel'
+                [controlEl]='customerEl'
+            ></abp-validation-summary>
+            </div>
+        </div>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='paymentMode'>
+            {{ 'Payment Mode' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='text'
+                class='form-control'
+                name='paymentMode'
+                id='paymentMode'
+                required
+                [(ngModel)]='customerTransaction.paymentMode'
+                #paymentModeModel='ngModel'
+                #paymentModeEl
+            />
+            <abp-validation-summary
+                [control]='paymentModeModel'
+                [controlEl]='paymentModeEl'
+            ></abp-validation-summary>
+            </div>
+        </div>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='currency'>
+            {{ 'Currency' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='text'
+                class='form-control'
+                name='currency'
+                id='currency'
+                required
+                [(ngModel)]='customerTransaction.currency'
+                #currencyModel='ngModel'
+                #currencyEl
+            />
+            <abp-validation-summary
+                [control]='currencyModel'
+                [controlEl]='currencyEl'
+            ></abp-validation-summary>
+            </div>
+        </div>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='transactionType'>
+            {{ 'Transaction Type' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='text'
+                class='form-control'
+                name='transactionType'
+                id='transactionType'
+                required
+                [(ngModel)]='customerTransaction.transactionType'
+                #transactionTypeModel='ngModel'
+                #transactionTypeEl
+            />
+            <abp-validation-summary
+                [control]='transactionTypeModel'
+                [controlEl]='transactionTypeEl'
+            ></abp-validation-summary>
+            </div>
+        </div>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='amount'>
+            {{ 'Amount' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='text'
+                class='form-control'
+                name='amount'
+                id='amount'
+                required
+                [(ngModel)]='customerTransaction.amount'
+                #amountModel='ngModel'
+                #amountEl
+            />
+            <abp-validation-summary
+                [control]='amountModel'
+                [controlEl]='amountEl'
+            ></abp-validation-summary>
+            </div>
+        </div>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='referenceNo'>
+            {{ 'Reference No' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='text'
+                class='form-control'
+                name='referenceNo'
+                id='referenceNo'
+                required
+                [(ngModel)]='customerTransaction.referenceNo'
+                #referenceNoModel='ngModel'
+                #referenceNoEl
+            />
+            <abp-validation-summary
+                [control]='referenceNoModel'
+                [controlEl]='referenceNoEl'
+            ></abp-validation-summary>
+            </div>
+        </div>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='description'>
+            {{ 'Description' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='text'
+                class='form-control'
+                name='description'
+                id='description'
+                required
+                [(ngModel)]='customerTransaction.description'
+                #descriptionModel='ngModel'
+                #descriptionEl
+            />
+            <abp-validation-summary
+                [control]='descriptionModel'
+                [controlEl]='descriptionEl'
+            ></abp-validation-summary>
+            </div>
+        </div>
+    </div>
+    <abp-modal-footer
+    [cancelDisabled]='saving'
+    [saveDisabled]='!createCustomerTransactionModal.form.valid || saving'
+    (onCancelClick)='bsModalRef.hide()'
+    ></abp-modal-footer>
+</form>
