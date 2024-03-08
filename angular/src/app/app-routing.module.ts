@@ -16,7 +16,7 @@ import { EWalletTypesComponent } from "./ewallettypes/ewallettypes.component";
 import { CustomersComponent } from "./customers/customers.component";
 import { WalletsComponent } from "./wallets/wallets.component";
 import { RateItemsComponent } from "./rate-items/rate-items.component";
-import { CustomerTransactionsComponent } from "./customertransactions/customertransactions.component";
+import { CustomerTransactionsComponent } from "./customer-transactions/customer-transactions.component";
 
 @NgModule({
   imports: [

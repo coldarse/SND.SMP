@@ -1,13 +1,13 @@
 import { Component, EventEmitter, Injector, OnInit, Output } from '@angular/core';
 import { AppComponentBase } from '../../../shared/app-component-base';
-import { CustomerTransactionDto } from '../../../shared/service-proxies/customertransactions/model';
-import { CustomerTransactionService } from '../../../shared/service-proxies/customertransactions/customertransaction.service';
+import { CustomerTransactionDto } from '../../../shared/service-proxies/customer-transactions/model';
+import { CustomerTransactionService } from '../../../shared/service-proxies/customer-transactions/customer-transaction.service';
 import { BsModalRef } from 'ngx-bootstrap/modal';
 
 @Component({
-  selector: 'app-create-update-customertransaction',
-  templateUrl: './create-update-customertransaction.component.html',
-  styleUrls: ['./create-update-customertransaction.component.css']
+  selector: 'app-create-update-customer-transaction',
+  templateUrl: './create-update-customer-transaction.component.html',
+  styleUrls: ['./create-update-customer-transaction.component.css']
 })
 export class CreateUpdateCustomerTransactionComponent extends AppComponentBase
 implements OnInit

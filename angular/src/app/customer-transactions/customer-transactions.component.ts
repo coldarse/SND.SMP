@@ -2,9 +2,9 @@ import { Component, Injector } from '@angular/core';
 import { PagedListingComponentBase, PagedRequestDto, PagedResultDto } from '@shared/paged-listing-component-base';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { finalize } from 'rxjs/operators';
-import { CustomerTransactionDto } from '@shared/service-proxies/customertransactions/model';
-import { CustomerTransactionService } from '@shared/service-proxies/customertransactions/customertransaction.service';
-import { CreateUpdateCustomerTransactionComponent } from './create-update-customertransaction/create-update-customertransaction.component';
+import { CustomerTransactionDto } from '@shared/service-proxies/customer-transactions/model';
+import { CustomerTransactionService } from '@shared/service-proxies/customer-transactions/customer-transaction.service';
+import { CreateUpdateCustomerTransactionComponent } from './create-update-customer-transaction/create-update-customer-transaction.component';
 
 class PagedCustomerTransactionsRequestDto extends PagedRequestDto{
   keyword: string
@@ -12,8 +12,8 @@ class PagedCustomerTransactionsRequestDto extends PagedRequestDto{
 
 @Component({
   selector: 'app-customertransactions',
-  templateUrl: './customertransactions.component.html',
-  styleUrls: ['./customertransactions.component.css']
+  templateUrl: './customer-transactions.component.html',
+  styleUrls: ['./customer-transactions.component.css']
 })
 
 export class CustomerTransactionsComponent extends PagedListingComponentBase<CustomerTransactionDto> {
