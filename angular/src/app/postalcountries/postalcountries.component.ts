@@ -2,9 +2,9 @@ import { Component, Injector } from '@angular/core';
 import { PagedListingComponentBase, PagedRequestDto, PagedResultDto } from '@shared/paged-listing-component-base';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { finalize } from 'rxjs/operators';
-import { PostalCountryDto } from '@shared/service-proxies/postalcountries/model'
-import { PostalCountryService } from '@shared/service-proxies/postalcountries/postalcountry.service'
-import { CreateUpdatePostalCountryComponent } from '../postalcountries/create-update-postalcountry/create-update-postalcountry.component'
+import { PostalCountryDto } from '@shared/service-proxies/postalcountries/model';
+import { PostalCountryService } from '@shared/service-proxies/postalcountries/postalcountry.service';
+import { UploadPostalCountryComponent } from '../postalcountries/upload-postal-country/upload-postal-country.component';
 
 class PagedPostalCountriesRequestDto extends PagedRequestDto{
   keyword: string
@@ -28,37 +28,17 @@ export class PostalCountriesComponent extends PagedListingComponentBase<PostalCo
     super(injector);
   }
 
-  createPostalCountry(){
-    this.showCreateOrEditPostalCountryDialog();
+  uploadPostalCountry() {
+    this.showUploadPostalCountryDialog();
   }
 
-  editPostalCountry(entity: PostalCountryDto){
-    this.showCreateOrEditPostalCountryDialog(entity);
-  }
+  private showUploadPostalCountryDialog() {
+    let uploadPostalDialog: BsModalRef;
+    uploadPostalDialog = this._modalService.show(UploadPostalCountryComponent, {
+      class: "modal-lg",
+    });
 
-  private showCreateOrEditPostalCountryDialog(entity?: PostalCountryDto){
-    let createOrEditPostalCountryDialog: BsModalRef;
-    if(!entity){
-      createOrEditPostalCountryDialog = this._modalService.show(
-        CreateUpdatePostalCountryComponent,
-        {
-          class: 'modal-lg',
-        }
-      );
-    }
-    else{
-      createOrEditPostalCountryDialog = this._modalService.show(
-        CreateUpdatePostalCountryComponent,
-        {
-          class: 'modal-lg',
-          initialState: {
-            postalcountry: entity
-          },
-        }
-      );
-    }
-
-    createOrEditPostalCountryDialog.content.onSave.subscribe(() => {
+    uploadPostalDialog.content.onSave.subscribe(() => {
       this.refresh();
     });
   }

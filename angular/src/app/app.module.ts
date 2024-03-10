@@ -40,11 +40,9 @@ import { SidebarUserPanelComponent } from "./layout/sidebar-user-panel.component
 import { SidebarMenuComponent } from "./layout/sidebar-menu.component";
 /* Insert Import */
 import { PostalCountriesComponent } from "./postalcountries/postalcountries.component";
-import { CreateUpdatePostalCountryComponent } from "./postalcountries/create-update-postalcountry/create-update-postalcountry.component";
 import { PostalCountryService } from "@shared/service-proxies/postalcountries/postalcountry.service";
 
 import { PostalsComponent } from "./postals/postals.component";
-import { CreateUpdatePostalComponent } from "./postals/create-update-postal/create-update-postal.component";
 import { PostalService } from "@shared/service-proxies/postals/postal.service";
 
 import { CurrenciesComponent } from "./currencies/currencies.component";
@@ -71,6 +69,10 @@ import { RateService } from "@shared/service-proxies/rates/rate.service";
 import { CustomerTransactionsComponent } from "./customer-transactions/customer-transactions.component";
 import { CreateUpdateCustomerTransactionComponent } from "./customer-transactions/create-update-customer-transaction/create-update-customer-transaction.component";
 import { CustomerTransactionService } from "@shared/service-proxies/customer-transactions/customer-transaction.service";
+
+import { UploadPostalComponent } from "./postals/upload-postal/upload-postal.component";
+
+import { UploadPostalCountryComponent } from "./postalcountries/upload-postal-country/upload-postal-country.component";
 
 @NgModule({
   declarations: [
@@ -103,9 +105,7 @@ import { CustomerTransactionService } from "@shared/service-proxies/customer-tra
     SidebarMenuComponent,
     /* Insert Component */
     PostalCountriesComponent,
-    CreateUpdatePostalCountryComponent,
     PostalsComponent,
-    CreateUpdatePostalComponent,
     CurrenciesComponent,
     CreateUpdateCurrencyComponent,
     EWalletTypesComponent,
@@ -118,6 +118,8 @@ import { CustomerTransactionService } from "@shared/service-proxies/customer-tra
     UploadRateItemComponent,
     CustomerTransactionsComponent,
     CreateUpdateCustomerTransactionComponent,
+    UploadPostalComponent,
+    UploadPostalCountryComponent,
   ],
   imports: [
     CommonModule,

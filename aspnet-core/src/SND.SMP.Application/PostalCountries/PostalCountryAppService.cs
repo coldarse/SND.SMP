@@ -31,7 +31,7 @@ namespace SND.SMP.PostalCountries
         }
 
         [Consumes("multipart/form-data")]
-        public async Task<List<PostalCountry>> UploadPostalCountry([FromForm] UploadPostalCountry input)
+        public async Task<List<PostalCountry>> UploadPostalCountryFile([FromForm] UploadPostalCountry input)
         {
             if (input.file == null || input.file.Length == 0) return new List<PostalCountry>();
 

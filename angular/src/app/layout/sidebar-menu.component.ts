@@ -63,7 +63,7 @@ export class SidebarMenuComponent extends AppComponentBase implements OnInit {
             ),
             /* Insert Menu Path */
             new MenuItem(
-                this.l('PostalCountries'),
+                this.l('Postal Countries'),
                 '/app/postalcountries',
                 'far fa-globe-asia',
                 'Pages.PostalCountry'
@@ -105,9 +105,9 @@ export class SidebarMenuComponent extends AppComponentBase implements OnInit {
                 'Pages.RateItem'
             ),
             new MenuItem(
-                this.l('CustomerTransactions'),
+                this.l('Transactions'),
                 '/app/customertransactions',
-                'fas fa-sitemap',
+                'fas fa-square-poll-horizontal',
                 'Pages.CustomerTransaction'
             ),
             // new MenuItem(this.l('MultiLevelMenu'), '', 'fas fa-circle', '', [

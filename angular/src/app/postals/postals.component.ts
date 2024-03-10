@@ -4,7 +4,7 @@ import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { finalize } from 'rxjs/operators';
 import { PostalDto } from '@shared/service-proxies/postals/model'
 import { PostalService } from '@shared/service-proxies/postals/postal.service'
-import { CreateUpdatePostalComponent } from '../postals/create-update-postal/create-update-postal.component'
+import { UploadPostalComponent } from './upload-postal/upload-postal.component';
 
 class PagedPostalsRequestDto extends PagedRequestDto{
   keyword: string
@@ -28,40 +28,22 @@ export class PostalsComponent extends PagedListingComponentBase<PostalDto> {
     super(injector);
   }
 
-  createPostal(){
-    this.showCreateOrEditPostalDialog();
+  uploadPostal(){
+    this.showUploadPostalDialog();
   }
 
-  editPostal(entity: PostalDto){
-    this.showCreateOrEditPostalDialog(entity);
-  }
+  private showUploadPostalDialog() {
+    let uploadPostalDialog: BsModalRef;
+    uploadPostalDialog = this._modalService.show(UploadPostalComponent, {
+      class: "modal-lg",
+    });
 
-  private showCreateOrEditPostalDialog(entity?: PostalDto){
-    let createOrEditPostalDialog: BsModalRef;
-    if(!entity){
-      createOrEditPostalDialog = this._modalService.show(
-        CreateUpdatePostalComponent,
-        {
-          class: 'modal-lg',
-        }
-      );
-    }
-    else{
-      createOrEditPostalDialog = this._modalService.show(
-        CreateUpdatePostalComponent,
-        {
-          class: 'modal-lg',
-          initialState: {
-            postal: entity
-          },
-        }
-      );
-    }
-
-    createOrEditPostalDialog.content.onSave.subscribe(() => {
+    uploadPostalDialog.content.onSave.subscribe(() => {
       this.refresh();
     });
   }
+
+  
 
   clearFilters(): void {
     this.keyword = '';

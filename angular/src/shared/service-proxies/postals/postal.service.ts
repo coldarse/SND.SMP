@@ -102,4 +102,20 @@ export class PostalService {
             catchError(this.handleError),
         )
     }
+
+    //Upload Excel for Postal
+    uploadPostalFile(body: any){
+        return this.http.post(
+            this.url + '/api/services/app/Postal/UploadPostalFile',
+            body,
+            {
+                headers: new HttpHeaders({
+                    "Accept": "text/plain"
+                })
+            }
+        ).pipe(
+            retry(1),
+            catchError(this.handleError),
+        )
+    }
 }

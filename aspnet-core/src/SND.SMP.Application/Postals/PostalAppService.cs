@@ -40,6 +40,8 @@ namespace SND.SMP.Postals
         [Consumes("multipart/form-data")]
         public async Task<List<Postal>> UploadPostalFile([FromForm] UploadPostal input)
         {
+            var postalOrganizations = await _postalOrgRepository.GetAllListAsync();
+
             if (input.file == null || input.file.Length == 0) return new List<Postal>();
 
             DataTable dataTable = new DataTable();
@@ -79,17 +81,15 @@ namespace SND.SMP.Postals
                 {
                     PostalCode = dr.ItemArray[0].ToString(),
                     PostalDesc = dr.ItemArray[1].ToString(),
-                    ServiceCode = dr.ItemArray[2].ToString(),
-                    ServiceDesc = dr.ItemArray[3].ToString(),
-                    ProductCode = dr.ItemArray[4].ToString(),
-                    ProductDesc = dr.ItemArray[5].ToString(),
+                    ServiceDesc = dr.ItemArray[2].ToString(),
+                    ServiceCode = dr.ItemArray[3].ToString(),
+                    ProductDesc = dr.ItemArray[4].ToString(),
+                    ProductCode = dr.ItemArray[5].ToString(),
                     ItemTopUpValue = dr.ItemArray[6].ToString() == "" ? 0 : Convert.ToDecimal(dr.ItemArray[6]),
                 });
             }
 
             var distinctedByPostalCode = postalExcel.DistinctBy(x => x.PostalCode?[0..Math.Min(x.PostalCode.Length, 2)]);
-
-            var postalOrganizations = await _postalOrgRepository.GetAllListAsync();
 
             List<PostalOrg> postalOrg = new List<PostalOrg>();
             foreach (var distinctedPostalCode in distinctedByPostalCode)
@@ -109,10 +109,10 @@ namespace SND.SMP.Postals
                 }
             }
 
-            await Repository.GetDbContext().Database.ExecuteSqlRawAsync("TRUNCATE TABLE smpdb.postal");
+            await Repository.GetDbContext().Database.ExecuteSqlRawAsync("TRUNCATE TABLE smpdb.postals");
 
             List<Postal> postals = new List<Postal>();
-            foreach (PostalExcel excelItem in postalExcel)
+            foreach (PostalExcel excelItem in postalExcel.ToList())
             {
                 Postal insertPostal = new Postal()
                 {
