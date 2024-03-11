@@ -39,6 +39,7 @@ namespace SND.SMP.Authorization
         public const string Pages_Wallet_Create = "Pages.Wallet.Create";
         public const string Pages_Wallet_Edit = "Pages.Wallet.Edit";
         public const string Pages_Wallet_Delete = "Pages.Wallet.Delete";
+        public const string Pages_Wallet_Topup = "Pages.Wallet.Topup";
 
         public const string Pages_Currency = "Pages.Currency";
         public const string Pages_Currency_Create = "Pages.Currency.Create";

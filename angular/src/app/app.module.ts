@@ -74,6 +74,8 @@ import { UploadPostalComponent } from "./postals/upload-postal/upload-postal.com
 
 import { UploadPostalCountryComponent } from "./postalcountries/upload-postal-country/upload-postal-country.component";
 
+import { TopUpWalletComponent } from "./wallets/topup-wallet/topup-wallet.component";
+
 @NgModule({
   declarations: [
     AppComponent,
@@ -120,6 +122,7 @@ import { UploadPostalCountryComponent } from "./postalcountries/upload-postal-co
     CreateUpdateCustomerTransactionComponent,
     UploadPostalComponent,
     UploadPostalCountryComponent,
+    TopUpWalletComponent,
   ],
   imports: [
     CommonModule,

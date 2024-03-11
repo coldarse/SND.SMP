@@ -43,6 +43,7 @@ namespace SND.SMP.Authorization
             context.CreatePermission(PermissionNames.Pages_Wallet_Create, L("WalletsCreate"));
             context.CreatePermission(PermissionNames.Pages_Wallet_Edit, L("WalletsEdit"));
             context.CreatePermission(PermissionNames.Pages_Wallet_Delete, L("WalletsDelete"));
+            context.CreatePermission(PermissionNames.Pages_Wallet_Topup, L("WalletsTopup"));
 
             context.CreatePermission(PermissionNames.Pages_Currency, L("Currencies"));
             context.CreatePermission(PermissionNames.Pages_Currency_Create, L("CurrenciesCreate"));

@@ -77,6 +77,15 @@
                                 <td *ngIf='isButtonVisible("Edit") || isButtonVisible("Delete")'>
                                     <button
                                             type='button'
+                                            class='btn btn-sm bg-success mx-2'
+                                            (click)='topupWallet(wallet)'
+                                            *ngIf='isButtonVisible("Topup")'
+                                    >
+                                        <i class='fas fa-square-plus'></i>
+                                        {{ 'Topup' | localize }}
+                                    </button>
+                                    <button
+                                            type='button'
                                             class='btn btn-sm bg-secondary'
                                             (click)='editWallet(wallet)'
                                             *ngIf='isButtonVisible("Edit")'

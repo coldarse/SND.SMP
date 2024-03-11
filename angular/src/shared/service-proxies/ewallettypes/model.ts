@@ -12,3 +12,5 @@ export interface PagedEWalletTypeResultRequestDto extends PagedAndSortedResultRe
 
 
 
+
+

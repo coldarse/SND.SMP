@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpHeaders, HttpParams } from '@angular/common/http';
 import { catchError, retry, throwError as _observableThrow, Observable } from 'rxjs';
-import { PagedWalletsResultRequestDto, UpdateWalletDto, WalletDto } from './model';
+import { PagedWalletsResultRequestDto, TopUpEWalletDto, UpdateWalletDto, WalletDto } from './model';
 import { AppConsts } from '@shared/AppConsts';
 import { ApiException } from '../service-proxies';
 
@@ -156,5 +156,17 @@ export class WalletService {
                 catchError(this.handleError),
             )
         }
+    }
+
+    // Top Up EWallet
+    topUpEWallet(body: TopUpEWalletDto){
+        return this.http.post(
+            this.url + '/api/services/app/Wallet/TopUpEWallet',
+            body,
+            this.options_
+        ).pipe(
+            retry(1),
+            catchError(this.handleError),
+        )
     }
 }

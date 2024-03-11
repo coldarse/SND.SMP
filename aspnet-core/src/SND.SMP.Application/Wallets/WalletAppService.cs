@@ -16,6 +16,7 @@ using System.Reflection.Metadata.Ecma335;
 using JetBrains.Annotations;
 using SND.SMP.EWalletTypes;
 using System.ComponentModel;
+using SND.SMP.CustomerTransactions;
 
 namespace SND.SMP.Wallets
 {
@@ -23,15 +24,18 @@ namespace SND.SMP.Wallets
     {
         private readonly IRepository<EWalletType, long> _eWalletTypeRepository;
         private readonly IRepository<Currency, long> _currencyRepository;
+        private readonly IRepository<CustomerTransaction, long> _customerTransactionRepository;
 
         public WalletAppService(
             IRepository<Wallet, string> repository,
             IRepository<EWalletType, long> eWalletTypeRepository,
-            IRepository<Currency, long> currencyRepository
+            IRepository<Currency, long> currencyRepository,
+            IRepository<CustomerTransaction, long> customerTransactionRepository
         ) : base(repository)
         {
             _eWalletTypeRepository = eWalletTypeRepository;
             _currencyRepository = currencyRepository;
+            _customerTransactionRepository = customerTransactionRepository;
         }
         protected override IQueryable<Wallet> CreateFilteredQuery(PagedWalletResultRequestDto input)
         {
@@ -62,6 +66,37 @@ namespace SND.SMP.Wallets
                     else throw new UserFriendlyException("You have already created a similar wallet. Please try again.");
                 }
             }
+        }
+
+        public async Task<bool> TopUpEWallet(TopUpEWalletDto input)
+        {
+            var ewallet = await Repository.FirstOrDefaultAsync(x => x.Id.Equals(input.Id));
+
+            if (ewallet is not null)
+            {
+                ewallet.Balance += input.Amount;
+                var update = await Repository.UpdateAsync(ewallet);
+
+                DateTime DateTimeUTC = DateTime.UtcNow;
+                TimeZoneInfo cstZone = TimeZoneInfo.FindSystemTimeZoneById("Singapore Standard Time");
+                DateTime cstDateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTimeUTC, cstZone);
+
+                var addTransaction = await _customerTransactionRepository.InsertAsync(new CustomerTransaction()
+                {
+                    Wallet = ewallet.Id,
+                    Customer = ewallet.Customer,
+                    PaymentMode = input.EWalletType,
+                    Currency = input.Currency,
+                    TransactionType = "Top Up",
+                    Amount = input.Amount,
+                    ReferenceNo = input.ReferenceNo,
+                    Description = input.Description,
+                    TransactionDate = cstDateTime
+                });
+
+                return true;
+            }
+            return false;
         }
 
         public async Task<bool> UpdateEWalletAsync(UpdateWalletDto input)
@@ -102,7 +137,7 @@ namespace SND.SMP.Wallets
 
         public async Task<EWalletDto> GetEWalletAsync(WalletDto input)
         {
-            if (input.Id != null)
+            if (input.Id == "")
             {
                 var eWalletTypes = await _eWalletTypeRepository.GetAllListAsync();
                 var currencies = await _currencyRepository.GetAllListAsync();
@@ -126,9 +161,7 @@ namespace SND.SMP.Wallets
             {
                 var ewallet = await Repository.FirstOrDefaultAsync(x =>
                             (
-                                x.Customer.Equals(input.Customer) &&
-                                x.EWalletType.Equals(input.EWalletType) &&
-                                x.Currency.Equals(input.Currency)
+                                x.Id.Equals(input.Id)
                             )) ?? throw new UserFriendlyException("No E-Wallet Found");
 
                 var ewallettype = await _eWalletTypeRepository.FirstOrDefaultAsync(x => x.Id.Equals(ewallet.EWalletType));
@@ -153,6 +186,7 @@ namespace SND.SMP.Wallets
                 var eWalletTypeCurrent = eWalletTypes.FirstOrDefault(x => x.Id.Equals(input.EWalletType));
                 availableEWalletTypes.Add(eWalletTypeCurrent);
                 selectedEWallet.EWalletTypeList = availableEWalletTypes;
+                selectedEWallet.EWalletTypeList.Remove(null);
 
                 /* Get Available Currencies for this Customer */
                 var currencies = await _currencyRepository.GetAllListAsync();
@@ -160,6 +194,7 @@ namespace SND.SMP.Wallets
                 var currencyCurrent = currencies.FirstOrDefault(x => x.Id.Equals(input.Currency));
                 availableCurrencies.Add(currencyCurrent);
                 selectedEWallet.CurrencyList = availableCurrencies;
+                selectedEWallet.CurrencyList.Remove(null);
 
                 return selectedEWallet;
             }

@@ -37,3 +37,12 @@ export interface UpdateWalletDto {
     ogeWalletType: number;
     ogCurrency: number;
 }
+
+export interface TopUpEWalletDto {
+    eWalletType: string;
+    currency: string;
+    referenceNo: string;
+    description: string;
+    amount: number;
+    id: string;
+}
