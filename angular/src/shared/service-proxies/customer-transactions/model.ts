@@ -24,4 +24,5 @@ export interface PagedCustomerTransactionResultRequestDto extends PagedAndSorted
     referenceNo?: string;
     description?: string;
     transactionDate?: string;
+    isAdmin?: boolean
 }

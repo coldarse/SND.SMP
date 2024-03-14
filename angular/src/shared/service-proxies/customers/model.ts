@@ -39,4 +39,5 @@ export interface PagedCustomerResultRequestDto extends PagedAndSortedResultReque
 export interface CompanyNameAndCode {
     name: string;
     code: string;
+    id: number;
 }

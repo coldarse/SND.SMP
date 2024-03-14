@@ -44,6 +44,26 @@ namespace SND.SMP.Wallets
                     x.Customer.Contains(input.Keyword));
         }
 
+        public async Task<List<DetailedEWallet>> GetAllWalletsAsync(string code)
+        {
+            var wallet = await Repository.GetAllListAsync(x => x.Customer.Equals(code));
+
+            var currency = await _currencyRepository.GetAllListAsync();
+
+            List<DetailedEWallet> wallets = new List<DetailedEWallet>();
+            foreach (Wallet w in wallet.ToList())
+            {
+                string curr = currency.FirstOrDefault(x => x.Id.Equals(w.Currency)).Abbr;
+                wallets.Add(new DetailedEWallet(){
+                    Currency = curr,
+                    Balance = w.Balance,
+                    EWalletType = w.EWalletType,
+                });
+            }
+
+            return wallets;
+        }
+
         public override async Task<WalletDto> CreateAsync(WalletDto input)
         {
             var wallets = await Repository.GetAllListAsync(x => x.Customer.Equals(input.Customer));
@@ -137,7 +157,7 @@ namespace SND.SMP.Wallets
 
         public async Task<EWalletDto> GetEWalletAsync(WalletDto input)
         {
-            if (input.Id == "")
+            if (input.Id is null)
             {
                 var eWalletTypes = await _eWalletTypeRepository.GetAllListAsync();
                 var currencies = await _currencyRepository.GetAllListAsync();

@@ -18,18 +18,26 @@ namespace SND.SMP.CustomerTransactions
         }
         protected override IQueryable<CustomerTransaction> CreateFilteredQuery(PagedCustomerTransactionsResultRequestDto input)
         {
-            return Repository.GetAllIncluding()
-                .WhereIf(!input.Keyword.IsNullOrWhiteSpace(), x =>
-                    x.Wallet.Contains(input.Keyword) ||
-                    x.Customer.Contains(input.Keyword) ||
-                    x.PaymentMode.Contains(input.Keyword) ||
-                    x.Currency.Contains(input.Keyword) ||
-                    x.TransactionType.Contains(input.Keyword) ||
-                    x.Amount.ToString("N2").Contains(input.Keyword) ||
-                    x.ReferenceNo.Contains(input.Keyword) ||
-                    x.Description.Contains(input.Keyword) ||
-                    x.TransactionDate.ToString("yyyyMMdd").Contains(input.Keyword));
-
+            return input.isAdmin ?
+                Repository.GetAllIncluding()
+                    .WhereIf(!input.Keyword.IsNullOrWhiteSpace(), x =>
+                        x.Wallet.Contains(input.Keyword) ||
+                        x.Customer.Contains(input.Keyword) ||
+                        x.PaymentMode.Contains(input.Keyword) ||
+                        x.Currency.Contains(input.Keyword) ||
+                        x.TransactionType.Contains(input.Keyword) ||
+                        x.ReferenceNo.Contains(input.Keyword) ||
+                        x.Description.Contains(input.Keyword))
+                : 
+                Repository.GetAllIncluding()
+                    .WhereIf(!input.Keyword.IsNullOrWhiteSpace(), x =>
+                        x.Wallet.Contains(input.Keyword) ||
+                        x.PaymentMode.Contains(input.Keyword) ||
+                        x.Currency.Contains(input.Keyword) ||
+                        x.TransactionType.Contains(input.Keyword) ||
+                        x.ReferenceNo.Contains(input.Keyword) ||
+                        x.Description.Contains(input.Keyword))
+                    .Where(x => x.Customer.Equals(input.Customer));
         }
 
         public async Task<List<CustomerTransaction>> GetCustomerTransactions()

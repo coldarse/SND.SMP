@@ -169,4 +169,15 @@ export class WalletService {
             catchError(this.handleError),
         )
     }
+
+    // Get All Wallets Async By Customer ID
+    getAllWalletsAsync(code: string){
+        return this.http.get(
+            this.url + `/api/services/app/Wallet/GetAllWallets?code=${code}`,
+            this.options_
+        ).pipe(
+            retry(1),
+            catchError(this.handleError),
+        )
+    }
 }

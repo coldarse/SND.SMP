@@ -6,10 +6,10 @@
                     <h1>{{ 'Customer Transactions' | localize }}</h1>
                 </div>
                 <div class='col-6 text-right' *ngIf='isButtonVisible("Create")'>
-                    <a href='javascript:;' class='btn bg-blue' (click)='createCustomerTransaction()'>
+                    <!-- <a href='javascript:;' class='btn bg-blue' (click)='createCustomerTransaction()'>
                         <i class='fa fa-plus-square'></i>
                         {{ 'Create' | localize }}
-                    </a>
+                    </a> -->
                 </div>
             </div>
         </div>
@@ -57,7 +57,7 @@
                                 <th>{{ 'Reference No' | localize }}</th>
                                 <th>{{ 'Description' | localize }}</th>
                                 <th>{{ 'Transaction Date' | localize }}</th>
-                                <th style='width: 310px;' *ngIf='isButtonVisible("Edit") && isButtonVisible("Delete")'>{{ 'Actions' | localize }}</th>
+                                <!-- <th style='width: 310px;' *ngIf='isButtonVisible("Edit") && isButtonVisible("Delete")'>{{ 'Actions' | localize }}</th> -->
                             </tr>
                             </thead>
                             <tbody>
@@ -78,11 +78,11 @@
                                 <td>{{ customerTransaction.paymentMode }}</td>
                                 <td>{{ customerTransaction.currency }}</td>
                                 <td>{{ customerTransaction.transactionType }}</td>
-                                <td>{{ customerTransaction.amount }}</td>
+                                <td>{{ customerTransaction.amount | currency }}</td>
                                 <td>{{ customerTransaction.referenceNo }}</td>
                                 <td>{{ customerTransaction.description }}</td>
-                                <td>{{ customerTransaction.transactionDate }}</td>
-                                <td *ngIf='isButtonVisible("Edit") || isButtonVisible("Delete")'>
+                                <td>{{ customerTransaction.transactionDate | date: 'short' }}</td>
+                                <!-- <td *ngIf='isButtonVisible("Edit") || isButtonVisible("Delete")'>
                                     <button
                                             type='button'
                                             class='btn btn-sm bg-secondary'
@@ -101,7 +101,7 @@
                                         <i class='fas fa-trash'></i>
                                         {{ 'Delete' | localize }}
                                     </button>
-                                </td>
+                                </td> -->
                             </tr>
                             </tbody>
                         </table>

@@ -19,6 +19,7 @@ export class AppSessionService {
     private _customer: CustomerDto;
     private _companyName: string;
     private _companyCode: string;
+    private _customerId: number;
 
     constructor(
         private _sessionService: SessionServiceProxy,
@@ -69,6 +70,11 @@ export class AppSessionService {
         return companyCode;
     }
 
+    getCustomerId(): number {
+        const customerId = this._customerId;
+        return customerId;
+    }
+
 
     init(): Promise<boolean> {
         return new Promise<boolean>((resolve, reject) => {
@@ -81,6 +87,7 @@ export class AppSessionService {
                     this._customerService.getCompanyNameAndCode(this._user.emailAddress).subscribe((name: any) => {
                         this._companyName = name.result.name;
                         this._companyCode = name.result.code;
+                        this._customerId = name.result.id;
                         resolve(true);
                     });
                 }

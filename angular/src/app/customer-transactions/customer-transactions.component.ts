@@ -7,11 +7,12 @@ import { CustomerTransactionService } from '@shared/service-proxies/customer-tra
 import { CreateUpdateCustomerTransactionComponent } from './create-update-customer-transaction/create-update-customer-transaction.component';
 
 class PagedCustomerTransactionsRequestDto extends PagedRequestDto{
-  keyword: string
+  keyword: string;
+  isAdmin: boolean;
 }
 
 @Component({
-  selector: 'app-customertransactions',
+  selector: 'app-customer-transactions',
   templateUrl: './customer-transactions.component.html',
   styleUrls: ['./customer-transactions.component.css']
 })
@@ -94,6 +95,7 @@ export class CustomerTransactionsComponent extends PagedListingComponentBase<Cus
     finishedCallback: Function
   ): void {
     request.keyword = this.keyword;
+    request.isAdmin = true;
     this._customerTransactionService
     .getAll(
       request
@@ -109,7 +111,7 @@ export class CustomerTransactionsComponent extends PagedListingComponentBase<Cus
           let tempCustomerTransaction = {
             wallet: element.wallet,
             customer: element.customer,
-            paymentmode: element.paymentMode,
+            paymentMode: element.paymentMode,
             currency: element.currency,
             transactionType: element.transactionType,
             amount: element.amount,

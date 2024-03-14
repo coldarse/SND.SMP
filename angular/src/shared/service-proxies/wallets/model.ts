@@ -46,3 +46,9 @@ export interface TopUpEWalletDto {
     amount: number;
     id: string;
 }
+
+export interface DetailedEWallet {
+    currency: string;
+    balance: number;
+    eWalletType: number;
+}

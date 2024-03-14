@@ -57,7 +57,8 @@ namespace SND.SMP.Customers
             return new CompanyNameAndCode()
             {
                 Name = customer is null ? "" : customer.CompanyName,
-                Code = customer is null ? "" : customer.Code
+                Code = customer is null ? "" : customer.Code,
+                Id   = customer is null ? 0 : customer.Id
             };
         }
 
