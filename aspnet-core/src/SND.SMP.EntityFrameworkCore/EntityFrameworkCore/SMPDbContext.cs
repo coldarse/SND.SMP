@@ -4,6 +4,7 @@ using SND.SMP.Authorization.Roles;
 using SND.SMP.Authorization.Users;
 using SND.SMP.MultiTenancy;
 /* Using Definition */
+using SND.SMP.CustomerPostals;
 using SND.SMP.PostalCountries;
 using SND.SMP.PostalOrgs;
 using SND.SMP.Postals;
@@ -30,6 +31,7 @@ namespace SND.SMP.EntityFrameworkCore
         public DbSet<Postal> Postals { get; set; }
         public DbSet<PostalOrg> PostalOrgs { get; set; }
         public DbSet<PostalCountry> PostalCountries { get; set; }
+        public DbSet<CustomerPostal> CustomerPostals { get; set; }
         /* Define a DbSet for each entity of the application */
 
         public SMPDbContext(DbContextOptions<SMPDbContext> options)
@@ -42,6 +44,15 @@ namespace SND.SMP.EntityFrameworkCore
             base.OnModelCreating(builder);
 
             /* Define Tables */
+            builder.Entity<CustomerPostal>(b =>
+            {
+                b.ToTable(SMPConsts.DbTablePrefix + "CustomerPostals");
+                b.Property(x => x.Postal).HasColumnName(nameof(CustomerPostal.Postal));
+                b.Property(x => x.Rate).HasColumnName(nameof(CustomerPostal.Rate));
+                b.Property(x => x.AccountNo).HasColumnName(nameof(CustomerPostal.AccountNo));
+                b.HasKey(x => x.Id);
+            });
+
             builder.Entity<PostalCountry>(b =>
             {
                 b.ToTable(SMPConsts.DbTablePrefix + "PostalCountries");

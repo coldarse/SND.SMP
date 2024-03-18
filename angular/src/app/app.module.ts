@@ -39,6 +39,10 @@ import { SidebarLogoComponent } from "./layout/sidebar-logo.component";
 import { SidebarUserPanelComponent } from "./layout/sidebar-user-panel.component";
 import { SidebarMenuComponent } from "./layout/sidebar-menu.component";
 /* Insert Import */
+import { CustomerPostalsComponent } from './customerpostals/customerpostals.component';
+import { CreateUpdateCustomerPostalComponent } from './customerpostals/create-update-customerpostal/create-update-customerpostal.component';
+import { CustomerPostalService } from '@shared/service-proxies/customerpostals/customerpostal.service';
+
 import { PostalCountriesComponent } from "./postalcountries/postalcountries.component";
 import { PostalCountryService } from "@shared/service-proxies/postalcountries/postalcountry.service";
 

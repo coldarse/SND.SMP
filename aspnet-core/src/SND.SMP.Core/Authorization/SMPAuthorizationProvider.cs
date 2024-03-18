@@ -14,6 +14,11 @@ namespace SND.SMP.Authorization
             context.CreatePermission(PermissionNames.Pages_Tenants, L("Tenants"), multiTenancySides: MultiTenancySides.Host);
 
             /* Define your permissions here */
+            context.CreatePermission(PermissionNames.Pages_CustomerPostal, L("CustomerPostals"));
+            context.CreatePermission(PermissionNames.Pages_CustomerPostal_Create, L("CustomerPostalsCreate"));
+            context.CreatePermission(PermissionNames.Pages_CustomerPostal_Edit, L("CustomerPostalsEdit"));
+            context.CreatePermission(PermissionNames.Pages_CustomerPostal_Delete, L("CustomerPostalsDelete"));
+
             context.CreatePermission(PermissionNames.Pages_PostalCountry, L("PostalCountries"));
             context.CreatePermission(PermissionNames.Pages_PostalCountry_Create, L("PostalCountriesCreate"));
             context.CreatePermission(PermissionNames.Pages_PostalCountry_Edit, L("PostalCountriesEdit"));
