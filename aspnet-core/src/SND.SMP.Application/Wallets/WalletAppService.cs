@@ -17,6 +17,7 @@ using JetBrains.Annotations;
 using SND.SMP.EWalletTypes;
 using System.ComponentModel;
 using SND.SMP.CustomerTransactions;
+using System.Diagnostics;
 
 namespace SND.SMP.Wallets
 {
@@ -44,6 +45,57 @@ namespace SND.SMP.Wallets
                     x.Customer.Contains(input.Keyword));
         }
 
+        // public bool RestartContainerByName(string name)
+        // {
+        //     string getContainerId_Command = $"docker ps -aqf \"name={name}\"";
+        //     var psi = new ProcessStartInfo();
+        //     psi.FileName = "/bin/bash";
+        //     psi.Arguments = $"-c \"{getContainerId_Command}\"";
+        //     psi.RedirectStandardOutput = true;
+        //     psi.UseShellExecute = false;
+        //     psi.CreateNoWindow = true;
+
+        //     using var getContainerId_Process = Process.Start(psi);
+
+        //     getContainerId_Process.WaitForExit();
+
+        //     var containerId = getContainerId_Process.StandardOutput.ReadToEnd();
+
+        //     containerId = containerId.Replace("\"n", "");
+
+        //     string restartContainer_Command = $"docker restart {containerId}";
+
+        //     psi.Arguments = $"-c \"{restartContainer_Command}\"";
+
+        //     using var restartContainer_Process = Process.Start(psi);
+
+        //     restartContainer_Process.WaitForExit();
+
+        //     var restartedContainer = restartContainer_Process.StandardOutput.ReadToEnd();
+
+        //     if (restartedContainer is not null) return true;
+        //     return false;
+        // }
+
+        // public string runBash(string command)
+        // {
+        //     var psi = new ProcessStartInfo();
+        //     psi.FileName = "/bin/bash";
+        //     psi.Arguments = $"-c \"{command}\"";
+        //     psi.RedirectStandardOutput = true;
+        //     psi.UseShellExecute = false;
+        //     psi.CreateNoWindow = true;
+
+        //     using var process = Process.Start(psi);
+
+        //     process.WaitForExit();
+
+        //     var output = process.StandardOutput.ReadToEnd();
+
+        //     return output;
+        // }
+
+
         public async Task<List<DetailedEWallet>> GetAllWalletsAsync(string code)
         {
             var wallet = await Repository.GetAllListAsync(x => x.Customer.Equals(code));
@@ -54,7 +106,8 @@ namespace SND.SMP.Wallets
             foreach (Wallet w in wallet.ToList())
             {
                 string curr = currency.FirstOrDefault(x => x.Id.Equals(w.Currency)).Abbr;
-                wallets.Add(new DetailedEWallet(){
+                wallets.Add(new DetailedEWallet()
+                {
                     Currency = curr,
                     Balance = w.Balance,
                     EWalletType = w.EWalletType,
