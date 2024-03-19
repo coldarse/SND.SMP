@@ -39,8 +39,8 @@ import { SidebarLogoComponent } from "./layout/sidebar-logo.component";
 import { SidebarUserPanelComponent } from "./layout/sidebar-user-panel.component";
 import { SidebarMenuComponent } from "./layout/sidebar-menu.component";
 /* Insert Import */
-import { CustomerPostalsComponent } from './customerpostals/customerpostals.component';
-import { CreateUpdateCustomerPostalComponent } from './customerpostals/create-update-customerpostal/create-update-customerpostal.component';
+import { CustomerPostalsComponent } from './customer-postals/customer-postals.component';
+import { CreateUpdateCustomerPostalComponent } from './customer-postals/create-update-customer-postal/create-update-customer-postal.component';
 import { CustomerPostalService } from '@shared/service-proxies/customerpostals/customerpostal.service';
 
 import { PostalCountriesComponent } from "./postalcountries/postalcountries.component";
@@ -110,6 +110,8 @@ import { TopUpWalletComponent } from "./wallets/topup-wallet/topup-wallet.compon
     SidebarUserPanelComponent,
     SidebarMenuComponent,
     /* Insert Component */
+    CustomerPostalsComponent,
+    CreateUpdateCustomerPostalComponent,
     PostalCountriesComponent,
     PostalsComponent,
     CurrenciesComponent,
@@ -145,6 +147,7 @@ import { TopUpWalletComponent } from "./wallets/topup-wallet/topup-wallet.compon
   ],
   providers: [
     /* Insert Service */
+    CustomerPostalService,
     PostalCountryService,
     PostalService,
     CurrencyService,

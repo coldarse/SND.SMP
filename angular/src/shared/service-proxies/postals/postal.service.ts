@@ -118,4 +118,15 @@ export class PostalService {
             catchError(this.handleError),
         )
     }
+
+    // Get Postal Drop Down List
+    getPostalDDL(){
+        return this.http.get(
+            this.url + '/api/services/app/Postal/GetPostalDDL',
+            this.options_
+        ).pipe(
+            retry(1),
+            catchError(this.handleError),
+        )
+    }
 }

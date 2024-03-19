@@ -10,3 +10,8 @@ export interface PagedRatesResultRequestDto extends PagedAndSortedResultRequestD
     cardName?: string;
     count?: number
 }
+
+export interface RateDDL {
+    id: number;
+    cardName: string;
+}

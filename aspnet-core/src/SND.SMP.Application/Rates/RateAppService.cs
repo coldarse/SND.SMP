@@ -20,13 +20,30 @@ namespace SND.SMP.Rates
         protected override IQueryable<Rate> CreateFilteredQuery(PagedRateResultRequestDto input)
         {
             return Repository.GetAllIncluding()
-                .WhereIf(!input.Keyword.IsNullOrWhiteSpace(), x => 
+                .WhereIf(!input.Keyword.IsNullOrWhiteSpace(), x =>
                     x.CardName.Contains(input.Keyword)).AsQueryable();
         }
 
         public async Task<List<Rate>> GetRates()
         {
             return await Repository.GetAllListAsync();
+        }
+
+        public async Task<List<RateDDL>> GetRateDDL()
+        {
+            var rates = await Repository.GetAllListAsync();
+
+            List<RateDDL> rateDDL = new List<RateDDL>();
+            foreach (var rate in rates.ToList())
+            {
+                rateDDL.Add(new RateDDL()
+                {
+                    Id = rate.Id,
+                    CardName = rate.CardName
+                });
+            }
+
+            return rateDDL;
         }
     }
 }

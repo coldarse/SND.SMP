@@ -20,3 +20,9 @@ export interface PagedPostalResultRequestDto extends PagedAndSortedResultRequest
     productCode?: string;
     productDesc?: string;
 }
+
+export interface PostalDDL {
+    postalCode: string;
+    postalDesc: string;
+}
+

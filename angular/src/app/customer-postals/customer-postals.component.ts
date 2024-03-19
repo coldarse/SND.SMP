@@ -4,7 +4,7 @@ import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { finalize } from 'rxjs/operators';
 import { CustomerPostalDto } from '@shared/service-proxies/customerpostals/model'
 import { CustomerPostalService } from '@shared/service-proxies/customerpostals/customerpostal.service'
-import { CreateUpdateCustomerPostalComponent } from '../customerpostals/create-update-customerpostal/create-update-customerpostal.component'
+import { CreateUpdateCustomerPostalComponent } from './create-update-customer-postal/create-update-customer-postal.component'
 
 class PagedCustomerPostalsRequestDto extends PagedRequestDto{
   keyword: string
@@ -12,8 +12,8 @@ class PagedCustomerPostalsRequestDto extends PagedRequestDto{
 
 @Component({
   selector: 'app-customerpostals',
-  templateUrl: './customerpostals.component.html',
-  styleUrls: ['./customerpostals.component.css']
+  templateUrl: './customer-postals.component.html',
+  styleUrls: ['./customer-postals.component.css']
 })
 export class CustomerPostalsComponent extends PagedListingComponentBase<CustomerPostalDto> {
 

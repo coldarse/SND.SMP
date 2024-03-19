@@ -122,4 +122,15 @@ export class RateService {
         )
     }
 
+    //Get Rate Drop Down List
+    getRateDDL(){
+        return this.http.get(
+            this.url + `/api/services/app/Rate/GetRateDDL`,
+            this.options_
+        ).pipe(
+            retry(1),
+            catchError(this.handleError),
+        )
+    }
+
 }

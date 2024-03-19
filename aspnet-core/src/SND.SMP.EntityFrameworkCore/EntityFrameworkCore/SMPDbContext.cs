@@ -50,6 +50,8 @@ namespace SND.SMP.EntityFrameworkCore
                 b.Property(x => x.Postal).HasColumnName(nameof(CustomerPostal.Postal));
                 b.Property(x => x.Rate).HasColumnName(nameof(CustomerPostal.Rate));
                 b.Property(x => x.AccountNo).HasColumnName(nameof(CustomerPostal.AccountNo));
+                b.HasOne<Rate>().WithMany().HasForeignKey(x => x.Rate);
+                b.HasOne<Customer>().WithMany().HasForeignKey(x => x.AccountNo);
                 b.HasKey(x => x.Id);
             });
 

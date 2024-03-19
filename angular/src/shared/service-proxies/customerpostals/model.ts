@@ -10,6 +10,14 @@ export interface CustomerPostalDto extends EntityDto<number> {
 export interface PagedCustomerPostalResultRequestDto extends PagedAndSortedResultRequestDto {
     keyword?: string;
     postal?: string;
+    rate?: number;
+    accountNo?: number;
+}
+
+export interface DetailedCustomerPostalDto extends EntityDto<number>  {
+    postal: string;
     rate: number;
+    rateCard: string;
     accountNo: number;
+    code: string;
 }

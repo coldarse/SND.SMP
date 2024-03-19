@@ -9,7 +9,7 @@ import { TenantsComponent } from "./tenants/tenants.component";
 import { RolesComponent } from "app/roles/roles.component";
 import { ChangePasswordComponent } from "./users/change-password/change-password.component";
 /* Insert Routing Import */
-import { CustomerPostalsComponent } from './customerpostals/customerpostals.component';
+import { CustomerPostalsComponent } from './customer-postals/customer-postals.component';
 import { PostalCountriesComponent } from "./postalcountries/postalcountries.component";
 import { PostalsComponent } from "./postals/postals.component";
 import { CurrenciesComponent } from "./currencies/currencies.component";
@@ -56,6 +56,12 @@ import { CustomerTransactionsComponent } from "./customer-transactions/customer-
             canActivate: [AppRouteGuard],
           },
           /* Insert Path */
+          {
+            path: "customerpostals",
+            data: { permission: "Pages.CustomerPostal" },
+            component: CustomerPostalsComponent,
+            canActivate: [AppRouteGuard],
+          },
           {
             path: "postalcountries",
             data: { permission: "Pages.PostalCountry" },

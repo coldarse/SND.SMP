@@ -62,12 +62,12 @@ export class SidebarMenuComponent extends AppComponentBase implements OnInit {
                 'Pages.Users'
             ),
             /* Insert Menu Path */
-            new MenuItem(
-                this.l('CustomerPostals'),
-                '/app/customerpostals',
-                'far fa-circle',
-                'Pages.CustomerPostal'
-            ),
+            // new MenuItem(
+            //     this.l('Customer Postals'),
+            //     '/app/customerpostals',
+            //     'far fa-circle',
+            //     'Pages.CustomerPostal'
+            // ),
             new MenuItem(
                 this.l('Postal Countries'),
                 '/app/postalcountries',

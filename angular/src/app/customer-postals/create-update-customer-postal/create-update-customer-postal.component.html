@@ -1,0 +1,62 @@
+<form
+  class="form-horizontal"
+  autocomplete="off"
+  #createCustomerPostalModal="ngForm"
+  (ngSubmit)="save()"
+>
+  <abp-modal-header
+    [title]="
+      isCreate == true
+        ? ('Add CustomerPostal' | localize)
+        : ('Edit CustomerPostal' | localize)
+    "
+    (onCloseClick)="bsModalRef.hide()"
+  ></abp-modal-header>
+  <div class="modal-body">
+    <div class="form-group row required">
+      <label class="col-md-3 col-form-label" for="postal">
+        {{ "Postal" | localize }}
+      </label>
+      <div class="col-md-9">
+        <select
+          name="postal"
+          id="postal"
+          class="form-control"
+          (change)="selectedPostal($event)"
+        >
+          <option value="">Select Postal</option>
+          @for (postalItem of postalItems; track $index) {
+          <option value="{{ postalItem.postalCode }}">
+            {{ postalItem.postalDesc }}
+          </option>
+          }
+        </select>
+      </div>
+    </div>
+    <div class="form-group row required">
+      <label class="col-md-3 col-form-label" for="rate">
+        {{ "Rate" | localize }}
+      </label>
+      <div class="col-md-9">
+        <select 
+            name="rate" 
+            id="rate" 
+            class="form-control"
+            (change)="selectedRate($event)"
+        >
+          <option value="0">Select Rate</option>
+          @for (rateItem of rateItems; track $index) {
+          <option value="{{ rateItem.id }}">
+            {{ rateItem.cardName }}
+          </option>
+          }
+        </select>
+      </div>
+    </div>
+  </div>
+  <abp-modal-footer
+    [cancelDisabled]="saving"
+    [saveDisabled]="formInvalid || saving"
+    (onCancelClick)="bsModalRef.hide()"
+  ></abp-modal-footer>
+</form>

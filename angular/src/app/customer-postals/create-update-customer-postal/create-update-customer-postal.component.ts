@@ -3,11 +3,13 @@ import { AppComponentBase } from '../../../shared/app-component-base';
 import { CustomerPostalDto } from '../../../shared/service-proxies/customerpostals/model';
 import { CustomerPostalService } from '../../../shared/service-proxies/customerpostals/customerpostal.service';
 import { BsModalRef } from 'ngx-bootstrap/modal';
+import { RateDDL } from '@shared/service-proxies/rates/model';
+import { PostalDDL } from '@shared/service-proxies/postals/model';
 
 @Component({
   selector: 'app-create-update-customerpostal',
-  templateUrl: './create-update-customerpostal.component.html',
-  styleUrls: ['./create-update-customerpostal.component.css']
+  templateUrl: './create-update-customer-postal.component.html',
+  styleUrls: ['./create-update-customer-postal.component.css']
 })
 export class CreateUpdateCustomerPostalComponent extends AppComponentBase
  implements OnInit {
@@ -16,6 +18,12 @@ export class CreateUpdateCustomerPostalComponent extends AppComponentBase
   isCreate = true;
   customerpostal?: CustomerPostalDto = {} as CustomerPostalDto;
 
+  postalItems: PostalDDL[];
+
+  rateItems: RateDDL[];
+
+  formInvalid = true;
+  
   @Output() onSave = new EventEmitter<any>();
 
   constructor(
@@ -27,9 +35,27 @@ export class CreateUpdateCustomerPostalComponent extends AppComponentBase
   }
 
   ngOnInit(): void {
-    if(this.customerpostal.id != undefined){
-      this.isCreate = false;
-    }
+    // if(this.customerpostal.id != undefined){
+    //   this.isCreate = false;
+    // }
+    this.isCreate = true;
+    console.log(this.postalItems)
+  }
+
+  selectedPostal(event: any){
+    this.customerpostal.postal = event.target.value;
+    if(this.customerpostal.rate == undefined || this.customerpostal.rate == 0 || this.customerpostal.postal == '') 
+      this.formInvalid = true;
+    else 
+      this.formInvalid = false;
+  }
+
+  selectedRate(event: any){
+    this.customerpostal.rate = +event.target.value;
+    if(this.customerpostal.postal == undefined || this.customerpostal.postal == '' || this.customerpostal.rate == 0) 
+      this.formInvalid = true;
+    else 
+      this.formInvalid = false;
   }
 
   save(): void {

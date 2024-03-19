@@ -58,8 +58,20 @@ namespace SND.SMP.Customers
             {
                 Name = customer is null ? "" : customer.CompanyName,
                 Code = customer is null ? "" : customer.Code,
-                Id   = customer is null ? 0 : customer.Id
+                Id = customer is null ? 0 : customer.Id
             };
+        }
+
+        public override async Task<CustomerDto> UpdateAsync(CustomerDto input)
+        {
+            CheckUpdatePermission();
+
+            var entity = await GetEntityByIdAsync(input.Id);
+
+            MapToEntity(input, entity);
+            await CurrentUnitOfWork.SaveChangesAsync();
+
+            return MapToEntityDto(entity);
         }
 
         public override async Task<CustomerDto> CreateAsync(CustomerDto input)

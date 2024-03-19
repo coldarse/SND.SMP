@@ -37,6 +37,25 @@ namespace SND.SMP.Postals
                     x.ProductDesc.Contains(input.Keyword));
         }
 
+        public async Task<List<PostalDDL>> GetPostalDDL()
+        {
+            var postals = await Repository.GetAllListAsync();
+
+            postals = postals.DistinctBy(x => x.PostalCode).ToList();
+
+            List<PostalDDL> postalDDL = new List<PostalDDL>();
+            foreach (var postal in postals.ToList())
+            {
+                postalDDL.Add(new PostalDDL()
+                {
+                    PostalCode = postal.PostalCode,
+                    PostalDesc = postal.PostalDesc
+                });
+            }
+
+            return postalDDL;
+        }
+
         [Consumes("multipart/form-data")]
         public async Task<List<Postal>> UploadPostalFile([FromForm] UploadPostal input)
         {
@@ -132,5 +151,7 @@ namespace SND.SMP.Postals
 
             return postals;
         }
+
+
     }
 }
