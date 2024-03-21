@@ -9,6 +9,7 @@ import { TenantsComponent } from "./tenants/tenants.component";
 import { RolesComponent } from "app/roles/roles.component";
 import { ChangePasswordComponent } from "./users/change-password/change-password.component";
 /* Insert Routing Import */
+import { RateWeightBreaksComponent } from './rateweightbreaks/rateweightbreaks.component';
 import { CustomerPostalsComponent } from './customer-postals/customer-postals.component';
 import { PostalCountriesComponent } from "./postalcountries/postalcountries.component";
 import { PostalsComponent } from "./postals/postals.component";

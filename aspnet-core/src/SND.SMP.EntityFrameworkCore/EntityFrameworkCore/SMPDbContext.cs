@@ -4,6 +4,7 @@ using SND.SMP.Authorization.Roles;
 using SND.SMP.Authorization.Users;
 using SND.SMP.MultiTenancy;
 /* Using Definition */
+using SND.SMP.RateWeightBreaks;
 using SND.SMP.CustomerPostals;
 using SND.SMP.PostalCountries;
 using SND.SMP.PostalOrgs;
@@ -32,6 +33,7 @@ namespace SND.SMP.EntityFrameworkCore
         public DbSet<PostalOrg> PostalOrgs { get; set; }
         public DbSet<PostalCountry> PostalCountries { get; set; }
         public DbSet<CustomerPostal> CustomerPostals { get; set; }
+        public DbSet<RateWeightBreak> RateWeightBreaks { get; set; }
         /* Define a DbSet for each entity of the application */
 
         public SMPDbContext(DbContextOptions<SMPDbContext> options)
@@ -44,6 +46,25 @@ namespace SND.SMP.EntityFrameworkCore
             base.OnModelCreating(builder);
 
             /* Define Tables */
+            builder.Entity<RateWeightBreak>(b =>
+            {
+                b.ToTable(SMPConsts.DbTablePrefix + "RateWeightBreaks");
+                b.Property(x => x.RateId).HasColumnName(nameof(RateWeightBreak.RateId));
+                b.Property(x => x.PostalOrgId).HasColumnName(nameof(RateWeightBreak.PostalOrgId));
+                b.Property(x => x.WeightMin).HasColumnName(nameof(RateWeightBreak.WeightMin)).HasPrecision(18, 2);
+                b.Property(x => x.WeightMax).HasColumnName(nameof(RateWeightBreak.WeightMax)).HasPrecision(18, 2);
+                b.Property(x => x.ProductCode).HasColumnName(nameof(RateWeightBreak.ProductCode)).HasMaxLength(10);
+                b.Property(x => x.CurrencyId).HasColumnName(nameof(RateWeightBreak.CurrencyId));
+                b.Property(x => x.ItemRate).HasColumnName(nameof(RateWeightBreak.ItemRate)).HasPrecision(18, 2);
+                b.Property(x => x.WeightRate).HasColumnName(nameof(RateWeightBreak.WeightRate)).HasPrecision(18, 2);
+                b.Property(x => x.IsExceedRule).HasColumnName(nameof(RateWeightBreak.IsExceedRule));
+                b.Property(x => x.PaymentMode).HasColumnName(nameof(RateWeightBreak.PaymentMode)).HasMaxLength(128);
+                b.HasOne<Rate>().WithMany().HasForeignKey(x => x.RateId);
+                b.HasOne<PostalOrg>().WithMany().HasForeignKey(x => x.PostalOrgId);
+                b.HasOne<Currency>().WithMany().HasForeignKey(x => x.CurrencyId);
+                b.HasKey(x => x.Id);
+            });
+
             builder.Entity<CustomerPostal>(b =>
             {
                 b.ToTable(SMPConsts.DbTablePrefix + "CustomerPostals");

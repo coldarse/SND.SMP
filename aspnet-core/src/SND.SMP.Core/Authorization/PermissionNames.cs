@@ -10,6 +10,11 @@ namespace SND.SMP.Authorization
         public const string Pages_Roles = "Pages.Roles";
 
         /* Define your permissions here */
+        public const string Pages_RateWeightBreak = "Pages.RateWeightBreak";
+        public const string Pages_RateWeightBreak_Create = "Pages.RateWeightBreak.Create";
+        public const string Pages_RateWeightBreak_Edit = "Pages.RateWeightBreak.Edit";
+        public const string Pages_RateWeightBreak_Delete = "Pages.RateWeightBreak.Delete";
+
         public const string Pages_CustomerPostal = "Pages.CustomerPostal";
         public const string Pages_CustomerPostal_Create = "Pages.CustomerPostal.Create";
         public const string Pages_CustomerPostal_Edit = "Pages.CustomerPostal.Edit";

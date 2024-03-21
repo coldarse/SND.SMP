@@ -39,6 +39,10 @@ import { SidebarLogoComponent } from "./layout/sidebar-logo.component";
 import { SidebarUserPanelComponent } from "./layout/sidebar-user-panel.component";
 import { SidebarMenuComponent } from "./layout/sidebar-menu.component";
 /* Insert Import */
+import { RateWeightBreaksComponent } from './rateweightbreaks/rateweightbreaks.component';
+import { CreateUpdateRateWeightBreakComponent } from './rateweightbreaks/create-update-rateweightbreak/create-update-rateweightbreak.component';
+import { RateWeightBreakService } from '@shared/service-proxies/rateweightbreaks/rateweightbreak.service';
+
 import { CustomerPostalsComponent } from './customer-postals/customer-postals.component';
 import { CreateUpdateCustomerPostalComponent } from './customer-postals/create-update-customer-postal/create-update-customer-postal.component';
 import { CustomerPostalService } from '@shared/service-proxies/customerpostals/customerpostal.service';

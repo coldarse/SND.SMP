@@ -62,6 +62,12 @@ export class SidebarMenuComponent extends AppComponentBase implements OnInit {
                 'Pages.Users'
             ),
             /* Insert Menu Path */
+            new MenuItem(
+                this.l('RateWeightBreaks'),
+                '/app/rateweightbreaks',
+                'far fa-circle',
+                'Pages.RateWeightBreak'
+            ),
             // new MenuItem(
             //     this.l('Customer Postals'),
             //     '/app/customerpostals',

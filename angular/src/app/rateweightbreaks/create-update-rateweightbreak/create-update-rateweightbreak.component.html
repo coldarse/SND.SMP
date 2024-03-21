@@ -1,0 +1,223 @@
+<form
+    class='form-horizontal'
+    autocomplete='off'
+    #createRateWeightBreakModal='ngForm'
+    (ngSubmit)='save()'
+>
+    <abp-modal-header
+        [title]='isCreate == true? ("Add RateWeightBreak" | localize) : ("Edit RateWeightBreak" | localize)'
+        (onCloseClick)='bsModalRef.hide()'
+    ></abp-modal-header>
+    <div class='modal-body'>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='rateId'>
+            {{ 'RateId' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='number'
+                class='form-control'
+                name='rateId'
+                id='rateId'
+                required
+                [(ngModel)]='rateweightbreak.rateId'
+                #rateIdModel='ngModel'
+                #rateIdEl
+            />
+            <abp-validation-summary
+                [control]='rateIdModel'
+                [controlEl]='rateIdEl'
+            ></abp-validation-summary>
+            </div>
+        </div>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='postalOrgId'>
+            {{ 'PostalOrgId' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='text'
+                class='form-control'
+                name='postalOrgId'
+                id='postalOrgId'
+                required
+                [(ngModel)]='rateweightbreak.postalOrgId'
+                #postalOrgIdModel='ngModel'
+                #postalOrgIdEl
+            />
+            <abp-validation-summary
+                [control]='postalOrgIdModel'
+                [controlEl]='postalOrgIdEl'
+            ></abp-validation-summary>
+            </div>
+        </div>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='weightMin'>
+            {{ 'WeightMin' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                class='form-control'
+                name='weightMin'
+                id='weightMin'
+                required
+                [(ngModel)]='rateweightbreak.weightMin'
+                #weightMinModel='ngModel'
+                #weightMinEl
+            />
+            <abp-validation-summary
+                [control]='weightMinModel'
+                [controlEl]='weightMinEl'
+            ></abp-validation-summary>
+            </div>
+        </div>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='weightMax'>
+            {{ 'WeightMax' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                class='form-control'
+                name='weightMax'
+                id='weightMax'
+                required
+                [(ngModel)]='rateweightbreak.weightMax'
+                #weightMaxModel='ngModel'
+                #weightMaxEl
+            />
+            <abp-validation-summary
+                [control]='weightMaxModel'
+                [controlEl]='weightMaxEl'
+            ></abp-validation-summary>
+            </div>
+        </div>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='productCode'>
+            {{ 'ProductCode' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='text'
+                class='form-control'
+                name='productCode'
+                id='productCode'
+                required
+                [(ngModel)]='rateweightbreak.productCode'
+                #productCodeModel='ngModel'
+                #productCodeEl
+            />
+            <abp-validation-summary
+                [control]='productCodeModel'
+                [controlEl]='productCodeEl'
+            ></abp-validation-summary>
+            </div>
+        </div>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='currencyId'>
+            {{ 'CurrencyId' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='number'
+                class='form-control'
+                name='currencyId'
+                id='currencyId'
+                required
+                [(ngModel)]='rateweightbreak.currencyId'
+                #currencyIdModel='ngModel'
+                #currencyIdEl
+            />
+            <abp-validation-summary
+                [control]='currencyIdModel'
+                [controlEl]='currencyIdEl'
+            ></abp-validation-summary>
+            </div>
+        </div>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='itemRate'>
+            {{ 'ItemRate' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                class='form-control'
+                name='itemRate'
+                id='itemRate'
+                required
+                [(ngModel)]='rateweightbreak.itemRate'
+                #itemRateModel='ngModel'
+                #itemRateEl
+            />
+            <abp-validation-summary
+                [control]='itemRateModel'
+                [controlEl]='itemRateEl'
+            ></abp-validation-summary>
+            </div>
+        </div>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='weightRate'>
+            {{ 'WeightRate' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                class='form-control'
+                name='weightRate'
+                id='weightRate'
+                required
+                [(ngModel)]='rateweightbreak.weightRate'
+                #weightRateModel='ngModel'
+                #weightRateEl
+            />
+            <abp-validation-summary
+                [control]='weightRateModel'
+                [controlEl]='weightRateEl'
+            ></abp-validation-summary>
+            </div>
+        </div>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='isExceedRule'>
+            {{ 'IsExceedRule' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='checkbox'
+                class='form-control'
+                name='isExceedRule'
+                id='isExceedRule'
+                [(ngModel)]='rateweightbreak.isExceedRule'
+                #isExceedRuleModel='ngModel'
+                #isExceedRuleEl
+            />
+            <abp-validation-summary
+                [control]='isExceedRuleModel'
+                [controlEl]='isExceedRuleEl'
+            ></abp-validation-summary>
+            </div>
+        </div>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='paymentMode'>
+            {{ 'PaymentMode' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='text'
+                class='form-control'
+                name='paymentMode'
+                id='paymentMode'
+                required
+                [(ngModel)]='rateweightbreak.paymentMode'
+                #paymentModeModel='ngModel'
+                #paymentModeEl
+            />
+            <abp-validation-summary
+                [control]='paymentModeModel'
+                [controlEl]='paymentModeEl'
+            ></abp-validation-summary>
+            </div>
+        </div>
+    </div>
+    <abp-modal-footer
+    [cancelDisabled]='saving'
+    [saveDisabled]='!createRateWeightBreakModal.form.valid || saving'
+    (onCancelClick)='bsModalRef.hide()'
+    ></abp-modal-footer>
+</form>
