@@ -51,12 +51,12 @@ namespace SND.SMP.EntityFrameworkCore
                 b.ToTable(SMPConsts.DbTablePrefix + "RateWeightBreaks");
                 b.Property(x => x.RateId).HasColumnName(nameof(RateWeightBreak.RateId));
                 b.Property(x => x.PostalOrgId).HasColumnName(nameof(RateWeightBreak.PostalOrgId));
-                b.Property(x => x.WeightMin).HasColumnName(nameof(RateWeightBreak.WeightMin)).HasPrecision(18, 2);
-                b.Property(x => x.WeightMax).HasColumnName(nameof(RateWeightBreak.WeightMax)).HasPrecision(18, 2);
+                b.Property(x => x.WeightMin).HasColumnName(nameof(RateWeightBreak.WeightMin)).HasPrecision(18, 2).IsRequired(false);
+                b.Property(x => x.WeightMax).HasColumnName(nameof(RateWeightBreak.WeightMax)).HasPrecision(18, 2).IsRequired(false);
                 b.Property(x => x.ProductCode).HasColumnName(nameof(RateWeightBreak.ProductCode)).HasMaxLength(10);
                 b.Property(x => x.CurrencyId).HasColumnName(nameof(RateWeightBreak.CurrencyId));
-                b.Property(x => x.ItemRate).HasColumnName(nameof(RateWeightBreak.ItemRate)).HasPrecision(18, 2);
-                b.Property(x => x.WeightRate).HasColumnName(nameof(RateWeightBreak.WeightRate)).HasPrecision(18, 2);
+                b.Property(x => x.ItemRate).HasColumnName(nameof(RateWeightBreak.ItemRate)).HasPrecision(18, 2).IsRequired(false);
+                b.Property(x => x.WeightRate).HasColumnName(nameof(RateWeightBreak.WeightRate)).HasPrecision(18, 2).IsRequired(false);
                 b.Property(x => x.IsExceedRule).HasColumnName(nameof(RateWeightBreak.IsExceedRule));
                 b.Property(x => x.PaymentMode).HasColumnName(nameof(RateWeightBreak.PaymentMode)).HasMaxLength(128);
                 b.HasOne<Rate>().WithMany().HasForeignKey(x => x.RateId);

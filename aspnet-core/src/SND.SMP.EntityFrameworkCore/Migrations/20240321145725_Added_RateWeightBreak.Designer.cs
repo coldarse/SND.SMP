@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SND.SMP.EntityFrameworkCore;
 
@@ -10,9 +11,11 @@ using SND.SMP.EntityFrameworkCore;
 namespace SND.SMP.Migrations
 {
     [DbContext(typeof(SMPDbContext))]
-    partial class SMPDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240321145725_Added_RateWeightBreak")]
+    partial class Added_RateWeightBreak
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1913,7 +1916,7 @@ namespace SND.SMP.Migrations
                         .HasColumnType("tinyint(1)")
                         .HasColumnName("IsExceedRule");
 
-                    b.Property<decimal?>("ItemRate")
+                    b.Property<decimal>("ItemRate")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)")
                         .HasColumnName("ItemRate");
@@ -1936,17 +1939,17 @@ namespace SND.SMP.Migrations
                         .HasColumnType("int")
                         .HasColumnName("RateId");
 
-                    b.Property<decimal?>("WeightMax")
+                    b.Property<decimal>("WeightMax")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)")
                         .HasColumnName("WeightMax");
 
-                    b.Property<decimal?>("WeightMin")
+                    b.Property<decimal>("WeightMin")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)")
                         .HasColumnName("WeightMin");
 
-                    b.Property<decimal?>("WeightRate")
+                    b.Property<decimal>("WeightRate")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)")
                         .HasColumnName("WeightRate");
