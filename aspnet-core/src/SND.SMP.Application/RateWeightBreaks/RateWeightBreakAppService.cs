@@ -131,6 +131,40 @@ namespace SND.SMP.RateWeightBreaks
         }
         #endregion
 
+        public async Task<RateCardWeightBreakDto> GetRateWeightBreakByRate(int rateid)
+        {
+            var rateWeightBreaks = await Repository.GetAllListAsync(x => x.RateId.Equals(rateid) && !x.ItemRate.Equals(0) && !x.WeightRate.Equals(0));
+
+            var rateWeight = rateWeightBreaks.FirstOrDefault();
+
+            var rate = await _rateRepository.FirstOrDefaultAsync(x => x.Id.Equals(rateWeight.RateId));
+            var postalOrg = await _postalOrgRepository.FirstOrDefaultAsync(x => x.Id.Equals(rateWeight.PostalOrgId));
+            var currency = await _currencyRepository.FirstOrDefaultAsync(x => x.Id.Equals(rateWeight.CurrencyId));
+
+            List<WeightBreakDto> wb = [];
+            foreach(RateWeightBreak rwb in rateWeightBreaks)
+            {
+                wb.Add(new WeightBreakDto()
+                {
+                    WeightMinKg = rwb.WeightMin,
+                    WeightMaxKg = rwb.WeightMax,
+                    ProductCode = rwb.ProductCode,
+                    ItemRate = rwb.ItemRate,
+                    WeightRate = rwb.WeightRate,
+                    IsExceedRule = rwb.IsExceedRule,
+                });
+            }
+
+            return new RateCardWeightBreakDto()
+            {
+                RateCardName = rate.CardName,
+                Currency = currency.Abbr,
+                Postal = postalOrg.Id,
+                PaymentMode = rateWeight.PaymentMode,
+                WeightBreaks = wb
+            };
+        }
+
         [Consumes("multipart/form-data")]
         public async Task<List<RateCardWeightBreakDto>> UploadRateWeightBreakFile([FromForm] UploadPostal input)
         {
@@ -176,7 +210,6 @@ namespace SND.SMP.RateWeightBreaks
                     {
                         List<WeightBreakDto> listWeightBreak = [];
 
-
                         var rateCardName = Convert.ToString(table.Rows[0][1]);
                         var currency = Convert.ToString(table.Rows[0][4]);
                         var postal = Convert.ToString(table.Rows[0][7]);
@@ -196,33 +229,37 @@ namespace SND.SMP.RateWeightBreaks
                             int colIndex = 2;
                             foreach (var productCode in productCodes)
                             {
-                                bool IsExceedRule = Convert.ToString(table.Rows[i][0]) == EXCEEDS ? true : false;
+                                bool IsExceedRule = Convert.ToString(table.Rows[i][0]) == EXCEEDS;
 
                                 var wb = new WeightBreakDto()
                                 {
                                     IsExceedRule = IsExceedRule,
-                                    WeightMinKg = !IsExceedRule ? Convert.ToDecimal(table.Rows[i][0] ?? 0) / 1000 : null,
-                                    WeightMaxKg = !IsExceedRule ? Convert.ToDecimal(table.Rows[i][1] ?? 0) / 1000 : null,
+                                    WeightMinKg = !IsExceedRule ? Convert.ToDecimal(table.Rows[i][0] ?? 0) / 1000 : 0,
+                                    WeightMaxKg = !IsExceedRule ? Convert.ToDecimal(table.Rows[i][1] ?? 0) / 1000 : 0,
                                     ProductCode = productCode!,
-                                    ItemRate = table.Rows[i][colIndex] == DBNull.Value ? null : Convert.ToDecimal(table.Rows[i][colIndex]),
-                                    WeightRate = table.Rows[i][colIndex + 1] == DBNull.Value ? null : Convert.ToDecimal(table.Rows[i][colIndex + 1]),
+                                    ItemRate = table.Rows[i][colIndex] == DBNull.Value ? 0 : Convert.ToDecimal(table.Rows[i][colIndex]),
+                                    WeightRate = table.Rows[i][colIndex + 1] == DBNull.Value ? 0 : Convert.ToDecimal(table.Rows[i][colIndex + 1]),
                                 };
-                                
-                                listWeightBreak.Add(wb);
 
-                                insert.Add(new RateWeightBreak()
+                                if(!wb.ItemRate.Equals(0) && !wb.WeightRate.Equals(0))
                                 {
-                                    RateId = rate.Id,
-                                    PostalOrgId = postalOrgId,
-                                    WeightMin = wb.WeightMinKg is null ? 0 : wb.WeightMinKg,
-                                    WeightMax = wb.WeightMaxKg is null ? 0 : wb.WeightMaxKg,
-                                    ProductCode = wb.ProductCode,
-                                    CurrencyId = currId,
-                                    ItemRate = wb.ItemRate is null ? 0 : wb.ItemRate,
-                                    WeightRate = wb.WeightRate is null ? 0 : wb.WeightRate,
-                                    IsExceedRule = wb.IsExceedRule,
-                                    PaymentMode = paymentMode
-                                });
+                                    listWeightBreak.Add(wb);
+
+                                    insert.Add(new RateWeightBreak()
+                                    {
+                                        RateId = rate.Id,
+                                        PostalOrgId = postalOrgId,
+                                        WeightMin = wb.WeightMinKg,
+                                        WeightMax = wb.WeightMaxKg,
+                                        ProductCode = wb.ProductCode,
+                                        CurrencyId = currId,
+                                        ItemRate = wb.ItemRate,
+                                        WeightRate = wb.WeightRate,
+                                        IsExceedRule = wb.IsExceedRule,
+                                        PaymentMode = paymentMode
+                                    });
+                                }
+                                
 
                                 colIndex += 2;
                             }
@@ -243,7 +280,7 @@ namespace SND.SMP.RateWeightBreaks
                     foreach (var distinctedRateCard in rateCard)
                     {
                         var rwb = await Repository.GetAllListAsync(x => x.RateId.Equals(distinctedRateCard.Id));
-                        if(rwb.Count > 0) await Repository.GetDbContext().Database.ExecuteSqlAsync($"DELETE FROM smpdb.rateweightbreaks WHERE rateId = '{distinctedRateCard.Id.ToString()}'");
+                        if(rwb.Count > 0) await Repository.GetDbContext().Database.ExecuteSqlAsync($"DELETE FROM smpdb.rateweightbreaks WHERE RateId = '{distinctedRateCard.Id.ToString()}'");
                     }
 
                     foreach(RateWeightBreak rwb in insert)
