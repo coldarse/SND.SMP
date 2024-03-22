@@ -133,7 +133,7 @@ namespace SND.SMP.RateWeightBreaks
 
         public async Task<RateCardWeightBreakDto> GetRateWeightBreakByRate(int rateid)
         {
-            var rateWeightBreaks = await Repository.GetAllListAsync(x => x.RateId.Equals(rateid) && !x.ItemRate.Equals(0) && !x.WeightRate.Equals(0));
+            var rateWeightBreaks = await Repository.GetAllListAsync(x => x.RateId.Equals(rateid) && !x.ItemRate.Equals(Convert.ToDecimal(0)) && !x.WeightRate.Equals(Convert.ToDecimal(0)));
 
             var rateWeight = rateWeightBreaks.FirstOrDefault();
 
@@ -241,7 +241,7 @@ namespace SND.SMP.RateWeightBreaks
                                     WeightRate = table.Rows[i][colIndex + 1] == DBNull.Value ? 0 : Convert.ToDecimal(table.Rows[i][colIndex + 1]),
                                 };
 
-                                if(!wb.ItemRate.Equals(0) && !wb.WeightRate.Equals(0))
+                                if(!wb.ItemRate.Equals(Convert.ToDecimal(0)) && !wb.WeightRate.Equals(Convert.ToDecimal(0)))
                                 {
                                     listWeightBreak.Add(wb);
 
