@@ -10,6 +10,11 @@ namespace SND.SMP.Authorization
         public const string Pages_Roles = "Pages.Roles";
 
         /* Define your permissions here */
+        public const string Pages_Chibi = "Pages.Chibi";
+        public const string Pages_Chibi_Create = "Pages.Chibi.Create";
+        public const string Pages_Chibi_Edit = "Pages.Chibi.Edit";
+        public const string Pages_Chibi_Delete = "Pages.Chibi.Delete";
+
         public const string Pages_RateWeightBreak = "Pages.RateWeightBreak";
         public const string Pages_RateWeightBreak_Create = "Pages.RateWeightBreak.Create";
         public const string Pages_RateWeightBreak_Edit = "Pages.RateWeightBreak.Edit";

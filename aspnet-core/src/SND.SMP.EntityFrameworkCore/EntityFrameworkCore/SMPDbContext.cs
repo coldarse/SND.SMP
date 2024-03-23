@@ -4,6 +4,7 @@ using SND.SMP.Authorization.Roles;
 using SND.SMP.Authorization.Users;
 using SND.SMP.MultiTenancy;
 /* Using Definition */
+using SND.SMP.Chibis;
 using SND.SMP.RateWeightBreaks;
 using SND.SMP.CustomerPostals;
 using SND.SMP.PostalCountries;
@@ -34,6 +35,7 @@ namespace SND.SMP.EntityFrameworkCore
         public DbSet<PostalCountry> PostalCountries { get; set; }
         public DbSet<CustomerPostal> CustomerPostals { get; set; }
         public DbSet<RateWeightBreak> RateWeightBreaks { get; set; }
+        public DbSet<Chibi> Chibis { get; set; }
         /* Define a DbSet for each entity of the application */
 
         public SMPDbContext(DbContextOptions<SMPDbContext> options)
@@ -46,6 +48,17 @@ namespace SND.SMP.EntityFrameworkCore
             base.OnModelCreating(builder);
 
             /* Define Tables */
+            builder.Entity<Chibi>(b =>
+            {
+                b.ToTable(SMPConsts.DbTablePrefix + "Chibis");
+                b.Property(x => x.FileName).HasColumnName(nameof(Chibi.FileName)).HasMaxLength(128);
+                b.Property(x => x.UUID).HasColumnName(nameof(Chibi.UUID)).HasMaxLength(128);
+                b.Property(x => x.URL).HasColumnName(nameof(Chibi.URL)).HasMaxLength(128);
+                b.Property(x => x.OriginalName).HasColumnName(nameof(Chibi.OriginalName)).HasMaxLength(128);
+                b.Property(x => x.GeneratedName).HasColumnName(nameof(Chibi.GeneratedName)).HasMaxLength(128);
+                b.HasKey(x => x.Id);
+            });
+
             builder.Entity<RateWeightBreak>(b =>
             {
                 b.ToTable(SMPConsts.DbTablePrefix + "RateWeightBreaks");
