@@ -133,6 +133,8 @@ import { TopUpWalletComponent } from "./wallets/topup-wallet/topup-wallet.compon
     UploadPostalComponent,
     UploadPostalCountryComponent,
     TopUpWalletComponent,
+    RateWeightBreaksComponent,
+    CreateUpdateRateWeightBreakComponent,
   ],
   imports: [
     CommonModule,
@@ -161,6 +163,7 @@ import { TopUpWalletComponent } from "./wallets/topup-wallet/topup-wallet.compon
     RateItemService,
     RateService,
     CustomerTransactionService,
+    RateWeightBreakService,
   ],
 })
 export class AppModule {}

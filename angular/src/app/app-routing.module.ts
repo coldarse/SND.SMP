@@ -58,6 +58,12 @@ import { CustomerTransactionsComponent } from "./customer-transactions/customer-
           },
           /* Insert Path */
           {
+            path: "rateweightbreaks",
+            data: { permission: "Pages.RateWeightBreak" },
+            component: RateWeightBreaksComponent,
+            canActivate: [AppRouteGuard],
+          },
+          {
             path: "customerpostals",
             data: { permission: "Pages.CustomerPostal" },
             component: CustomerPostalsComponent,
