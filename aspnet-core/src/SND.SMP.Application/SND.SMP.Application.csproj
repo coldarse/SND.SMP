@@ -12,6 +12,11 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Remove="RateWeightBreak\**" />
+    <EmbeddedResource Remove="RateWeightBreak\**" />
+    <None Remove="RateWeightBreak\**" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\SND.SMP.Core\SND.SMP.Core.csproj" />
     <ProjectReference Include="..\SND.SMP.EntityFrameworkCore\SND.SMP.EntityFrameworkCore.csproj" />
     <PackageReference Include="EPPlus" Version="7.0.9" />
