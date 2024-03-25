@@ -48,9 +48,11 @@
                             </div>
                         </div> -->
                         <div class="col-md-12">
-                            <button class="btn btn-primary mr-1" *ngFor="let rate of rates" (click)='filter(rate.id)'>
-                                {{rate.cardName}} ({{rate.count}})
-                            </button>
+                            @for (rate of rates; track $index) {
+                                <button class="btn btn-primary mr-1" (click)='filter(rate.id)'>
+                                    {{rate.cardName}} ({{rate.count}})
+                                </button>
+                            }
                         </div>
                     </div>
                 </div>

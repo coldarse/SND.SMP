@@ -1,58 +1,72 @@
-import { Component, Injector } from '@angular/core';
-import { PagedListingComponentBase, PagedRequestDto, PagedResultDto } from '@shared/paged-listing-component-base';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
-import { finalize } from 'rxjs/operators';
-import { RateWeightBreakDto } from '@shared/service-proxies/rateweightbreaks/model'
-import { RateWeightBreakService } from '@shared/service-proxies/rateweightbreaks/rateweightbreak.service'
-import { CreateUpdateRateWeightBreakComponent } from '../rateweightbreaks/create-update-rateweightbreak/create-update-rateweightbreak.component'
+import { Component, Injector, OnInit } from "@angular/core";
+import {
+  PagedListingComponentBase,
+  PagedRequestDto,
+  PagedResultDto,
+} from "@shared/paged-listing-component-base";
+import { BsModalRef, BsModalService } from "ngx-bootstrap/modal";
+import { finalize } from "rxjs/operators";
+import { RateWeightBreakDto } from "@shared/service-proxies/rateweightbreaks/model";
+import { RateWeightBreakService } from "@shared/service-proxies/rateweightbreaks/rateweightbreak.service";
+import { CreateUpdateRateWeightBreakComponent } from "../rateweightbreaks/create-update-rateweightbreak/create-update-rateweightbreak.component";
+import { RateService } from "@shared/service-proxies/rates/rate.service";
+import { UploadRateWeightBreakComponent } from "./upload-rate-weight-break/upload-rate-weight-break.component";
 
-class PagedRateWeightBreaksRequestDto extends PagedRequestDto{
-  keyword: string
+
+class PagedRateWeightBreaksRequestDto extends PagedRequestDto {
+  keyword: string;
 }
 
 @Component({
-  selector: 'app-rateweightbreaks',
-  templateUrl: './rateweightbreaks.component.html',
-  styleUrls: ['./rateweightbreaks.component.css']
+  selector: "app-rateweightbreaks",
+  templateUrl: "./rateweightbreaks.component.html",
+  styleUrls: ["./rateweightbreaks.component.css"],
 })
 export class RateWeightBreaksComponent extends PagedListingComponentBase<RateWeightBreakDto> {
+  keyword = "";
+  rateweightbreak: any;
+  weightbreaks: any[] = [];
+  products: any[] = [];
+  rates: any[] = [];
 
-  keyword = '';
-  rateweightbreaks: any[] = [];
+  grouped: any;
+
+  selectedRateCard = 0;
+  selectedRateCardName = '';
 
   constructor(
     injector: Injector,
     private _rateweightbreakService: RateWeightBreakService,
+    private _rateService: RateService,
     private _modalService: BsModalService
-  ){
+  ) {
     super(injector);
   }
 
-  createRateWeightBreak(){
+  createRateWeightBreak() {
     this.showCreateOrEditRateWeightBreakDialog();
   }
 
-  editRateWeightBreak(entity: RateWeightBreakDto){
+  editRateWeightBreak(entity: RateWeightBreakDto) {
     this.showCreateOrEditRateWeightBreakDialog(entity);
   }
 
-  private showCreateOrEditRateWeightBreakDialog(entity?: RateWeightBreakDto){
+  private showCreateOrEditRateWeightBreakDialog(entity?: RateWeightBreakDto) {
     let createOrEditRateWeightBreakDialog: BsModalRef;
-    if(!entity){
+    if (!entity) {
       createOrEditRateWeightBreakDialog = this._modalService.show(
         CreateUpdateRateWeightBreakComponent,
         {
-          class: 'modal-lg',
+          class: "modal-lg",
         }
       );
-    }
-    else{
+    } else {
       createOrEditRateWeightBreakDialog = this._modalService.show(
         CreateUpdateRateWeightBreakComponent,
         {
-          class: 'modal-lg',
+          class: "modal-lg",
           initialState: {
-            rateweightbreak: entity
+            rateweightbreak: entity,
           },
         }
       );
@@ -64,27 +78,64 @@ export class RateWeightBreaksComponent extends PagedListingComponentBase<RateWei
   }
 
   clearFilters(): void {
-    this.keyword = '';
+    this.keyword = "";
     this.getDataPage(1);
   }
 
-  protected delete(entity: RateWeightBreakDto): void{
-    abp.message.confirm(
-      '',
-      undefined,
-      (result: boolean) => {
-        if (result) {
-          this._rateweightbreakService.delete(entity.id).subscribe(() => {
-            abp.notify.success(this.l('SuccessfullyDeleted'));
-            this.refresh();
-          });
-        }
+  protected delete(entity: RateWeightBreakDto): void {
+    abp.message.confirm("", undefined, (result: boolean) => {
+      if (result) {
+        this._rateweightbreakService.delete(entity.id).subscribe(() => {
+          abp.notify.success(this.l("SuccessfullyDeleted"));
+          this.refresh();
+        });
       }
-    );
+    });
   }
 
   isButtonVisible(action: string): boolean {
-    return this.permission.isGranted('Pages.RateWeightBreak.' + action);
+    return this.permission.isGranted("Pages.RateWeightBreak." + action);
+  }
+
+  filter(input: any) {
+    if (input.toString() === "0") {
+      this.selectedRateCard = 0;
+      this.getDataPage(1);
+    } else {
+      this.selectedRateCard = +input;
+      this.selectedRateCardName = this.rates.find(x => x.id === +input).cardName;
+      this.getDataPage(1);
+    }
+  }
+
+  private groupBy(list, keyGetter) {
+    const map = new Map();
+    list.forEach((item) => {
+      const key = keyGetter(item);
+      const collection = map.get(key);
+      if (!collection) {
+        map.set(key, [item]);
+      } else {
+        collection.push(item);
+      }
+    });
+    return map;
+  }
+  
+
+  uploadRateWeightBreakExcel(){
+    this.showUploadRateWeightBreakDialog();
+  }
+
+  private showUploadRateWeightBreakDialog() {
+    let uploadRateWeightBreakDialog: BsModalRef;
+    uploadRateWeightBreakDialog = this._modalService.show(UploadRateWeightBreakComponent, {
+      class: "modal-lg",
+    });
+
+    uploadRateWeightBreakDialog.content.onSave.subscribe(() => {
+      this.refresh();
+    });
   }
 
   protected list(
@@ -92,36 +143,49 @@ export class RateWeightBreaksComponent extends PagedListingComponentBase<RateWei
     pageNumber: number,
     finishedCallback: Function
   ): void {
-    request.keyword = this.keyword;
-    this._rateweightbreakService
-    .getAll(
-      request
-    ).pipe(
-      finalize(() => {
-        finishedCallback();
-      })
-    )
-    .subscribe((result: any) => {
-      this.rateweightbreaks = [];
-        result.result.items.forEach((element: RateWeightBreakDto) => {
+    this.weightbreaks = [];
+    this.products = [];
+    this.grouped = undefined;
+    this.rateweightbreak = undefined;
+    this.isTableLoading = true;
 
-          let tempRateWeightBreak = {
-            id: element.id,
-            rateId: element.rateId,
-            postalOrgId: element.postalOrgId,
-            weightMin: element.weightMin,
-            weightMax: element.weightMax,
-            productCode: element.productCode,
-            currencyId: element.currencyId,
-            itemRate: element.itemRate,
-            weightRate: element.weightRate,
-            isExceedRule: element.isExceedRule,
-            paymentMode: element.paymentMode,
-          }
+    this._rateService.getRates().subscribe((rates: any) => {
+      this.rates = rates.result;
 
-          this.rateweightbreaks.push(tempRateWeightBreak);
-        });
-      this.showPaging(result.result, pageNumber);
+      if (this.selectedRateCard !== 0) {
+        this._rateweightbreakService
+          .getRateWeightBreakByRate(this.selectedRateCard)
+          .pipe(
+            finalize(() => {
+              finishedCallback();
+            })
+          )
+          .subscribe((rwb: any) => {
+            this.rateweightbreak = rwb.result;
+            this.weightbreaks = rwb.result.weightBreaks;
+            this.products = [
+              ...new Set(this.weightbreaks.map((x) => x.productCode)),
+            ];
+
+            let exceeds = this.weightbreaks.filter(
+              (x) => x.weightBreak === "0.00 - 0.00"
+            );
+
+            // -- Filter out Exeeds Row -- //
+            this.weightbreaks = this.weightbreaks.filter(
+              (x) => x.weightBreak !== "0.00 - 0.00"
+            );
+
+            let grouped = this.groupBy(this.weightbreaks, (x: any) => x.weightBreak);
+
+            grouped['Exceeds'] = exceeds;
+
+            this.grouped = grouped;
+            this.isTableLoading = false;
+          });
+      } else {
+        this.isTableLoading = false;
+      }
     });
   }
 }

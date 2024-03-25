@@ -41,6 +41,7 @@ import { SidebarMenuComponent } from "./layout/sidebar-menu.component";
 /* Insert Import */
 import { RateWeightBreaksComponent } from './rateweightbreaks/rateweightbreaks.component';
 import { CreateUpdateRateWeightBreakComponent } from './rateweightbreaks/create-update-rateweightbreak/create-update-rateweightbreak.component';
+import { UploadRateWeightBreakComponent } from './rateweightbreaks/upload-rate-weight-break/upload-rate-weight-break.component';
 import { RateWeightBreakService } from '@shared/service-proxies/rateweightbreaks/rateweightbreak.service';
 
 import { CustomerPostalsComponent } from './customer-postals/customer-postals.component';
@@ -135,6 +136,7 @@ import { TopUpWalletComponent } from "./wallets/topup-wallet/topup-wallet.compon
     TopUpWalletComponent,
     RateWeightBreaksComponent,
     CreateUpdateRateWeightBreakComponent,
+    UploadRateWeightBreakComponent,
   ],
   imports: [
     CommonModule,

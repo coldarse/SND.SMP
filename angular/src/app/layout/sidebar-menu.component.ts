@@ -65,7 +65,7 @@ export class SidebarMenuComponent extends AppComponentBase implements OnInit {
             new MenuItem(
                 this.l('RateWeightBreaks'),
                 '/app/rateweightbreaks',
-                'far fa-circle',
+                'far fa-scale-unbalanced',
                 'Pages.RateWeightBreak'
             ),
             // new MenuItem(

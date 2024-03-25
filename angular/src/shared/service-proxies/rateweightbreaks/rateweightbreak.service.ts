@@ -102,4 +102,31 @@ export class RateWeightBreakService {
             catchError(this.handleError),
         )
     }
+
+    //Get RateWeightBreak By Rate
+    getRateWeightBreakByRate(rateId: number){
+        return this.http.get(
+            this.url + `/api/services/app/RateWeightBreak/GetRateWeightBreakByRate?rateid=${rateId}`,
+            this.options_
+        ).pipe(
+            retry(1),
+            catchError(this.handleError),
+        )
+    }
+
+    //Upload Excel for RateWeightBreak
+    uploadRateWeightBreakFile(body: any){
+        return this.http.post(
+            this.url + '/api/services/app/RateWeightBreak/UploadRateWeightBreakFile',
+            body,
+            {
+                headers: new HttpHeaders({
+                    "Accept": "text/plain"
+                })
+            }
+        ).pipe(
+            retry(1),
+            catchError(this.handleError),
+        )
+    }
 }
