@@ -13,13 +13,14 @@ using System.Net.Http;
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using System.Net.Http.Headers;
+using SND.SMP.CustomerPostals;
+using Abp.EntityFrameworkCore.Repositories;
 
 
 namespace SND.SMP.Chibis
 {
     public class ChibiAppService : AsyncCrudAppService<Chibi, ChibiDto, long, PagedChibiResultRequestDto>
     {
-
         public ChibiAppService(IRepository<Chibi, long> repository) : base(repository)
         {
         }
@@ -73,10 +74,28 @@ namespace SND.SMP.Chibis
             {
                 response.EnsureSuccessStatusCode();
                 var body = await response.Content.ReadAsStringAsync();
-                Console.WriteLine(body);
+                //Console.WriteLine(body);
+
+                var result = JsonSerializer.Deserialize<ChibiUpload>(body);
+
+                if (result != null)
+                {
+                    //Insert to DB
+                    Chibi entity = new Chibi()
+                    {
+                        FileName = result.name == null ? "" : DateTime.Now.ToString("yyyyMMdd") + "_" + result.name,
+                        UUID = result.uuid == null ? "" : result.uuid,
+                        URL = result.url == null ? "" : result.url,
+                        OriginalName = uploadFile.file.FileName == null ? "" : uploadFile.file.FileName,
+                        GeneratedName = result.name == null ? "" : result.name
+                    };
+
+                    var created = await Repository.InsertAsync(entity);
+                    await Repository.GetDbContext().SaveChangesAsync();
+                }
+
                 return JsonSerializer.Deserialize<ChibiUpload>(body);
             }
         }
-
     }
 }
