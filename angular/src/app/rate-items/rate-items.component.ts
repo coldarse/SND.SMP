@@ -18,7 +18,7 @@ class PagedRateItemsRequestDto extends PagedRequestDto {
 }
 
 @Component({
-  selector: "app-rateItems",
+  selector: "app-rate-items",
   templateUrl: "./rate-items.component.html",
   styleUrls: ["./rate-items.component.css"],
 })

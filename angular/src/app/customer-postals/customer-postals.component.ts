@@ -3,7 +3,7 @@ import { PagedListingComponentBase, PagedRequestDto, PagedResultDto } from '@sha
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { finalize } from 'rxjs/operators';
 import { CustomerPostalDto } from '@shared/service-proxies/customer-postals/model'
-import { CustomerPostalService } from '@shared/service-proxies/customer-postals/customerpostal.service'
+import { CustomerPostalService } from '@shared/service-proxies/customer-postals/customer-postal.service'
 import { CreateUpdateCustomerPostalComponent } from './create-update-customer-postal/create-update-customer-postal.component'
 
 class PagedCustomerPostalsRequestDto extends PagedRequestDto{

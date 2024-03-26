@@ -39,6 +39,8 @@ import { SidebarLogoComponent } from "./layout/sidebar-logo.component";
 import { SidebarUserPanelComponent } from "./layout/sidebar-user-panel.component";
 import { SidebarMenuComponent } from "./layout/sidebar-menu.component";
 /* Insert Import */
+import { PreAlertComponent } from './pre-alerts/pre-alerts.component';
+
 import { RateWeightBreaksComponent } from './rate-weight-breaks/rate-weight-breaks.component';
 import { UploadRateWeightBreakComponent } from './rate-weight-breaks/upload-rate-weight-break/upload-rate-weight-break.component';
 import { RateWeightBreakService } from '@shared/service-proxies/rate-weight-breaks/rate-weight-break.service';
@@ -80,7 +82,7 @@ import { CustomerTransactionService } from "@shared/service-proxies/customer-tra
 
 import { UploadPostalComponent } from "./postals/upload-postal/upload-postal.component";
 
-import { UploadPostalCountryComponent } from "./postalcountries/upload-postal-country/upload-postal-country.component";
+import { UploadPostalCountryComponent } from "./postal-countries/upload-postal-country/upload-postal-country.component";
 
 import { TopUpWalletComponent } from "./wallets/topup-wallet/topup-wallet.component";
 
@@ -114,6 +116,7 @@ import { TopUpWalletComponent } from "./wallets/topup-wallet/topup-wallet.compon
     SidebarUserPanelComponent,
     SidebarMenuComponent,
     /* Insert Component */
+    PreAlertComponent,
     CustomerPostalsComponent,
     CreateUpdateCustomerPostalComponent,
     PostalCountriesComponent,

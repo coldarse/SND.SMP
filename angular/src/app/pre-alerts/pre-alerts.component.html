@@ -1,0 +1,200 @@
+<div [@routerTransition]>
+  <section class="content-header">
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-6">
+          <h1>{{ "Pre-Alert" | localize }}</h1>
+        </div>
+        <div class="col-6 text-right"></div>
+      </div>
+    </div>
+  </section>
+  <section class="content px-2">
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-md-8">
+          <div class="card">
+            <div class="card-header">
+              <div class="row">
+                <div class="col-md-6">
+                  <h4>STEP 1: DECLARE NEW PRE-CHECK</h4>
+                </div>
+              </div>
+              <div class="row mt-3"></div>
+            </div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col-md-6">
+                  <section class="customer_selection">
+                    <div class="form-group row">
+                      <label class="col-md-3 col-form-label" for="customer">
+                        {{ "Account" | localize }}
+                      </label>
+                      <div class="col-md-9">
+                        <select
+                          name="customer"
+                          id="customer"
+                          class="form-control"
+                          (change)="selectedCustomer($event)"
+                          [disabled]="!isAdmin"
+                          [(ngModel)]="selectedCustomerValue"
+                        >
+                          <option value=0>Select Account</option>
+                          @for (customerItem of customerItems; track $index) {
+                          <option value="{{ customerItem.id }}">
+                            {{ customerItem.code }}
+                          </option>
+                          }
+                        </select>
+                      </div>
+                    </div>
+                  </section>
+                </div>
+                <div class="col-md-6">
+                  <section class="postal_selection">
+                    <div class="form-group row">
+                      <label class="col-md-3 col-form-label" for="postal">
+                        {{ "Postal" | localize }}
+                      </label>
+                      <div class="col-md-9">
+                        <select
+                          name="postal"
+                          id="postal"
+                          class="form-control"
+                          (change)="selectedPostal($event)"
+                          [disabled]="postalItems.length === 0"
+                        >
+                          <option value="">Select Postal</option>
+                          @for (postalItem of postalItems; track $index) {
+                          <option value="{{ postalItem.postalCode }}">
+                            {{ postalItem.postalDesc }}
+                          </option>
+                          }
+                        </select>
+                      </div>
+                    </div>
+                  </section>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="form-group row">
+                    <label for="dispatchDate" class="col-md-3 col-form-label">
+                      {{ "Dispatch Date" | localize }}
+                    </label>
+                    <div class="col-md-9">
+                      <input
+                        type="date"
+                        class="form-control"
+                        name="dispatchDate"
+                        id="dispatchDate"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <section class="service_selection">
+                    <div class="form-group row">
+                      <label class="col-md-3 col-form-label" for="service">
+                        {{ "Service" | localize }}
+                      </label>
+                      <div class="col-md-9">
+                        <select
+                          name="service"
+                          id="service"
+                          class="form-control"
+                          (change)="selectedService($event)"
+                          [disabled]="serviceItems.length === 0"
+                        >
+                          <option value="">Select Service</option>
+                          @for (serviceItem of serviceItems; track $index) {
+                          <option value="{{ serviceItem.serviceCode }}">
+                            {{ serviceItem.serviceDesc }}
+                          </option>
+                          }
+                        </select>
+                      </div>
+                    </div>
+                  </section>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="form-group row">
+                    <label for="dispatchNo" class="col-md-3 col-form-label">
+                      {{ "Dispatch No" | localize }}
+                    </label>
+                    <div class="col-md-9">
+                      <input
+                        type="text"
+                        class="form-control"
+                        name="dispatchNo"
+                        id="dispatchNo"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <section class="product_selection">
+                    <div class="form-group row">
+                      <label class="col-md-3 col-form-label" for="product">
+                        {{ "Product" | localize }}
+                      </label>
+                      <div class="col-md-9">
+                        <select
+                          name="product"
+                          id="product"
+                          class="form-control"
+                          (change)="selectedProduct($event)"
+                          [disabled]="productItems.length === 0"
+                        >
+                          <option value="">Select Product</option>
+                          @for (productItem of productItems; track $index) {
+                          <option value="{{ productItem.productCode }}">
+                            {{ productItem.productDesc }}
+                          </option>
+                          }
+                        </select>
+                      </div>
+                    </div>
+                  </section>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card">
+            <div class="card-header">
+              <div class="row">
+                <div class="col-md-6">
+                  <h4>STEP 2: UPLOAD EXCEL FILE (.XLSX)</h4>
+                </div>
+              </div>
+              <div class="row mt-3"></div>
+            </div>
+            <div class="card-body">
+              <section class="upload_file">
+                <div class="form-group row">
+                  <!-- <label class="col-md-3 col-form-label" for="preAlertFile">
+                    {{ "File (.xlsx)" | localize }}
+                  </label> -->
+                  <div class="col-md-12">
+                    <input
+                      type="file"
+                      class="file-upload"
+                      name="preAlertFile"
+                      id="preAlertFile"
+                      (change)="handleUpload($event)"
+                      accept=".xlsx"
+                    />
+                  </div>
+                </div>
+              </section>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>

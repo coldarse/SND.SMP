@@ -9,7 +9,7 @@ import { finalize } from "rxjs/operators";
 import { CustomerDto } from "@shared/service-proxies/customers/model";
 import { CustomerService } from "@shared/service-proxies/customers/customer.service";
 import { CreateUpdateCustomerComponent } from "../customers/create-update-customer/create-update-customer.component";
-import { CustomerPostalService } from "@shared/service-proxies/customer-postals/customerpostal.service";
+import { CustomerPostalService } from "@shared/service-proxies/customer-postals/customer-postal.service";
 import {
   CustomerPostalDto,
   DetailedCustomerPostalDto,

@@ -63,8 +63,13 @@ export class SidebarMenuComponent extends AppComponentBase implements OnInit {
             ),
             /* Insert Menu Path */
             new MenuItem(
+                this.l('Pre-Alert'),
+                '/app/pre-alerts',
+                'fas fa-bell'
+            ),
+            new MenuItem(
                 this.l('RateWeightBreaks'),
-                '/app/rateweightbreaks',
+                '/app/rate-weight-breaks',
                 'far fa-scale-unbalanced',
                 'Pages.RateWeightBreak'
             ),
@@ -76,7 +81,7 @@ export class SidebarMenuComponent extends AppComponentBase implements OnInit {
             // ),
             new MenuItem(
                 this.l('Postal Countries'),
-                '/app/postalcountries',
+                '/app/postal-countries',
                 'far fa-globe-asia',
                 'Pages.PostalCountry'
             ),
@@ -118,7 +123,7 @@ export class SidebarMenuComponent extends AppComponentBase implements OnInit {
             ),
             new MenuItem(
                 this.l('Transactions'),
-                '/app/customertransactions',
+                '/app/customer-transactions',
                 'fas fa-square-poll-horizontal',
                 'Pages.CustomerTransaction'
             ),
