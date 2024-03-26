@@ -6,12 +6,10 @@ import {
 } from "@shared/paged-listing-component-base";
 import { BsModalRef, BsModalService } from "ngx-bootstrap/modal";
 import { finalize } from "rxjs/operators";
-import { RateWeightBreakDto } from "@shared/service-proxies/rateweightbreaks/model";
-import { RateWeightBreakService } from "@shared/service-proxies/rateweightbreaks/rateweightbreak.service";
-import { CreateUpdateRateWeightBreakComponent } from "../rateweightbreaks/create-update-rateweightbreak/create-update-rateweightbreak.component";
+import { RateWeightBreakDto } from "@shared/service-proxies/rate-weight-breaks/model";
+import { RateWeightBreakService } from "@shared/service-proxies/rate-weight-breaks/rate-weight-break.service";
 import { RateService } from "@shared/service-proxies/rates/rate.service";
 import { UploadRateWeightBreakComponent } from "./upload-rate-weight-break/upload-rate-weight-break.component";
-
 
 class PagedRateWeightBreaksRequestDto extends PagedRequestDto {
   keyword: string;
@@ -19,8 +17,8 @@ class PagedRateWeightBreaksRequestDto extends PagedRequestDto {
 
 @Component({
   selector: "app-rateweightbreaks",
-  templateUrl: "./rateweightbreaks.component.html",
-  styleUrls: ["./rateweightbreaks.component.css"],
+  templateUrl: "./rate-weight-breaks.component.html",
+  styleUrls: ["./rate-weight-breaks.component.css"],
 })
 export class RateWeightBreaksComponent extends PagedListingComponentBase<RateWeightBreakDto> {
   keyword = "";
@@ -32,7 +30,7 @@ export class RateWeightBreaksComponent extends PagedListingComponentBase<RateWei
   grouped: any;
 
   selectedRateCard = 0;
-  selectedRateCardName = '';
+  selectedRateCardName = "";
 
   constructor(
     injector: Injector,
@@ -41,40 +39,6 @@ export class RateWeightBreaksComponent extends PagedListingComponentBase<RateWei
     private _modalService: BsModalService
   ) {
     super(injector);
-  }
-
-  createRateWeightBreak() {
-    this.showCreateOrEditRateWeightBreakDialog();
-  }
-
-  editRateWeightBreak(entity: RateWeightBreakDto) {
-    this.showCreateOrEditRateWeightBreakDialog(entity);
-  }
-
-  private showCreateOrEditRateWeightBreakDialog(entity?: RateWeightBreakDto) {
-    let createOrEditRateWeightBreakDialog: BsModalRef;
-    if (!entity) {
-      createOrEditRateWeightBreakDialog = this._modalService.show(
-        CreateUpdateRateWeightBreakComponent,
-        {
-          class: "modal-lg",
-        }
-      );
-    } else {
-      createOrEditRateWeightBreakDialog = this._modalService.show(
-        CreateUpdateRateWeightBreakComponent,
-        {
-          class: "modal-lg",
-          initialState: {
-            rateweightbreak: entity,
-          },
-        }
-      );
-    }
-
-    createOrEditRateWeightBreakDialog.content.onSave.subscribe(() => {
-      this.refresh();
-    });
   }
 
   clearFilters(): void {
@@ -103,7 +67,9 @@ export class RateWeightBreaksComponent extends PagedListingComponentBase<RateWei
       this.getDataPage(1);
     } else {
       this.selectedRateCard = +input;
-      this.selectedRateCardName = this.rates.find(x => x.id === +input).cardName;
+      this.selectedRateCardName = this.rates.find(
+        (x) => x.id === +input
+      ).cardName;
       this.getDataPage(1);
     }
   }
@@ -121,17 +87,19 @@ export class RateWeightBreaksComponent extends PagedListingComponentBase<RateWei
     });
     return map;
   }
-  
 
-  uploadRateWeightBreakExcel(){
+  uploadRateWeightBreakExcel() {
     this.showUploadRateWeightBreakDialog();
   }
 
   private showUploadRateWeightBreakDialog() {
     let uploadRateWeightBreakDialog: BsModalRef;
-    uploadRateWeightBreakDialog = this._modalService.show(UploadRateWeightBreakComponent, {
-      class: "modal-lg",
-    });
+    uploadRateWeightBreakDialog = this._modalService.show(
+      UploadRateWeightBreakComponent,
+      {
+        class: "modal-lg",
+      }
+    );
 
     uploadRateWeightBreakDialog.content.onSave.subscribe(() => {
       this.refresh();
@@ -176,9 +144,12 @@ export class RateWeightBreaksComponent extends PagedListingComponentBase<RateWei
               (x) => x.weightBreak !== "0.00 - 0.00"
             );
 
-            let grouped = this.groupBy(this.weightbreaks, (x: any) => x.weightBreak);
+            let grouped = this.groupBy(
+              this.weightbreaks,
+              (x: any) => x.weightBreak
+            );
 
-            grouped['Exceeds'] = exceeds;
+            grouped["Exceeds"] = exceeds;
 
             this.grouped = grouped;
             this.isTableLoading = false;

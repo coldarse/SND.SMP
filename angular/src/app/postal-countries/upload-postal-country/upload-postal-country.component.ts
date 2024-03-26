@@ -7,7 +7,7 @@ import {
 } from "@angular/core";
 import { AppComponentBase } from "../../../shared/app-component-base";
 import { BsModalRef } from "ngx-bootstrap/modal";
-import { PostalCountryService } from "../../../shared/service-proxies/postalcountries/postalcountry.service";
+import { PostalCountryService } from "../../../shared/service-proxies/postal-countries/postal-country.service";
 
 @Component({
   selector: "app-upload-postal-country",

@@ -8,7 +8,7 @@ import {
 import { AppComponentBase } from "../../../shared/app-component-base";
 import { BsModalRef } from "ngx-bootstrap/modal";
 
-import { RateWeightBreakService } from "@shared/service-proxies/rateweightbreaks/rateweightbreak.service";
+import { RateWeightBreakService } from "@shared/service-proxies/rate-weight-breaks/rate-weight-break.service";
 
 @Component({
   selector: "app-upload-rate-weight-break",

@@ -9,9 +9,9 @@ import { TenantsComponent } from "./tenants/tenants.component";
 import { RolesComponent } from "app/roles/roles.component";
 import { ChangePasswordComponent } from "./users/change-password/change-password.component";
 /* Insert Routing Import */
-import { RateWeightBreaksComponent } from './rateweightbreaks/rateweightbreaks.component';
+import { RateWeightBreaksComponent } from './rate-weight-breaks/rate-weight-breaks.component';
 import { CustomerPostalsComponent } from './customer-postals/customer-postals.component';
-import { PostalCountriesComponent } from "./postalcountries/postalcountries.component";
+import { PostalCountriesComponent } from "./postal-countries/postal-countries.component";
 import { PostalsComponent } from "./postals/postals.component";
 import { CurrenciesComponent } from "./currencies/currencies.component";
 import { EWalletTypesComponent } from "./ewallettypes/ewallettypes.component";

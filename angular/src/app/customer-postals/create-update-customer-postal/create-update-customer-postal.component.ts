@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Injector, OnInit, Output } from '@angular/core';
 import { AppComponentBase } from '../../../shared/app-component-base';
-import { CustomerPostalDto } from '../../../shared/service-proxies/customerpostals/model';
-import { CustomerPostalService } from '../../../shared/service-proxies/customerpostals/customerpostal.service';
+import { CustomerPostalDto } from '../../../shared/service-proxies/customer-postals/model';
+import { CustomerPostalService } from '../../../shared/service-proxies/customer-postals/customer-postal.service';
 import { BsModalRef } from 'ngx-bootstrap/modal';
 import { RateDDL } from '@shared/service-proxies/rates/model';
 import { PostalDDL } from '@shared/service-proxies/postals/model';

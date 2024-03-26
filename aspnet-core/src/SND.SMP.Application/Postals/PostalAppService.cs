@@ -56,6 +56,42 @@ namespace SND.SMP.Postals
             return postalDDL;
         }
 
+        public async Task<List<ServiceDDL>> GetServicesByPostal(string postalCode)
+        {
+            var postals = await Repository.GetAllListAsync(x => x.PostalCode.Equals(postalCode));
+            postals = postals.DistinctBy(x => x.ServiceCode).ToList();
+
+            List<ServiceDDL> serviceDDLs = [];
+            foreach (Postal postal in postals.ToList())
+            {
+                serviceDDLs.Add(new ServiceDDL()
+                {
+                    ServiceCode = postal.ServiceCode,
+                    ServiceDesc = postal.ServiceDesc
+                });
+            }
+
+            return serviceDDLs;
+        }
+
+        public async Task<List<ProductDDL>> GetProductsByPostalAndService(string postalCode, string serviceCode)
+        {
+            var postals = await Repository.GetAllListAsync(x => x.PostalCode.Equals(postalCode) && x.ServiceCode.Equals(serviceCode));
+            postals = postals.DistinctBy(x => x.ProductCode).ToList();
+
+            List<ProductDDL> productDDLs = [];
+            foreach (Postal postal in postals.ToList())
+            {
+                productDDLs.Add(new ProductDDL()
+                {
+                    ProductCode = postal.ProductCode,
+                    ProductDesc = postal.ProductDesc
+                });
+            }
+            
+            return productDDLs;
+        }
+
         [Consumes("multipart/form-data")]
         public async Task<List<Postal>> UploadPostalFile([FromForm] UploadPostal input)
         {
