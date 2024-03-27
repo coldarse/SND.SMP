@@ -51,18 +51,46 @@ namespace SND.SMP.Chibis
             return JsonSerializer.Deserialize<GetFileDto>(body);
         }
 
+
+        [Consumes("multipart/form-data")]
+        public async Task<bool> PreCheckUpload([FromForm] PreCheckDto uploadPreCheck)
+        {
+            string uuidFileName = Guid.NewGuid().ToString();
+            uploadPreCheck.UploadFile.json = Newtonsoft.Json.JsonConvert.SerializeObject(uploadPreCheck.Details);
+            uploadPreCheck.UploadFile.fileName = uuidFileName + ".xlsx";
+            uploadPreCheck.UploadFile.fileType = "xlsx";
+            await UploadFile(uploadPreCheck.UploadFile);
+
+            uploadPreCheck.UploadFile.fileName = uuidFileName + ".xlsx.profile.json";
+            uploadPreCheck.UploadFile.fileType = "json";
+            await UploadFile(uploadPreCheck.UploadFile);
+
+            return true;
+        }
+
         [Consumes("multipart/form-data")]
         public async Task<ChibiUpload> UploadFile([FromForm] ChibiUploadDto uploadFile)
         {
 
             var client = new HttpClient();
             client.DefaultRequestHeaders.Clear();
-            client.DefaultRequestHeaders.Add("x-api-key", "3uaIW5sLU30RCNvoyL1aRvMDLnbIskgCgxIlLDPsoa7yrcISj5V3VtuOLCQG5joA");
+            client.DefaultRequestHeaders.Add("x-api-key", "UdcpZDha1rgVxXZBX037Sk9LFudmp9TV6mxgIkNTt0stopuCfioTiS8ABfauvMbZ");
 
             var formData = new MultipartFormDataContent();
-            var fileContent = new StreamContent(uploadFile.file.OpenReadStream());
-            fileContent.Headers.ContentType = MediaTypeHeaderValue.Parse("multipart/form-data");
-            formData.Add(fileContent, "file", uploadFile.file.FileName);
+
+            switch (uploadFile.fileType)
+            {
+                case "xlsx":
+                    var xlsxContent = new StreamContent(uploadFile.file.OpenReadStream());
+                    xlsxContent.Headers.ContentType = MediaTypeHeaderValue.Parse("multipart/form-data");
+                    formData.Add(xlsxContent, "file", uploadFile.fileName);
+                    break;
+                case "json":
+                    var jsonContent = new StringContent(uploadFile.json);
+                    jsonContent.Headers.ContentType = MediaTypeHeaderValue.Parse("multipart/form-data");
+                    formData.Add(jsonContent, "file", uploadFile.fileName);
+                    break;
+            }
 
             var request = new HttpRequestMessage
             {
@@ -70,32 +98,30 @@ namespace SND.SMP.Chibis
                 RequestUri = new Uri("http://localhost:24424/api/upload"),
                 Content = formData,
             };
-            using (var response = await client.SendAsync(request))
+
+            using var response = await client.SendAsync(request);
+
+            response.EnsureSuccessStatusCode();
+            var body = await response.Content.ReadAsStringAsync();
+            var result = JsonSerializer.Deserialize<ChibiUpload>(body);
+
+            if (result != null)
             {
-                response.EnsureSuccessStatusCode();
-                var body = await response.Content.ReadAsStringAsync();
-                //Console.WriteLine(body);
-
-                var result = JsonSerializer.Deserialize<ChibiUpload>(body);
-
-                if (result != null)
+                //Insert to DB
+                Chibi entity = new Chibi()
                 {
-                    //Insert to DB
-                    Chibi entity = new Chibi()
-                    {
-                        FileName = result.name == null ? "" : DateTime.Now.ToString("yyyyMMdd") + "_" + result.name,
-                        UUID = result.uuid == null ? "" : result.uuid,
-                        URL = result.url == null ? "" : result.url,
-                        OriginalName = uploadFile.file.FileName == null ? "" : uploadFile.file.FileName,
-                        GeneratedName = result.name == null ? "" : result.name
-                    };
+                    FileName = result.name == null ? "" : DateTime.Now.ToString("yyyyMMdd") + "_" + result.name,
+                    UUID = result.uuid == null ? "" : result.uuid,
+                    URL = result.url == null ? "" : result.url,
+                    OriginalName = uploadFile.file.FileName == null ? "" : uploadFile.file.FileName,
+                    GeneratedName = result.name == null ? "" : result.name
+                };
 
-                    var created = await Repository.InsertAsync(entity);
-                    await Repository.GetDbContext().SaveChangesAsync();
-                }
-
-                return JsonSerializer.Deserialize<ChibiUpload>(body);
+                await Repository.InsertAsync(entity);
+                await Repository.GetDbContext().SaveChangesAsync();
             }
+
+            return JsonSerializer.Deserialize<ChibiUpload>(body);
         }
     }
 }

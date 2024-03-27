@@ -1,5 +1,6 @@
 import { Component, Injector, OnInit } from "@angular/core";
 import { AppComponentBase } from "@shared/app-component-base";
+import { ChibiService } from "@shared/service-proxies/chibis/chibis.service";
 import { CustomerPostalService } from "@shared/service-proxies/customer-postals/customer-postal.service";
 import { CustomerService } from "@shared/service-proxies/customers/customer.service";
 import { PostalService } from "@shared/service-proxies/postals/postal.service";
@@ -24,6 +25,7 @@ export class PreAlertComponent extends AppComponentBase implements OnInit {
   selectedDispatchDate = new Date().toISOString().substring(0, 10);
 
   isAdmin = true;
+  isSaving = false;
 
   formFile: any = undefined;
 
@@ -33,7 +35,8 @@ export class PreAlertComponent extends AppComponentBase implements OnInit {
     injector: Injector,
     private customerService: CustomerService,
     private customerPostalService: CustomerPostalService,
-    private postalService: PostalService
+    private postalService: PostalService,
+    private chibiService: ChibiService
   ) {
     super(injector);
     if (
@@ -44,6 +47,7 @@ export class PreAlertComponent extends AppComponentBase implements OnInit {
   }
 
   ngOnInit(): void {
+    this.resetValues();
     if (this.isAdmin) {
       this.customerService.getAllCustomers().subscribe((customer: any) => {
         this.customerItems = customer.result;
@@ -118,8 +122,23 @@ export class PreAlertComponent extends AppComponentBase implements OnInit {
     }
   }
 
-  checkInvalid() {
+  resetValues() {
+    this.customerItems = [];
+    this.postalItems = [];
+    this.serviceItems = [];
+    this.productItems = [];
+    this.formFile = undefined;
+    this.dispatchNo = "";
+    this.selectedCustomerValue = 0;
+    this.selectedPostalValue = "";
+    this.selectedServiceValue = "";
+    this.selectedProductValue = "";
+    this.selectedKGRateValue = "";
+    this.selectedPostalPrefix = "";
+    this.selectedDispatchDate = new Date().toISOString().substring(0, 10);
+  }
 
+  checkInvalid() {
     if (
       this.selectedCustomerValue === 0 ||
       this.selectedPostalValue === "" ||
@@ -132,6 +151,25 @@ export class PreAlertComponent extends AppComponentBase implements OnInit {
   }
 
   upload() {
+    this.isSaving = true;
 
+    const customer = this.customerItems.find(x => x.id === this.selectedCustomerValue);
+
+    const form = new FormData();
+    form.append("UploadFile.file", this.formFile);
+    form.append("Details.DispatchNo", this.dispatchNo);
+    form.append("Details.AccNo", customer.code);
+    form.append("Details.PostalCode", this.selectedPostalValue);
+    form.append("Details.ServiceCode", this.selectedServiceValue);
+    form.append("Details.ProductCode", this.selectedProductValue);
+    form.append("Details.DateDispatch", this.selectedDispatchDate);
+    form.append("Details.RateOptionId", this.selectedKGRateValue);
+
+    this.chibiService.uploadPreCheckFile(form).subscribe(() => {
+      this.notify.info(this.l("UploadedSuccessfully"));
+      this.isSaving = false;
+
+      this.ngOnInit();
+    });
   }
 }

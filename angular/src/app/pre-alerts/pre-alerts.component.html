@@ -219,21 +219,29 @@
                       id="preAlertFile"
                       (change)="handleUpload($event)"
                       accept=".xlsx"
+                      [(ngModel)]="formFile"
                     />
                   </div>
                 </div>
               </section>
               <section class="submit">
                 <div class="form-group row">
-                  <div class="col-md-12">
+                  <div class="col-md-3">
                     <button
                       class="btn btn-primary"
                       (click)="upload()"
-                      [disabled]="checkInvalid()"
+                      [disabled]="checkInvalid() || isSaving"
                     >
                       <i class="fa fa-file-arrow-up"></i>
                       {{ "Upload" | localize }}
                     </button>
+                  </div>
+                  <div class="col-md-1">
+                    @if (isSaving) {
+                    <div class="spinner-border text-primary mt-1" role="status">
+                      <span class="sr-only">Loading...</span>
+                    </div>
+                    }
                   </div>
                 </div>
               </section>

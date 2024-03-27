@@ -40,6 +40,7 @@ import { SidebarUserPanelComponent } from "./layout/sidebar-user-panel.component
 import { SidebarMenuComponent } from "./layout/sidebar-menu.component";
 /* Insert Import */
 import { PreAlertComponent } from './pre-alerts/pre-alerts.component';
+import { ChibiService } from '@shared/service-proxies/chibis/chibis.service';
 
 import { RateWeightBreaksComponent } from './rate-weight-breaks/rate-weight-breaks.component';
 import { UploadRateWeightBreakComponent } from './rate-weight-breaks/upload-rate-weight-break/upload-rate-weight-break.component';
@@ -156,6 +157,7 @@ import { TopUpWalletComponent } from "./wallets/topup-wallet/topup-wallet.compon
   ],
   providers: [
     /* Insert Service */
+    ChibiService,
     CustomerPostalService,
     PostalCountryService,
     PostalService,
