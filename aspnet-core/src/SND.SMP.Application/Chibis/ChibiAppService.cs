@@ -15,14 +15,16 @@ using Microsoft.AspNetCore.Mvc;
 using System.Net.Http.Headers;
 using SND.SMP.CustomerPostals;
 using Abp.EntityFrameworkCore.Repositories;
-
+using Microsoft.Extensions.Configuration;
 
 namespace SND.SMP.Chibis
 {
     public class ChibiAppService : AsyncCrudAppService<Chibi, ChibiDto, long, PagedChibiResultRequestDto>
     {
-        public ChibiAppService(IRepository<Chibi, long> repository) : base(repository)
+        private IConfiguration _configuration;
+        public ChibiAppService(IRepository<Chibi, long> repository, IConfiguration configuration) : base(repository)
         {
+            _configuration = configuration;
         }
         protected override IQueryable<Chibi> CreateFilteredQuery(PagedChibiResultRequestDto input)
         {
@@ -39,7 +41,7 @@ namespace SND.SMP.Chibis
         {
             var client = new HttpClient();
             client.DefaultRequestHeaders.Clear();
-            client.DefaultRequestHeaders.Add("x-api-key", "3uaIW5sLU30RCNvoyL1aRvMDLnbIskgCgxIlLDPsoa7yrcISj5V3VtuOLCQG5joA");
+            client.DefaultRequestHeaders.Add("x-api-key", _configuration["App:ChibiAPIKey"]);
             var request = new HttpRequestMessage
             {
                 Method = HttpMethod.Get,
@@ -74,8 +76,7 @@ namespace SND.SMP.Chibis
 
             var client = new HttpClient();
             client.DefaultRequestHeaders.Clear();
-            client.DefaultRequestHeaders.Add("x-api-key", "UdcpZDha1rgVxXZBX037Sk9LFudmp9TV6mxgIkNTt0stopuCfioTiS8ABfauvMbZ");
-
+            client.DefaultRequestHeaders.Add("x-api-key", _configuration["App:ChibiAPIKey"]);
             var formData = new MultipartFormDataContent();
 
             switch (uploadFile.fileType)
