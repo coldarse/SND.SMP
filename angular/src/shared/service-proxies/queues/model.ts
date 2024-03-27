@@ -22,7 +22,6 @@ export interface PagedQueueResultRequestDto extends PagedAndSortedResultRequestD
     deleteFileOnFailed?: boolean;
     dateCreated?: string;
     status?: string;
-    tookInSec: number;
     errorMsg?: string;
     startTime?: string;
     endTime?: string;

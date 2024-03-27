@@ -53,8 +53,8 @@ namespace SND.SMP.EntityFrameworkCore
             builder.Entity<Queue>(b =>
             {
                 b.ToTable(SMPConsts.DbTablePrefix + "Queues");
-                b.Property(x => x.EventType).HasColumnName(nameof(Queue.EventType)).HasMaxLength(20);
-                b.Property(x => x.FilePath).HasColumnName(nameof(Queue.FilePath)).HasMaxLength(20);
+                b.Property(x => x.EventType).HasColumnName(nameof(Queue.EventType)).HasMaxLength(50);
+                b.Property(x => x.FilePath).HasColumnName(nameof(Queue.FilePath)).HasMaxLength(512);
                 b.Property(x => x.DeleteFileOnSuccess).HasColumnName(nameof(Queue.DeleteFileOnSuccess));
                 b.Property(x => x.DeleteFileOnFailed).HasColumnName(nameof(Queue.DeleteFileOnFailed));
                 b.Property(x => x.DateCreated).HasColumnName(nameof(Queue.DateCreated));

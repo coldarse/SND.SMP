@@ -16,15 +16,18 @@ using System.Net.Http.Headers;
 using SND.SMP.CustomerPostals;
 using Abp.EntityFrameworkCore.Repositories;
 using Microsoft.Extensions.Configuration;
+using SND.SMP.Queues;
 
 namespace SND.SMP.Chibis
 {
     public class ChibiAppService : AsyncCrudAppService<Chibi, ChibiDto, long, PagedChibiResultRequestDto>
     {
+        private readonly IRepository<Queue, long> _queueRepository;
         private IConfiguration _configuration;
-        public ChibiAppService(IRepository<Chibi, long> repository, IConfiguration configuration) : base(repository)
+        public ChibiAppService(IRepository<Chibi, long> repository, IConfiguration configuration, IRepository<Queue, long> queueRepository) : base(repository)
         {
             _configuration = configuration;
+            _queueRepository = queueRepository;
         }
         protected override IQueryable<Chibi> CreateFilteredQuery(PagedChibiResultRequestDto input)
         {
@@ -61,11 +64,19 @@ namespace SND.SMP.Chibis
             uploadPreCheck.UploadFile.json = Newtonsoft.Json.JsonConvert.SerializeObject(uploadPreCheck.Details);
             uploadPreCheck.UploadFile.fileName = uuidFileName + ".xlsx";
             uploadPreCheck.UploadFile.fileType = "xlsx";
-            await UploadFile(uploadPreCheck.UploadFile);
+            var xlsxFile = await UploadFile(uploadPreCheck.UploadFile);
 
             uploadPreCheck.UploadFile.fileName = uuidFileName + ".xlsx.profile.json";
             uploadPreCheck.UploadFile.fileType = "json";
             await UploadFile(uploadPreCheck.UploadFile);
+
+            var queue = await _queueRepository.InsertAsync(new Queue()
+            {
+                EventType = "Upload Dispatch",
+                FilePath = xlsxFile.url,
+                DateCreated = DateTime.Now,
+                Status = "Draft"
+            });
 
             return true;
         }

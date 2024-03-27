@@ -127,7 +127,7 @@ export class PreAlertComponent extends AppComponentBase implements OnInit {
     this.postalItems = [];
     this.serviceItems = [];
     this.productItems = [];
-    this.formFile = undefined;
+    // this.formFile = undefined;
     this.dispatchNo = "";
     this.selectedCustomerValue = 0;
     this.selectedPostalValue = "";

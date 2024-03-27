@@ -121,6 +121,8 @@ import { TopUpWalletComponent } from "./wallets/topup-wallet/topup-wallet.compon
     SidebarUserPanelComponent,
     SidebarMenuComponent,
     /* Insert Component */
+    QueuesComponent,
+    CreateUpdateQueueComponent,
     PreAlertComponent,
     CustomerPostalsComponent,
     CreateUpdateCustomerPostalComponent,
@@ -173,6 +175,7 @@ import { TopUpWalletComponent } from "./wallets/topup-wallet/topup-wallet.compon
     RateService,
     CustomerTransactionService,
     RateWeightBreakService,
+    QueueService,
   ],
 })
 export class AppModule {}
