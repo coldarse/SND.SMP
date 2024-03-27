@@ -39,7 +39,7 @@
                           [disabled]="!isAdmin"
                           [(ngModel)]="selectedCustomerValue"
                         >
-                          <option value=0>Select Account</option>
+                          <option value="0">Select Account</option>
                           @for (customerItem of customerItems; track $index) {
                           <option value="{{ customerItem.id }}">
                             {{ customerItem.code }}
@@ -159,6 +159,35 @@
                     </div>
                   </section>
                 </div>
+              </div>
+              <div class="row">
+                <div class="col-md-6">
+                  @if (selectedPostalPrefix === 'CO') {
+                  <section class="KGRate_options">
+                    <div class="form-group row">
+                      <label class="col-md-3 col-form-label" for="kgrate">
+                        {{ "KG Rate Option" | localize }}
+                      </label>
+                      <div class="col-md-9">
+                        <select
+                          name="kgrate"
+                          id="kgrate"
+                          class="form-control"
+                          (change)="selectedKGRate($event)"
+                        >
+                          <option value="">None</option>
+                          <option value="Opt1">Ex MIA via Other Airline</option>
+                          <option value="Opt2">Ex MIA via UPS</option>
+                          <option value="Opt3">
+                            Ex HKG - MIA + UPS Freight
+                          </option>
+                        </select>
+                      </div>
+                    </div>
+                  </section>
+                  }
+                </div>
+                <div class="col-md-6"></div>
               </div>
             </div>
           </div>

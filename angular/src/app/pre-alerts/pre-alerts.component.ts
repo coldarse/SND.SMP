@@ -19,6 +19,8 @@ export class PreAlertComponent extends AppComponentBase implements OnInit {
   selectedPostalValue = "";
   selectedServiceValue = "";
   selectedProductValue = "";
+  selectedKGRateValue = "";
+  selectedPostalPrefix = "";
 
   isAdmin = true;
 
@@ -69,6 +71,7 @@ export class PreAlertComponent extends AppComponentBase implements OnInit {
   }
 
   selectedPostal(event: any){
+    this.selectedPostalPrefix = "";
     this.serviceItems = [];
     this.productItems = [];
     this.selectedPostalValue = event.target.value;
@@ -77,6 +80,7 @@ export class PreAlertComponent extends AppComponentBase implements OnInit {
       .subscribe((service: any) => {
         this.serviceItems = service.result;
       });
+    this.selectedPostalPrefix = this.selectedPostalValue.substring(0, 2);
   }
 
   selectedService(event: any) {
@@ -94,6 +98,10 @@ export class PreAlertComponent extends AppComponentBase implements OnInit {
 
   selectedProduct(event: any) {
     this.selectedProductValue = event.target.value;
+  }
+
+  selectedKGRate(event: any) {
+    this.selectedKGRateValue = event.target.value;
   }
 
   handleUpload(event: any) {
