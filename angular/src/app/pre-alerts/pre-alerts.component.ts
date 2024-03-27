@@ -21,10 +21,13 @@ export class PreAlertComponent extends AppComponentBase implements OnInit {
   selectedProductValue = "";
   selectedKGRateValue = "";
   selectedPostalPrefix = "";
+  selectedDispatchDate = new Date().toISOString().substring(0, 10);
 
   isAdmin = true;
 
-  formFile: any;
+  formFile: any = undefined;
+
+  dispatchNo = "";
 
   constructor(
     injector: Injector,
@@ -62,6 +65,10 @@ export class PreAlertComponent extends AppComponentBase implements OnInit {
     this.postalItems = [];
     this.serviceItems = [];
     this.productItems = [];
+    this.selectedPostalValue = "";
+    this.selectedServiceValue = "";
+    this.selectedProductValue = "";
+    this.selectedKGRateValue = "";
     this.selectedCustomerValue = event.target.value;
     this.customerPostalService
       .getCustomerPostalsByAccountNo(this.selectedCustomerValue)
@@ -70,8 +77,9 @@ export class PreAlertComponent extends AppComponentBase implements OnInit {
       });
   }
 
-  selectedPostal(event: any){
+  selectedPostal(event: any) {
     this.selectedPostalPrefix = "";
+    this.selectedKGRateValue = "";
     this.serviceItems = [];
     this.productItems = [];
     this.selectedPostalValue = event.target.value;
@@ -108,5 +116,22 @@ export class PreAlertComponent extends AppComponentBase implements OnInit {
     if (event.target.files.length > 0) {
       this.formFile = event.target.files[0];
     }
+  }
+
+  checkInvalid() {
+
+    if (
+      this.selectedCustomerValue === 0 ||
+      this.selectedPostalValue === "" ||
+      this.selectedServiceValue === "" ||
+      this.selectedProductValue === "" ||
+      this.dispatchNo === "" ||
+      this.formFile === undefined
+    )
+      return true;
+  }
+
+  upload() {
+
   }
 }

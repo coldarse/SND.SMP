@@ -63,6 +63,7 @@
                           class="form-control"
                           (change)="selectedPostal($event)"
                           [disabled]="postalItems.length === 0"
+                          [(ngModel)]="selectedPostalValue"
                         >
                           <option value="">Select Postal</option>
                           @for (postalItem of postalItems; track $index) {
@@ -88,6 +89,7 @@
                         class="form-control"
                         name="dispatchDate"
                         id="dispatchDate"
+                        [(ngModel)]="selectedDispatchDate"
                       />
                     </div>
                   </div>
@@ -105,6 +107,7 @@
                           class="form-control"
                           (change)="selectedService($event)"
                           [disabled]="serviceItems.length === 0"
+                          [(ngModel)]="selectedServiceValue"
                         >
                           <option value="">Select Service</option>
                           @for (serviceItem of serviceItems; track $index) {
@@ -130,6 +133,7 @@
                         class="form-control"
                         name="dispatchNo"
                         id="dispatchNo"
+                        [(ngModel)]="dispatchNo"
                       />
                     </div>
                   </div>
@@ -147,6 +151,7 @@
                           class="form-control"
                           (change)="selectedProduct($event)"
                           [disabled]="productItems.length === 0"
+                          [(ngModel)]="selectedProductValue"
                         >
                           <option value="">Select Product</option>
                           @for (productItem of productItems; track $index) {
@@ -174,6 +179,7 @@
                           id="kgrate"
                           class="form-control"
                           (change)="selectedKGRate($event)"
+                          [(ngModel)]="selectedKGRateValue"
                         >
                           <option value="">None</option>
                           <option value="Opt1">Ex MIA via Other Airline</option>
@@ -205,9 +211,6 @@
             <div class="card-body">
               <section class="upload_file">
                 <div class="form-group row">
-                  <!-- <label class="col-md-3 col-form-label" for="preAlertFile">
-                    {{ "File (.xlsx)" | localize }}
-                  </label> -->
                   <div class="col-md-12">
                     <input
                       type="file"
@@ -217,6 +220,20 @@
                       (change)="handleUpload($event)"
                       accept=".xlsx"
                     />
+                  </div>
+                </div>
+              </section>
+              <section class="submit">
+                <div class="form-group row">
+                  <div class="col-md-12">
+                    <button
+                      class="btn btn-primary"
+                      (click)="upload()"
+                      [disabled]="checkInvalid()"
+                    >
+                      <i class="fa fa-file-arrow-up"></i>
+                      {{ "Upload" | localize }}
+                    </button>
                   </div>
                 </div>
               </section>
