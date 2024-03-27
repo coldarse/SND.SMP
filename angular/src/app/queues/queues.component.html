@@ -6,10 +6,10 @@
                     <h1>{{ 'Queues' | localize }}</h1>
                 </div>
                 <div class='col-6 text-right' *ngIf='isButtonVisible("Create")'>
-                    <a href='javascript:;' class='btn bg-blue' (click)='createQueue()'>
+                    <!-- <a href='javascript:;' class='btn bg-blue' (click)='createQueue()'>
                         <i class='fa fa-plus-square'></i>
                         {{ 'Create' | localize }}
-                    </a>
+                    </a> -->
                 </div>
             </div>
         </div>
@@ -58,7 +58,7 @@
                                 <th>{{ 'ErrorMsg' | localize }}</th>
                                 <th>{{ 'StartTime' | localize }}</th>
                                 <th>{{ 'EndTime' | localize }}</th>
-                                <th style='width: 310px;' *ngIf='isButtonVisible("Edit") && isButtonVisible("Delete")'>{{ 'Actions' | localize }}</th>
+                                <!-- <th style='width: 310px;' *ngIf='isButtonVisible("Edit") && isButtonVisible("Delete")'>{{ 'Actions' | localize }}</th> -->
                             </tr>
                             </thead>
                             <tbody>
@@ -84,7 +84,7 @@
                                 <td>{{ queue.errorMsg }}</td>
                                 <td>{{ queue.startTime }}</td>
                                 <td>{{ queue.endTime }}</td>
-                                <td *ngIf='isButtonVisible("Edit") || isButtonVisible("Delete")'>
+                                <!-- <td *ngIf='isButtonVisible("Edit") || isButtonVisible("Delete")'>
                                     <button
                                             type='button'
                                             class='btn btn-sm bg-secondary'
@@ -103,7 +103,7 @@
                                         <i class='fas fa-trash'></i>
                                         {{ 'Delete' | localize }}
                                     </button>
-                                </td>
+                                </td> -->
                             </tr>
                             </tbody>
                         </table>

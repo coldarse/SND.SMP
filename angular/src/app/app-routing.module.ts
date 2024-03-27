@@ -60,6 +60,12 @@ import { PreAlertComponent } from "./pre-alerts/pre-alerts.component";
           },
           /* Insert Path */
           {
+            path: "queues",
+            data: { permission: "Pages.Queue" },
+            component: QueuesComponent,
+            canActivate: [AppRouteGuard],
+          },
+          {
             path: "pre-alerts",
             component: PreAlertComponent,
             canActivate: [AppRouteGuard],

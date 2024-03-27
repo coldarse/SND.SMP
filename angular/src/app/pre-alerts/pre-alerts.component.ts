@@ -153,7 +153,7 @@ export class PreAlertComponent extends AppComponentBase implements OnInit {
   upload() {
     this.isSaving = true;
 
-    const customer = this.customerItems.find(x => x.id === this.selectedCustomerValue);
+    const customer = this.customerItems.find(x => +x.id === +this.selectedCustomerValue);
 
     const form = new FormData();
     form.append("UploadFile.file", this.formFile);

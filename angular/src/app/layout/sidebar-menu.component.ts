@@ -65,7 +65,7 @@ export class SidebarMenuComponent extends AppComponentBase implements OnInit {
       new MenuItem(
         this.l("Queues"),
         "/app/queues",
-        "far fa-circle",
+        "far fa-arrow-down-wide-short",
         "Pages.Queue"
       ),
       new MenuItem(
