@@ -79,12 +79,6 @@ export class SidebarMenuComponent extends AppComponentBase implements OnInit {
         "far fa-scale-unbalanced",
         "Pages.RateWeightBreak"
       ),
-      // new MenuItem(
-      //     this.l('Customer Postals'),
-      //     '/app/customerpostals',
-      //     'far fa-circle',
-      //     'Pages.CustomerPostal'
-      // ),
       new MenuItem(
         this.l("Postal Countries"),
         "/app/postal-countries",
