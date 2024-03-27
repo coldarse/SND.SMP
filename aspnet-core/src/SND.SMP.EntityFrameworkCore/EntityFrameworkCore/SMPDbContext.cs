@@ -4,6 +4,7 @@ using SND.SMP.Authorization.Roles;
 using SND.SMP.Authorization.Users;
 using SND.SMP.MultiTenancy;
 /* Using Definition */
+using SND.SMP.Queues;
 using SND.SMP.Chibis;
 using SND.SMP.RateWeightBreaks;
 using SND.SMP.CustomerPostals;
@@ -36,6 +37,7 @@ namespace SND.SMP.EntityFrameworkCore
         public DbSet<CustomerPostal> CustomerPostals { get; set; }
         public DbSet<RateWeightBreak> RateWeightBreaks { get; set; }
         public DbSet<Chibi> Chibis { get; set; }
+        public DbSet<Queue> Queues { get; set; }
         /* Define a DbSet for each entity of the application */
 
         public SMPDbContext(DbContextOptions<SMPDbContext> options)
@@ -48,6 +50,22 @@ namespace SND.SMP.EntityFrameworkCore
             base.OnModelCreating(builder);
 
             /* Define Tables */
+            builder.Entity<Queue>(b =>
+            {
+                b.ToTable(SMPConsts.DbTablePrefix + "Queues");
+                b.Property(x => x.EventType).HasColumnName(nameof(Queue.EventType)).HasMaxLength(20);
+                b.Property(x => x.FilePath).HasColumnName(nameof(Queue.FilePath)).HasMaxLength(20);
+                b.Property(x => x.DeleteFileOnSuccess).HasColumnName(nameof(Queue.DeleteFileOnSuccess));
+                b.Property(x => x.DeleteFileOnFailed).HasColumnName(nameof(Queue.DeleteFileOnFailed));
+                b.Property(x => x.DateCreated).HasColumnName(nameof(Queue.DateCreated));
+                b.Property(x => x.Status).HasColumnName(nameof(Queue.Status)).HasMaxLength(20);
+                b.Property(x => x.TookInSec).HasColumnName(nameof(Queue.TookInSec));
+                b.Property(x => x.ErrorMsg).HasColumnName(nameof(Queue.ErrorMsg)).HasMaxLength(512);
+                b.Property(x => x.StartTime).HasColumnName(nameof(Queue.StartTime));
+                b.Property(x => x.EndTime).HasColumnName(nameof(Queue.EndTime));
+                b.HasKey(x => x.Id);
+            });
+
             builder.Entity<Chibi>(b =>
             {
                 b.ToTable(SMPConsts.DbTablePrefix + "Chibis");

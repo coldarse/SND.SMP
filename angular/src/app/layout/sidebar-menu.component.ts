@@ -63,6 +63,12 @@ export class SidebarMenuComponent extends AppComponentBase implements OnInit {
             ),
             /* Insert Menu Path */
             new MenuItem(
+                this.l('Queues'),
+                '/app/queues',
+                'far fa-circle',
+                'Pages.Queue'
+            ),
+            new MenuItem(
                 this.l('RateWeightBreaks'),
                 '/app/rateweightbreaks',
                 'far fa-circle',

@@ -1,0 +1,226 @@
+<form
+    class='form-horizontal'
+    autocomplete='off'
+    #createQueueModal='ngForm'
+    (ngSubmit)='save()'
+>
+    <abp-modal-header
+        [title]='isCreate == true? ("Add Queue" | localize) : ("Edit Queue" | localize)'
+        (onCloseClick)='bsModalRef.hide()'
+    ></abp-modal-header>
+    <div class='modal-body'>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='eventType'>
+            {{ 'EventType' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='text'
+                class='form-control'
+                name='eventType'
+                id='eventType'
+                required
+                [(ngModel)]='queue.eventType'
+                #eventTypeModel='ngModel'
+                #eventTypeEl
+            />
+            <abp-validation-summary
+                [control]='eventTypeModel'
+                [controlEl]='eventTypeEl'
+            ></abp-validation-summary>
+            </div>
+        </div>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='filePath'>
+            {{ 'FilePath' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='text'
+                class='form-control'
+                name='filePath'
+                id='filePath'
+                required
+                [(ngModel)]='queue.filePath'
+                #filePathModel='ngModel'
+                #filePathEl
+            />
+            <abp-validation-summary
+                [control]='filePathModel'
+                [controlEl]='filePathEl'
+            ></abp-validation-summary>
+            </div>
+        </div>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='deleteFileOnSuccess'>
+            {{ 'DeleteFileOnSuccess' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='checkbox'
+                class='form-control'
+                name='deleteFileOnSuccess'
+                id='deleteFileOnSuccess'
+                [(ngModel)]='queue.deleteFileOnSuccess'
+                #deleteFileOnSuccessModel='ngModel'
+                #deleteFileOnSuccessEl
+            />
+            <abp-validation-summary
+                [control]='deleteFileOnSuccessModel'
+                [controlEl]='deleteFileOnSuccessEl'
+            ></abp-validation-summary>
+            </div>
+        </div>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='deleteFileOnFailed'>
+            {{ 'DeleteFileOnFailed' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='checkbox'
+                class='form-control'
+                name='deleteFileOnFailed'
+                id='deleteFileOnFailed'
+                [(ngModel)]='queue.deleteFileOnFailed'
+                #deleteFileOnFailedModel='ngModel'
+                #deleteFileOnFailedEl
+            />
+            <abp-validation-summary
+                [control]='deleteFileOnFailedModel'
+                [controlEl]='deleteFileOnFailedEl'
+            ></abp-validation-summary>
+            </div>
+        </div>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='dateCreated'>
+            {{ 'DateCreated' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='date'
+                class='form-control'
+                name='dateCreated'
+                id='dateCreated'
+                required
+                [(ngModel)]='queue.dateCreated'
+                #dateCreatedModel='ngModel'
+                #dateCreatedEl
+            />
+            <abp-validation-summary
+                [control]='dateCreatedModel'
+                [controlEl]='dateCreatedEl'
+            ></abp-validation-summary>
+            </div>
+        </div>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='status'>
+            {{ 'Status' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='text'
+                class='form-control'
+                name='status'
+                id='status'
+                required
+                [(ngModel)]='queue.status'
+                #statusModel='ngModel'
+                #statusEl
+            />
+            <abp-validation-summary
+                [control]='statusModel'
+                [controlEl]='statusEl'
+            ></abp-validation-summary>
+            </div>
+        </div>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='tookInSec'>
+            {{ 'TookInSec' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='number'
+                class='form-control'
+                name='tookInSec'
+                id='tookInSec'
+                required
+                [(ngModel)]='queue.tookInSec'
+                #tookInSecModel='ngModel'
+                #tookInSecEl
+            />
+            <abp-validation-summary
+                [control]='tookInSecModel'
+                [controlEl]='tookInSecEl'
+            ></abp-validation-summary>
+            </div>
+        </div>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='errorMsg'>
+            {{ 'ErrorMsg' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='text'
+                class='form-control'
+                name='errorMsg'
+                id='errorMsg'
+                required
+                [(ngModel)]='queue.errorMsg'
+                #errorMsgModel='ngModel'
+                #errorMsgEl
+            />
+            <abp-validation-summary
+                [control]='errorMsgModel'
+                [controlEl]='errorMsgEl'
+            ></abp-validation-summary>
+            </div>
+        </div>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='startTime'>
+            {{ 'StartTime' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='date'
+                class='form-control'
+                name='startTime'
+                id='startTime'
+                required
+                [(ngModel)]='queue.startTime'
+                #startTimeModel='ngModel'
+                #startTimeEl
+            />
+            <abp-validation-summary
+                [control]='startTimeModel'
+                [controlEl]='startTimeEl'
+            ></abp-validation-summary>
+            </div>
+        </div>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='endTime'>
+            {{ 'EndTime' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='date'
+                class='form-control'
+                name='endTime'
+                id='endTime'
+                required
+                [(ngModel)]='queue.endTime'
+                #endTimeModel='ngModel'
+                #endTimeEl
+            />
+            <abp-validation-summary
+                [control]='endTimeModel'
+                [controlEl]='endTimeEl'
+            ></abp-validation-summary>
+            </div>
+        </div>
+    </div>
+    <abp-modal-footer
+    [cancelDisabled]='saving'
+    [saveDisabled]='!createQueueModal.form.valid || saving'
+    (onCancelClick)='bsModalRef.hide()'
+    ></abp-modal-footer>
+</form>

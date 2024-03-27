@@ -10,6 +10,11 @@ namespace SND.SMP.Authorization
         public const string Pages_Roles = "Pages.Roles";
 
         /* Define your permissions here */
+        public const string Pages_Queue = "Pages.Queue";
+        public const string Pages_Queue_Create = "Pages.Queue.Create";
+        public const string Pages_Queue_Edit = "Pages.Queue.Edit";
+        public const string Pages_Queue_Delete = "Pages.Queue.Delete";
+
         public const string Pages_Chibi = "Pages.Chibi";
         public const string Pages_Chibi_Create = "Pages.Chibi.Create";
         public const string Pages_Chibi_Edit = "Pages.Chibi.Edit";
