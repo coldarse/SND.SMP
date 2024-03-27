@@ -2,8 +2,8 @@ import { Component, Injector } from '@angular/core';
 import { PagedListingComponentBase, PagedRequestDto, PagedResultDto } from '@shared/paged-listing-component-base';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { finalize } from 'rxjs/operators';
-import { CustomerPostalDto } from '@shared/service-proxies/customerpostals/model'
-import { CustomerPostalService } from '@shared/service-proxies/customerpostals/customerpostal.service'
+import { CustomerPostalDto } from '@shared/service-proxies/customer-postals/model'
+import { CustomerPostalService } from '@shared/service-proxies/customer-postals/customer-postal.service'
 import { CreateUpdateCustomerPostalComponent } from './create-update-customer-postal/create-update-customer-postal.component'
 
 class PagedCustomerPostalsRequestDto extends PagedRequestDto{

@@ -13,6 +13,7 @@ using SND.SMP.Rates;
 using Abp.Linq.Extensions;
 using System.Linq.Dynamic.Core;
 using Abp.UI;
+using SND.SMP.Postals;
 
 namespace SND.SMP.CustomerPostals
 {
@@ -20,15 +21,18 @@ namespace SND.SMP.CustomerPostals
     {
         private readonly IRepository<Rate, int> _rateRepository;
         private readonly IRepository<Customer, long> _customerRepository;
+        private readonly IRepository<Postal, long> _postalRepository;
 
         public CustomerPostalAppService(
             IRepository<CustomerPostal, long> repository,
             IRepository<Rate, int> rateRepository,
-            IRepository<Customer, long> customerRepository
+            IRepository<Customer, long> customerRepository,
+            IRepository<Postal, long> postalRepository
         ) : base(repository)
         {
             _rateRepository = rateRepository;
             _customerRepository = customerRepository;
+            _postalRepository = postalRepository;
         }
         protected override IQueryable<CustomerPostal> CreateFilteredQuery(PagedCustomerPostalResultRequestDto input)
         {
@@ -63,8 +67,8 @@ namespace SND.SMP.CustomerPostals
             }
 
             detailed = detailed.
-                WhereIf(!input.Keyword.IsNullOrWhiteSpace(), 
-                    x => x.Postal.Contains(input.Keyword)   || 
+                WhereIf(!input.Keyword.IsNullOrWhiteSpace(),
+                    x => x.Postal.Contains(input.Keyword) ||
                          x.RateCard.Contains(input.Keyword)).ToList();
 
             var totalCount = detailed.Count;
@@ -86,7 +90,7 @@ namespace SND.SMP.CustomerPostals
 
             var exists = await Repository.FirstOrDefaultAsync(x => x.Postal.Equals(input.Postal) && x.Rate.Equals(input.Rate) && x.AccountNo.Equals(input.AccountNo));
 
-            if(exists is not null) throw new UserFriendlyException("Already Exisits"); 
+            if (exists is not null) throw new UserFriendlyException("Already Exisits");
 
             CustomerPostal entity = new CustomerPostal()
             {
@@ -116,6 +120,28 @@ namespace SND.SMP.CustomerPostals
             await CurrentUnitOfWork.SaveChangesAsync();
 
             return MapToEntityDto(entity);
+        }
+
+        public async Task<List<PostalDDL>> GetCustomerPostalsByAccountNo(long accountNo)
+        {
+            var customerPostals = await Repository.GetAllListAsync(x => x.AccountNo.Equals(accountNo));
+
+            var postals = await _postalRepository.GetAllListAsync();
+            postals = postals.DistinctBy(x => x.PostalCode).ToList();
+
+            List<PostalDDL> postalDDLs = [];
+            foreach (CustomerPostal cp in customerPostals.ToList())
+            {
+                var postal = postals.FirstOrDefault(x => x.PostalCode.Equals(cp.Postal));
+
+                postalDDLs.Add(new PostalDDL()
+                {
+                    PostalCode = postal.PostalCode,
+                    PostalDesc = postal.PostalDesc,
+                });
+            }
+
+            return postalDDLs;
         }
 
         private IQueryable<DetailedCustomerPostalDto> ApplySorting(IQueryable<DetailedCustomerPostalDto> query, PagedCustomerPostalResultRequestDto input)

@@ -2,18 +2,18 @@ import { Component, Injector } from '@angular/core';
 import { PagedListingComponentBase, PagedRequestDto, PagedResultDto } from '@shared/paged-listing-component-base';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { finalize } from 'rxjs/operators';
-import { PostalCountryDto } from '@shared/service-proxies/postalcountries/model';
-import { PostalCountryService } from '@shared/service-proxies/postalcountries/postalcountry.service';
-import { UploadPostalCountryComponent } from '../postalcountries/upload-postal-country/upload-postal-country.component';
+import { PostalCountryDto } from '@shared/service-proxies/postal-countries/model';
+import { PostalCountryService } from '@shared/service-proxies/postal-countries/postal-country.service';
+import { UploadPostalCountryComponent } from '../postal-countries/upload-postal-country/upload-postal-country.component';
 
 class PagedPostalCountriesRequestDto extends PagedRequestDto{
   keyword: string
 }
 
 @Component({
-  selector: 'app-postalcountries',
-  templateUrl: './postalcountries.component.html',
-  styleUrls: ['./postalcountries.component.css']
+  selector: 'app-postal-countries',
+  templateUrl: './postal-countries.component.html',
+  styleUrls: ['./postal-countries.component.css']
 })
 export class PostalCountriesComponent extends PagedListingComponentBase<PostalCountryDto> {
 

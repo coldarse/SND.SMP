@@ -7,14 +7,15 @@ import {
 } from "@angular/core";
 import { AppComponentBase } from "../../../shared/app-component-base";
 import { BsModalRef } from "ngx-bootstrap/modal";
-import { PostalCountryService } from "../../../shared/service-proxies/postalcountries/postalcountry.service";
+
+import { RateWeightBreakService } from "@shared/service-proxies/rate-weight-breaks/rate-weight-break.service";
 
 @Component({
-  selector: "app-upload-postal-country",
-  templateUrl: "./upload-postal-country.component.html",
-  styleUrls: ["./upload-postal-country.component.css"],
+  selector: "app-upload-rate-weight-break",
+  templateUrl: "./upload-rate-weight-break.component.html",
+  styleUrls: ["./upload-rate-weight-break.component.css"],
 })
-export class UploadPostalCountryComponent
+export class UploadRateWeightBreakComponent
   extends AppComponentBase
   implements OnInit
 {
@@ -25,7 +26,7 @@ export class UploadPostalCountryComponent
 
   constructor(
     injector: Injector,
-    public _postalCountryService: PostalCountryService,
+    public _rateItemService: RateWeightBreakService,
     public bsModalRef: BsModalRef
   ) {
     super(injector);
@@ -33,9 +34,9 @@ export class UploadPostalCountryComponent
 
   ngOnInit(): void {}
 
-  handleUpload(event){
-    if(event.target.files.length > 0){
-        this.formFile = event.target.files[0];
+  handleUpload(event) {
+    if (event.target.files.length > 0) {
+      this.formFile = event.target.files[0];
     }
   }
 
@@ -43,15 +44,16 @@ export class UploadPostalCountryComponent
     this.saving = true;
 
     const form = new FormData();
-    form.append('file', this.formFile);
+    form.append("file", this.formFile);
 
-    this._postalCountryService.uploadPostalCountryFile(form).subscribe(
+    this._rateItemService.uploadRateWeightBreakFile(form).subscribe(
       () => {
         this.notify.info(this.l("UploadedSuccessfully"));
         this.bsModalRef.hide();
         this.onSave.emit();
       },
-      () => { this.saving = false;
+      () => {
+        this.saving = false;
       }
     );
   }

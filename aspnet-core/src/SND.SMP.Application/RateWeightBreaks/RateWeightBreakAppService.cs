@@ -42,7 +42,7 @@ namespace SND.SMP.RateWeightBreaks
         protected override IQueryable<RateWeightBreak> CreateFilteredQuery(PagedRateWeightBreakResultRequestDto input)
         {
             return Repository.GetAllIncluding()
-                .WhereIf(!input.Keyword.IsNullOrWhiteSpace(), x => 
+                .WhereIf(!input.Keyword.IsNullOrWhiteSpace(), x =>
                     x.PostalOrgId.Contains(input.Keyword) ||
                     x.ProductCode.Contains(input.Keyword) ||
                     x.PaymentMode.Contains(input.Keyword)).AsQueryable();
@@ -131,9 +131,9 @@ namespace SND.SMP.RateWeightBreaks
         }
         #endregion
 
-        public async Task<RateCardWeightBreakDto> GetRateWeightBreakByRate(int rateid)
+        public async Task<RateCardWeightBreakDisplayDto> GetRateWeightBreakByRate(int rateid)
         {
-            var rateWeightBreaks = await Repository.GetAllListAsync(x => x.RateId.Equals(rateid) && !x.ItemRate.Equals(Convert.ToDecimal(0)) && !x.WeightRate.Equals(Convert.ToDecimal(0)));
+            var rateWeightBreaks = await Repository.GetAllListAsync(x => x.RateId.Equals(rateid));
 
             var rateWeight = rateWeightBreaks.FirstOrDefault();
 
@@ -141,13 +141,12 @@ namespace SND.SMP.RateWeightBreaks
             var postalOrg = await _postalOrgRepository.FirstOrDefaultAsync(x => x.Id.Equals(rateWeight.PostalOrgId));
             var currency = await _currencyRepository.FirstOrDefaultAsync(x => x.Id.Equals(rateWeight.CurrencyId));
 
-            List<WeightBreakDto> wb = [];
-            foreach(RateWeightBreak rwb in rateWeightBreaks)
+            List<WeightBreakDisplayDto> wb = [];
+            foreach (RateWeightBreak rwb in rateWeightBreaks)
             {
-                wb.Add(new WeightBreakDto()
+                wb.Add(new WeightBreakDisplayDto()
                 {
-                    WeightMinKg = rwb.WeightMin,
-                    WeightMaxKg = rwb.WeightMax,
+                    WeightBreak = rwb.WeightMin.ToString() + " - " + rwb.WeightMax.ToString(),
                     ProductCode = rwb.ProductCode,
                     ItemRate = rwb.ItemRate,
                     WeightRate = rwb.WeightRate,
@@ -155,7 +154,7 @@ namespace SND.SMP.RateWeightBreaks
                 });
             }
 
-            return new RateCardWeightBreakDto()
+            return new RateCardWeightBreakDisplayDto()
             {
                 RateCardName = rate.CardName,
                 Currency = currency.Abbr,
@@ -241,25 +240,25 @@ namespace SND.SMP.RateWeightBreaks
                                     WeightRate = table.Rows[i][colIndex + 1] == DBNull.Value ? 0 : Convert.ToDecimal(table.Rows[i][colIndex + 1]),
                                 };
 
-                                if(!wb.ItemRate.Equals(Convert.ToDecimal(0)) && !wb.WeightRate.Equals(Convert.ToDecimal(0)))
-                                {
-                                    listWeightBreak.Add(wb);
+                                // if(!wb.ItemRate.Equals(Convert.ToDecimal(0)) && !wb.WeightRate.Equals(Convert.ToDecimal(0)))
+                                // {
+                                listWeightBreak.Add(wb);
 
-                                    insert.Add(new RateWeightBreak()
-                                    {
-                                        RateId = rate.Id,
-                                        PostalOrgId = postalOrgId,
-                                        WeightMin = wb.WeightMinKg,
-                                        WeightMax = wb.WeightMaxKg,
-                                        ProductCode = wb.ProductCode,
-                                        CurrencyId = currId,
-                                        ItemRate = wb.ItemRate,
-                                        WeightRate = wb.WeightRate,
-                                        IsExceedRule = wb.IsExceedRule,
-                                        PaymentMode = paymentMode
-                                    });
-                                }
-                                
+                                insert.Add(new RateWeightBreak()
+                                {
+                                    RateId = rate.Id,
+                                    PostalOrgId = postalOrgId,
+                                    WeightMin = wb.WeightMinKg,
+                                    WeightMax = wb.WeightMaxKg,
+                                    ProductCode = wb.ProductCode,
+                                    CurrencyId = currId,
+                                    ItemRate = wb.ItemRate,
+                                    WeightRate = wb.WeightRate,
+                                    IsExceedRule = wb.IsExceedRule,
+                                    PaymentMode = paymentMode
+                                });
+                                // }
+
 
                                 colIndex += 2;
                             }
@@ -280,15 +279,15 @@ namespace SND.SMP.RateWeightBreaks
                     foreach (var distinctedRateCard in rateCard)
                     {
                         var rwb = await Repository.GetAllListAsync(x => x.RateId.Equals(distinctedRateCard.Id));
-                        if(rwb.Count > 0) await Repository.GetDbContext().Database.ExecuteSqlAsync($"DELETE FROM smpdb.rateweightbreaks WHERE RateId = '{distinctedRateCard.Id.ToString()}'");
+                        if (rwb.Count > 0) await Repository.GetDbContext().Database.ExecuteSqlAsync($"DELETE FROM smpdb.rateweightbreaks WHERE RateId = '{distinctedRateCard.Id.ToString()}'");
                     }
 
-                    foreach(RateWeightBreak rwb in insert)
+                    foreach (RateWeightBreak rwb in insert)
                     {
                         var insertedItem = await Repository.InsertAsync(rwb);
                         await Repository.GetDbContext().SaveChangesAsync();
                     }
-                    
+
                 }
 
                 return listRateCards;
@@ -298,7 +297,7 @@ namespace SND.SMP.RateWeightBreaks
                 Console.Write(ex.Message);
                 return new List<RateCardWeightBreakDto>();
             }
-           
+
         }
     }
 }

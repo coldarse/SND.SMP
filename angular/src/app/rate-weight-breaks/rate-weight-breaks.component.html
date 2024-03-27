@@ -1,0 +1,95 @@
+<div [@routerTransition]>
+  <section class="content-header">
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-6">
+          <h1>{{ "Rate Weight Breaks" | localize }}</h1>
+        </div>
+        <div class="col-6 text-right" *ngIf="isButtonVisible('Create')">
+          <a
+            href="javascript:;"
+            class="btn bg-blue"
+            (click)="uploadRateWeightBreakExcel()"
+          >
+            <i class="fa fa-file-arrow-up"></i>
+            {{ "Upload" | localize }}
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="content px-2">
+    <div class="container-fluid">
+      <div class="card">
+        <div class="card-header">
+          <div class="row">
+            <div class="col-md-6">Rate Card Names</div>
+          </div>
+          <div class="row mt-3">
+            <div class="col-md-12">
+              @for (rate of rates; track $index) {
+              <button
+                class="btn btn-primary mr-1 mb-1"
+                (click)="filter(rate.id)"
+              >
+                {{ rate.cardName }}
+              </button>
+              }
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <div class="row mb-3" *ngIf="selectedRateCard !== 0">
+              <div class="col-md-6">
+                {{ selectedRateCardName }}
+              </div>
+            </div>
+            <table
+              class="table table-striped table-bordered"
+              [busy]="isTableLoading"
+            >
+              <thead class="bg-light">
+                <tr>
+                  @if (this.products.length !== 0) {
+                  <th>{{ "Weight Break" | localize }}</th>
+                  } @else if (this.selectedRateCard === 0) {
+                  <th>
+                    {{ "Choose a Rate Card" | localize }}
+                  </th>
+                  } @else if (this.isTableLoading) {
+                  <th>
+                    {{ "Retrieving Data" | localize }}
+                  </th>
+                  } @else if (this.products.length === 0) {
+                  <th>
+                    {{ "No Records Found for this Rate Card" | localize }}
+                  </th>
+                  }@for (p of products; track $index) {
+                  <th>Price({{ p }})</th>
+                  }
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let items of grouped | keyvalue">
+                  <td>{{ items.key }}</td>
+                  @for (item of items.value; track $index) {
+                  <td>{{ item.itemRate | number : "1.2-2" }}</td>
+                  }
+                </tr>
+                @if (grouped !== undefined && grouped['Exceeds'].length !== 0) {
+                <tr>
+                  <td>Exceeds</td>
+                  @for (item of grouped['Exceeds']; track $index) {
+                  <td>{{ item.itemRate | number : "1.2-2" }}</td>
+                  }
+                </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>

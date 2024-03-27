@@ -129,4 +129,26 @@ export class PostalService {
             catchError(this.handleError),
         )
     }
+
+    //Get Services By Postal
+    getServicesByPostal(postalCode: string) {
+        return this.http.get(
+            this.url + `/api/services/app/Postal/GetServicesByPostal?postalCode=${postalCode}`,
+            this.options_
+        ).pipe(
+            retry(1),
+            catchError(this.handleError),
+        )
+    }
+
+    //Get Products By Postal And Service
+    getProductsByPostalAndService(postalCode: string, serviceCode: string) {
+        return this.http.get(
+            this.url + `/api/services/app/Postal/GetProductsByPostalAndService?postalCode=${postalCode}&serviceCode=${serviceCode}`,
+            this.options_
+        ).pipe(
+            retry(1),
+            catchError(this.handleError),
+        )
+    }
 }

@@ -43,16 +43,19 @@ import { QueuesComponent } from './queues/queues.component';
 import { CreateUpdateQueueComponent } from './queues/create-update-queue/create-update-queue.component';
 import { QueueService } from '@shared/service-proxies/queues/queue.service';
 
-import { RateWeightBreaksComponent } from './rateweightbreaks/rateweightbreaks.component';
-import { CreateUpdateRateWeightBreakComponent } from './rateweightbreaks/create-update-rateweightbreak/create-update-rateweightbreak.component';
-import { RateWeightBreakService } from '@shared/service-proxies/rateweightbreaks/rateweightbreak.service';
+import { PreAlertComponent } from './pre-alerts/pre-alerts.component';
+import { ChibiService } from '@shared/service-proxies/chibis/chibis.service';
+
+import { RateWeightBreaksComponent } from './rate-weight-breaks/rate-weight-breaks.component';
+import { UploadRateWeightBreakComponent } from './rate-weight-breaks/upload-rate-weight-break/upload-rate-weight-break.component';
+import { RateWeightBreakService } from '@shared/service-proxies/rate-weight-breaks/rate-weight-break.service';
 
 import { CustomerPostalsComponent } from './customer-postals/customer-postals.component';
 import { CreateUpdateCustomerPostalComponent } from './customer-postals/create-update-customer-postal/create-update-customer-postal.component';
-import { CustomerPostalService } from '@shared/service-proxies/customerpostals/customerpostal.service';
+import { CustomerPostalService } from '@shared/service-proxies/customer-postals/customer-postal.service';
 
-import { PostalCountriesComponent } from "./postalcountries/postalcountries.component";
-import { PostalCountryService } from "@shared/service-proxies/postalcountries/postalcountry.service";
+import { PostalCountriesComponent } from "./postal-countries/postal-countries.component";
+import { PostalCountryService } from "@shared/service-proxies/postal-countries/postal-country.service";
 
 import { PostalsComponent } from "./postals/postals.component";
 import { PostalService } from "@shared/service-proxies/postals/postal.service";
@@ -84,7 +87,7 @@ import { CustomerTransactionService } from "@shared/service-proxies/customer-tra
 
 import { UploadPostalComponent } from "./postals/upload-postal/upload-postal.component";
 
-import { UploadPostalCountryComponent } from "./postalcountries/upload-postal-country/upload-postal-country.component";
+import { UploadPostalCountryComponent } from "./postal-countries/upload-postal-country/upload-postal-country.component";
 
 import { TopUpWalletComponent } from "./wallets/topup-wallet/topup-wallet.component";
 
@@ -118,6 +121,7 @@ import { TopUpWalletComponent } from "./wallets/topup-wallet/topup-wallet.compon
     SidebarUserPanelComponent,
     SidebarMenuComponent,
     /* Insert Component */
+    PreAlertComponent,
     CustomerPostalsComponent,
     CreateUpdateCustomerPostalComponent,
     PostalCountriesComponent,
@@ -138,7 +142,7 @@ import { TopUpWalletComponent } from "./wallets/topup-wallet/topup-wallet.compon
     UploadPostalCountryComponent,
     TopUpWalletComponent,
     RateWeightBreaksComponent,
-    CreateUpdateRateWeightBreakComponent,
+    UploadRateWeightBreakComponent,
   ],
   imports: [
     CommonModule,
@@ -157,6 +161,7 @@ import { TopUpWalletComponent } from "./wallets/topup-wallet/topup-wallet.compon
   ],
   providers: [
     /* Insert Service */
+    ChibiService,
     CustomerPostalService,
     PostalCountryService,
     PostalService,

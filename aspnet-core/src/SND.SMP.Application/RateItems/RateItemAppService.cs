@@ -44,7 +44,7 @@ namespace SND.SMP.RateItems
         public async Task<int> GetAllRateItemsCount()
         {
             var allRateItemsList = await Repository.GetAllListAsync();
-            return allRateItemsList.Count();
+            return allRateItemsList.Count;
         }
 
         [Consumes("multipart/form-data")]

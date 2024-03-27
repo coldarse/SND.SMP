@@ -102,4 +102,14 @@ export class CustomerPostalService {
       .get(url_ + `&MaxResultCount=10`, this.options_)
       .pipe(retry(1), catchError(this.handleError));
   }
+
+  //Get Customer Postals By AccountNo
+  getCustomerPostalsByAccountNo(accountNo: number) {
+    return this.http
+    .get(
+      this.url + `/api/services/app/CustomerPostal/GetCustomerPostalsByAccountNo?accountNo=${accountNo}`,
+      this.options_
+    )
+    .pipe(retry(1), catchError(this.handleError));
+  }
 }

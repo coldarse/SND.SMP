@@ -26,3 +26,13 @@ export interface PostalDDL {
     postalDesc: string;
 }
 
+export interface ServiceDDL {
+    serviceCode: string;
+    serviceDesc: string;
+}
+
+export interface ProductDDL {
+    productCode: string;
+    productDesc: string;
+}
+

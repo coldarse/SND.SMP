@@ -22,3 +22,4 @@ export interface PagedRateItemsResultRequestDto extends PagedAndSortedResultRequ
     currencyId?: number;
     paymentMode?: string;
 }
+

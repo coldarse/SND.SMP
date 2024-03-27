@@ -10,9 +10,9 @@ import { RolesComponent } from "app/roles/roles.component";
 import { ChangePasswordComponent } from "./users/change-password/change-password.component";
 /* Insert Routing Import */
 import { QueuesComponent } from './queues/queues.component';
-import { RateWeightBreaksComponent } from './rateweightbreaks/rateweightbreaks.component';
+import { RateWeightBreaksComponent } from './rate-weight-breaks/rate-weight-breaks.component';
 import { CustomerPostalsComponent } from './customer-postals/customer-postals.component';
-import { PostalCountriesComponent } from "./postalcountries/postalcountries.component";
+import { PostalCountriesComponent } from "./postal-countries/postal-countries.component";
 import { PostalsComponent } from "./postals/postals.component";
 import { CurrenciesComponent } from "./currencies/currencies.component";
 import { EWalletTypesComponent } from "./ewallettypes/ewallettypes.component";
@@ -20,6 +20,7 @@ import { CustomersComponent } from "./customers/customers.component";
 import { WalletsComponent } from "./wallets/wallets.component";
 import { RateItemsComponent } from "./rate-items/rate-items.component";
 import { CustomerTransactionsComponent } from "./customer-transactions/customer-transactions.component";
+import { PreAlertComponent } from "./pre-alerts/pre-alerts.component";
 
 @NgModule({
   imports: [
@@ -59,19 +60,24 @@ import { CustomerTransactionsComponent } from "./customer-transactions/customer-
           },
           /* Insert Path */
           {
-            path: "rateweightbreaks",
+            path: "pre-alerts",
+            component: PreAlertComponent,
+            canActivate: [AppRouteGuard],
+          },
+          {
+            path: "rate-weight-breaks",
             data: { permission: "Pages.RateWeightBreak" },
             component: RateWeightBreaksComponent,
             canActivate: [AppRouteGuard],
           },
           {
-            path: "customerpostals",
+            path: "customer-postals",
             data: { permission: "Pages.CustomerPostal" },
             component: CustomerPostalsComponent,
             canActivate: [AppRouteGuard],
           },
           {
-            path: "postalcountries",
+            path: "postal-countries",
             data: { permission: "Pages.PostalCountry" },
             component: PostalCountriesComponent,
             canActivate: [AppRouteGuard],
@@ -113,7 +119,7 @@ import { CustomerTransactionsComponent } from "./customer-transactions/customer-
             canActivate: [AppRouteGuard],
           },
           {
-            path: "customertransactions",
+            path: "customer-transactions",
             data: { permission: "Pages.CustomerTransaction" },
             component: CustomerTransactionsComponent,
             canActivate: [AppRouteGuard],

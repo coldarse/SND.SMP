@@ -9,11 +9,11 @@ import { finalize } from "rxjs/operators";
 import { CustomerDto } from "@shared/service-proxies/customers/model";
 import { CustomerService } from "@shared/service-proxies/customers/customer.service";
 import { CreateUpdateCustomerComponent } from "../customers/create-update-customer/create-update-customer.component";
-import { CustomerPostalService } from "@shared/service-proxies/customerpostals/customerpostal.service";
+import { CustomerPostalService } from "@shared/service-proxies/customer-postals/customer-postal.service";
 import {
   CustomerPostalDto,
   DetailedCustomerPostalDto,
-} from "@shared/service-proxies/customerpostals/model";
+} from "@shared/service-proxies/customer-postals/model";
 import { CreateUpdateCustomerPostalComponent } from "@app/customer-postals/create-update-customer-postal/create-update-customer-postal.component";
 import { PostalDDL } from "@shared/service-proxies/postals/model";
 import { RateDDL } from "@shared/service-proxies/rates/model";

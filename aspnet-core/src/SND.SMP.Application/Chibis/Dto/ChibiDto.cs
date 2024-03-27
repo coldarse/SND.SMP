@@ -14,4 +14,5 @@ namespace SND.SMP.Chibis.Dto
         public string OriginalName { get; set; }
         public string GeneratedName { get; set; }
     }
+
 }
