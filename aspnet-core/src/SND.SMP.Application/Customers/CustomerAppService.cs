@@ -20,21 +20,13 @@ using SND.SMP.Wallets;
 
 namespace SND.SMP.Customers
 {
-    public class CustomerAppService : AsyncCrudAppService<Customer, CustomerDto, long, PagedCustomerResultRequestDto>
+    public class CustomerAppService(IRepository<Customer, long> repository,
+        IUserAppService userAppService,
+        IRoleAppService roleAppService) : AsyncCrudAppService<Customer, CustomerDto, long, PagedCustomerResultRequestDto>(repository)
     {
-        private readonly IRoleAppService _roleAppService;
-        private readonly IUserAppService _userAppService;
-        private readonly IRepository<Wallet, string> _walletRepository;
+        private readonly IRoleAppService _roleAppService = roleAppService;
+        private readonly IUserAppService _userAppService = userAppService;
 
-        public CustomerAppService(IRepository<Customer, long> repository,
-            IUserAppService userAppService,
-            IRoleAppService roleAppService,
-            IRepository<Wallet, string> walletRepository) : base(repository)
-        {
-            _userAppService = userAppService;
-            _roleAppService = roleAppService;
-            _walletRepository = walletRepository;
-        }
         protected override IQueryable<Customer> CreateFilteredQuery(PagedCustomerResultRequestDto input)
         {
             return Repository.GetAllIncluding()
@@ -82,22 +74,22 @@ namespace SND.SMP.Customers
 
             if (role is null)
             {
-                List<string> GrantedPermissions = new List<string>();
-                // GrantedPermissions.Add("Pages.Customer.Create");
-                // GrantedPermissions.Add("Pages.Customer.Delete");
-                // GrantedPermissions.Add("Pages.Customer.Edit");
-                GrantedPermissions.Add("Pages.Customer");
+                List<string> GrantedPermissions =
+                [
+                    // GrantedPermissions.Add("Pages.Customer.Create");
+                    // GrantedPermissions.Add("Pages.Customer.Delete");
+                    // GrantedPermissions.Add("Pages.Customer.Edit");
+                    "Pages.Customer",
+                ];
 
-                CreateRoleDto createRole = new CreateRoleDto()
+                await _roleAppService.CreateAsync(new CreateRoleDto()
                 {
                     Name = "Customer",
                     DisplayName = "Customer",
                     NormalizedName = "CUSTOMER",
                     Description = "",
                     GrantedPermissions = GrantedPermissions
-                };
-
-                var createdRole = await _roleAppService.CreateAsync(createRole);
+                });
             }
 
             var entity = MapToEntity(input);
@@ -105,7 +97,7 @@ namespace SND.SMP.Customers
             await Repository.InsertAsync(entity);
             await CurrentUnitOfWork.SaveChangesAsync();
 
-            CreateUserDto userdto = new CreateUserDto()
+            await _userAppService.CreateAsync(new CreateUserDto()
             {
                 UserName = input.EmailAddress,
                 Name = input.CompanyName,
@@ -114,9 +106,7 @@ namespace SND.SMP.Customers
                 IsActive = true,
                 RoleNames = ["CUSTOMER"],
                 Password = input.Password
-            };
-
-            var user = await _userAppService.CreateAsync(userdto);
+            });
 
             return MapToEntityDto(entity);
         }

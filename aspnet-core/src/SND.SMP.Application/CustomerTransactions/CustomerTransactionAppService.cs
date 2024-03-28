@@ -11,11 +11,8 @@ using System.Threading.Tasks;
 
 namespace SND.SMP.CustomerTransactions
 {
-    public class CustomerTransactionAppService : AsyncCrudAppService<CustomerTransaction, CustomerTransactionDto, long, PagedCustomerTransactionsResultRequestDto>
+    public class CustomerTransactionAppService(IRepository<CustomerTransaction, long> repository) : AsyncCrudAppService<CustomerTransaction, CustomerTransactionDto, long, PagedCustomerTransactionsResultRequestDto>(repository)
     {
-        public CustomerTransactionAppService(IRepository<CustomerTransaction, long> repository) : base(repository)
-        {
-        }
         protected override IQueryable<CustomerTransaction> CreateFilteredQuery(PagedCustomerTransactionsResultRequestDto input)
         {
             return input.isAdmin ?

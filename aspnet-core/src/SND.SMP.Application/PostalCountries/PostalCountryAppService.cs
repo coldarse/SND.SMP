@@ -13,15 +13,12 @@ using System.Data;
 using OfficeOpenXml;
 using Abp.EntityFrameworkCore.Repositories;
 using Microsoft.EntityFrameworkCore;
+using System.IO;
 
 namespace SND.SMP.PostalCountries
 {
-    public class PostalCountryAppService : AsyncCrudAppService<PostalCountry, PostalCountryDto, long, PagedPostalCountryResultRequestDto>
+    public class PostalCountryAppService(IRepository<PostalCountry, long> repository) : AsyncCrudAppService<PostalCountry, PostalCountryDto, long, PagedPostalCountryResultRequestDto>(repository)
     {
-
-        public PostalCountryAppService(IRepository<PostalCountry, long> repository) : base(repository)
-        {
-        }
         protected override IQueryable<PostalCountry> CreateFilteredQuery(PagedPostalCountryResultRequestDto input)
         {
             return Repository.GetAllIncluding()
@@ -30,16 +27,13 @@ namespace SND.SMP.PostalCountries
                     x.CountryCode.Contains(input.Keyword)).AsQueryable();
         }
 
-        [Consumes("multipart/form-data")]
-        public async Task<List<PostalCountry>> UploadPostalCountryFile([FromForm] UploadPostalCountry input)
+        private async Task<DataTable> ConvertToDatatable(Stream ms)
         {
-            if (input.file == null || input.file.Length == 0) return new List<PostalCountry>();
-
-            DataTable dataTable = new DataTable();
+            DataTable dataTable = new();
 
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
-            using (var package = new ExcelPackage(input.file.OpenReadStream()))
+            using (var package = new ExcelPackage(ms))
             {
                 ExcelWorksheet worksheet = package.Workbook.Worksheets[0];
 
@@ -65,7 +59,17 @@ namespace SND.SMP.PostalCountries
                 }
             }
 
-            List<PostalCountryExcel> postalCountryExcel = new List<PostalCountryExcel>();
+            return dataTable;
+        }
+
+        [Consumes("multipart/form-data")]
+        public async Task<List<PostalCountry>> UploadPostalCountryFile([FromForm] UploadPostalCountry input)
+        {
+            if (input.file == null || input.file.Length == 0) return [];
+
+            DataTable dataTable = await ConvertToDatatable(input.file.OpenReadStream());
+
+            List<PostalCountryExcel> postalCountryExcel = [];
             foreach (DataRow dr in dataTable.Rows)
             {
                 postalCountryExcel.Add(new PostalCountryExcel()
@@ -77,16 +81,14 @@ namespace SND.SMP.PostalCountries
 
             await Repository.GetDbContext().Database.ExecuteSqlRawAsync("TRUNCATE TABLE smpdb.postalcountries");
 
-            List<PostalCountry> postalCountries = new List<PostalCountry>();
+            List<PostalCountry> postalCountries = [];
             foreach (PostalCountryExcel excelItem in postalCountryExcel)
             {
-                PostalCountry insertPostalCountry = new PostalCountry()
+                var insert = await Repository.InsertAsync(new PostalCountry()
                 {
                     PostalCode = excelItem.PostalCode,
                     CountryCode = excelItem.CountryCode,
-                };
-
-                var insert = await Repository.InsertAsync(insertPostalCountry);
+                });
 
                 postalCountries.Add(insert);
             }

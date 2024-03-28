@@ -12,12 +12,8 @@ using SND.SMP.Currencies.Dto;
 
 namespace SND.SMP.Currencies
 {
-    public class CurrencyAppService : AsyncCrudAppService<Currency, CurrencyDto, long, PagedCurrencyResultRequestDto>
+    public class CurrencyAppService(IRepository<Currency, long> repository) : AsyncCrudAppService<Currency, CurrencyDto, long, PagedCurrencyResultRequestDto>(repository)
     {
-
-        public CurrencyAppService(IRepository<Currency, long> repository) : base(repository)
-        {
-        }
         protected override IQueryable<Currency> CreateFilteredQuery(PagedCurrencyResultRequestDto input)
         {
             return Repository.GetAllIncluding()

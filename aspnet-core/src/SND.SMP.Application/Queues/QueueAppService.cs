@@ -4,19 +4,14 @@ using Abp.Extensions;
 using Abp.Collections.Extensions;
 using Abp.Domain.Repositories;
 using System;
-using System.Collections.Generic;
+using Abp.Linq.Extensions;
 using System.Linq;
-using System.Threading.Tasks;
 using SND.SMP.Queues.Dto;
 
 namespace SND.SMP.Queues
 {
-    public class QueueAppService : AsyncCrudAppService<Queue, QueueDto, long, PagedQueueResultRequestDto>
+    public class QueueAppService(IRepository<Queue, long> repository) : AsyncCrudAppService<Queue, QueueDto, long, PagedQueueResultRequestDto>(repository)
     {
-
-        public QueueAppService(IRepository<Queue, long> repository) : base(repository)
-        {
-        }
         protected override IQueryable<Queue> CreateFilteredQuery(PagedQueueResultRequestDto input)
         {
             return Repository.GetAllIncluding()
@@ -24,7 +19,7 @@ namespace SND.SMP.Queues
                     x.EventType.Contains(input.Keyword) ||
                     x.FilePath.Contains(input.Keyword) ||
                     x.Status.Contains(input.Keyword) ||
-                    x.ErrorMsg.Contains(input.Keyword)).AsQueryable();
+                    x.ErrorMsg.Contains(input.Keyword));
         }
     }
 }

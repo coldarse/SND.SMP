@@ -17,23 +17,17 @@ using SND.SMP.Postals;
 
 namespace SND.SMP.CustomerPostals
 {
-    public class CustomerPostalAppService : AsyncCrudAppService<CustomerPostal, DetailedCustomerPostalDto, long, PagedCustomerPostalResultRequestDto>
+    public class CustomerPostalAppService(
+        IRepository<CustomerPostal, long> repository,
+        IRepository<Rate, int> rateRepository,
+        IRepository<Customer, long> customerRepository,
+        IRepository<Postal, long> postalRepository
+        ) : AsyncCrudAppService<CustomerPostal, DetailedCustomerPostalDto, long, PagedCustomerPostalResultRequestDto>(repository)
     {
-        private readonly IRepository<Rate, int> _rateRepository;
-        private readonly IRepository<Customer, long> _customerRepository;
-        private readonly IRepository<Postal, long> _postalRepository;
+        private readonly IRepository<Rate, int> _rateRepository = rateRepository;
+        private readonly IRepository<Customer, long> _customerRepository = customerRepository;
+        private readonly IRepository<Postal, long> _postalRepository = postalRepository;
 
-        public CustomerPostalAppService(
-            IRepository<CustomerPostal, long> repository,
-            IRepository<Rate, int> rateRepository,
-            IRepository<Customer, long> customerRepository,
-            IRepository<Postal, long> postalRepository
-        ) : base(repository)
-        {
-            _rateRepository = rateRepository;
-            _customerRepository = customerRepository;
-            _postalRepository = postalRepository;
-        }
         protected override IQueryable<CustomerPostal> CreateFilteredQuery(PagedCustomerPostalResultRequestDto input)
         {
             return Repository.GetAllIncluding().Where(x => x.AccountNo.Equals(input.AccountNo));
@@ -49,7 +43,7 @@ namespace SND.SMP.CustomerPostals
 
             var rates = await _rateRepository.GetAllListAsync();
 
-            List<DetailedCustomerPostalDto> detailed = new List<DetailedCustomerPostalDto>();
+            List<DetailedCustomerPostalDto> detailed = [];
 
             foreach (var postal in query.ToList())
             {
@@ -92,7 +86,7 @@ namespace SND.SMP.CustomerPostals
 
             if (exists is not null) throw new UserFriendlyException("Already Exisits");
 
-            CustomerPostal entity = new CustomerPostal()
+            CustomerPostal entity = new()
             {
                 Postal = input.Postal,
                 Rate = input.Rate,
@@ -147,8 +141,7 @@ namespace SND.SMP.CustomerPostals
         private IQueryable<DetailedCustomerPostalDto> ApplySorting(IQueryable<DetailedCustomerPostalDto> query, PagedCustomerPostalResultRequestDto input)
         {
             //Try to sort query if available
-            var sortInput = input as ISortedResultRequest;
-            if (sortInput != null)
+            if (input is ISortedResultRequest sortInput)
             {
                 if (!sortInput.Sorting.IsNullOrWhiteSpace())
                 {

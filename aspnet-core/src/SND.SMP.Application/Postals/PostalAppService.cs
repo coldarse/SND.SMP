@@ -15,16 +15,12 @@ using OfficeOpenXml;
 using SND.SMP.PostalOrgs;
 using Abp.EntityFrameworkCore.Repositories;
 using Microsoft.EntityFrameworkCore;
+using System.IO;
 
 namespace SND.SMP.Postals
 {
-    public class PostalAppService : AsyncCrudAppService<Postal, PostalDto, long, PagedPostalResultRequestDto>
+    public class PostalAppService(IRepository<Postal, long> repository, IRepository<PostalOrg, string> postalOrgRepository) : AsyncCrudAppService<Postal, PostalDto, long, PagedPostalResultRequestDto>(repository)
     {
-        private readonly IRepository<PostalOrg, string> _postalOrgRepository;
-        public PostalAppService(IRepository<Postal, long> repository, IRepository<PostalOrg, string> postalOrgRepository) : base(repository)
-        {
-            _postalOrgRepository = postalOrgRepository;
-        }
         protected override IQueryable<Postal> CreateFilteredQuery(PagedPostalResultRequestDto input)
         {
             return Repository.GetAllIncluding()
@@ -40,10 +36,9 @@ namespace SND.SMP.Postals
         public async Task<List<PostalDDL>> GetPostalDDL()
         {
             var postals = await Repository.GetAllListAsync();
-
             postals = postals.DistinctBy(x => x.PostalCode).ToList();
 
-            List<PostalDDL> postalDDL = new List<PostalDDL>();
+            List<PostalDDL> postalDDL = [];
             foreach (var postal in postals.ToList())
             {
                 postalDDL.Add(new PostalDDL()
@@ -52,7 +47,6 @@ namespace SND.SMP.Postals
                     PostalDesc = postal.PostalDesc
                 });
             }
-
             return postalDDL;
         }
 
@@ -70,7 +64,6 @@ namespace SND.SMP.Postals
                     ServiceDesc = postal.ServiceDesc
                 });
             }
-
             return serviceDDLs;
         }
 
@@ -88,22 +81,16 @@ namespace SND.SMP.Postals
                     ProductDesc = postal.ProductDesc
                 });
             }
-            
             return productDDLs;
         }
 
-        [Consumes("multipart/form-data")]
-        public async Task<List<Postal>> UploadPostalFile([FromForm] UploadPostal input)
+        private async Task<DataTable> ConvertToDatatable(Stream ms)
         {
-            var postalOrganizations = await _postalOrgRepository.GetAllListAsync();
-
-            if (input.file == null || input.file.Length == 0) return new List<Postal>();
-
-            DataTable dataTable = new DataTable();
+            DataTable dataTable = new();
 
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
-            using (var package = new ExcelPackage(input.file.OpenReadStream()))
+            using (var package = new ExcelPackage(ms))
             {
                 ExcelWorksheet worksheet = package.Workbook.Worksheets[0];
 
@@ -129,7 +116,19 @@ namespace SND.SMP.Postals
                 }
             }
 
-            List<PostalExcel> postalExcel = new List<PostalExcel>();
+            return dataTable;
+        }
+
+        [Consumes("multipart/form-data")]
+        public async Task<List<Postal>> UploadPostalFile([FromForm] UploadPostal input)
+        {
+            var postalOrganizations = await postalOrgRepository.GetAllListAsync();
+
+            if (input.file == null || input.file.Length == 0) return [];
+
+            DataTable dataTable = await ConvertToDatatable(input.file.OpenReadStream());
+
+            List<PostalExcel> postalExcel = [];
             foreach (DataRow dr in dataTable.Rows)
             {
                 postalExcel.Add(new PostalExcel()
@@ -146,7 +145,7 @@ namespace SND.SMP.Postals
 
             var distinctedByPostalCode = postalExcel.DistinctBy(x => x.PostalCode?[0..Math.Min(x.PostalCode.Length, 2)]);
 
-            List<PostalOrg> postalOrg = new List<PostalOrg>();
+            List<PostalOrg> postalOrg = [];
             foreach (var distinctedPostalCode in distinctedByPostalCode)
             {
                 string subStringedPostalCode = distinctedPostalCode.PostalCode?[0..Math.Min(distinctedPostalCode.PostalCode.Length, 2)];
@@ -156,7 +155,7 @@ namespace SND.SMP.Postals
 
                 if (org is null)
                 {
-                    var postalOrgCreate = await _postalOrgRepository.InsertAsync(new PostalOrg()
+                    var postalOrgCreate = await postalOrgRepository.InsertAsync(new PostalOrg()
                     {
                         Id = subStringedPostalCode,
                         Name = splitPostalDesc[0].ToString().TrimEnd()
@@ -166,10 +165,10 @@ namespace SND.SMP.Postals
 
             await Repository.GetDbContext().Database.ExecuteSqlRawAsync("TRUNCATE TABLE smpdb.postals");
 
-            List<Postal> postals = new List<Postal>();
+            List<Postal> postals = [];
             foreach (PostalExcel excelItem in postalExcel.ToList())
             {
-                Postal insertPostal = new Postal()
+                var insert = await Repository.InsertAsync(new Postal()
                 {
                     PostalCode = excelItem.PostalCode,
                     PostalDesc = excelItem.PostalDesc,
@@ -178,9 +177,7 @@ namespace SND.SMP.Postals
                     ProductCode = excelItem.ProductCode,
                     ProductDesc = excelItem.ProductDesc,
                     ItemTopUpValue = excelItem.ItemTopUpValue,
-                };
-
-                var insert = await Repository.InsertAsync(insertPostal);
+                });
 
                 postals.Add(insert);
             }

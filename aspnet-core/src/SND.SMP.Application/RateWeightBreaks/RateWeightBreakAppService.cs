@@ -22,23 +22,17 @@ using Microsoft.EntityFrameworkCore;
 
 namespace SND.SMP.RateWeightBreaks
 {
-    public class RateWeightBreakAppService : AsyncCrudAppService<RateWeightBreak, RateWeightBreakDto, int, PagedRateWeightBreakResultRequestDto>
+    public class RateWeightBreakAppService(
+        IRepository<RateWeightBreak, int> repository,
+        IRepository<Rate, int> rateRepository,
+        IRepository<Currency, long> currencyRepository,
+        IRepository<PostalOrg, string> postalOrgRepository
+        ) : AsyncCrudAppService<RateWeightBreak, RateWeightBreakDto, int, PagedRateWeightBreakResultRequestDto>(repository)
     {
-        private readonly IRepository<Rate, int> _rateRepository;
-        private readonly IRepository<Currency, long> _currencyRepository;
-        private readonly IRepository<PostalOrg, string> _postalOrgRepository;
+        private readonly IRepository<Rate, int> _rateRepository = rateRepository;
+        private readonly IRepository<Currency, long> _currencyRepository = currencyRepository;
+        private readonly IRepository<PostalOrg, string> _postalOrgRepository = postalOrgRepository;
 
-        public RateWeightBreakAppService(
-            IRepository<RateWeightBreak, int> repository,
-            IRepository<Rate, int> rateRepository,
-            IRepository<Currency, long> currencyRepository,
-            IRepository<PostalOrg, string> postalOrgRepository
-        ) : base(repository)
-        {
-            _rateRepository = rateRepository;
-            _currencyRepository = currencyRepository;
-            _postalOrgRepository = postalOrgRepository;
-        }
         protected override IQueryable<RateWeightBreak> CreateFilteredQuery(PagedRateWeightBreakResultRequestDto input)
         {
             return Repository.GetAllIncluding()
@@ -87,7 +81,6 @@ namespace SND.SMP.RateWeightBreaks
                 return newPostalOrg.Id;
             }
         }
-
 
         private async Task<List<Rate>> InsertAndGetUpdatedRateCards(List<string> rateCards)
         {
@@ -175,8 +168,8 @@ namespace SND.SMP.RateWeightBreaks
 
                 DataSet dataSet = new();
 
-                List<RateCardWeightBreakDto> listRateCards = [];
                 List<string> rateCards = [];
+                List<RateCardWeightBreakDto> listRateCards = [];
                 List<Rate> rateCard = [];
                 List<RateWeightBreak> insert = [];
 
@@ -191,7 +184,7 @@ namespace SND.SMP.RateWeightBreaks
 
                     foreach (ExcelWorksheet ws in worksheets)
                     {
-                        DataTable dataTable = new DataTable();
+                        DataTable dataTable = new();
                         dataTable = ws.Cells[1, 1, ws.Dimension.End.Row, ws.Dimension.End.Column].ToDataTable(c =>
                         {
                             c.FirstRowIsColumnNames = false;
@@ -214,7 +207,7 @@ namespace SND.SMP.RateWeightBreaks
                         var postal = Convert.ToString(table.Rows[0][7]);
                         var paymentMode = Convert.ToString(table.Rows[0][10]);
 
-                        var productCodes = table.Rows[1].ItemArray.Where(u => !string.IsNullOrWhiteSpace(Convert.ToString(u))).Select(u => Convert.ToString(u)).ToList();
+                        var productCodes = table.Rows[1].ItemArray.Where(u => !string.IsNullOrWhiteSpace(Convert.ToString(u))).Select(Convert.ToString).ToList();
 
                         var rate = rateCard.FirstOrDefault(x => x.CardName.Equals(rateCardName));
                         var curr = currencies.FirstOrDefault(x => x.Abbr.Equals(currency));
@@ -240,8 +233,6 @@ namespace SND.SMP.RateWeightBreaks
                                     WeightRate = table.Rows[i][colIndex + 1] == DBNull.Value ? 0 : Convert.ToDecimal(table.Rows[i][colIndex + 1]),
                                 };
 
-                                // if(!wb.ItemRate.Equals(Convert.ToDecimal(0)) && !wb.WeightRate.Equals(Convert.ToDecimal(0)))
-                                // {
                                 listWeightBreak.Add(wb);
 
                                 insert.Add(new RateWeightBreak()
@@ -257,9 +248,6 @@ namespace SND.SMP.RateWeightBreaks
                                     IsExceedRule = wb.IsExceedRule,
                                     PaymentMode = paymentMode
                                 });
-                                // }
-
-
                                 colIndex += 2;
                             }
                         }
@@ -295,7 +283,7 @@ namespace SND.SMP.RateWeightBreaks
             catch (Exception ex)
             {
                 Console.Write(ex.Message);
-                return new List<RateCardWeightBreakDto>();
+                return [];
             }
 
         }

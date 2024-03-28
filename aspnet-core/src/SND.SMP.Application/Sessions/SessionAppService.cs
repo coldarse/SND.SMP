@@ -8,13 +8,9 @@ using SND.SMP.Sessions.Dto;
 
 namespace SND.SMP.Sessions
 {
-    public class SessionAppService : SMPAppServiceBase, ISessionAppService
+    public class SessionAppService(IRepository<Customer, long> customerRepository) : SMPAppServiceBase, ISessionAppService
     {
-        private readonly IRepository<Customer, long> _customerRepository;
-        public SessionAppService(IRepository<Customer, long> customerRepository)
-        {
-            _customerRepository = customerRepository;
-        }
+        private readonly IRepository<Customer, long> _customerRepository = customerRepository;
 
         [DisableAuditing]
         public async Task<GetCurrentLoginInformationsOutput> GetCurrentLoginInformations()

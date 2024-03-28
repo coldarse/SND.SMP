@@ -11,12 +11,8 @@ using SND.SMP.Rates.Dto;
 
 namespace SND.SMP.Rates
 {
-    public class RateAppService : AsyncCrudAppService<Rate, RateDto, int, PagedRateResultRequestDto>
+    public class RateAppService(IRepository<Rate, int> repository) : AsyncCrudAppService<Rate, RateDto, int, PagedRateResultRequestDto>(repository)
     {
-
-        public RateAppService(IRepository<Rate, int> repository) : base(repository)
-        {
-        }
         protected override IQueryable<Rate> CreateFilteredQuery(PagedRateResultRequestDto input)
         {
             return Repository.GetAllIncluding()
@@ -33,7 +29,7 @@ namespace SND.SMP.Rates
         {
             var rates = await Repository.GetAllListAsync();
 
-            List<RateDDL> rateDDL = new List<RateDDL>();
+            List<RateDDL> rateDDL = [];
             foreach (var rate in rates.ToList())
             {
                 rateDDL.Add(new RateDDL()

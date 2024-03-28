@@ -12,12 +12,8 @@ using SND.SMP.EWalletTypes.Dto;
 
 namespace SND.SMP.EWalletTypes
 {
-    public class EWalletTypeAppService : AsyncCrudAppService<EWalletType, EWalletTypeDto, long, PagedEWalletTypeResultRequestDto>
+    public class EWalletTypeAppService(IRepository<EWalletType, long> repository) : AsyncCrudAppService<EWalletType, EWalletTypeDto, long, PagedEWalletTypeResultRequestDto>(repository)
     {
-
-        public EWalletTypeAppService(IRepository<EWalletType, long> repository) : base(repository)
-        {
-        }
         protected override IQueryable<EWalletType> CreateFilteredQuery(PagedEWalletTypeResultRequestDto input)
         {
             return Repository.GetAllIncluding()

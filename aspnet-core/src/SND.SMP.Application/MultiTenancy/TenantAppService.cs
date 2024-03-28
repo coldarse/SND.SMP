@@ -19,29 +19,19 @@ using Microsoft.AspNetCore.Identity;
 namespace SND.SMP.MultiTenancy
 {
     [AbpAuthorize(PermissionNames.Pages_Tenants)]
-    public class TenantAppService : AsyncCrudAppService<Tenant, TenantDto, int, PagedTenantResultRequestDto, CreateTenantDto, TenantDto>, ITenantAppService
+    public class TenantAppService(
+        IRepository<Tenant, int> repository,
+        TenantManager tenantManager,
+        EditionManager editionManager,
+        UserManager userManager,
+        RoleManager roleManager,
+        IAbpZeroDbMigrator abpZeroDbMigrator) : AsyncCrudAppService<Tenant, TenantDto, int, PagedTenantResultRequestDto, CreateTenantDto, TenantDto>(repository), ITenantAppService
     {
-        private readonly TenantManager _tenantManager;
-        private readonly EditionManager _editionManager;
-        private readonly UserManager _userManager;
-        private readonly RoleManager _roleManager;
-        private readonly IAbpZeroDbMigrator _abpZeroDbMigrator;
-
-        public TenantAppService(
-            IRepository<Tenant, int> repository,
-            TenantManager tenantManager,
-            EditionManager editionManager,
-            UserManager userManager,
-            RoleManager roleManager,
-            IAbpZeroDbMigrator abpZeroDbMigrator)
-            : base(repository)
-        {
-            _tenantManager = tenantManager;
-            _editionManager = editionManager;
-            _userManager = userManager;
-            _roleManager = roleManager;
-            _abpZeroDbMigrator = abpZeroDbMigrator;
-        }
+        private readonly TenantManager _tenantManager = tenantManager;
+        private readonly EditionManager _editionManager = editionManager;
+        private readonly UserManager _userManager = userManager;
+        private readonly RoleManager _roleManager = roleManager;
+        private readonly IAbpZeroDbMigrator _abpZeroDbMigrator = abpZeroDbMigrator;
 
         public override async Task<TenantDto> CreateAsync(CreateTenantDto input)
         {

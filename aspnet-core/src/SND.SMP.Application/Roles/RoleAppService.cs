@@ -18,17 +18,10 @@ using Microsoft.EntityFrameworkCore;
 namespace SND.SMP.Roles
 {
     [AbpAuthorize(PermissionNames.Pages_Roles)]
-    public class RoleAppService : AsyncCrudAppService<Role, RoleDto, int, PagedRoleResultRequestDto, CreateRoleDto, RoleDto>, IRoleAppService
+    public class RoleAppService(IRepository<Role> repository, RoleManager roleManager, UserManager userManager) : AsyncCrudAppService<Role, RoleDto, int, PagedRoleResultRequestDto, CreateRoleDto, RoleDto>(repository), IRoleAppService
     {
-        private readonly RoleManager _roleManager;
-        private readonly UserManager _userManager;
-
-        public RoleAppService(IRepository<Role> repository, RoleManager roleManager, UserManager userManager)
-            : base(repository)
-        {
-            _roleManager = roleManager;
-            _userManager = userManager;
-        }
+        private readonly RoleManager _roleManager = roleManager;
+        private readonly UserManager _userManager = userManager;
 
         public override async Task<RoleDto> CreateAsync(CreateRoleDto input)
         {

@@ -26,32 +26,21 @@ using Microsoft.EntityFrameworkCore;
 namespace SND.SMP.Users
 {
     [AbpAuthorize(PermissionNames.Pages_Users)]
-    public class UserAppService : AsyncCrudAppService<User, UserDto, long, PagedUserResultRequestDto, CreateUserDto, UserDto>, IUserAppService
+    public class UserAppService(
+        IRepository<User, long> repository,
+        UserManager userManager,
+        RoleManager roleManager,
+        IRepository<Role> roleRepository,
+        IPasswordHasher<User> passwordHasher,
+        IAbpSession abpSession,
+        LogInManager logInManager) : AsyncCrudAppService<User, UserDto, long, PagedUserResultRequestDto, CreateUserDto, UserDto>(repository), IUserAppService
     {
-        private readonly UserManager _userManager;
-        private readonly RoleManager _roleManager;
-        private readonly IRepository<Role> _roleRepository;
-        private readonly IPasswordHasher<User> _passwordHasher;
-        private readonly IAbpSession _abpSession;
-        private readonly LogInManager _logInManager;
-
-        public UserAppService(
-            IRepository<User, long> repository,
-            UserManager userManager,
-            RoleManager roleManager,
-            IRepository<Role> roleRepository,
-            IPasswordHasher<User> passwordHasher,
-            IAbpSession abpSession,
-            LogInManager logInManager)
-            : base(repository)
-        {
-            _userManager = userManager;
-            _roleManager = roleManager;
-            _roleRepository = roleRepository;
-            _passwordHasher = passwordHasher;
-            _abpSession = abpSession;
-            _logInManager = logInManager;
-        }
+        private readonly UserManager _userManager = userManager;
+        private readonly RoleManager _roleManager = roleManager;
+        private readonly IRepository<Role> _roleRepository = roleRepository;
+        private readonly IPasswordHasher<User> _passwordHasher = passwordHasher;
+        private readonly IAbpSession _abpSession = abpSession;
+        private readonly LogInManager _logInManager = logInManager;
 
         protected override IQueryable<User> CreateFilteredQuery(PagedUserResultRequestDto input)
         {

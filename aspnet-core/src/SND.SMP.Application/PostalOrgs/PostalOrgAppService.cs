@@ -10,12 +10,8 @@ using SND.SMP.PostalOrgs.Dto;
 
 namespace SND.SMP.PostalOrgs
 {
-    public class PostalOrgAppService : AsyncCrudAppService<PostalOrg, PostalOrgDto, string, PagedPostalOrgResultRequestDto>
+    public class PostalOrgAppService(IRepository<PostalOrg, string> repository) : AsyncCrudAppService<PostalOrg, PostalOrgDto, string, PagedPostalOrgResultRequestDto>(repository)
     {
-
-        public PostalOrgAppService(IRepository<PostalOrg, string> repository) : base(repository)
-        {
-        }
         protected override IQueryable<PostalOrg> CreateFilteredQuery(PagedPostalOrgResultRequestDto input)
         {
             return Repository.GetAllIncluding()

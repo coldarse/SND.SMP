@@ -3,8 +3,8 @@ using Abp.Application.Services;
 using Abp.Extensions;
 using Abp.Collections.Extensions;
 using Abp.Domain.Repositories;
+using Abp.Linq.Extensions;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using SND.SMP.Chibis.Dto;
@@ -13,25 +13,19 @@ using System.Net.Http;
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using System.Net.Http.Headers;
-using SND.SMP.CustomerPostals;
 using Abp.EntityFrameworkCore.Repositories;
 using Microsoft.Extensions.Configuration;
 using SND.SMP.Queues;
 using System.Data;
 using OfficeOpenXml;
-using System.IO;
 
 namespace SND.SMP.Chibis
 {
-    public class ChibiAppService : AsyncCrudAppService<Chibi, ChibiDto, long, PagedChibiResultRequestDto>
+    public class ChibiAppService(IRepository<Chibi, long> repository, IConfiguration configuration, IRepository<Queue, long> queueRepository) : AsyncCrudAppService<Chibi, ChibiDto, long, PagedChibiResultRequestDto>(repository)
     {
-        private readonly IRepository<Queue, long> _queueRepository;
-        private IConfiguration _configuration;
-        public ChibiAppService(IRepository<Chibi, long> repository, IConfiguration configuration, IRepository<Queue, long> queueRepository) : base(repository)
-        {
-            _configuration = configuration;
-            _queueRepository = queueRepository;
-        }
+        private readonly IRepository<Queue, long> _queueRepository = queueRepository;
+        private readonly IConfiguration _configuration = configuration;
+
         protected override IQueryable<Chibi> CreateFilteredQuery(PagedChibiResultRequestDto input)
         {
             return Repository.GetAllIncluding()
@@ -40,9 +34,10 @@ namespace SND.SMP.Chibis
                     x.UUID.Contains(input.Keyword) ||
                     x.URL.Contains(input.Keyword) ||
                     x.OriginalName.Contains(input.Keyword) ||
-                    x.GeneratedName.Contains(input.Keyword)).AsQueryable();
+                    x.GeneratedName.Contains(input.Keyword));
         }
 
+        //----- For Testing Purposes!!! -----//
         public async Task<bool> Trial()
         {
             var file = await GetFile("d7514df1-50d0-4b65-88fb-ca48607d5012");
@@ -62,7 +57,7 @@ namespace SND.SMP.Chibis
 
                     foreach (ExcelWorksheet ws in worksheets)
                     {
-                        DataTable dataTable = new DataTable();
+                        DataTable dataTable = new();
                         dataTable = ws.Cells[1, 1, ws.Dimension.End.Row, ws.Dimension.End.Column].ToDataTable(c =>
                         {
                             c.FirstRowIsColumnNames = false;
@@ -93,11 +88,13 @@ namespace SND.SMP.Chibis
             var client = new HttpClient();
             client.DefaultRequestHeaders.Clear();
             client.DefaultRequestHeaders.Add("x-api-key", _configuration["Authentication:ChibiAPIKey"]);
+
             var request = new HttpRequestMessage
             {
                 Method = HttpMethod.Get,
-                RequestUri = new Uri($"http://localhost:24424/api/file/{uuid}"),
+                RequestUri = new Uri(_configuration["App:ChibiURL"] + $"file/{uuid}"),
             };
+
             using var response = await client.SendAsync(request);
             response.EnsureSuccessStatusCode();
             var body = await response.Content.ReadAsStringAsync();
@@ -118,7 +115,7 @@ namespace SND.SMP.Chibis
             uploadPreCheck.UploadFile.fileType = "json";
             await UploadFile(uploadPreCheck.UploadFile);
 
-            var queue = await _queueRepository.InsertAsync(new Queue()
+            await _queueRepository.InsertAsync(new Queue()
             {
                 EventType = "Upload Dispatch",
                 FilePath = xlsxFile.url,
@@ -132,7 +129,6 @@ namespace SND.SMP.Chibis
         [Consumes("multipart/form-data")]
         public async Task<ChibiUpload> UploadFile([FromForm] ChibiUploadDto uploadFile)
         {
-
             var client = new HttpClient();
             client.DefaultRequestHeaders.Clear();
             client.DefaultRequestHeaders.Add("x-api-key", _configuration["Authentication:ChibiAPIKey"]);
@@ -155,7 +151,7 @@ namespace SND.SMP.Chibis
             var request = new HttpRequestMessage
             {
                 Method = HttpMethod.Post,
-                RequestUri = new Uri("http://localhost:24424/api/upload"),
+                RequestUri = new Uri(_configuration["App:ChibiURL"] + "upload"),
                 Content = formData,
             };
 
@@ -168,20 +164,20 @@ namespace SND.SMP.Chibis
             if (result != null)
             {
                 //Insert to DB
-                Chibi entity = new Chibi()
+                Chibi entity = new()
                 {
                     FileName = result.name == null ? "" : DateTime.Now.ToString("yyyyMMdd") + "_" + result.name,
-                    UUID = result.uuid == null ? "" : result.uuid,
-                    URL = result.url == null ? "" : result.url,
-                    OriginalName = uploadFile.file.FileName == null ? "" : uploadFile.file.FileName,
-                    GeneratedName = result.name == null ? "" : result.name
+                    UUID = result.uuid ?? "",
+                    URL = result.url ?? "",
+                    OriginalName = uploadFile.file.FileName ?? "",
+                    GeneratedName = result.name ?? ""
                 };
 
                 await Repository.InsertAsync(entity);
                 await Repository.GetDbContext().SaveChangesAsync();
             }
 
-            return JsonSerializer.Deserialize<ChibiUpload>(body);
+            return result;
         }
     }
 }
