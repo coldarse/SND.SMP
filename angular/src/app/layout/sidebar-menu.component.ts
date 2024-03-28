@@ -69,12 +69,12 @@ export class SidebarMenuComponent extends AppComponentBase implements OnInit {
         "Pages.Queue"
       ),
       new MenuItem(
-        this.l("Pre-Alert"),
+        this.l("Pre-Check Upload"),
         "/app/pre-alerts",
         "fas fa-bell"
         ),
       new MenuItem(
-        this.l("RateWeightBreaks"),
+        this.l("Rate Weight Breaks"),
         "/app/rate-weight-breaks",
         "far fa-scale-unbalanced",
         "Pages.RateWeightBreak"

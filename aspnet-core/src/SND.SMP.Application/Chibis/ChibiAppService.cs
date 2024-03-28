@@ -17,6 +17,9 @@ using SND.SMP.CustomerPostals;
 using Abp.EntityFrameworkCore.Repositories;
 using Microsoft.Extensions.Configuration;
 using SND.SMP.Queues;
+using System.Data;
+using OfficeOpenXml;
+using System.IO;
 
 namespace SND.SMP.Chibis
 {
@@ -40,11 +43,56 @@ namespace SND.SMP.Chibis
                     x.GeneratedName.Contains(input.Keyword)).AsQueryable();
         }
 
+        public async Task<bool> Trial()
+        {
+            var file = await GetFile("d7514df1-50d0-4b65-88fb-ca48607d5012");
+
+            DataSet dataSet = new();
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
+            using var httpClient = new HttpClient();
+            try
+            {
+                using var response = await httpClient.GetAsync(file.file.url);
+                if (response.IsSuccessStatusCode)
+                {
+                    using var contentStream = await response.Content.ReadAsStreamAsync();
+                    using var package = new ExcelPackage(contentStream);
+                    var worksheets = package.Workbook.Worksheets;
+
+                    foreach (ExcelWorksheet ws in worksheets)
+                    {
+                        DataTable dataTable = new DataTable();
+                        dataTable = ws.Cells[1, 1, ws.Dimension.End.Row, ws.Dimension.End.Column].ToDataTable(c =>
+                        {
+                            c.FirstRowIsColumnNames = false;
+                        });
+                        dataTable.TableName = ws.Name;
+                        dataSet.Tables.Add(dataTable);
+                    }
+
+                    var tables = dataSet.Tables;
+
+                    return true;
+                }
+                else
+                {
+                    Console.WriteLine($"Failed to download file. Status code: {response.StatusCode}");
+                    return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error downloading file: {ex.Message}");
+                return false;
+            }
+        }
+
         public async Task<GetFileDto> GetFile(string uuid)
         {
             var client = new HttpClient();
             client.DefaultRequestHeaders.Clear();
-            client.DefaultRequestHeaders.Add("x-api-key", _configuration["App:ChibiAPIKey"]);
+            client.DefaultRequestHeaders.Add("x-api-key", _configuration["Authentication:ChibiAPIKey"]);
             var request = new HttpRequestMessage
             {
                 Method = HttpMethod.Get,
@@ -87,7 +135,7 @@ namespace SND.SMP.Chibis
 
             var client = new HttpClient();
             client.DefaultRequestHeaders.Clear();
-            client.DefaultRequestHeaders.Add("x-api-key", _configuration["App:ChibiAPIKey"]);
+            client.DefaultRequestHeaders.Add("x-api-key", _configuration["Authentication:ChibiAPIKey"]);
             var formData = new MultipartFormDataContent();
 
             switch (uploadFile.fileType)

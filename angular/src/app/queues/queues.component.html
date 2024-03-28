@@ -78,12 +78,12 @@
                                 <td>{{ queue.filePath }}</td>
                                 <td>{{ queue.deleteFileOnSuccess }}</td>
                                 <td>{{ queue.deleteFileOnFailed }}</td>
-                                <td>{{ queue.dateCreated }}</td>
+                                <td>{{ queue.dateCreated | date: 'short'  }}</td>
                                 <td>{{ queue.status }}</td>
                                 <td>{{ queue.tookInSec }}</td>
                                 <td>{{ queue.errorMsg }}</td>
-                                <td>{{ queue.startTime }}</td>
-                                <td>{{ queue.endTime }}</td>
+                                <td>{{ queue.startTime | date: 'short'  }}</td>
+                                <td>{{ queue.endTime | date: 'short'  }}</td>
                                 <!-- <td *ngIf='isButtonVisible("Edit") || isButtonVisible("Delete")'>
                                     <button
                                             type='button'
