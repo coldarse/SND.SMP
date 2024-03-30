@@ -8,6 +8,7 @@ using SND.SMP.DispatchConsole.Dto;
 using Humanizer;
 using System.Collections.Generic;
 using SND.SMP.DispatchConsole.EF;
+using System.Data;
 
 namespace SND.SMP.DispatchConsole
 {
@@ -36,6 +37,30 @@ namespace SND.SMP.DispatchConsole
 
         public DispatchValidator()
         {
+        }
+
+        private async Task<Stream> GetFileStream(string url)
+        {
+            using var httpClient = new HttpClient();
+            using var response = await httpClient.GetAsync(url);
+            if (response.IsSuccessStatusCode)
+            {
+                using var contentStream = await response.Content.ReadAsStreamAsync();
+                return contentStream;
+            }
+            return null;
+        }
+
+        private async Task<string> GetFileStreamAsString(string url)
+        {
+            using var httpClient = new HttpClient();
+            using var response = await httpClient.GetAsync(url);
+            if (response.IsSuccessStatusCode)
+            {
+                string contentString = await response.Content.ReadAsStringAsync();
+                return contentString;
+            }
+            return null;
         }
 
         public async Task DiscoverAndValidate(string dirPath, string fileType, int batchSize = 750, int blockSize = 50)
@@ -76,9 +101,11 @@ namespace SND.SMP.DispatchConsole
             if (!string.IsNullOrWhiteSpace(_filePath))
             {
                 var fileProfile = $"{_filePath}.profile.json";
-                var filesExist = File.Exists(fileProfile) && File.Exists(_filePath);
+                //var filesExist = File.Exists(fileProfile) && File.Exists(_filePath);
 
-                if (filesExist)
+                var fileString = GetFileStreamAsString(fileProfile);
+
+                if (fileString is not null)
                 {
                     var t = await File.ReadAllTextAsync(fileProfile);
                     _dispatchProfile = Newtonsoft.Json.JsonConvert.DeserializeObject<DispatchProfileDto>(t);

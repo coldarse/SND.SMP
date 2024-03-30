@@ -82,6 +82,50 @@ namespace SND.SMP.Chibis
                 return false;
             }
         }
+        public async Task<DispatchProfileDto> Trial2()
+        {
+            var file = await GetFile("d7514df1-50d0-4b65-88fb-ca48607d5012");
+
+            DataSet dataSet = new();
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
+            using var httpClient = new HttpClient();
+            try
+            {
+                using var response = await httpClient.GetAsync(file.file.url);
+                if (response.IsSuccessStatusCode)
+                {
+                    string contentString = await response.Content.ReadAsStringAsync();
+                    var _dispatchProfile = Newtonsoft.Json.JsonConvert.DeserializeObject<DispatchProfileDto>(contentString);
+
+                    return _dispatchProfile;
+                }
+                else
+                {
+                    Console.WriteLine($"Failed to download file. Status code: {response.StatusCode}");
+                    return new DispatchProfileDto();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error downloading file: {ex.Message}");
+                return new DispatchProfileDto();
+            }
+        }
+        public class DispatchProfileDto
+        {
+            public string DispatchNo { get; set; } = "";
+            public string AccNo { get; set; } = "";
+            public string PostalCode { get; set; } = "";
+            public string ServiceCode { get; set; } = "";
+            public string ProductCode { get; set; } = "";
+            public DateOnly DateDispatch { get; set; }
+            public string RateOptionId { get; set; } = "";
+            public string PaymentMode { get; set; }
+            public bool IsValid { get; set; }
+        }
+
+
 
         public async Task<GetFileDto> GetFile(string uuid)
         {
