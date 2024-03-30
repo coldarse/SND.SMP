@@ -84,7 +84,7 @@ namespace SND.SMP.Chibis
         }
         public async Task<DispatchProfileDto> Trial2()
         {
-            var file = await GetFile("d7514df1-50d0-4b65-88fb-ca48607d5012");
+            var file = await GetFile("6665c8f8-5964-455b-8d9e-b30109432e62");
 
             DataSet dataSet = new();
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
