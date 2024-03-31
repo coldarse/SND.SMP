@@ -69,6 +69,7 @@ namespace SND.SMP.EntityFrameworkCore
                 b.Property(x => x.WeightVariance                ).HasColumnName(nameof(Bag.WeightVariance                )).HasPrecision(18, 3);
                 b.Property(x => x.CN35No                        ).HasColumnName(nameof(Bag.CN35No                        )).HasMaxLength(20);
                 b.Property(x => x.UnderAmount                   ).HasColumnName(nameof(Bag.UnderAmount                   )).HasPrecision(18, 2);
+                b.HasOne<Dispatch>().WithMany().HasForeignKey(x => x.DispatchId);
                 b.HasKey(x => x.Id);
             });
 
