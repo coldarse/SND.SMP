@@ -4,6 +4,7 @@ using SND.SMP.Authorization.Roles;
 using SND.SMP.Authorization.Users;
 using SND.SMP.MultiTenancy;
 /* Using Definition */
+using SND.SMP.DispatchValidations;
 using SND.SMP.Dispatches;
 using SND.SMP.Queues;
 using SND.SMP.Chibis;
@@ -40,6 +41,7 @@ namespace SND.SMP.EntityFrameworkCore
         public DbSet<Chibi> Chibis { get; set; }
         public DbSet<Queue> Queues { get; set; }
         public DbSet<Dispatch> Dispatches { get; set; }
+        public DbSet<DispatchValidation> DispatchValidations { get; set; }
         /* Define a DbSet for each entity of the application */
 
         public SMPDbContext(DbContextOptions<SMPDbContext> options)
@@ -52,6 +54,25 @@ namespace SND.SMP.EntityFrameworkCore
             base.OnModelCreating(builder);
 
             /* Define Tables */
+            builder.Entity<DispatchValidation>(b =>
+            {
+                b.ToTable(SMPConsts.DbTablePrefix + "DispatchValidations");
+                b.Property(x => x.CustomerCode                    ).HasColumnName(nameof(DispatchValidation.CustomerCode                    )).HasMaxLength(10);
+                b.Property(x => x.DateStarted                     ).HasColumnName(nameof(DispatchValidation.DateStarted                     ));
+                b.Property(x => x.DateCompleted                   ).HasColumnName(nameof(DispatchValidation.DateCompleted                   ));
+                b.Property(x => x.DispatchNo                      ).HasColumnName(nameof(DispatchValidation.DispatchNo                      )).HasMaxLength(15);
+                b.Property(x => x.FilePath                        ).HasColumnName(nameof(DispatchValidation.FilePath                        )).HasMaxLength(200);
+                b.Property(x => x.IsFundLack                      ).HasColumnName(nameof(DispatchValidation.IsFundLack                      ));
+                b.Property(x => x.IsValid                         ).HasColumnName(nameof(DispatchValidation.IsValid                         ));
+                b.Property(x => x.PostalCode                      ).HasColumnName(nameof(DispatchValidation.PostalCode                      )).HasMaxLength(5);
+                b.Property(x => x.ServiceCode                     ).HasColumnName(nameof(DispatchValidation.ServiceCode                     )).HasMaxLength(10);
+                b.Property(x => x.ProductCode                     ).HasColumnName(nameof(DispatchValidation.ProductCode                     )).HasMaxLength(10);
+                b.Property(x => x.Status                          ).HasColumnName(nameof(DispatchValidation.Status                          )).HasMaxLength(20);
+                b.Property(x => x.TookInSec                       ).HasColumnName(nameof(DispatchValidation.TookInSec                       ));
+                b.Property(x => x.ValidationProgress              ).HasColumnName(nameof(DispatchValidation.ValidationProgress              ));
+                b.HasKey(x => x.Id);
+            });
+
             builder.Entity<Dispatch>(b =>
             {
                 b.ToTable(SMPConsts.DbTablePrefix + "Dispatches");

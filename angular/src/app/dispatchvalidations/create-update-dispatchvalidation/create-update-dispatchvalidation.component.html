@@ -1,0 +1,289 @@
+<form
+    class='form-horizontal'
+    autocomplete='off'
+    #createDispatchValidationModal='ngForm'
+    (ngSubmit)='save()'
+>
+    <abp-modal-header
+        [title]='isCreate == true? ("Add DispatchValidation" | localize) : ("Edit DispatchValidation" | localize)'
+        (onCloseClick)='bsModalRef.hide()'
+    ></abp-modal-header>
+    <div class='modal-body'>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='customerCode                    '>
+            {{ 'CustomerCode                    ' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='text'
+                class='form-control'
+                name='customerCode                    '
+                id='customerCode                    '
+                required
+                [(ngModel)]='dispatchvalidation.customerCode                    '
+                #customerCode                    Model='ngModel'
+                #customerCode                    El
+            />
+            <abp-validation-summary
+                [control]='customerCode                    Model'
+                [controlEl]='customerCode                    El'
+            ></abp-validation-summary>
+            </div>
+        </div>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='dateStarted                     '>
+            {{ 'DateStarted                     ' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='datetime-local'
+                class='form-control'
+                name='dateStarted                     '
+                id='dateStarted                     '
+                required
+                [(ngModel)]='dispatchvalidation.dateStarted                     '
+                #dateStarted                     Model='ngModel'
+                #dateStarted                     El
+            />
+            <abp-validation-summary
+                [control]='dateStarted                     Model'
+                [controlEl]='dateStarted                     El'
+            ></abp-validation-summary>
+            </div>
+        </div>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='dateCompleted                   '>
+            {{ 'DateCompleted                   ' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='datetime-local'
+                class='form-control'
+                name='dateCompleted                   '
+                id='dateCompleted                   '
+                required
+                [(ngModel)]='dispatchvalidation.dateCompleted                   '
+                #dateCompleted                   Model='ngModel'
+                #dateCompleted                   El
+            />
+            <abp-validation-summary
+                [control]='dateCompleted                   Model'
+                [controlEl]='dateCompleted                   El'
+            ></abp-validation-summary>
+            </div>
+        </div>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='dispatchNo                      '>
+            {{ 'DispatchNo                      ' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='text'
+                class='form-control'
+                name='dispatchNo                      '
+                id='dispatchNo                      '
+                required
+                [(ngModel)]='dispatchvalidation.dispatchNo                      '
+                #dispatchNo                      Model='ngModel'
+                #dispatchNo                      El
+            />
+            <abp-validation-summary
+                [control]='dispatchNo                      Model'
+                [controlEl]='dispatchNo                      El'
+            ></abp-validation-summary>
+            </div>
+        </div>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='filePath                        '>
+            {{ 'FilePath                        ' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='text'
+                class='form-control'
+                name='filePath                        '
+                id='filePath                        '
+                required
+                [(ngModel)]='dispatchvalidation.filePath                        '
+                #filePath                        Model='ngModel'
+                #filePath                        El
+            />
+            <abp-validation-summary
+                [control]='filePath                        Model'
+                [controlEl]='filePath                        El'
+            ></abp-validation-summary>
+            </div>
+        </div>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='isFundLack                      '>
+            {{ 'IsFundLack                      ' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='checkbox'
+                class='form-control'
+                name='isFundLack                      '
+                id='isFundLack                      '
+                [(ngModel)]='dispatchvalidation.isFundLack                      '
+                #isFundLack                      Model='ngModel'
+                #isFundLack                      El
+            />
+            <abp-validation-summary
+                [control]='isFundLack                      Model'
+                [controlEl]='isFundLack                      El'
+            ></abp-validation-summary>
+            </div>
+        </div>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='isValid                         '>
+            {{ 'IsValid                         ' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='checkbox'
+                class='form-control'
+                name='isValid                         '
+                id='isValid                         '
+                [(ngModel)]='dispatchvalidation.isValid                         '
+                #isValid                         Model='ngModel'
+                #isValid                         El
+            />
+            <abp-validation-summary
+                [control]='isValid                         Model'
+                [controlEl]='isValid                         El'
+            ></abp-validation-summary>
+            </div>
+        </div>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='postalCode                      '>
+            {{ 'PostalCode                      ' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='text'
+                class='form-control'
+                name='postalCode                      '
+                id='postalCode                      '
+                required
+                [(ngModel)]='dispatchvalidation.postalCode                      '
+                #postalCode                      Model='ngModel'
+                #postalCode                      El
+            />
+            <abp-validation-summary
+                [control]='postalCode                      Model'
+                [controlEl]='postalCode                      El'
+            ></abp-validation-summary>
+            </div>
+        </div>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='serviceCode                     '>
+            {{ 'ServiceCode                     ' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='text'
+                class='form-control'
+                name='serviceCode                     '
+                id='serviceCode                     '
+                required
+                [(ngModel)]='dispatchvalidation.serviceCode                     '
+                #serviceCode                     Model='ngModel'
+                #serviceCode                     El
+            />
+            <abp-validation-summary
+                [control]='serviceCode                     Model'
+                [controlEl]='serviceCode                     El'
+            ></abp-validation-summary>
+            </div>
+        </div>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='productCode                     '>
+            {{ 'ProductCode                     ' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='text'
+                class='form-control'
+                name='productCode                     '
+                id='productCode                     '
+                required
+                [(ngModel)]='dispatchvalidation.productCode                     '
+                #productCode                     Model='ngModel'
+                #productCode                     El
+            />
+            <abp-validation-summary
+                [control]='productCode                     Model'
+                [controlEl]='productCode                     El'
+            ></abp-validation-summary>
+            </div>
+        </div>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='status                          '>
+            {{ 'Status                          ' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='text'
+                class='form-control'
+                name='status                          '
+                id='status                          '
+                required
+                [(ngModel)]='dispatchvalidation.status                          '
+                #status                          Model='ngModel'
+                #status                          El
+            />
+            <abp-validation-summary
+                [control]='status                          Model'
+                [controlEl]='status                          El'
+            ></abp-validation-summary>
+            </div>
+        </div>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='tookInSec                       '>
+            {{ 'TookInSec                       ' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='number'
+                class='form-control'
+                name='tookInSec                       '
+                id='tookInSec                       '
+                required
+                [(ngModel)]='dispatchvalidation.tookInSec                       '
+                #tookInSec                       Model='ngModel'
+                #tookInSec                       El
+            />
+            <abp-validation-summary
+                [control]='tookInSec                       Model'
+                [controlEl]='tookInSec                       El'
+            ></abp-validation-summary>
+            </div>
+        </div>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='validationProgress              '>
+            {{ 'ValidationProgress              ' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='number'
+                class='form-control'
+                name='validationProgress              '
+                id='validationProgress              '
+                required
+                [(ngModel)]='dispatchvalidation.validationProgress              '
+                #validationProgress              Model='ngModel'
+                #validationProgress              El
+            />
+            <abp-validation-summary
+                [control]='validationProgress              Model'
+                [controlEl]='validationProgress              El'
+            ></abp-validation-summary>
+            </div>
+        </div>
+    </div>
+    <abp-modal-footer
+    [cancelDisabled]='saving'
+    [saveDisabled]='!createDispatchValidationModal.form.valid || saving'
+    (onCancelClick)='bsModalRef.hide()'
+    ></abp-modal-footer>
+</form>
