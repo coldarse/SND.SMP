@@ -141,6 +141,8 @@ namespace SND.SMP.EntityFrameworkCore
                 b.Property(x => x.Stage9StatusDesc              ).HasColumnName(nameof(Item.Stage9StatusDesc              )).HasMaxLength(250);
                 b.Property(x => x.CityId                        ).HasColumnName(nameof(Item.CityId                        )).HasMaxLength(50);
                 b.Property(x => x.FinalOfficeId                 ).HasColumnName(nameof(Item.FinalOfficeId                 )).HasMaxLength(50);
+                b.HasOne<Dispatch>().WithMany().HasForeignKey(x => x.DispatchID);
+                b.HasOne<Bag>().WithMany().HasForeignKey(x => x.BagID);
                 b.HasKey(x => x.Id);
             });
 
