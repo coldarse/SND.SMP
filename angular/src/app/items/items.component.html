@@ -1,0 +1,278 @@
+<div [@routerTransition]>
+    <section class='content-header'>
+        <div class='container-fluid'>
+            <div class='row'>
+                <div class='col-6'>
+                    <h1>{{ 'Items' | localize }}</h1>
+                </div>
+                <div class='col-6 text-right' *ngIf='isButtonVisible("Create")'>
+                    <a href='javascript:;' class='btn bg-blue' (click)='createItem()'>
+                        <i class='fa fa-plus-square'></i>
+                        {{ 'Create' | localize }}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+    <section class='content px-2'>
+        <div class='container-fluid'>
+            <div class='card'>
+                <div class='card-header'>
+                    <div class='row'>
+                        <div class='col-md-6'>&emsp;</div>
+                        <div class='col-md-6'>
+                            <div class='input-group'>
+                                <div class='input-group-prepend'>
+                                    <button
+                                            type='button'
+                                            class='btn bg-blue'
+                                            (click)='getDataPage(1)'
+                                    >
+                                        <i class='fas fa-search'></i>
+                                    </button>
+                                </div>
+                                <input
+                                        type='text'
+                                        class='form-control'
+                                        name='keyword'
+                                        [placeholder]='"SearchWithThreeDot" | localize'
+                                        [(ngModel)]='keyword'
+                                        (keyup.enter)='getDataPage(1)'
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class='card-body'>
+                    <div class='table-responsive'>
+                        <table class='table table-striped table-bordered' [busy]='isTableLoading'>
+                            <thead class='bg-light'>
+                            <tr>
+                                <th>{{ 'ExtID                         ' | localize }}</th>
+                                <th>{{ 'DispatchID                    ' | localize }}</th>
+                                <th>{{ 'BagID                         ' | localize }}</th>
+                                <th>{{ 'DispatchDate                  ' | localize }}</th>
+                                <th>{{ 'Month                         ' | localize }}</th>
+                                <th>{{ 'PostalCode                    ' | localize }}</th>
+                                <th>{{ 'ServiceCode                   ' | localize }}</th>
+                                <th>{{ 'ProductCode                   ' | localize }}</th>
+                                <th>{{ 'CountryCode                   ' | localize }}</th>
+                                <th>{{ 'Weight                        ' | localize }}</th>
+                                <th>{{ 'BagNo                         ' | localize }}</th>
+                                <th>{{ 'SealNo                        ' | localize }}</th>
+                                <th>{{ 'Price                         ' | localize }}</th>
+                                <th>{{ 'Status                        ' | localize }}</th>
+                                <th>{{ 'ItemValue                     ' | localize }}</th>
+                                <th>{{ 'ItemDesc                      ' | localize }}</th>
+                                <th>{{ 'RecpName                      ' | localize }}</th>
+                                <th>{{ 'TelNo                         ' | localize }}</th>
+                                <th>{{ 'Email                         ' | localize }}</th>
+                                <th>{{ 'Address                       ' | localize }}</th>
+                                <th>{{ 'Postcode                      ' | localize }}</th>
+                                <th>{{ 'RateCategory                  ' | localize }}</th>
+                                <th>{{ 'City                          ' | localize }}</th>
+                                <th>{{ 'Address2                      ' | localize }}</th>
+                                <th>{{ 'AddressNo                     ' | localize }}</th>
+                                <th>{{ 'State                         ' | localize }}</th>
+                                <th>{{ 'Length                        ' | localize }}</th>
+                                <th>{{ 'Width                         ' | localize }}</th>
+                                <th>{{ 'Height                        ' | localize }}</th>
+                                <th>{{ 'HSCode                        ' | localize }}</th>
+                                <th>{{ 'Qty                           ' | localize }}</th>
+                                <th>{{ 'PassportNo                    ' | localize }}</th>
+                                <th>{{ 'TaxPayMethod                  ' | localize }}</th>
+                                <th>{{ 'DateStage1                    ' | localize }}</th>
+                                <th>{{ 'DateStage2                    ' | localize }}</th>
+                                <th>{{ 'DateStage3                    ' | localize }}</th>
+                                <th>{{ 'DateStage4                    ' | localize }}</th>
+                                <th>{{ 'DateStage5                    ' | localize }}</th>
+                                <th>{{ 'DateStage6                    ' | localize }}</th>
+                                <th>{{ 'DateStage7                    ' | localize }}</th>
+                                <th>{{ 'DateStage8                    ' | localize }}</th>
+                                <th>{{ 'DateStage9                    ' | localize }}</th>
+                                <th>{{ 'Stage6OMTStatusDesc           ' | localize }}</th>
+                                <th>{{ 'Stage6OMTDepartureDate        ' | localize }}</th>
+                                <th>{{ 'Stage6OMTArrivalDate          ' | localize }}</th>
+                                <th>{{ 'Stage6OMTDestinationCity      ' | localize }}</th>
+                                <th>{{ 'Stage6OMTDestinationCityCode  ' | localize }}</th>
+                                <th>{{ 'Stage6OMTCountryCode          ' | localize }}</th>
+                                <th>{{ 'ExtMsg                        ' | localize }}</th>
+                                <th>{{ 'IdentityType                  ' | localize }}</th>
+                                <th>{{ 'SenderName                    ' | localize }}</th>
+                                <th>{{ 'IOSSTax                       ' | localize }}</th>
+                                <th>{{ 'RefNo                         ' | localize }}</th>
+                                <th>{{ 'DateSuccessfulDelivery        ' | localize }}</th>
+                                <th>{{ 'IsDelivered                   ' | localize }}</th>
+                                <th>{{ 'DeliveredInDays               ' | localize }}</th>
+                                <th>{{ 'IsExempted                    ' | localize }}</th>
+                                <th>{{ 'ExemptedRemark                ' | localize }}</th>
+                                <th>{{ 'CLCuartel                     ' | localize }}</th>
+                                <th>{{ 'CLSector                      ' | localize }}</th>
+                                <th>{{ 'CLSDP                         ' | localize }}</th>
+                                <th>{{ 'CLCodigoDelegacionDestino     ' | localize }}</th>
+                                <th>{{ 'CLNombreDelegacionDestino     ' | localize }}</th>
+                                <th>{{ 'CLDireccionDestino            ' | localize }}</th>
+                                <th>{{ 'CLCodigoEncaminamiento        ' | localize }}</th>
+                                <th>{{ 'CLNumeroEnvio                 ' | localize }}</th>
+                                <th>{{ 'CLComunaDestino               ' | localize }}</th>
+                                <th>{{ 'CLAbreviaturaServicio         ' | localize }}</th>
+                                <th>{{ 'CLAbreviaturaCentro           ' | localize }}</th>
+                                <th>{{ 'Stage1StatusDesc              ' | localize }}</th>
+                                <th>{{ 'Stage2StatusDesc              ' | localize }}</th>
+                                <th>{{ 'Stage3StatusDesc              ' | localize }}</th>
+                                <th>{{ 'Stage4StatusDesc              ' | localize }}</th>
+                                <th>{{ 'Stage5StatusDesc              ' | localize }}</th>
+                                <th>{{ 'Stage6StatusDesc              ' | localize }}</th>
+                                <th>{{ 'Stage7StatusDesc              ' | localize }}</th>
+                                <th>{{ 'Stage8StatusDesc              ' | localize }}</th>
+                                <th>{{ 'Stage9StatusDesc              ' | localize }}</th>
+                                <th>{{ 'CityId                        ' | localize }}</th>
+                                <th>{{ 'FinalOfficeId                 ' | localize }}</th>
+                                <th style='width: 310px;' *ngIf='isButtonVisible("Edit") && isButtonVisible("Delete")'>{{ 'Actions' | localize }}</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr
+                                    *ngFor='
+                  let item of items
+                    | paginate
+                      : {
+                          id: "server",
+                          itemsPerPage: pageSize,
+                          currentPage: pageNumber,
+                          totalItems: totalItems
+                        }
+                '
+                            >
+                                <td>{{ item.extID                          }}</td>
+                                <td>{{ item.dispatchID                     }}</td>
+                                <td>{{ item.bagID                          }}</td>
+                                <td>{{ item.dispatchDate                   }}</td>
+                                <td>{{ item.month                          }}</td>
+                                <td>{{ item.postalCode                     }}</td>
+                                <td>{{ item.serviceCode                    }}</td>
+                                <td>{{ item.productCode                    }}</td>
+                                <td>{{ item.countryCode                    }}</td>
+                                <td>{{ item.weight                         }}</td>
+                                <td>{{ item.bagNo                          }}</td>
+                                <td>{{ item.sealNo                         }}</td>
+                                <td>{{ item.price                          }}</td>
+                                <td>{{ item.status                         }}</td>
+                                <td>{{ item.itemValue                      }}</td>
+                                <td>{{ item.itemDesc                       }}</td>
+                                <td>{{ item.recpName                       }}</td>
+                                <td>{{ item.telNo                          }}</td>
+                                <td>{{ item.email                          }}</td>
+                                <td>{{ item.address                        }}</td>
+                                <td>{{ item.postcode                       }}</td>
+                                <td>{{ item.rateCategory                   }}</td>
+                                <td>{{ item.city                           }}</td>
+                                <td>{{ item.address2                       }}</td>
+                                <td>{{ item.addressNo                      }}</td>
+                                <td>{{ item.state                          }}</td>
+                                <td>{{ item.length                         }}</td>
+                                <td>{{ item.width                          }}</td>
+                                <td>{{ item.height                         }}</td>
+                                <td>{{ item.hSCode                         }}</td>
+                                <td>{{ item.qty                            }}</td>
+                                <td>{{ item.passportNo                     }}</td>
+                                <td>{{ item.taxPayMethod                   }}</td>
+                                <td>{{ item.dateStage1                     }}</td>
+                                <td>{{ item.dateStage2                     }}</td>
+                                <td>{{ item.dateStage3                     }}</td>
+                                <td>{{ item.dateStage4                     }}</td>
+                                <td>{{ item.dateStage5                     }}</td>
+                                <td>{{ item.dateStage6                     }}</td>
+                                <td>{{ item.dateStage7                     }}</td>
+                                <td>{{ item.dateStage8                     }}</td>
+                                <td>{{ item.dateStage9                     }}</td>
+                                <td>{{ item.stage6OMTStatusDesc            }}</td>
+                                <td>{{ item.stage6OMTDepartureDate         }}</td>
+                                <td>{{ item.stage6OMTArrivalDate           }}</td>
+                                <td>{{ item.stage6OMTDestinationCity       }}</td>
+                                <td>{{ item.stage6OMTDestinationCityCode   }}</td>
+                                <td>{{ item.stage6OMTCountryCode           }}</td>
+                                <td>{{ item.extMsg                         }}</td>
+                                <td>{{ item.identityType                   }}</td>
+                                <td>{{ item.senderName                     }}</td>
+                                <td>{{ item.iOSSTax                        }}</td>
+                                <td>{{ item.refNo                          }}</td>
+                                <td>{{ item.dateSuccessfulDelivery         }}</td>
+                                <td>{{ item.isDelivered                    }}</td>
+                                <td>{{ item.deliveredInDays                }}</td>
+                                <td>{{ item.isExempted                     }}</td>
+                                <td>{{ item.exemptedRemark                 }}</td>
+                                <td>{{ item.cLCuartel                      }}</td>
+                                <td>{{ item.cLSector                       }}</td>
+                                <td>{{ item.cLSDP                          }}</td>
+                                <td>{{ item.cLCodigoDelegacionDestino      }}</td>
+                                <td>{{ item.cLNombreDelegacionDestino      }}</td>
+                                <td>{{ item.cLDireccionDestino             }}</td>
+                                <td>{{ item.cLCodigoEncaminamiento         }}</td>
+                                <td>{{ item.cLNumeroEnvio                  }}</td>
+                                <td>{{ item.cLComunaDestino                }}</td>
+                                <td>{{ item.cLAbreviaturaServicio          }}</td>
+                                <td>{{ item.cLAbreviaturaCentro            }}</td>
+                                <td>{{ item.stage1StatusDesc               }}</td>
+                                <td>{{ item.stage2StatusDesc               }}</td>
+                                <td>{{ item.stage3StatusDesc               }}</td>
+                                <td>{{ item.stage4StatusDesc               }}</td>
+                                <td>{{ item.stage5StatusDesc               }}</td>
+                                <td>{{ item.stage6StatusDesc               }}</td>
+                                <td>{{ item.stage7StatusDesc               }}</td>
+                                <td>{{ item.stage8StatusDesc               }}</td>
+                                <td>{{ item.stage9StatusDesc               }}</td>
+                                <td>{{ item.cityId                         }}</td>
+                                <td>{{ item.finalOfficeId                  }}</td>
+                                <td *ngIf='isButtonVisible("Edit") || isButtonVisible("Delete")'>
+                                    <button
+                                            type='button'
+                                            class='btn btn-sm bg-secondary'
+                                            (click)='editItem(item)'
+                                            *ngIf='isButtonVisible("Edit")'
+                                    >
+                                        <i class='fas fa-pencil-alt'></i>
+                                        {{ 'Edit' | localize }}
+                                    </button>
+                                    <button
+                                            type='button'
+                                            class='btn btn-sm bg-danger mx-2'
+                                            (click)='delete(item)'
+                                            *ngIf='isButtonVisible("Delete")'
+                                    >
+                                        <i class='fas fa-trash'></i>
+                                        {{ 'Delete' | localize }}
+                                    </button>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class='card-footer table-card-footer bg-light border-top'>
+                    <div class='row'>
+                        <div class='col-sm-4 col-12 text-sm-left text-center'>
+                            <button class='btn btn-secondary' (click)='refresh()'>
+                                <i class='fas fa-redo-alt'></i>
+                            </button>
+                        </div>
+                        <div class='col-sm-4 col-12 text-center'>
+                            <p class='mb-0 my-2'>
+                                {{ 'TotalRecordsCount' | localize: totalItems }}
+                            </p>
+                        </div>
+                        <div class='col-sm-4 col-12'>
+                            <div class='float-sm-right m-auto'>
+                                <abp-pagination-controls
+                                        id='server'
+                                        (pageChange)='getDataPage($event)'
+                                >
+                                </abp-pagination-controls>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>

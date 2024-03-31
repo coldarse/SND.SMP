@@ -4,6 +4,7 @@ using SND.SMP.Authorization.Roles;
 using SND.SMP.Authorization.Users;
 using SND.SMP.MultiTenancy;
 /* Using Definition */
+using SND.SMP.Items;
 using SND.SMP.Bags;
 using SND.SMP.DispatchValidations;
 using SND.SMP.Dispatches;
@@ -44,6 +45,7 @@ namespace SND.SMP.EntityFrameworkCore
         public DbSet<Dispatch> Dispatches { get; set; }
         public DbSet<DispatchValidation> DispatchValidations { get; set; }
         public DbSet<Bag> Bags { get; set; }
+        public DbSet<Item> Items { get; set; }
         /* Define a DbSet for each entity of the application */
 
         public SMPDbContext(DbContextOptions<SMPDbContext> options)
@@ -56,6 +58,92 @@ namespace SND.SMP.EntityFrameworkCore
             base.OnModelCreating(builder);
 
             /* Define Tables */
+            builder.Entity<Item>(b =>
+            {
+                b.ToTable(SMPConsts.DbTablePrefix + "Items");
+                b.Property(x => x.ExtID                         ).HasColumnName(nameof(Item.ExtID                         )).HasMaxLength(20);
+                b.Property(x => x.DispatchID                    ).HasColumnName(nameof(Item.DispatchID                    ));
+                b.Property(x => x.BagID                         ).HasColumnName(nameof(Item.BagID                         ));
+                b.Property(x => x.DispatchDate                  ).HasColumnName(nameof(Item.DispatchDate                  ));
+                b.Property(x => x.Month                         ).HasColumnName(nameof(Item.Month                         ));
+                b.Property(x => x.PostalCode                    ).HasColumnName(nameof(Item.PostalCode                    )).HasMaxLength(5);
+                b.Property(x => x.ServiceCode                   ).HasColumnName(nameof(Item.ServiceCode                   )).HasMaxLength(10);
+                b.Property(x => x.ProductCode                   ).HasColumnName(nameof(Item.ProductCode                   )).HasMaxLength(10);
+                b.Property(x => x.CountryCode                   ).HasColumnName(nameof(Item.CountryCode                   )).HasMaxLength(2);
+                b.Property(x => x.Weight                        ).HasColumnName(nameof(Item.Weight                        )).HasPrecision(18, 3);
+                b.Property(x => x.BagNo                         ).HasColumnName(nameof(Item.BagNo                         )).HasMaxLength(20);
+                b.Property(x => x.SealNo                        ).HasColumnName(nameof(Item.SealNo                        )).HasMaxLength(10);
+                b.Property(x => x.Price                         ).HasColumnName(nameof(Item.Price                         )).HasPrecision(18, 2);
+                b.Property(x => x.Status                        ).HasColumnName(nameof(Item.Status                        ));
+                b.Property(x => x.ItemValue                     ).HasColumnName(nameof(Item.ItemValue                     )).HasPrecision(18, 2);
+                b.Property(x => x.ItemDesc                      ).HasColumnName(nameof(Item.ItemDesc                      )).HasMaxLength(500);
+                b.Property(x => x.RecpName                      ).HasColumnName(nameof(Item.RecpName                      )).HasMaxLength(300);
+                b.Property(x => x.TelNo                         ).HasColumnName(nameof(Item.TelNo                         )).HasMaxLength(100);
+                b.Property(x => x.Email                         ).HasColumnName(nameof(Item.Email                         )).HasMaxLength(100);
+                b.Property(x => x.Address                       ).HasColumnName(nameof(Item.Address                       )).HasMaxLength(500);
+                b.Property(x => x.Postcode                      ).HasColumnName(nameof(Item.Postcode                      )).HasMaxLength(20);
+                b.Property(x => x.RateCategory                  ).HasColumnName(nameof(Item.RateCategory                  )).HasMaxLength(10);
+                b.Property(x => x.City                          ).HasColumnName(nameof(Item.City                          )).HasMaxLength(100);
+                b.Property(x => x.Address2                      ).HasColumnName(nameof(Item.Address2                      )).HasMaxLength(300);
+                b.Property(x => x.AddressNo                     ).HasColumnName(nameof(Item.AddressNo                     )).HasMaxLength(40);
+                b.Property(x => x.State                         ).HasColumnName(nameof(Item.State                         )).HasMaxLength(100);
+                b.Property(x => x.Length                        ).HasColumnName(nameof(Item.Length                        )).HasPrecision(18, 3);
+                b.Property(x => x.Width                         ).HasColumnName(nameof(Item.Width                         )).HasPrecision(18, 3);
+                b.Property(x => x.Height                        ).HasColumnName(nameof(Item.Height                        )).HasPrecision(18, 3);
+                b.Property(x => x.HSCode                        ).HasColumnName(nameof(Item.HSCode                        )).HasMaxLength(50);
+                b.Property(x => x.Qty                           ).HasColumnName(nameof(Item.Qty                           ));
+                b.Property(x => x.PassportNo                    ).HasColumnName(nameof(Item.PassportNo                    )).HasMaxLength(20);
+                b.Property(x => x.TaxPayMethod                  ).HasColumnName(nameof(Item.TaxPayMethod                  )).HasMaxLength(20);
+                b.Property(x => x.DateStage1                    ).HasColumnName(nameof(Item.DateStage1                    ));
+                b.Property(x => x.DateStage2                    ).HasColumnName(nameof(Item.DateStage2                    ));
+                b.Property(x => x.DateStage3                    ).HasColumnName(nameof(Item.DateStage3                    ));
+                b.Property(x => x.DateStage4                    ).HasColumnName(nameof(Item.DateStage4                    ));
+                b.Property(x => x.DateStage5                    ).HasColumnName(nameof(Item.DateStage5                    ));
+                b.Property(x => x.DateStage6                    ).HasColumnName(nameof(Item.DateStage6                    ));
+                b.Property(x => x.DateStage7                    ).HasColumnName(nameof(Item.DateStage7                    ));
+                b.Property(x => x.DateStage8                    ).HasColumnName(nameof(Item.DateStage8                    ));
+                b.Property(x => x.DateStage9                    ).HasColumnName(nameof(Item.DateStage9                    ));
+                b.Property(x => x.Stage6OMTStatusDesc           ).HasColumnName(nameof(Item.Stage6OMTStatusDesc           )).HasMaxLength(500);
+                b.Property(x => x.Stage6OMTDepartureDate        ).HasColumnName(nameof(Item.Stage6OMTDepartureDate        ));
+                b.Property(x => x.Stage6OMTArrivalDate          ).HasColumnName(nameof(Item.Stage6OMTArrivalDate          ));
+                b.Property(x => x.Stage6OMTDestinationCity      ).HasColumnName(nameof(Item.Stage6OMTDestinationCity      )).HasMaxLength(50);
+                b.Property(x => x.Stage6OMTDestinationCityCode  ).HasColumnName(nameof(Item.Stage6OMTDestinationCityCode  )).HasMaxLength(20);
+                b.Property(x => x.Stage6OMTCountryCode          ).HasColumnName(nameof(Item.Stage6OMTCountryCode          )).HasMaxLength(2);
+                b.Property(x => x.ExtMsg                        ).HasColumnName(nameof(Item.ExtMsg                        )).HasMaxLength(150);
+                b.Property(x => x.IdentityType                  ).HasColumnName(nameof(Item.IdentityType                  )).HasMaxLength(20);
+                b.Property(x => x.SenderName                    ).HasColumnName(nameof(Item.SenderName                    )).HasMaxLength(128);
+                b.Property(x => x.IOSSTax                       ).HasColumnName(nameof(Item.IOSSTax                       )).HasMaxLength(50);
+                b.Property(x => x.RefNo                         ).HasColumnName(nameof(Item.RefNo                         )).HasMaxLength(100);
+                b.Property(x => x.DateSuccessfulDelivery        ).HasColumnName(nameof(Item.DateSuccessfulDelivery        ));
+                b.Property(x => x.IsDelivered                   ).HasColumnName(nameof(Item.IsDelivered                   ));
+                b.Property(x => x.DeliveredInDays               ).HasColumnName(nameof(Item.DeliveredInDays               ));
+                b.Property(x => x.IsExempted                    ).HasColumnName(nameof(Item.IsExempted                    ));
+                b.Property(x => x.ExemptedRemark                ).HasColumnName(nameof(Item.ExemptedRemark                )).HasMaxLength(100);
+                b.Property(x => x.CLCuartel                     ).HasColumnName(nameof(Item.CLCuartel                     )).HasMaxLength(200);
+                b.Property(x => x.CLSector                      ).HasColumnName(nameof(Item.CLSector                      )).HasMaxLength(200);
+                b.Property(x => x.CLSDP                         ).HasColumnName(nameof(Item.CLSDP                         )).HasMaxLength(200);
+                b.Property(x => x.CLCodigoDelegacionDestino     ).HasColumnName(nameof(Item.CLCodigoDelegacionDestino     )).HasMaxLength(200);
+                b.Property(x => x.CLNombreDelegacionDestino     ).HasColumnName(nameof(Item.CLNombreDelegacionDestino     )).HasMaxLength(200);
+                b.Property(x => x.CLDireccionDestino            ).HasColumnName(nameof(Item.CLDireccionDestino            )).HasMaxLength(200);
+                b.Property(x => x.CLCodigoEncaminamiento        ).HasColumnName(nameof(Item.CLCodigoEncaminamiento        )).HasMaxLength(200);
+                b.Property(x => x.CLNumeroEnvio                 ).HasColumnName(nameof(Item.CLNumeroEnvio                 )).HasMaxLength(200);
+                b.Property(x => x.CLComunaDestino               ).HasColumnName(nameof(Item.CLComunaDestino               )).HasMaxLength(200);
+                b.Property(x => x.CLAbreviaturaServicio         ).HasColumnName(nameof(Item.CLAbreviaturaServicio         )).HasMaxLength(200);
+                b.Property(x => x.CLAbreviaturaCentro           ).HasColumnName(nameof(Item.CLAbreviaturaCentro           )).HasMaxLength(500);
+                b.Property(x => x.Stage1StatusDesc              ).HasColumnName(nameof(Item.Stage1StatusDesc              )).HasMaxLength(250);
+                b.Property(x => x.Stage2StatusDesc              ).HasColumnName(nameof(Item.Stage2StatusDesc              )).HasMaxLength(250);
+                b.Property(x => x.Stage3StatusDesc              ).HasColumnName(nameof(Item.Stage3StatusDesc              )).HasMaxLength(250);
+                b.Property(x => x.Stage4StatusDesc              ).HasColumnName(nameof(Item.Stage4StatusDesc              )).HasMaxLength(250);
+                b.Property(x => x.Stage5StatusDesc              ).HasColumnName(nameof(Item.Stage5StatusDesc              )).HasMaxLength(250);
+                b.Property(x => x.Stage6StatusDesc              ).HasColumnName(nameof(Item.Stage6StatusDesc              )).HasMaxLength(250);
+                b.Property(x => x.Stage7StatusDesc              ).HasColumnName(nameof(Item.Stage7StatusDesc              )).HasMaxLength(250);
+                b.Property(x => x.Stage8StatusDesc              ).HasColumnName(nameof(Item.Stage8StatusDesc              )).HasMaxLength(250);
+                b.Property(x => x.Stage9StatusDesc              ).HasColumnName(nameof(Item.Stage9StatusDesc              )).HasMaxLength(250);
+                b.Property(x => x.CityId                        ).HasColumnName(nameof(Item.CityId                        )).HasMaxLength(50);
+                b.Property(x => x.FinalOfficeId                 ).HasColumnName(nameof(Item.FinalOfficeId                 )).HasMaxLength(50);
+                b.HasKey(x => x.Id);
+            });
+
             builder.Entity<Bag>(b =>
             {
                 b.ToTable(SMPConsts.DbTablePrefix + "Bags");
