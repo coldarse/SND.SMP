@@ -5,8 +5,12 @@ export interface ItemMinDto extends EntityDto<number> {
     extID                         : string;
     dispatchID                    : number;
     bagID                         : number;
+    dispatchDate                  : string;
     month                         : number;
     countryCode                   : string;
+    weight                        : number;
+    height                        : number;
+    itemValue                     : number;
     recpName                      : string;
     itemDesc                      : string;
     address                       : string;

@@ -1,1690 +1,1690 @@
-<form
-    class='form-horizontal'
-    autocomplete='off'
-    #createItemModal='ngForm'
-    (ngSubmit)='save()'
+<!-- <form
+ class='form-horizontal'
+ autocomplete='off'
+ #createItemModal='ngForm'
+ (ngSubmit)='save()'
 >
-    <abp-modal-header
-        [title]='isCreate == true? ("Add Item" | localize) : ("Edit Item" | localize)'
-        (onCloseClick)='bsModalRef.hide()'
-    ></abp-modal-header>
-    <div class='modal-body'>
-        <div class='form-group row required'>
-            <label class='col-md-3 col-form-label' for='extID                         '>
-            {{ 'ExtID                         ' | localize }}
-            </label>
-            <div class='col-md-9'>
-            <input
-                type='text'
-                class='form-control'
-                name='extID                         '
-                id='extID                         '
-                required
-                [(ngModel)]='item.extID                         '
-                #extID                         Model='ngModel'
-                #extID                         El
-            />
-            <abp-validation-summary
-                [control]='extID                         Model'
-                [controlEl]='extID                         El'
-            ></abp-validation-summary>
-            </div>
-        </div>
-        <div class='form-group row required'>
-            <label class='col-md-3 col-form-label' for='dispatchID                    '>
-            {{ 'DispatchID                    ' | localize }}
-            </label>
-            <div class='col-md-9'>
-            <input
-                type='number'
-                class='form-control'
-                name='dispatchID                    '
-                id='dispatchID                    '
-                required
-                [(ngModel)]='item.dispatchID                    '
-                #dispatchID                    Model='ngModel'
-                #dispatchID                    El
-            />
-            <abp-validation-summary
-                [control]='dispatchID                    Model'
-                [controlEl]='dispatchID                    El'
-            ></abp-validation-summary>
-            </div>
-        </div>
-        <div class='form-group row required'>
-            <label class='col-md-3 col-form-label' for='bagID                         '>
-            {{ 'BagID                         ' | localize }}
-            </label>
-            <div class='col-md-9'>
-            <input
-                type='number'
-                class='form-control'
-                name='bagID                         '
-                id='bagID                         '
-                required
-                [(ngModel)]='item.bagID                         '
-                #bagID                         Model='ngModel'
-                #bagID                         El
-            />
-            <abp-validation-summary
-                [control]='bagID                         Model'
-                [controlEl]='bagID                         El'
-            ></abp-validation-summary>
-            </div>
-        </div>
-        <div class='form-group row required'>
-            <label class='col-md-3 col-form-label' for='dispatchDate                  '>
-            {{ 'DispatchDate                  ' | localize }}
-            </label>
-            <div class='col-md-9'>
-            <input
-                type='date'
-                class='form-control'
-                name='dispatchDate                  '
-                id='dispatchDate                  '
-                required
-                [(ngModel)]='item.dispatchDate                  '
-                #dispatchDate                  Model='ngModel'
-                #dispatchDate                  El
-            />
-            <abp-validation-summary
-                [control]='dispatchDate                  Model'
-                [controlEl]='dispatchDate                  El'
-            ></abp-validation-summary>
-            </div>
-        </div>
-        <div class='form-group row required'>
-            <label class='col-md-3 col-form-label' for='month                         '>
-            {{ 'Month                         ' | localize }}
-            </label>
-            <div class='col-md-9'>
-            <input
-                type='number'
-                class='form-control'
-                name='month                         '
-                id='month                         '
-                required
-                [(ngModel)]='item.month                         '
-                #month                         Model='ngModel'
-                #month                         El
-            />
-            <abp-validation-summary
-                [control]='month                         Model'
-                [controlEl]='month                         El'
-            ></abp-validation-summary>
-            </div>
-        </div>
-        <div class='form-group row required'>
-            <label class='col-md-3 col-form-label' for='postalCode                    '>
-            {{ 'PostalCode                    ' | localize }}
-            </label>
-            <div class='col-md-9'>
-            <input
-                type='text'
-                class='form-control'
-                name='postalCode                    '
-                id='postalCode                    '
-                required
-                [(ngModel)]='item.postalCode                    '
-                #postalCode                    Model='ngModel'
-                #postalCode                    El
-            />
-            <abp-validation-summary
-                [control]='postalCode                    Model'
-                [controlEl]='postalCode                    El'
-            ></abp-validation-summary>
-            </div>
-        </div>
-        <div class='form-group row required'>
-            <label class='col-md-3 col-form-label' for='serviceCode                   '>
-            {{ 'ServiceCode                   ' | localize }}
-            </label>
-            <div class='col-md-9'>
-            <input
-                type='text'
-                class='form-control'
-                name='serviceCode                   '
-                id='serviceCode                   '
-                required
-                [(ngModel)]='item.serviceCode                   '
-                #serviceCode                   Model='ngModel'
-                #serviceCode                   El
-            />
-            <abp-validation-summary
-                [control]='serviceCode                   Model'
-                [controlEl]='serviceCode                   El'
-            ></abp-validation-summary>
-            </div>
-        </div>
-        <div class='form-group row required'>
-            <label class='col-md-3 col-form-label' for='productCode                   '>
-            {{ 'ProductCode                   ' | localize }}
-            </label>
-            <div class='col-md-9'>
-            <input
-                type='text'
-                class='form-control'
-                name='productCode                   '
-                id='productCode                   '
-                required
-                [(ngModel)]='item.productCode                   '
-                #productCode                   Model='ngModel'
-                #productCode                   El
-            />
-            <abp-validation-summary
-                [control]='productCode                   Model'
-                [controlEl]='productCode                   El'
-            ></abp-validation-summary>
-            </div>
-        </div>
-        <div class='form-group row required'>
-            <label class='col-md-3 col-form-label' for='countryCode                   '>
-            {{ 'CountryCode                   ' | localize }}
-            </label>
-            <div class='col-md-9'>
-            <input
-                type='text'
-                class='form-control'
-                name='countryCode                   '
-                id='countryCode                   '
-                required
-                [(ngModel)]='item.countryCode                   '
-                #countryCode                   Model='ngModel'
-                #countryCode                   El
-            />
-            <abp-validation-summary
-                [control]='countryCode                   Model'
-                [controlEl]='countryCode                   El'
-            ></abp-validation-summary>
-            </div>
-        </div>
-        <div class='form-group row required'>
-            <label class='col-md-3 col-form-label' for='weight                        '>
-            {{ 'Weight                        ' | localize }}
-            </label>
-            <div class='col-md-9'>
-            <input
-                class='form-control'
-                name='weight                        '
-                id='weight                        '
-                required
-                [(ngModel)]='item.weight                        '
-                #weight                        Model='ngModel'
-                #weight                        El
-            />
-            <abp-validation-summary
-                [control]='weight                        Model'
-                [controlEl]='weight                        El'
-            ></abp-validation-summary>
-            </div>
-        </div>
-        <div class='form-group row required'>
-            <label class='col-md-3 col-form-label' for='bagNo                         '>
-            {{ 'BagNo                         ' | localize }}
-            </label>
-            <div class='col-md-9'>
-            <input
-                type='text'
-                class='form-control'
-                name='bagNo                         '
-                id='bagNo                         '
-                required
-                [(ngModel)]='item.bagNo                         '
-                #bagNo                         Model='ngModel'
-                #bagNo                         El
-            />
-            <abp-validation-summary
-                [control]='bagNo                         Model'
-                [controlEl]='bagNo                         El'
-            ></abp-validation-summary>
-            </div>
-        </div>
-        <div class='form-group row required'>
-            <label class='col-md-3 col-form-label' for='sealNo                        '>
-            {{ 'SealNo                        ' | localize }}
-            </label>
-            <div class='col-md-9'>
-            <input
-                type='text'
-                class='form-control'
-                name='sealNo                        '
-                id='sealNo                        '
-                required
-                [(ngModel)]='item.sealNo                        '
-                #sealNo                        Model='ngModel'
-                #sealNo                        El
-            />
-            <abp-validation-summary
-                [control]='sealNo                        Model'
-                [controlEl]='sealNo                        El'
-            ></abp-validation-summary>
-            </div>
-        </div>
-        <div class='form-group row required'>
-            <label class='col-md-3 col-form-label' for='price                         '>
-            {{ 'Price                         ' | localize }}
-            </label>
-            <div class='col-md-9'>
-            <input
-                class='form-control'
-                name='price                         '
-                id='price                         '
-                required
-                [(ngModel)]='item.price                         '
-                #price                         Model='ngModel'
-                #price                         El
-            />
-            <abp-validation-summary
-                [control]='price                         Model'
-                [controlEl]='price                         El'
-            ></abp-validation-summary>
-            </div>
-        </div>
-        <div class='form-group row required'>
-            <label class='col-md-3 col-form-label' for='status                        '>
-            {{ 'Status                        ' | localize }}
-            </label>
-            <div class='col-md-9'>
-            <input
-                type='number'
-                class='form-control'
-                name='status                        '
-                id='status                        '
-                required
-                [(ngModel)]='item.status                        '
-                #status                        Model='ngModel'
-                #status                        El
-            />
-            <abp-validation-summary
-                [control]='status                        Model'
-                [controlEl]='status                        El'
-            ></abp-validation-summary>
-            </div>
-        </div>
-        <div class='form-group row required'>
-            <label class='col-md-3 col-form-label' for='itemValue                     '>
-            {{ 'ItemValue                     ' | localize }}
-            </label>
-            <div class='col-md-9'>
-            <input
-                class='form-control'
-                name='itemValue                     '
-                id='itemValue                     '
-                required
-                [(ngModel)]='item.itemValue                     '
-                #itemValue                     Model='ngModel'
-                #itemValue                     El
-            />
-            <abp-validation-summary
-                [control]='itemValue                     Model'
-                [controlEl]='itemValue                     El'
-            ></abp-validation-summary>
-            </div>
-        </div>
-        <div class='form-group row required'>
-            <label class='col-md-3 col-form-label' for='itemDesc                      '>
-            {{ 'ItemDesc                      ' | localize }}
-            </label>
-            <div class='col-md-9'>
-            <input
-                type='text'
-                class='form-control'
-                name='itemDesc                      '
-                id='itemDesc                      '
-                required
-                [(ngModel)]='item.itemDesc                      '
-                #itemDesc                      Model='ngModel'
-                #itemDesc                      El
-            />
-            <abp-validation-summary
-                [control]='itemDesc                      Model'
-                [controlEl]='itemDesc                      El'
-            ></abp-validation-summary>
-            </div>
-        </div>
-        <div class='form-group row required'>
-            <label class='col-md-3 col-form-label' for='recpName                      '>
-            {{ 'RecpName                      ' | localize }}
-            </label>
-            <div class='col-md-9'>
-            <input
-                type='text'
-                class='form-control'
-                name='recpName                      '
-                id='recpName                      '
-                required
-                [(ngModel)]='item.recpName                      '
-                #recpName                      Model='ngModel'
-                #recpName                      El
-            />
-            <abp-validation-summary
-                [control]='recpName                      Model'
-                [controlEl]='recpName                      El'
-            ></abp-validation-summary>
-            </div>
-        </div>
-        <div class='form-group row required'>
-            <label class='col-md-3 col-form-label' for='telNo                         '>
-            {{ 'TelNo                         ' | localize }}
-            </label>
-            <div class='col-md-9'>
-            <input
-                type='text'
-                class='form-control'
-                name='telNo                         '
-                id='telNo                         '
-                required
-                [(ngModel)]='item.telNo                         '
-                #telNo                         Model='ngModel'
-                #telNo                         El
-            />
-            <abp-validation-summary
-                [control]='telNo                         Model'
-                [controlEl]='telNo                         El'
-            ></abp-validation-summary>
-            </div>
-        </div>
-        <div class='form-group row required'>
-            <label class='col-md-3 col-form-label' for='email                         '>
-            {{ 'Email                         ' | localize }}
-            </label>
-            <div class='col-md-9'>
-            <input
-                type='text'
-                class='form-control'
-                name='email                         '
-                id='email                         '
-                required
-                [(ngModel)]='item.email                         '
-                #email                         Model='ngModel'
-                #email                         El
-            />
-            <abp-validation-summary
-                [control]='email                         Model'
-                [controlEl]='email                         El'
-            ></abp-validation-summary>
-            </div>
-        </div>
-        <div class='form-group row required'>
-            <label class='col-md-3 col-form-label' for='address                       '>
-            {{ 'Address                       ' | localize }}
-            </label>
-            <div class='col-md-9'>
-            <input
-                type='text'
-                class='form-control'
-                name='address                       '
-                id='address                       '
-                required
-                [(ngModel)]='item.address                       '
-                #address                       Model='ngModel'
-                #address                       El
-            />
-            <abp-validation-summary
-                [control]='address                       Model'
-                [controlEl]='address                       El'
-            ></abp-validation-summary>
-            </div>
-        </div>
-        <div class='form-group row required'>
-            <label class='col-md-3 col-form-label' for='postcode                      '>
-            {{ 'Postcode                      ' | localize }}
-            </label>
-            <div class='col-md-9'>
-            <input
-                type='text'
-                class='form-control'
-                name='postcode                      '
-                id='postcode                      '
-                required
-                [(ngModel)]='item.postcode                      '
-                #postcode                      Model='ngModel'
-                #postcode                      El
-            />
-            <abp-validation-summary
-                [control]='postcode                      Model'
-                [controlEl]='postcode                      El'
-            ></abp-validation-summary>
-            </div>
-        </div>
-        <div class='form-group row required'>
-            <label class='col-md-3 col-form-label' for='rateCategory                  '>
-            {{ 'RateCategory                  ' | localize }}
-            </label>
-            <div class='col-md-9'>
-            <input
-                type='text'
-                class='form-control'
-                name='rateCategory                  '
-                id='rateCategory                  '
-                required
-                [(ngModel)]='item.rateCategory                  '
-                #rateCategory                  Model='ngModel'
-                #rateCategory                  El
-            />
-            <abp-validation-summary
-                [control]='rateCategory                  Model'
-                [controlEl]='rateCategory                  El'
-            ></abp-validation-summary>
-            </div>
-        </div>
-        <div class='form-group row required'>
-            <label class='col-md-3 col-form-label' for='city                          '>
-            {{ 'City                          ' | localize }}
-            </label>
-            <div class='col-md-9'>
-            <input
-                type='text'
-                class='form-control'
-                name='city                          '
-                id='city                          '
-                required
-                [(ngModel)]='item.city                          '
-                #city                          Model='ngModel'
-                #city                          El
-            />
-            <abp-validation-summary
-                [control]='city                          Model'
-                [controlEl]='city                          El'
-            ></abp-validation-summary>
-            </div>
-        </div>
-        <div class='form-group row required'>
-            <label class='col-md-3 col-form-label' for='address2                      '>
-            {{ 'Address2                      ' | localize }}
-            </label>
-            <div class='col-md-9'>
-            <input
-                type='text'
-                class='form-control'
-                name='address2                      '
-                id='address2                      '
-                required
-                [(ngModel)]='item.address2                      '
-                #address2                      Model='ngModel'
-                #address2                      El
-            />
-            <abp-validation-summary
-                [control]='address2                      Model'
-                [controlEl]='address2                      El'
-            ></abp-validation-summary>
-            </div>
-        </div>
-        <div class='form-group row required'>
-            <label class='col-md-3 col-form-label' for='addressNo                     '>
-            {{ 'AddressNo                     ' | localize }}
-            </label>
-            <div class='col-md-9'>
-            <input
-                type='text'
-                class='form-control'
-                name='addressNo                     '
-                id='addressNo                     '
-                required
-                [(ngModel)]='item.addressNo                     '
-                #addressNo                     Model='ngModel'
-                #addressNo                     El
-            />
-            <abp-validation-summary
-                [control]='addressNo                     Model'
-                [controlEl]='addressNo                     El'
-            ></abp-validation-summary>
-            </div>
-        </div>
-        <div class='form-group row required'>
-            <label class='col-md-3 col-form-label' for='state                         '>
-            {{ 'State                         ' | localize }}
-            </label>
-            <div class='col-md-9'>
-            <input
-                type='text'
-                class='form-control'
-                name='state                         '
-                id='state                         '
-                required
-                [(ngModel)]='item.state                         '
-                #state                         Model='ngModel'
-                #state                         El
-            />
-            <abp-validation-summary
-                [control]='state                         Model'
-                [controlEl]='state                         El'
-            ></abp-validation-summary>
-            </div>
-        </div>
-        <div class='form-group row required'>
-            <label class='col-md-3 col-form-label' for='length                        '>
-            {{ 'Length                        ' | localize }}
-            </label>
-            <div class='col-md-9'>
-            <input
-                class='form-control'
-                name='length                        '
-                id='length                        '
-                required
-                [(ngModel)]='item.length                        '
-                #length                        Model='ngModel'
-                #length                        El
-            />
-            <abp-validation-summary
-                [control]='length                        Model'
-                [controlEl]='length                        El'
-            ></abp-validation-summary>
-            </div>
-        </div>
-        <div class='form-group row required'>
-            <label class='col-md-3 col-form-label' for='width                         '>
-            {{ 'Width                         ' | localize }}
-            </label>
-            <div class='col-md-9'>
-            <input
-                class='form-control'
-                name='width                         '
-                id='width                         '
-                required
-                [(ngModel)]='item.width                         '
-                #width                         Model='ngModel'
-                #width                         El
-            />
-            <abp-validation-summary
-                [control]='width                         Model'
-                [controlEl]='width                         El'
-            ></abp-validation-summary>
-            </div>
-        </div>
-        <div class='form-group row required'>
-            <label class='col-md-3 col-form-label' for='height                        '>
-            {{ 'Height                        ' | localize }}
-            </label>
-            <div class='col-md-9'>
-            <input
-                class='form-control'
-                name='height                        '
-                id='height                        '
-                required
-                [(ngModel)]='item.height                        '
-                #height                        Model='ngModel'
-                #height                        El
-            />
-            <abp-validation-summary
-                [control]='height                        Model'
-                [controlEl]='height                        El'
-            ></abp-validation-summary>
-            </div>
-        </div>
-        <div class='form-group row required'>
-            <label class='col-md-3 col-form-label' for='hSCode                        '>
-            {{ 'HSCode                        ' | localize }}
-            </label>
-            <div class='col-md-9'>
-            <input
-                type='text'
-                class='form-control'
-                name='hSCode                        '
-                id='hSCode                        '
-                required
-                [(ngModel)]='item.hSCode                        '
-                #hSCode                        Model='ngModel'
-                #hSCode                        El
-            />
-            <abp-validation-summary
-                [control]='hSCode                        Model'
-                [controlEl]='hSCode                        El'
-            ></abp-validation-summary>
-            </div>
-        </div>
-        <div class='form-group row required'>
-            <label class='col-md-3 col-form-label' for='qty                           '>
-            {{ 'Qty                           ' | localize }}
-            </label>
-            <div class='col-md-9'>
-            <input
-                type='number'
-                class='form-control'
-                name='qty                           '
-                id='qty                           '
-                required
-                [(ngModel)]='item.qty                           '
-                #qty                           Model='ngModel'
-                #qty                           El
-            />
-            <abp-validation-summary
-                [control]='qty                           Model'
-                [controlEl]='qty                           El'
-            ></abp-validation-summary>
-            </div>
-        </div>
-        <div class='form-group row required'>
-            <label class='col-md-3 col-form-label' for='passportNo                    '>
-            {{ 'PassportNo                    ' | localize }}
-            </label>
-            <div class='col-md-9'>
-            <input
-                type='text'
-                class='form-control'
-                name='passportNo                    '
-                id='passportNo                    '
-                required
-                [(ngModel)]='item.passportNo                    '
-                #passportNo                    Model='ngModel'
-                #passportNo                    El
-            />
-            <abp-validation-summary
-                [control]='passportNo                    Model'
-                [controlEl]='passportNo                    El'
-            ></abp-validation-summary>
-            </div>
-        </div>
-        <div class='form-group row required'>
-            <label class='col-md-3 col-form-label' for='taxPayMethod                  '>
-            {{ 'TaxPayMethod                  ' | localize }}
-            </label>
-            <div class='col-md-9'>
-            <input
-                type='text'
-                class='form-control'
-                name='taxPayMethod                  '
-                id='taxPayMethod                  '
-                required
-                [(ngModel)]='item.taxPayMethod                  '
-                #taxPayMethod                  Model='ngModel'
-                #taxPayMethod                  El
-            />
-            <abp-validation-summary
-                [control]='taxPayMethod                  Model'
-                [controlEl]='taxPayMethod                  El'
-            ></abp-validation-summary>
-            </div>
-        </div>
-        <div class='form-group row required'>
-            <label class='col-md-3 col-form-label' for='dateStage1                    '>
-            {{ 'DateStage1                    ' | localize }}
-            </label>
-            <div class='col-md-9'>
-            <input
-                type='datetime-local'
-                class='form-control'
-                name='dateStage1                    '
-                id='dateStage1                    '
-                required
-                [(ngModel)]='item.dateStage1                    '
-                #dateStage1                    Model='ngModel'
-                #dateStage1                    El
-            />
-            <abp-validation-summary
-                [control]='dateStage1                    Model'
-                [controlEl]='dateStage1                    El'
-            ></abp-validation-summary>
-            </div>
-        </div>
-        <div class='form-group row required'>
-            <label class='col-md-3 col-form-label' for='dateStage2                    '>
-            {{ 'DateStage2                    ' | localize }}
-            </label>
-            <div class='col-md-9'>
-            <input
-                type='datetime-local'
-                class='form-control'
-                name='dateStage2                    '
-                id='dateStage2                    '
-                required
-                [(ngModel)]='item.dateStage2                    '
-                #dateStage2                    Model='ngModel'
-                #dateStage2                    El
-            />
-            <abp-validation-summary
-                [control]='dateStage2                    Model'
-                [controlEl]='dateStage2                    El'
-            ></abp-validation-summary>
-            </div>
-        </div>
-        <div class='form-group row required'>
-            <label class='col-md-3 col-form-label' for='dateStage3                    '>
-            {{ 'DateStage3                    ' | localize }}
-            </label>
-            <div class='col-md-9'>
-            <input
-                type='datetime-local'
-                class='form-control'
-                name='dateStage3                    '
-                id='dateStage3                    '
-                required
-                [(ngModel)]='item.dateStage3                    '
-                #dateStage3                    Model='ngModel'
-                #dateStage3                    El
-            />
-            <abp-validation-summary
-                [control]='dateStage3                    Model'
-                [controlEl]='dateStage3                    El'
-            ></abp-validation-summary>
-            </div>
-        </div>
-        <div class='form-group row required'>
-            <label class='col-md-3 col-form-label' for='dateStage4                    '>
-            {{ 'DateStage4                    ' | localize }}
-            </label>
-            <div class='col-md-9'>
-            <input
-                type='datetime-local'
-                class='form-control'
-                name='dateStage4                    '
-                id='dateStage4                    '
-                required
-                [(ngModel)]='item.dateStage4                    '
-                #dateStage4                    Model='ngModel'
-                #dateStage4                    El
-            />
-            <abp-validation-summary
-                [control]='dateStage4                    Model'
-                [controlEl]='dateStage4                    El'
-            ></abp-validation-summary>
-            </div>
-        </div>
-        <div class='form-group row required'>
-            <label class='col-md-3 col-form-label' for='dateStage5                    '>
-            {{ 'DateStage5                    ' | localize }}
-            </label>
-            <div class='col-md-9'>
-            <input
-                type='datetime-local'
-                class='form-control'
-                name='dateStage5                    '
-                id='dateStage5                    '
-                required
-                [(ngModel)]='item.dateStage5                    '
-                #dateStage5                    Model='ngModel'
-                #dateStage5                    El
-            />
-            <abp-validation-summary
-                [control]='dateStage5                    Model'
-                [controlEl]='dateStage5                    El'
-            ></abp-validation-summary>
-            </div>
-        </div>
-        <div class='form-group row required'>
-            <label class='col-md-3 col-form-label' for='dateStage6                    '>
-            {{ 'DateStage6                    ' | localize }}
-            </label>
-            <div class='col-md-9'>
-            <input
-                type='datetime-local'
-                class='form-control'
-                name='dateStage6                    '
-                id='dateStage6                    '
-                required
-                [(ngModel)]='item.dateStage6                    '
-                #dateStage6                    Model='ngModel'
-                #dateStage6                    El
-            />
-            <abp-validation-summary
-                [control]='dateStage6                    Model'
-                [controlEl]='dateStage6                    El'
-            ></abp-validation-summary>
-            </div>
-        </div>
-        <div class='form-group row required'>
-            <label class='col-md-3 col-form-label' for='dateStage7                    '>
-            {{ 'DateStage7                    ' | localize }}
-            </label>
-            <div class='col-md-9'>
-            <input
-                type='datetime-local'
-                class='form-control'
-                name='dateStage7                    '
-                id='dateStage7                    '
-                required
-                [(ngModel)]='item.dateStage7                    '
-                #dateStage7                    Model='ngModel'
-                #dateStage7                    El
-            />
-            <abp-validation-summary
-                [control]='dateStage7                    Model'
-                [controlEl]='dateStage7                    El'
-            ></abp-validation-summary>
-            </div>
-        </div>
-        <div class='form-group row required'>
-            <label class='col-md-3 col-form-label' for='dateStage8                    '>
-            {{ 'DateStage8                    ' | localize }}
-            </label>
-            <div class='col-md-9'>
-            <input
-                type='datetime-local'
-                class='form-control'
-                name='dateStage8                    '
-                id='dateStage8                    '
-                required
-                [(ngModel)]='item.dateStage8                    '
-                #dateStage8                    Model='ngModel'
-                #dateStage8                    El
-            />
-            <abp-validation-summary
-                [control]='dateStage8                    Model'
-                [controlEl]='dateStage8                    El'
-            ></abp-validation-summary>
-            </div>
-        </div>
-        <div class='form-group row required'>
-            <label class='col-md-3 col-form-label' for='dateStage9                    '>
-            {{ 'DateStage9                    ' | localize }}
-            </label>
-            <div class='col-md-9'>
-            <input
-                type='datetime-local'
-                class='form-control'
-                name='dateStage9                    '
-                id='dateStage9                    '
-                required
-                [(ngModel)]='item.dateStage9                    '
-                #dateStage9                    Model='ngModel'
-                #dateStage9                    El
-            />
-            <abp-validation-summary
-                [control]='dateStage9                    Model'
-                [controlEl]='dateStage9                    El'
-            ></abp-validation-summary>
-            </div>
-        </div>
-        <div class='form-group row required'>
-            <label class='col-md-3 col-form-label' for='stage6OMTStatusDesc           '>
-            {{ 'Stage6OMTStatusDesc           ' | localize }}
-            </label>
-            <div class='col-md-9'>
-            <input
-                type='text'
-                class='form-control'
-                name='stage6OMTStatusDesc           '
-                id='stage6OMTStatusDesc           '
-                required
-                [(ngModel)]='item.stage6OMTStatusDesc           '
-                #stage6OMTStatusDesc           Model='ngModel'
-                #stage6OMTStatusDesc           El
-            />
-            <abp-validation-summary
-                [control]='stage6OMTStatusDesc           Model'
-                [controlEl]='stage6OMTStatusDesc           El'
-            ></abp-validation-summary>
-            </div>
-        </div>
-        <div class='form-group row required'>
-            <label class='col-md-3 col-form-label' for='stage6OMTDepartureDate        '>
-            {{ 'Stage6OMTDepartureDate        ' | localize }}
-            </label>
-            <div class='col-md-9'>
-            <input
-                type='datetime-local'
-                class='form-control'
-                name='stage6OMTDepartureDate        '
-                id='stage6OMTDepartureDate        '
-                required
-                [(ngModel)]='item.stage6OMTDepartureDate        '
-                #stage6OMTDepartureDate        Model='ngModel'
-                #stage6OMTDepartureDate        El
-            />
-            <abp-validation-summary
-                [control]='stage6OMTDepartureDate        Model'
-                [controlEl]='stage6OMTDepartureDate        El'
-            ></abp-validation-summary>
-            </div>
-        </div>
-        <div class='form-group row required'>
-            <label class='col-md-3 col-form-label' for='stage6OMTArrivalDate          '>
-            {{ 'Stage6OMTArrivalDate          ' | localize }}
-            </label>
-            <div class='col-md-9'>
-            <input
-                type='datetime-local'
-                class='form-control'
-                name='stage6OMTArrivalDate          '
-                id='stage6OMTArrivalDate          '
-                required
-                [(ngModel)]='item.stage6OMTArrivalDate          '
-                #stage6OMTArrivalDate          Model='ngModel'
-                #stage6OMTArrivalDate          El
-            />
-            <abp-validation-summary
-                [control]='stage6OMTArrivalDate          Model'
-                [controlEl]='stage6OMTArrivalDate          El'
-            ></abp-validation-summary>
-            </div>
-        </div>
-        <div class='form-group row required'>
-            <label class='col-md-3 col-form-label' for='stage6OMTDestinationCity      '>
-            {{ 'Stage6OMTDestinationCity      ' | localize }}
-            </label>
-            <div class='col-md-9'>
-            <input
-                type='text'
-                class='form-control'
-                name='stage6OMTDestinationCity      '
-                id='stage6OMTDestinationCity      '
-                required
-                [(ngModel)]='item.stage6OMTDestinationCity      '
-                #stage6OMTDestinationCity      Model='ngModel'
-                #stage6OMTDestinationCity      El
-            />
-            <abp-validation-summary
-                [control]='stage6OMTDestinationCity      Model'
-                [controlEl]='stage6OMTDestinationCity      El'
-            ></abp-validation-summary>
-            </div>
-        </div>
-        <div class='form-group row required'>
-            <label class='col-md-3 col-form-label' for='stage6OMTDestinationCityCode  '>
-            {{ 'Stage6OMTDestinationCityCode  ' | localize }}
-            </label>
-            <div class='col-md-9'>
-            <input
-                type='text'
-                class='form-control'
-                name='stage6OMTDestinationCityCode  '
-                id='stage6OMTDestinationCityCode  '
-                required
-                [(ngModel)]='item.stage6OMTDestinationCityCode  '
-                #stage6OMTDestinationCityCode  Model='ngModel'
-                #stage6OMTDestinationCityCode  El
-            />
-            <abp-validation-summary
-                [control]='stage6OMTDestinationCityCode  Model'
-                [controlEl]='stage6OMTDestinationCityCode  El'
-            ></abp-validation-summary>
-            </div>
-        </div>
-        <div class='form-group row required'>
-            <label class='col-md-3 col-form-label' for='stage6OMTCountryCode          '>
-            {{ 'Stage6OMTCountryCode          ' | localize }}
-            </label>
-            <div class='col-md-9'>
-            <input
-                type='text'
-                class='form-control'
-                name='stage6OMTCountryCode          '
-                id='stage6OMTCountryCode          '
-                required
-                [(ngModel)]='item.stage6OMTCountryCode          '
-                #stage6OMTCountryCode          Model='ngModel'
-                #stage6OMTCountryCode          El
-            />
-            <abp-validation-summary
-                [control]='stage6OMTCountryCode          Model'
-                [controlEl]='stage6OMTCountryCode          El'
-            ></abp-validation-summary>
-            </div>
-        </div>
-        <div class='form-group row required'>
-            <label class='col-md-3 col-form-label' for='extMsg                        '>
-            {{ 'ExtMsg                        ' | localize }}
-            </label>
-            <div class='col-md-9'>
-            <input
-                type='text'
-                class='form-control'
-                name='extMsg                        '
-                id='extMsg                        '
-                required
-                [(ngModel)]='item.extMsg                        '
-                #extMsg                        Model='ngModel'
-                #extMsg                        El
-            />
-            <abp-validation-summary
-                [control]='extMsg                        Model'
-                [controlEl]='extMsg                        El'
-            ></abp-validation-summary>
-            </div>
-        </div>
-        <div class='form-group row required'>
-            <label class='col-md-3 col-form-label' for='identityType                  '>
-            {{ 'IdentityType                  ' | localize }}
-            </label>
-            <div class='col-md-9'>
-            <input
-                type='text'
-                class='form-control'
-                name='identityType                  '
-                id='identityType                  '
-                required
-                [(ngModel)]='item.identityType                  '
-                #identityType                  Model='ngModel'
-                #identityType                  El
-            />
-            <abp-validation-summary
-                [control]='identityType                  Model'
-                [controlEl]='identityType                  El'
-            ></abp-validation-summary>
-            </div>
-        </div>
-        <div class='form-group row required'>
-            <label class='col-md-3 col-form-label' for='senderName                    '>
-            {{ 'SenderName                    ' | localize }}
-            </label>
-            <div class='col-md-9'>
-            <input
-                type='text'
-                class='form-control'
-                name='senderName                    '
-                id='senderName                    '
-                required
-                [(ngModel)]='item.senderName                    '
-                #senderName                    Model='ngModel'
-                #senderName                    El
-            />
-            <abp-validation-summary
-                [control]='senderName                    Model'
-                [controlEl]='senderName                    El'
-            ></abp-validation-summary>
-            </div>
-        </div>
-        <div class='form-group row required'>
-            <label class='col-md-3 col-form-label' for='iOSSTax                       '>
-            {{ 'IOSSTax                       ' | localize }}
-            </label>
-            <div class='col-md-9'>
-            <input
-                type='text'
-                class='form-control'
-                name='iOSSTax                       '
-                id='iOSSTax                       '
-                required
-                [(ngModel)]='item.iOSSTax                       '
-                #iOSSTax                       Model='ngModel'
-                #iOSSTax                       El
-            />
-            <abp-validation-summary
-                [control]='iOSSTax                       Model'
-                [controlEl]='iOSSTax                       El'
-            ></abp-validation-summary>
-            </div>
-        </div>
-        <div class='form-group row required'>
-            <label class='col-md-3 col-form-label' for='refNo                         '>
-            {{ 'RefNo                         ' | localize }}
-            </label>
-            <div class='col-md-9'>
-            <input
-                type='text'
-                class='form-control'
-                name='refNo                         '
-                id='refNo                         '
-                required
-                [(ngModel)]='item.refNo                         '
-                #refNo                         Model='ngModel'
-                #refNo                         El
-            />
-            <abp-validation-summary
-                [control]='refNo                         Model'
-                [controlEl]='refNo                         El'
-            ></abp-validation-summary>
-            </div>
-        </div>
-        <div class='form-group row required'>
-            <label class='col-md-3 col-form-label' for='dateSuccessfulDelivery        '>
-            {{ 'DateSuccessfulDelivery        ' | localize }}
-            </label>
-            <div class='col-md-9'>
-            <input
-                type='datetime-local'
-                class='form-control'
-                name='dateSuccessfulDelivery        '
-                id='dateSuccessfulDelivery        '
-                required
-                [(ngModel)]='item.dateSuccessfulDelivery        '
-                #dateSuccessfulDelivery        Model='ngModel'
-                #dateSuccessfulDelivery        El
-            />
-            <abp-validation-summary
-                [control]='dateSuccessfulDelivery        Model'
-                [controlEl]='dateSuccessfulDelivery        El'
-            ></abp-validation-summary>
-            </div>
-        </div>
-        <div class='form-group row required'>
-            <label class='col-md-3 col-form-label' for='isDelivered                   '>
-            {{ 'IsDelivered                   ' | localize }}
-            </label>
-            <div class='col-md-9'>
-            <input
-                type='checkbox'
-                class='form-control'
-                name='isDelivered                   '
-                id='isDelivered                   '
-                [(ngModel)]='item.isDelivered                   '
-                #isDelivered                   Model='ngModel'
-                #isDelivered                   El
-            />
-            <abp-validation-summary
-                [control]='isDelivered                   Model'
-                [controlEl]='isDelivered                   El'
-            ></abp-validation-summary>
-            </div>
-        </div>
-        <div class='form-group row required'>
-            <label class='col-md-3 col-form-label' for='deliveredInDays               '>
-            {{ 'DeliveredInDays               ' | localize }}
-            </label>
-            <div class='col-md-9'>
-            <input
-                type='number'
-                class='form-control'
-                name='deliveredInDays               '
-                id='deliveredInDays               '
-                required
-                [(ngModel)]='item.deliveredInDays               '
-                #deliveredInDays               Model='ngModel'
-                #deliveredInDays               El
-            />
-            <abp-validation-summary
-                [control]='deliveredInDays               Model'
-                [controlEl]='deliveredInDays               El'
-            ></abp-validation-summary>
-            </div>
-        </div>
-        <div class='form-group row required'>
-            <label class='col-md-3 col-form-label' for='isExempted                    '>
-            {{ 'IsExempted                    ' | localize }}
-            </label>
-            <div class='col-md-9'>
-            <input
-                type='checkbox'
-                class='form-control'
-                name='isExempted                    '
-                id='isExempted                    '
-                [(ngModel)]='item.isExempted                    '
-                #isExempted                    Model='ngModel'
-                #isExempted                    El
-            />
-            <abp-validation-summary
-                [control]='isExempted                    Model'
-                [controlEl]='isExempted                    El'
-            ></abp-validation-summary>
-            </div>
-        </div>
-        <div class='form-group row required'>
-            <label class='col-md-3 col-form-label' for='exemptedRemark                '>
-            {{ 'ExemptedRemark                ' | localize }}
-            </label>
-            <div class='col-md-9'>
-            <input
-                type='text'
-                class='form-control'
-                name='exemptedRemark                '
-                id='exemptedRemark                '
-                required
-                [(ngModel)]='item.exemptedRemark                '
-                #exemptedRemark                Model='ngModel'
-                #exemptedRemark                El
-            />
-            <abp-validation-summary
-                [control]='exemptedRemark                Model'
-                [controlEl]='exemptedRemark                El'
-            ></abp-validation-summary>
-            </div>
-        </div>
-        <div class='form-group row required'>
-            <label class='col-md-3 col-form-label' for='cLCuartel                     '>
-            {{ 'CLCuartel                     ' | localize }}
-            </label>
-            <div class='col-md-9'>
-            <input
-                type='text'
-                class='form-control'
-                name='cLCuartel                     '
-                id='cLCuartel                     '
-                required
-                [(ngModel)]='item.cLCuartel                     '
-                #cLCuartel                     Model='ngModel'
-                #cLCuartel                     El
-            />
-            <abp-validation-summary
-                [control]='cLCuartel                     Model'
-                [controlEl]='cLCuartel                     El'
-            ></abp-validation-summary>
-            </div>
-        </div>
-        <div class='form-group row required'>
-            <label class='col-md-3 col-form-label' for='cLSector                      '>
-            {{ 'CLSector                      ' | localize }}
-            </label>
-            <div class='col-md-9'>
-            <input
-                type='text'
-                class='form-control'
-                name='cLSector                      '
-                id='cLSector                      '
-                required
-                [(ngModel)]='item.cLSector                      '
-                #cLSector                      Model='ngModel'
-                #cLSector                      El
-            />
-            <abp-validation-summary
-                [control]='cLSector                      Model'
-                [controlEl]='cLSector                      El'
-            ></abp-validation-summary>
-            </div>
-        </div>
-        <div class='form-group row required'>
-            <label class='col-md-3 col-form-label' for='cLSDP                         '>
-            {{ 'CLSDP                         ' | localize }}
-            </label>
-            <div class='col-md-9'>
-            <input
-                type='text'
-                class='form-control'
-                name='cLSDP                         '
-                id='cLSDP                         '
-                required
-                [(ngModel)]='item.cLSDP                         '
-                #cLSDP                         Model='ngModel'
-                #cLSDP                         El
-            />
-            <abp-validation-summary
-                [control]='cLSDP                         Model'
-                [controlEl]='cLSDP                         El'
-            ></abp-validation-summary>
-            </div>
-        </div>
-        <div class='form-group row required'>
-            <label class='col-md-3 col-form-label' for='cLCodigoDelegacionDestino     '>
-            {{ 'CLCodigoDelegacionDestino     ' | localize }}
-            </label>
-            <div class='col-md-9'>
-            <input
-                type='text'
-                class='form-control'
-                name='cLCodigoDelegacionDestino     '
-                id='cLCodigoDelegacionDestino     '
-                required
-                [(ngModel)]='item.cLCodigoDelegacionDestino     '
-                #cLCodigoDelegacionDestino     Model='ngModel'
-                #cLCodigoDelegacionDestino     El
-            />
-            <abp-validation-summary
-                [control]='cLCodigoDelegacionDestino     Model'
-                [controlEl]='cLCodigoDelegacionDestino     El'
-            ></abp-validation-summary>
-            </div>
-        </div>
-        <div class='form-group row required'>
-            <label class='col-md-3 col-form-label' for='cLNombreDelegacionDestino     '>
-            {{ 'CLNombreDelegacionDestino     ' | localize }}
-            </label>
-            <div class='col-md-9'>
-            <input
-                type='text'
-                class='form-control'
-                name='cLNombreDelegacionDestino     '
-                id='cLNombreDelegacionDestino     '
-                required
-                [(ngModel)]='item.cLNombreDelegacionDestino     '
-                #cLNombreDelegacionDestino     Model='ngModel'
-                #cLNombreDelegacionDestino     El
-            />
-            <abp-validation-summary
-                [control]='cLNombreDelegacionDestino     Model'
-                [controlEl]='cLNombreDelegacionDestino     El'
-            ></abp-validation-summary>
-            </div>
-        </div>
-        <div class='form-group row required'>
-            <label class='col-md-3 col-form-label' for='cLDireccionDestino            '>
-            {{ 'CLDireccionDestino            ' | localize }}
-            </label>
-            <div class='col-md-9'>
-            <input
-                type='text'
-                class='form-control'
-                name='cLDireccionDestino            '
-                id='cLDireccionDestino            '
-                required
-                [(ngModel)]='item.cLDireccionDestino            '
-                #cLDireccionDestino            Model='ngModel'
-                #cLDireccionDestino            El
-            />
-            <abp-validation-summary
-                [control]='cLDireccionDestino            Model'
-                [controlEl]='cLDireccionDestino            El'
-            ></abp-validation-summary>
-            </div>
-        </div>
-        <div class='form-group row required'>
-            <label class='col-md-3 col-form-label' for='cLCodigoEncaminamiento        '>
-            {{ 'CLCodigoEncaminamiento        ' | localize }}
-            </label>
-            <div class='col-md-9'>
-            <input
-                type='text'
-                class='form-control'
-                name='cLCodigoEncaminamiento        '
-                id='cLCodigoEncaminamiento        '
-                required
-                [(ngModel)]='item.cLCodigoEncaminamiento        '
-                #cLCodigoEncaminamiento        Model='ngModel'
-                #cLCodigoEncaminamiento        El
-            />
-            <abp-validation-summary
-                [control]='cLCodigoEncaminamiento        Model'
-                [controlEl]='cLCodigoEncaminamiento        El'
-            ></abp-validation-summary>
-            </div>
-        </div>
-        <div class='form-group row required'>
-            <label class='col-md-3 col-form-label' for='cLNumeroEnvio                 '>
-            {{ 'CLNumeroEnvio                 ' | localize }}
-            </label>
-            <div class='col-md-9'>
-            <input
-                type='text'
-                class='form-control'
-                name='cLNumeroEnvio                 '
-                id='cLNumeroEnvio                 '
-                required
-                [(ngModel)]='item.cLNumeroEnvio                 '
-                #cLNumeroEnvio                 Model='ngModel'
-                #cLNumeroEnvio                 El
-            />
-            <abp-validation-summary
-                [control]='cLNumeroEnvio                 Model'
-                [controlEl]='cLNumeroEnvio                 El'
-            ></abp-validation-summary>
-            </div>
-        </div>
-        <div class='form-group row required'>
-            <label class='col-md-3 col-form-label' for='cLComunaDestino               '>
-            {{ 'CLComunaDestino               ' | localize }}
-            </label>
-            <div class='col-md-9'>
-            <input
-                type='text'
-                class='form-control'
-                name='cLComunaDestino               '
-                id='cLComunaDestino               '
-                required
-                [(ngModel)]='item.cLComunaDestino               '
-                #cLComunaDestino               Model='ngModel'
-                #cLComunaDestino               El
-            />
-            <abp-validation-summary
-                [control]='cLComunaDestino               Model'
-                [controlEl]='cLComunaDestino               El'
-            ></abp-validation-summary>
-            </div>
-        </div>
-        <div class='form-group row required'>
-            <label class='col-md-3 col-form-label' for='cLAbreviaturaServicio         '>
-            {{ 'CLAbreviaturaServicio         ' | localize }}
-            </label>
-            <div class='col-md-9'>
-            <input
-                type='text'
-                class='form-control'
-                name='cLAbreviaturaServicio         '
-                id='cLAbreviaturaServicio         '
-                required
-                [(ngModel)]='item.cLAbreviaturaServicio         '
-                #cLAbreviaturaServicio         Model='ngModel'
-                #cLAbreviaturaServicio         El
-            />
-            <abp-validation-summary
-                [control]='cLAbreviaturaServicio         Model'
-                [controlEl]='cLAbreviaturaServicio         El'
-            ></abp-validation-summary>
-            </div>
-        </div>
-        <div class='form-group row required'>
-            <label class='col-md-3 col-form-label' for='cLAbreviaturaCentro           '>
-            {{ 'CLAbreviaturaCentro           ' | localize }}
-            </label>
-            <div class='col-md-9'>
-            <input
-                type='text'
-                class='form-control'
-                name='cLAbreviaturaCentro           '
-                id='cLAbreviaturaCentro           '
-                required
-                [(ngModel)]='item.cLAbreviaturaCentro           '
-                #cLAbreviaturaCentro           Model='ngModel'
-                #cLAbreviaturaCentro           El
-            />
-            <abp-validation-summary
-                [control]='cLAbreviaturaCentro           Model'
-                [controlEl]='cLAbreviaturaCentro           El'
-            ></abp-validation-summary>
-            </div>
-        </div>
-        <div class='form-group row required'>
-            <label class='col-md-3 col-form-label' for='stage1StatusDesc              '>
-            {{ 'Stage1StatusDesc              ' | localize }}
-            </label>
-            <div class='col-md-9'>
-            <input
-                type='text'
-                class='form-control'
-                name='stage1StatusDesc              '
-                id='stage1StatusDesc              '
-                required
-                [(ngModel)]='item.stage1StatusDesc              '
-                #stage1StatusDesc              Model='ngModel'
-                #stage1StatusDesc              El
-            />
-            <abp-validation-summary
-                [control]='stage1StatusDesc              Model'
-                [controlEl]='stage1StatusDesc              El'
-            ></abp-validation-summary>
-            </div>
-        </div>
-        <div class='form-group row required'>
-            <label class='col-md-3 col-form-label' for='stage2StatusDesc              '>
-            {{ 'Stage2StatusDesc              ' | localize }}
-            </label>
-            <div class='col-md-9'>
-            <input
-                type='text'
-                class='form-control'
-                name='stage2StatusDesc              '
-                id='stage2StatusDesc              '
-                required
-                [(ngModel)]='item.stage2StatusDesc              '
-                #stage2StatusDesc              Model='ngModel'
-                #stage2StatusDesc              El
-            />
-            <abp-validation-summary
-                [control]='stage2StatusDesc              Model'
-                [controlEl]='stage2StatusDesc              El'
-            ></abp-validation-summary>
-            </div>
-        </div>
-        <div class='form-group row required'>
-            <label class='col-md-3 col-form-label' for='stage3StatusDesc              '>
-            {{ 'Stage3StatusDesc              ' | localize }}
-            </label>
-            <div class='col-md-9'>
-            <input
-                type='text'
-                class='form-control'
-                name='stage3StatusDesc              '
-                id='stage3StatusDesc              '
-                required
-                [(ngModel)]='item.stage3StatusDesc              '
-                #stage3StatusDesc              Model='ngModel'
-                #stage3StatusDesc              El
-            />
-            <abp-validation-summary
-                [control]='stage3StatusDesc              Model'
-                [controlEl]='stage3StatusDesc              El'
-            ></abp-validation-summary>
-            </div>
-        </div>
-        <div class='form-group row required'>
-            <label class='col-md-3 col-form-label' for='stage4StatusDesc              '>
-            {{ 'Stage4StatusDesc              ' | localize }}
-            </label>
-            <div class='col-md-9'>
-            <input
-                type='text'
-                class='form-control'
-                name='stage4StatusDesc              '
-                id='stage4StatusDesc              '
-                required
-                [(ngModel)]='item.stage4StatusDesc              '
-                #stage4StatusDesc              Model='ngModel'
-                #stage4StatusDesc              El
-            />
-            <abp-validation-summary
-                [control]='stage4StatusDesc              Model'
-                [controlEl]='stage4StatusDesc              El'
-            ></abp-validation-summary>
-            </div>
-        </div>
-        <div class='form-group row required'>
-            <label class='col-md-3 col-form-label' for='stage5StatusDesc              '>
-            {{ 'Stage5StatusDesc              ' | localize }}
-            </label>
-            <div class='col-md-9'>
-            <input
-                type='text'
-                class='form-control'
-                name='stage5StatusDesc              '
-                id='stage5StatusDesc              '
-                required
-                [(ngModel)]='item.stage5StatusDesc              '
-                #stage5StatusDesc              Model='ngModel'
-                #stage5StatusDesc              El
-            />
-            <abp-validation-summary
-                [control]='stage5StatusDesc              Model'
-                [controlEl]='stage5StatusDesc              El'
-            ></abp-validation-summary>
-            </div>
-        </div>
-        <div class='form-group row required'>
-            <label class='col-md-3 col-form-label' for='stage6StatusDesc              '>
-            {{ 'Stage6StatusDesc              ' | localize }}
-            </label>
-            <div class='col-md-9'>
-            <input
-                type='text'
-                class='form-control'
-                name='stage6StatusDesc              '
-                id='stage6StatusDesc              '
-                required
-                [(ngModel)]='item.stage6StatusDesc              '
-                #stage6StatusDesc              Model='ngModel'
-                #stage6StatusDesc              El
-            />
-            <abp-validation-summary
-                [control]='stage6StatusDesc              Model'
-                [controlEl]='stage6StatusDesc              El'
-            ></abp-validation-summary>
-            </div>
-        </div>
-        <div class='form-group row required'>
-            <label class='col-md-3 col-form-label' for='stage7StatusDesc              '>
-            {{ 'Stage7StatusDesc              ' | localize }}
-            </label>
-            <div class='col-md-9'>
-            <input
-                type='text'
-                class='form-control'
-                name='stage7StatusDesc              '
-                id='stage7StatusDesc              '
-                required
-                [(ngModel)]='item.stage7StatusDesc              '
-                #stage7StatusDesc              Model='ngModel'
-                #stage7StatusDesc              El
-            />
-            <abp-validation-summary
-                [control]='stage7StatusDesc              Model'
-                [controlEl]='stage7StatusDesc              El'
-            ></abp-validation-summary>
-            </div>
-        </div>
-        <div class='form-group row required'>
-            <label class='col-md-3 col-form-label' for='stage8StatusDesc              '>
-            {{ 'Stage8StatusDesc              ' | localize }}
-            </label>
-            <div class='col-md-9'>
-            <input
-                type='text'
-                class='form-control'
-                name='stage8StatusDesc              '
-                id='stage8StatusDesc              '
-                required
-                [(ngModel)]='item.stage8StatusDesc              '
-                #stage8StatusDesc              Model='ngModel'
-                #stage8StatusDesc              El
-            />
-            <abp-validation-summary
-                [control]='stage8StatusDesc              Model'
-                [controlEl]='stage8StatusDesc              El'
-            ></abp-validation-summary>
-            </div>
-        </div>
-        <div class='form-group row required'>
-            <label class='col-md-3 col-form-label' for='stage9StatusDesc              '>
-            {{ 'Stage9StatusDesc              ' | localize }}
-            </label>
-            <div class='col-md-9'>
-            <input
-                type='text'
-                class='form-control'
-                name='stage9StatusDesc              '
-                id='stage9StatusDesc              '
-                required
-                [(ngModel)]='item.stage9StatusDesc              '
-                #stage9StatusDesc              Model='ngModel'
-                #stage9StatusDesc              El
-            />
-            <abp-validation-summary
-                [control]='stage9StatusDesc              Model'
-                [controlEl]='stage9StatusDesc              El'
-            ></abp-validation-summary>
-            </div>
-        </div>
-        <div class='form-group row required'>
-            <label class='col-md-3 col-form-label' for='cityId                        '>
-            {{ 'CityId                        ' | localize }}
-            </label>
-            <div class='col-md-9'>
-            <input
-                type='text'
-                class='form-control'
-                name='cityId                        '
-                id='cityId                        '
-                required
-                [(ngModel)]='item.cityId                        '
-                #cityId                        Model='ngModel'
-                #cityId                        El
-            />
-            <abp-validation-summary
-                [control]='cityId                        Model'
-                [controlEl]='cityId                        El'
-            ></abp-validation-summary>
-            </div>
-        </div>
-        <div class='form-group row required'>
-            <label class='col-md-3 col-form-label' for='finalOfficeId                 '>
-            {{ 'FinalOfficeId                 ' | localize }}
-            </label>
-            <div class='col-md-9'>
-            <input
-                type='text'
-                class='form-control'
-                name='finalOfficeId                 '
-                id='finalOfficeId                 '
-                required
-                [(ngModel)]='item.finalOfficeId                 '
-                #finalOfficeId                 Model='ngModel'
-                #finalOfficeId                 El
-            />
-            <abp-validation-summary
-                [control]='finalOfficeId                 Model'
-                [controlEl]='finalOfficeId                 El'
-            ></abp-validation-summary>
-            </div>
-        </div>
-    </div>
-    <abp-modal-footer
-    [cancelDisabled]='saving'
-    [saveDisabled]='!createItemModal.form.valid || saving'
-    (onCancelClick)='bsModalRef.hide()'
-    ></abp-modal-footer>
-</form>
+ <abp-modal-header
+  [title]='isCreate == true? ("Add Item" | localize) : ("Edit Item" | localize)'
+  (onCloseClick)='bsModalRef.hide()'
+ ></abp-modal-header>
+ <div class='modal-body'>
+  <div class='form-group row required'>
+<label class='col-md-3 col-form-label' for='extID'>
+{{ 'ExtID' | localize }}
+</label>
+<div class='col-md-9'>
+<input
+  type='text'
+  class='form-control'
+  name='extID'
+  id='extID'
+  required
+  [(ngModel)]='item.extID'
+  #extIDModel='ngModel'
+  #extIDEl
+/>
+<abp-validation-summary
+  [control]='extIDModel'
+  [controlEl]='extIDEl'
+></abp-validation-summary>
+</div>
+  </div>
+  <div class='form-group row required'>
+<label class='col-md-3 col-form-label' for='dispatchID'>
+{{ 'DispatchID' | localize }}
+</label>
+<div class='col-md-9'>
+<input
+  type='number'
+  class='form-control'
+  name='dispatchID'
+  id='dispatchID'
+  required
+  [(ngModel)]='item.dispatchID'
+  #dispatchIDModel='ngModel'
+  #dispatchIDEl
+/>
+<abp-validation-summary
+  [control]='dispatchIDModel'
+  [controlEl]='dispatchIDEl'
+></abp-validation-summary>
+</div>
+  </div>
+  <div class='form-group row required'>
+<label class='col-md-3 col-form-label' for='bagID'>
+{{ 'BagID' | localize }}
+</label>
+<div class='col-md-9'>
+<input
+  type='number'
+  class='form-control'
+  name='bagID'
+  id='bagID'
+  required
+  [(ngModel)]='item.bagID'
+  #bagIDModel='ngModel'
+  #bagIDEl
+/>
+<abp-validation-summary
+  [control]='bagIDModel'
+  [controlEl]='bagIDEl'
+></abp-validation-summary>
+</div>
+  </div>
+  <div class='form-group row required'>
+<label class='col-md-3 col-form-label' for='dispatchDate '>
+{{ 'DispatchDate ' | localize }}
+</label>
+<div class='col-md-9'>
+<input
+  type='date'
+  class='form-control'
+  name='dispatchDate '
+  id='dispatchDate '
+  required
+  [(ngModel)]='item.dispatchDate '
+  #dispatchDate Model='ngModel'
+  #dispatchDate El
+/>
+<abp-validation-summary
+  [control]='dispatchDate Model'
+  [controlEl]='dispatchDate El'
+></abp-validation-summary>
+</div>
+  </div>
+  <div class='form-group row required'>
+<label class='col-md-3 col-form-label' for='month'>
+{{ 'Month' | localize }}
+</label>
+<div class='col-md-9'>
+<input
+  type='number'
+  class='form-control'
+  name='month'
+  id='month'
+  required
+  [(ngModel)]='item.month'
+  #monthModel='ngModel'
+  #monthEl
+/>
+<abp-validation-summary
+  [control]='monthModel'
+  [controlEl]='monthEl'
+></abp-validation-summary>
+</div>
+  </div>
+  <div class='form-group row required'>
+<label class='col-md-3 col-form-label' for='postalCode'>
+{{ 'PostalCode' | localize }}
+</label>
+<div class='col-md-9'>
+<input
+  type='text'
+  class='form-control'
+  name='postalCode'
+  id='postalCode'
+  required
+  [(ngModel)]='item.postalCode'
+  #postalCodeModel='ngModel'
+  #postalCodeEl
+/>
+<abp-validation-summary
+  [control]='postalCodeModel'
+  [controlEl]='postalCodeEl'
+></abp-validation-summary>
+</div>
+  </div>
+  <div class='form-group row required'>
+<label class='col-md-3 col-form-label' for='serviceCode'>
+{{ 'ServiceCode' | localize }}
+</label>
+<div class='col-md-9'>
+<input
+  type='text'
+  class='form-control'
+  name='serviceCode'
+  id='serviceCode'
+  required
+  [(ngModel)]='item.serviceCode'
+  #serviceCodeModel='ngModel'
+  #serviceCodeEl
+/>
+<abp-validation-summary
+  [control]='serviceCodeModel'
+  [controlEl]='serviceCodeEl'
+></abp-validation-summary>
+</div>
+  </div>
+  <div class='form-group row required'>
+<label class='col-md-3 col-form-label' for='productCode'>
+{{ 'ProductCode' | localize }}
+</label>
+<div class='col-md-9'>
+<input
+  type='text'
+  class='form-control'
+  name='productCode'
+  id='productCode'
+  required
+  [(ngModel)]='item.productCode'
+  #productCodeModel='ngModel'
+  #productCodeEl
+/>
+<abp-validation-summary
+  [control]='productCodeModel'
+  [controlEl]='productCodeEl'
+></abp-validation-summary>
+</div>
+  </div>
+  <div class='form-group row required'>
+<label class='col-md-3 col-form-label' for='countryCode'>
+{{ 'CountryCode' | localize }}
+</label>
+<div class='col-md-9'>
+<input
+  type='text'
+  class='form-control'
+  name='countryCode'
+  id='countryCode'
+  required
+  [(ngModel)]='item.countryCode'
+  #countryCodeModel='ngModel'
+  #countryCodeEl
+/>
+<abp-validation-summary
+  [control]='countryCodeModel'
+  [controlEl]='countryCodeEl'
+></abp-validation-summary>
+</div>
+  </div>
+  <div class='form-group row required'>
+<label class='col-md-3 col-form-label' for='weight '>
+{{ 'Weight ' | localize }}
+</label>
+<div class='col-md-9'>
+<input
+  class='form-control'
+  name='weight '
+  id='weight '
+  required
+  [(ngModel)]='item.weight '
+  #weight Model='ngModel'
+  #weight El
+/>
+<abp-validation-summary
+  [control]='weight Model'
+  [controlEl]='weight El'
+></abp-validation-summary>
+</div>
+  </div>
+  <div class='form-group row required'>
+<label class='col-md-3 col-form-label' for='bagNo'>
+{{ 'BagNo' | localize }}
+</label>
+<div class='col-md-9'>
+<input
+  type='text'
+  class='form-control'
+  name='bagNo'
+  id='bagNo'
+  required
+  [(ngModel)]='item.bagNo'
+  #bagNoModel='ngModel'
+  #bagNoEl
+/>
+<abp-validation-summary
+  [control]='bagNoModel'
+  [controlEl]='bagNoEl'
+></abp-validation-summary>
+</div>
+  </div>
+  <div class='form-group row required'>
+<label class='col-md-3 col-form-label' for='sealNo '>
+{{ 'SealNo ' | localize }}
+</label>
+<div class='col-md-9'>
+<input
+  type='text'
+  class='form-control'
+  name='sealNo '
+  id='sealNo '
+  required
+  [(ngModel)]='item.sealNo '
+  #sealNo Model='ngModel'
+  #sealNo El
+/>
+<abp-validation-summary
+  [control]='sealNo Model'
+  [controlEl]='sealNo El'
+></abp-validation-summary>
+</div>
+  </div>
+  <div class='form-group row required'>
+<label class='col-md-3 col-form-label' for='price'>
+{{ 'Price' | localize }}
+</label>
+<div class='col-md-9'>
+<input
+  class='form-control'
+  name='price'
+  id='price'
+  required
+  [(ngModel)]='item.price'
+  #priceModel='ngModel'
+  #priceEl
+/>
+<abp-validation-summary
+  [control]='priceModel'
+  [controlEl]='priceEl'
+></abp-validation-summary>
+</div>
+  </div>
+  <div class='form-group row required'>
+<label class='col-md-3 col-form-label' for='status '>
+{{ 'Status ' | localize }}
+</label>
+<div class='col-md-9'>
+<input
+  type='number'
+  class='form-control'
+  name='status '
+  id='status '
+  required
+  [(ngModel)]='item.status '
+  #status Model='ngModel'
+  #status El
+/>
+<abp-validation-summary
+  [control]='status Model'
+  [controlEl]='status El'
+></abp-validation-summary>
+</div>
+  </div>
+  <div class='form-group row required'>
+<label class='col-md-3 col-form-label' for='itemValue '>
+{{ 'ItemValue ' | localize }}
+</label>
+<div class='col-md-9'>
+<input
+  class='form-control'
+  name='itemValue '
+  id='itemValue '
+  required
+  [(ngModel)]='item.itemValue '
+  #itemValue Model='ngModel'
+  #itemValue El
+/>
+<abp-validation-summary
+  [control]='itemValue Model'
+  [controlEl]='itemValue El'
+></abp-validation-summary>
+</div>
+  </div>
+  <div class='form-group row required'>
+<label class='col-md-3 col-form-label' for='itemDesc  '>
+{{ 'ItemDesc  ' | localize }}
+</label>
+<div class='col-md-9'>
+<input
+  type='text'
+  class='form-control'
+  name='itemDesc  '
+  id='itemDesc  '
+  required
+  [(ngModel)]='item.itemDesc  '
+  #itemDesc  Model='ngModel'
+  #itemDesc  El
+/>
+<abp-validation-summary
+  [control]='itemDesc  Model'
+  [controlEl]='itemDesc  El'
+></abp-validation-summary>
+</div>
+  </div>
+  <div class='form-group row required'>
+<label class='col-md-3 col-form-label' for='recpName  '>
+{{ 'RecpName  ' | localize }}
+</label>
+<div class='col-md-9'>
+<input
+  type='text'
+  class='form-control'
+  name='recpName  '
+  id='recpName  '
+  required
+  [(ngModel)]='item.recpName  '
+  #recpName  Model='ngModel'
+  #recpName  El
+/>
+<abp-validation-summary
+  [control]='recpName  Model'
+  [controlEl]='recpName  El'
+></abp-validation-summary>
+</div>
+  </div>
+  <div class='form-group row required'>
+<label class='col-md-3 col-form-label' for='telNo'>
+{{ 'TelNo' | localize }}
+</label>
+<div class='col-md-9'>
+<input
+  type='text'
+  class='form-control'
+  name='telNo'
+  id='telNo'
+  required
+  [(ngModel)]='item.telNo'
+  #telNoModel='ngModel'
+  #telNoEl
+/>
+<abp-validation-summary
+  [control]='telNoModel'
+  [controlEl]='telNoEl'
+></abp-validation-summary>
+</div>
+  </div>
+  <div class='form-group row required'>
+<label class='col-md-3 col-form-label' for='email'>
+{{ 'Email' | localize }}
+</label>
+<div class='col-md-9'>
+<input
+  type='text'
+  class='form-control'
+  name='email'
+  id='email'
+  required
+  [(ngModel)]='item.email'
+  #emailModel='ngModel'
+  #emailEl
+/>
+<abp-validation-summary
+  [control]='emailModel'
+  [controlEl]='emailEl'
+></abp-validation-summary>
+</div>
+  </div>
+  <div class='form-group row required'>
+<label class='col-md-3 col-form-label' for='address'>
+{{ 'Address' | localize }}
+</label>
+<div class='col-md-9'>
+<input
+  type='text'
+  class='form-control'
+  name='address'
+  id='address'
+  required
+  [(ngModel)]='item.address'
+  #addressModel='ngModel'
+  #addressEl
+/>
+<abp-validation-summary
+  [control]='addressModel'
+  [controlEl]='addressEl'
+></abp-validation-summary>
+</div>
+  </div>
+  <div class='form-group row required'>
+<label class='col-md-3 col-form-label' for='postcode  '>
+{{ 'Postcode  ' | localize }}
+</label>
+<div class='col-md-9'>
+<input
+  type='text'
+  class='form-control'
+  name='postcode  '
+  id='postcode  '
+  required
+  [(ngModel)]='item.postcode  '
+  #postcode  Model='ngModel'
+  #postcode  El
+/>
+<abp-validation-summary
+  [control]='postcode  Model'
+  [controlEl]='postcode  El'
+></abp-validation-summary>
+</div>
+  </div>
+  <div class='form-group row required'>
+<label class='col-md-3 col-form-label' for='rateCategory '>
+{{ 'RateCategory ' | localize }}
+</label>
+<div class='col-md-9'>
+<input
+  type='text'
+  class='form-control'
+  name='rateCategory '
+  id='rateCategory '
+  required
+  [(ngModel)]='item.rateCategory '
+  #rateCategory Model='ngModel'
+  #rateCategory El
+/>
+<abp-validation-summary
+  [control]='rateCategory Model'
+  [controlEl]='rateCategory El'
+></abp-validation-summary>
+</div>
+  </div>
+  <div class='form-group row required'>
+<label class='col-md-3 col-form-label' for='city'>
+{{ 'City' | localize }}
+</label>
+<div class='col-md-9'>
+<input
+  type='text'
+  class='form-control'
+  name='city'
+  id='city'
+  required
+  [(ngModel)]='item.city'
+  #cityModel='ngModel'
+  #cityEl
+/>
+<abp-validation-summary
+  [control]='cityModel'
+  [controlEl]='cityEl'
+></abp-validation-summary>
+</div>
+  </div>
+  <div class='form-group row required'>
+<label class='col-md-3 col-form-label' for='address2  '>
+{{ 'Address2  ' | localize }}
+</label>
+<div class='col-md-9'>
+<input
+  type='text'
+  class='form-control'
+  name='address2  '
+  id='address2  '
+  required
+  [(ngModel)]='item.address2  '
+  #address2  Model='ngModel'
+  #address2  El
+/>
+<abp-validation-summary
+  [control]='address2  Model'
+  [controlEl]='address2  El'
+></abp-validation-summary>
+</div>
+  </div>
+  <div class='form-group row required'>
+<label class='col-md-3 col-form-label' for='addressNo '>
+{{ 'AddressNo ' | localize }}
+</label>
+<div class='col-md-9'>
+<input
+  type='text'
+  class='form-control'
+  name='addressNo '
+  id='addressNo '
+  required
+  [(ngModel)]='item.addressNo '
+  #addressNo Model='ngModel'
+  #addressNo El
+/>
+<abp-validation-summary
+  [control]='addressNo Model'
+  [controlEl]='addressNo El'
+></abp-validation-summary>
+</div>
+  </div>
+  <div class='form-group row required'>
+<label class='col-md-3 col-form-label' for='state'>
+{{ 'State' | localize }}
+</label>
+<div class='col-md-9'>
+<input
+  type='text'
+  class='form-control'
+  name='state'
+  id='state'
+  required
+  [(ngModel)]='item.state'
+  #stateModel='ngModel'
+  #stateEl
+/>
+<abp-validation-summary
+  [control]='stateModel'
+  [controlEl]='stateEl'
+></abp-validation-summary>
+</div>
+  </div>
+  <div class='form-group row required'>
+<label class='col-md-3 col-form-label' for='length '>
+{{ 'Length ' | localize }}
+</label>
+<div class='col-md-9'>
+<input
+  class='form-control'
+  name='length '
+  id='length '
+  required
+  [(ngModel)]='item.length '
+  #length Model='ngModel'
+  #length El
+/>
+<abp-validation-summary
+  [control]='length Model'
+  [controlEl]='length El'
+></abp-validation-summary>
+</div>
+  </div>
+  <div class='form-group row required'>
+<label class='col-md-3 col-form-label' for='width'>
+{{ 'Width' | localize }}
+</label>
+<div class='col-md-9'>
+<input
+  class='form-control'
+  name='width'
+  id='width'
+  required
+  [(ngModel)]='item.width'
+  #widthModel='ngModel'
+  #widthEl
+/>
+<abp-validation-summary
+  [control]='widthModel'
+  [controlEl]='widthEl'
+></abp-validation-summary>
+</div>
+  </div>
+  <div class='form-group row required'>
+<label class='col-md-3 col-form-label' for='height '>
+{{ 'Height ' | localize }}
+</label>
+<div class='col-md-9'>
+<input
+  class='form-control'
+  name='height '
+  id='height '
+  required
+  [(ngModel)]='item.height '
+  #height Model='ngModel'
+  #height El
+/>
+<abp-validation-summary
+  [control]='height Model'
+  [controlEl]='height El'
+></abp-validation-summary>
+</div>
+  </div>
+  <div class='form-group row required'>
+<label class='col-md-3 col-form-label' for='hSCode '>
+{{ 'HSCode ' | localize }}
+</label>
+<div class='col-md-9'>
+<input
+  type='text'
+  class='form-control'
+  name='hSCode '
+  id='hSCode '
+  required
+  [(ngModel)]='item.hSCode '
+  #hSCode Model='ngModel'
+  #hSCode El
+/>
+<abp-validation-summary
+  [control]='hSCode Model'
+  [controlEl]='hSCode El'
+></abp-validation-summary>
+</div>
+  </div>
+  <div class='form-group row required'>
+<label class='col-md-3 col-form-label' for='qty '>
+{{ 'Qty ' | localize }}
+</label>
+<div class='col-md-9'>
+<input
+  type='number'
+  class='form-control'
+  name='qty '
+  id='qty '
+  required
+  [(ngModel)]='item.qty '
+  #qty Model='ngModel'
+  #qty El
+/>
+<abp-validation-summary
+  [control]='qty Model'
+  [controlEl]='qty El'
+></abp-validation-summary>
+</div>
+  </div>
+  <div class='form-group row required'>
+<label class='col-md-3 col-form-label' for='passportNo'>
+{{ 'PassportNo' | localize }}
+</label>
+<div class='col-md-9'>
+<input
+  type='text'
+  class='form-control'
+  name='passportNo'
+  id='passportNo'
+  required
+  [(ngModel)]='item.passportNo'
+  #passportNoModel='ngModel'
+  #passportNoEl
+/>
+<abp-validation-summary
+  [control]='passportNoModel'
+  [controlEl]='passportNoEl'
+></abp-validation-summary>
+</div>
+  </div>
+  <div class='form-group row required'>
+<label class='col-md-3 col-form-label' for='taxPayMethod '>
+{{ 'TaxPayMethod ' | localize }}
+</label>
+<div class='col-md-9'>
+<input
+  type='text'
+  class='form-control'
+  name='taxPayMethod '
+  id='taxPayMethod '
+  required
+  [(ngModel)]='item.taxPayMethod '
+  #taxPayMethod Model='ngModel'
+  #taxPayMethod El
+/>
+<abp-validation-summary
+  [control]='taxPayMethod Model'
+  [controlEl]='taxPayMethod El'
+></abp-validation-summary>
+</div>
+  </div>
+  <div class='form-group row required'>
+<label class='col-md-3 col-form-label' for='dateStage1'>
+{{ 'DateStage1' | localize }}
+</label>
+<div class='col-md-9'>
+<input
+  type='datetime-local'
+  class='form-control'
+  name='dateStage1'
+  id='dateStage1'
+  required
+  [(ngModel)]='item.dateStage1'
+  #dateStage1Model='ngModel'
+  #dateStage1El
+/>
+<abp-validation-summary
+  [control]='dateStage1Model'
+  [controlEl]='dateStage1El'
+></abp-validation-summary>
+</div>
+  </div>
+  <div class='form-group row required'>
+<label class='col-md-3 col-form-label' for='dateStage2'>
+{{ 'DateStage2' | localize }}
+</label>
+<div class='col-md-9'>
+<input
+  type='datetime-local'
+  class='form-control'
+  name='dateStage2'
+  id='dateStage2'
+  required
+  [(ngModel)]='item.dateStage2'
+  #dateStage2Model='ngModel'
+  #dateStage2El
+/>
+<abp-validation-summary
+  [control]='dateStage2Model'
+  [controlEl]='dateStage2El'
+></abp-validation-summary>
+</div>
+  </div>
+  <div class='form-group row required'>
+<label class='col-md-3 col-form-label' for='dateStage3'>
+{{ 'DateStage3' | localize }}
+</label>
+<div class='col-md-9'>
+<input
+  type='datetime-local'
+  class='form-control'
+  name='dateStage3'
+  id='dateStage3'
+  required
+  [(ngModel)]='item.dateStage3'
+  #dateStage3Model='ngModel'
+  #dateStage3El
+/>
+<abp-validation-summary
+  [control]='dateStage3Model'
+  [controlEl]='dateStage3El'
+></abp-validation-summary>
+</div>
+  </div>
+  <div class='form-group row required'>
+<label class='col-md-3 col-form-label' for='dateStage4'>
+{{ 'DateStage4' | localize }}
+</label>
+<div class='col-md-9'>
+<input
+  type='datetime-local'
+  class='form-control'
+  name='dateStage4'
+  id='dateStage4'
+  required
+  [(ngModel)]='item.dateStage4'
+  #dateStage4Model='ngModel'
+  #dateStage4El
+/>
+<abp-validation-summary
+  [control]='dateStage4Model'
+  [controlEl]='dateStage4El'
+></abp-validation-summary>
+</div>
+  </div>
+  <div class='form-group row required'>
+<label class='col-md-3 col-form-label' for='dateStage5'>
+{{ 'DateStage5' | localize }}
+</label>
+<div class='col-md-9'>
+<input
+  type='datetime-local'
+  class='form-control'
+  name='dateStage5'
+  id='dateStage5'
+  required
+  [(ngModel)]='item.dateStage5'
+  #dateStage5Model='ngModel'
+  #dateStage5El
+/>
+<abp-validation-summary
+  [control]='dateStage5Model'
+  [controlEl]='dateStage5El'
+></abp-validation-summary>
+</div>
+  </div>
+  <div class='form-group row required'>
+<label class='col-md-3 col-form-label' for='dateStage6'>
+{{ 'DateStage6' | localize }}
+</label>
+<div class='col-md-9'>
+<input
+  type='datetime-local'
+  class='form-control'
+  name='dateStage6'
+  id='dateStage6'
+  required
+  [(ngModel)]='item.dateStage6'
+  #dateStage6Model='ngModel'
+  #dateStage6El
+/>
+<abp-validation-summary
+  [control]='dateStage6Model'
+  [controlEl]='dateStage6El'
+></abp-validation-summary>
+</div>
+  </div>
+  <div class='form-group row required'>
+<label class='col-md-3 col-form-label' for='dateStage7'>
+{{ 'DateStage7' | localize }}
+</label>
+<div class='col-md-9'>
+<input
+  type='datetime-local'
+  class='form-control'
+  name='dateStage7'
+  id='dateStage7'
+  required
+  [(ngModel)]='item.dateStage7'
+  #dateStage7Model='ngModel'
+  #dateStage7El
+/>
+<abp-validation-summary
+  [control]='dateStage7Model'
+  [controlEl]='dateStage7El'
+></abp-validation-summary>
+</div>
+  </div>
+  <div class='form-group row required'>
+<label class='col-md-3 col-form-label' for='dateStage8'>
+{{ 'DateStage8' | localize }}
+</label>
+<div class='col-md-9'>
+<input
+  type='datetime-local'
+  class='form-control'
+  name='dateStage8'
+  id='dateStage8'
+  required
+  [(ngModel)]='item.dateStage8'
+  #dateStage8Model='ngModel'
+  #dateStage8El
+/>
+<abp-validation-summary
+  [control]='dateStage8Model'
+  [controlEl]='dateStage8El'
+></abp-validation-summary>
+</div>
+  </div>
+  <div class='form-group row required'>
+<label class='col-md-3 col-form-label' for='dateStage9'>
+{{ 'DateStage9' | localize }}
+</label>
+<div class='col-md-9'>
+<input
+  type='datetime-local'
+  class='form-control'
+  name='dateStage9'
+  id='dateStage9'
+  required
+  [(ngModel)]='item.dateStage9'
+  #dateStage9Model='ngModel'
+  #dateStage9El
+/>
+<abp-validation-summary
+  [control]='dateStage9Model'
+  [controlEl]='dateStage9El'
+></abp-validation-summary>
+</div>
+  </div>
+  <div class='form-group row required'>
+<label class='col-md-3 col-form-label' for='stage6OMTStatusDesc'>
+{{ 'Stage6OMTStatusDesc' | localize }}
+</label>
+<div class='col-md-9'>
+<input
+  type='text'
+  class='form-control'
+  name='stage6OMTStatusDesc'
+  id='stage6OMTStatusDesc'
+  required
+  [(ngModel)]='item.stage6OMTStatusDesc'
+  #stage6OMTStatusDescModel='ngModel'
+  #stage6OMTStatusDescEl
+/>
+<abp-validation-summary
+  [control]='stage6OMTStatusDescModel'
+  [controlEl]='stage6OMTStatusDescEl'
+></abp-validation-summary>
+</div>
+  </div>
+  <div class='form-group row required'>
+<label class='col-md-3 col-form-label' for='stage6OMTDepartureDate  '>
+{{ 'Stage6OMTDepartureDate  ' | localize }}
+</label>
+<div class='col-md-9'>
+<input
+  type='datetime-local'
+  class='form-control'
+  name='stage6OMTDepartureDate  '
+  id='stage6OMTDepartureDate  '
+  required
+  [(ngModel)]='item.stage6OMTDepartureDate  '
+  #stage6OMTDepartureDate  Model='ngModel'
+  #stage6OMTDepartureDate  El
+/>
+<abp-validation-summary
+  [control]='stage6OMTDepartureDate  Model'
+  [controlEl]='stage6OMTDepartureDate  El'
+></abp-validation-summary>
+</div>
+  </div>
+  <div class='form-group row required'>
+<label class='col-md-3 col-form-label' for='stage6OMTArrivalDate '>
+{{ 'Stage6OMTArrivalDate ' | localize }}
+</label>
+<div class='col-md-9'>
+<input
+  type='datetime-local'
+  class='form-control'
+  name='stage6OMTArrivalDate '
+  id='stage6OMTArrivalDate '
+  required
+  [(ngModel)]='item.stage6OMTArrivalDate '
+  #stage6OMTArrivalDate Model='ngModel'
+  #stage6OMTArrivalDate El
+/>
+<abp-validation-summary
+  [control]='stage6OMTArrivalDate Model'
+  [controlEl]='stage6OMTArrivalDate El'
+></abp-validation-summary>
+</div>
+  </div>
+  <div class='form-group row required'>
+<label class='col-md-3 col-form-label' for='stage6OMTDestinationCity'>
+{{ 'Stage6OMTDestinationCity' | localize }}
+</label>
+<div class='col-md-9'>
+<input
+  type='text'
+  class='form-control'
+  name='stage6OMTDestinationCity'
+  id='stage6OMTDestinationCity'
+  required
+  [(ngModel)]='item.stage6OMTDestinationCity'
+  #stage6OMTDestinationCityModel='ngModel'
+  #stage6OMTDestinationCityEl
+/>
+<abp-validation-summary
+  [control]='stage6OMTDestinationCityModel'
+  [controlEl]='stage6OMTDestinationCityEl'
+></abp-validation-summary>
+</div>
+  </div>
+  <div class='form-group row required'>
+<label class='col-md-3 col-form-label' for='stage6OMTDestinationCityCode  '>
+{{ 'Stage6OMTDestinationCityCode  ' | localize }}
+</label>
+<div class='col-md-9'>
+<input
+  type='text'
+  class='form-control'
+  name='stage6OMTDestinationCityCode  '
+  id='stage6OMTDestinationCityCode  '
+  required
+  [(ngModel)]='item.stage6OMTDestinationCityCode  '
+  #stage6OMTDestinationCityCode  Model='ngModel'
+  #stage6OMTDestinationCityCode  El
+/>
+<abp-validation-summary
+  [control]='stage6OMTDestinationCityCode  Model'
+  [controlEl]='stage6OMTDestinationCityCode  El'
+></abp-validation-summary>
+</div>
+  </div>
+  <div class='form-group row required'>
+<label class='col-md-3 col-form-label' for='stage6OMTCountryCode '>
+{{ 'Stage6OMTCountryCode ' | localize }}
+</label>
+<div class='col-md-9'>
+<input
+  type='text'
+  class='form-control'
+  name='stage6OMTCountryCode '
+  id='stage6OMTCountryCode '
+  required
+  [(ngModel)]='item.stage6OMTCountryCode '
+  #stage6OMTCountryCode Model='ngModel'
+  #stage6OMTCountryCode El
+/>
+<abp-validation-summary
+  [control]='stage6OMTCountryCode Model'
+  [controlEl]='stage6OMTCountryCode El'
+></abp-validation-summary>
+</div>
+  </div>
+  <div class='form-group row required'>
+<label class='col-md-3 col-form-label' for='extMsg '>
+{{ 'ExtMsg ' | localize }}
+</label>
+<div class='col-md-9'>
+<input
+  type='text'
+  class='form-control'
+  name='extMsg '
+  id='extMsg '
+  required
+  [(ngModel)]='item.extMsg '
+  #extMsg Model='ngModel'
+  #extMsg El
+/>
+<abp-validation-summary
+  [control]='extMsg Model'
+  [controlEl]='extMsg El'
+></abp-validation-summary>
+</div>
+  </div>
+  <div class='form-group row required'>
+<label class='col-md-3 col-form-label' for='identityType '>
+{{ 'IdentityType ' | localize }}
+</label>
+<div class='col-md-9'>
+<input
+  type='text'
+  class='form-control'
+  name='identityType '
+  id='identityType '
+  required
+  [(ngModel)]='item.identityType '
+  #identityType Model='ngModel'
+  #identityType El
+/>
+<abp-validation-summary
+  [control]='identityType Model'
+  [controlEl]='identityType El'
+></abp-validation-summary>
+</div>
+  </div>
+  <div class='form-group row required'>
+<label class='col-md-3 col-form-label' for='senderName'>
+{{ 'SenderName' | localize }}
+</label>
+<div class='col-md-9'>
+<input
+  type='text'
+  class='form-control'
+  name='senderName'
+  id='senderName'
+  required
+  [(ngModel)]='item.senderName'
+  #senderNameModel='ngModel'
+  #senderNameEl
+/>
+<abp-validation-summary
+  [control]='senderNameModel'
+  [controlEl]='senderNameEl'
+></abp-validation-summary>
+</div>
+  </div>
+  <div class='form-group row required'>
+<label class='col-md-3 col-form-label' for='iOSSTax'>
+{{ 'IOSSTax' | localize }}
+</label>
+<div class='col-md-9'>
+<input
+  type='text'
+  class='form-control'
+  name='iOSSTax'
+  id='iOSSTax'
+  required
+  [(ngModel)]='item.iOSSTax'
+  #iOSSTaxModel='ngModel'
+  #iOSSTaxEl
+/>
+<abp-validation-summary
+  [control]='iOSSTaxModel'
+  [controlEl]='iOSSTaxEl'
+></abp-validation-summary>
+</div>
+  </div>
+  <div class='form-group row required'>
+<label class='col-md-3 col-form-label' for='refNo'>
+{{ 'RefNo' | localize }}
+</label>
+<div class='col-md-9'>
+<input
+  type='text'
+  class='form-control'
+  name='refNo'
+  id='refNo'
+  required
+  [(ngModel)]='item.refNo'
+  #refNoModel='ngModel'
+  #refNoEl
+/>
+<abp-validation-summary
+  [control]='refNoModel'
+  [controlEl]='refNoEl'
+></abp-validation-summary>
+</div>
+  </div>
+  <div class='form-group row required'>
+<label class='col-md-3 col-form-label' for='dateSuccessfulDelivery  '>
+{{ 'DateSuccessfulDelivery  ' | localize }}
+</label>
+<div class='col-md-9'>
+<input
+  type='datetime-local'
+  class='form-control'
+  name='dateSuccessfulDelivery  '
+  id='dateSuccessfulDelivery  '
+  required
+  [(ngModel)]='item.dateSuccessfulDelivery  '
+  #dateSuccessfulDelivery  Model='ngModel'
+  #dateSuccessfulDelivery  El
+/>
+<abp-validation-summary
+  [control]='dateSuccessfulDelivery  Model'
+  [controlEl]='dateSuccessfulDelivery  El'
+></abp-validation-summary>
+</div>
+  </div>
+  <div class='form-group row required'>
+<label class='col-md-3 col-form-label' for='isDelivered'>
+{{ 'IsDelivered' | localize }}
+</label>
+<div class='col-md-9'>
+<input
+  type='checkbox'
+  class='form-control'
+  name='isDelivered'
+  id='isDelivered'
+  [(ngModel)]='item.isDelivered'
+  #isDeliveredModel='ngModel'
+  #isDeliveredEl
+/>
+<abp-validation-summary
+  [control]='isDeliveredModel'
+  [controlEl]='isDeliveredEl'
+></abp-validation-summary>
+</div>
+  </div>
+  <div class='form-group row required'>
+<label class='col-md-3 col-form-label' for='deliveredInDays '>
+{{ 'DeliveredInDays ' | localize }}
+</label>
+<div class='col-md-9'>
+<input
+  type='number'
+  class='form-control'
+  name='deliveredInDays '
+  id='deliveredInDays '
+  required
+  [(ngModel)]='item.deliveredInDays '
+  #deliveredInDays Model='ngModel'
+  #deliveredInDays El
+/>
+<abp-validation-summary
+  [control]='deliveredInDays Model'
+  [controlEl]='deliveredInDays El'
+></abp-validation-summary>
+</div>
+  </div>
+  <div class='form-group row required'>
+<label class='col-md-3 col-form-label' for='isExempted'>
+{{ 'IsExempted' | localize }}
+</label>
+<div class='col-md-9'>
+<input
+  type='checkbox'
+  class='form-control'
+  name='isExempted'
+  id='isExempted'
+  [(ngModel)]='item.isExempted'
+  #isExemptedModel='ngModel'
+  #isExemptedEl
+/>
+<abp-validation-summary
+  [control]='isExemptedModel'
+  [controlEl]='isExemptedEl'
+></abp-validation-summary>
+</div>
+  </div>
+  <div class='form-group row required'>
+<label class='col-md-3 col-form-label' for='exemptedRemark  '>
+{{ 'ExemptedRemark  ' | localize }}
+</label>
+<div class='col-md-9'>
+<input
+  type='text'
+  class='form-control'
+  name='exemptedRemark  '
+  id='exemptedRemark  '
+  required
+  [(ngModel)]='item.exemptedRemark  '
+  #exemptedRemark  Model='ngModel'
+  #exemptedRemark  El
+/>
+<abp-validation-summary
+  [control]='exemptedRemark  Model'
+  [controlEl]='exemptedRemark  El'
+></abp-validation-summary>
+</div>
+  </div>
+  <div class='form-group row required'>
+<label class='col-md-3 col-form-label' for='cLCuartel '>
+{{ 'CLCuartel ' | localize }}
+</label>
+<div class='col-md-9'>
+<input
+  type='text'
+  class='form-control'
+  name='cLCuartel '
+  id='cLCuartel '
+  required
+  [(ngModel)]='item.cLCuartel '
+  #cLCuartel Model='ngModel'
+  #cLCuartel El
+/>
+<abp-validation-summary
+  [control]='cLCuartel Model'
+  [controlEl]='cLCuartel El'
+></abp-validation-summary>
+</div>
+  </div>
+  <div class='form-group row required'>
+<label class='col-md-3 col-form-label' for='cLSector  '>
+{{ 'CLSector  ' | localize }}
+</label>
+<div class='col-md-9'>
+<input
+  type='text'
+  class='form-control'
+  name='cLSector  '
+  id='cLSector  '
+  required
+  [(ngModel)]='item.cLSector  '
+  #cLSector  Model='ngModel'
+  #cLSector  El
+/>
+<abp-validation-summary
+  [control]='cLSector  Model'
+  [controlEl]='cLSector  El'
+></abp-validation-summary>
+</div>
+  </div>
+  <div class='form-group row required'>
+<label class='col-md-3 col-form-label' for='cLSDP'>
+{{ 'CLSDP' | localize }}
+</label>
+<div class='col-md-9'>
+<input
+  type='text'
+  class='form-control'
+  name='cLSDP'
+  id='cLSDP'
+  required
+  [(ngModel)]='item.cLSDP'
+  #cLSDPModel='ngModel'
+  #cLSDPEl
+/>
+<abp-validation-summary
+  [control]='cLSDPModel'
+  [controlEl]='cLSDPEl'
+></abp-validation-summary>
+</div>
+  </div>
+  <div class='form-group row required'>
+<label class='col-md-3 col-form-label' for='cLCodigoDelegacionDestino'>
+{{ 'CLCodigoDelegacionDestino' | localize }}
+</label>
+<div class='col-md-9'>
+<input
+  type='text'
+  class='form-control'
+  name='cLCodigoDelegacionDestino'
+  id='cLCodigoDelegacionDestino'
+  required
+  [(ngModel)]='item.cLCodigoDelegacionDestino'
+  #cLCodigoDelegacionDestinoModel='ngModel'
+  #cLCodigoDelegacionDestinoEl
+/>
+<abp-validation-summary
+  [control]='cLCodigoDelegacionDestinoModel'
+  [controlEl]='cLCodigoDelegacionDestinoEl'
+></abp-validation-summary>
+</div>
+  </div>
+  <div class='form-group row required'>
+<label class='col-md-3 col-form-label' for='cLNombreDelegacionDestino'>
+{{ 'CLNombreDelegacionDestino' | localize }}
+</label>
+<div class='col-md-9'>
+<input
+  type='text'
+  class='form-control'
+  name='cLNombreDelegacionDestino'
+  id='cLNombreDelegacionDestino'
+  required
+  [(ngModel)]='item.cLNombreDelegacionDestino'
+  #cLNombreDelegacionDestinoModel='ngModel'
+  #cLNombreDelegacionDestinoEl
+/>
+<abp-validation-summary
+  [control]='cLNombreDelegacionDestinoModel'
+  [controlEl]='cLNombreDelegacionDestinoEl'
+></abp-validation-summary>
+</div>
+  </div>
+  <div class='form-group row required'>
+<label class='col-md-3 col-form-label' for='cLDireccionDestino'>
+{{ 'CLDireccionDestino' | localize }}
+</label>
+<div class='col-md-9'>
+<input
+  type='text'
+  class='form-control'
+  name='cLDireccionDestino'
+  id='cLDireccionDestino'
+  required
+  [(ngModel)]='item.cLDireccionDestino'
+  #cLDireccionDestinoModel='ngModel'
+  #cLDireccionDestinoEl
+/>
+<abp-validation-summary
+  [control]='cLDireccionDestinoModel'
+  [controlEl]='cLDireccionDestinoEl'
+></abp-validation-summary>
+</div>
+  </div>
+  <div class='form-group row required'>
+<label class='col-md-3 col-form-label' for='cLCodigoEncaminamiento  '>
+{{ 'CLCodigoEncaminamiento  ' | localize }}
+</label>
+<div class='col-md-9'>
+<input
+  type='text'
+  class='form-control'
+  name='cLCodigoEncaminamiento  '
+  id='cLCodigoEncaminamiento  '
+  required
+  [(ngModel)]='item.cLCodigoEncaminamiento  '
+  #cLCodigoEncaminamiento  Model='ngModel'
+  #cLCodigoEncaminamiento  El
+/>
+<abp-validation-summary
+  [control]='cLCodigoEncaminamiento  Model'
+  [controlEl]='cLCodigoEncaminamiento  El'
+></abp-validation-summary>
+</div>
+  </div>
+  <div class='form-group row required'>
+<label class='col-md-3 col-form-label' for='cLNumeroEnvio'>
+{{ 'CLNumeroEnvio' | localize }}
+</label>
+<div class='col-md-9'>
+<input
+  type='text'
+  class='form-control'
+  name='cLNumeroEnvio'
+  id='cLNumeroEnvio'
+  required
+  [(ngModel)]='item.cLNumeroEnvio'
+  #cLNumeroEnvioModel='ngModel'
+  #cLNumeroEnvioEl
+/>
+<abp-validation-summary
+  [control]='cLNumeroEnvioModel'
+  [controlEl]='cLNumeroEnvioEl'
+></abp-validation-summary>
+</div>
+  </div>
+  <div class='form-group row required'>
+<label class='col-md-3 col-form-label' for='cLComunaDestino '>
+{{ 'CLComunaDestino ' | localize }}
+</label>
+<div class='col-md-9'>
+<input
+  type='text'
+  class='form-control'
+  name='cLComunaDestino '
+  id='cLComunaDestino '
+  required
+  [(ngModel)]='item.cLComunaDestino '
+  #cLComunaDestino Model='ngModel'
+  #cLComunaDestino El
+/>
+<abp-validation-summary
+  [control]='cLComunaDestino Model'
+  [controlEl]='cLComunaDestino El'
+></abp-validation-summary>
+</div>
+  </div>
+  <div class='form-group row required'>
+<label class='col-md-3 col-form-label' for='cLAbreviaturaServicio'>
+{{ 'CLAbreviaturaServicio' | localize }}
+</label>
+<div class='col-md-9'>
+<input
+  type='text'
+  class='form-control'
+  name='cLAbreviaturaServicio'
+  id='cLAbreviaturaServicio'
+  required
+  [(ngModel)]='item.cLAbreviaturaServicio'
+  #cLAbreviaturaServicioModel='ngModel'
+  #cLAbreviaturaServicioEl
+/>
+<abp-validation-summary
+  [control]='cLAbreviaturaServicioModel'
+  [controlEl]='cLAbreviaturaServicioEl'
+></abp-validation-summary>
+</div>
+  </div>
+  <div class='form-group row required'>
+<label class='col-md-3 col-form-label' for='cLAbreviaturaCentro'>
+{{ 'CLAbreviaturaCentro' | localize }}
+</label>
+<div class='col-md-9'>
+<input
+  type='text'
+  class='form-control'
+  name='cLAbreviaturaCentro'
+  id='cLAbreviaturaCentro'
+  required
+  [(ngModel)]='item.cLAbreviaturaCentro'
+  #cLAbreviaturaCentroModel='ngModel'
+  #cLAbreviaturaCentroEl
+/>
+<abp-validation-summary
+  [control]='cLAbreviaturaCentroModel'
+  [controlEl]='cLAbreviaturaCentroEl'
+></abp-validation-summary>
+</div>
+  </div>
+  <div class='form-group row required'>
+<label class='col-md-3 col-form-label' for='stage1StatusDesc'>
+{{ 'Stage1StatusDesc' | localize }}
+</label>
+<div class='col-md-9'>
+<input
+  type='text'
+  class='form-control'
+  name='stage1StatusDesc'
+  id='stage1StatusDesc'
+  required
+  [(ngModel)]='item.stage1StatusDesc'
+  #stage1StatusDescModel='ngModel'
+  #stage1StatusDescEl
+/>
+<abp-validation-summary
+  [control]='stage1StatusDescModel'
+  [controlEl]='stage1StatusDescEl'
+></abp-validation-summary>
+</div>
+  </div>
+  <div class='form-group row required'>
+<label class='col-md-3 col-form-label' for='stage2StatusDesc'>
+{{ 'Stage2StatusDesc' | localize }}
+</label>
+<div class='col-md-9'>
+<input
+  type='text'
+  class='form-control'
+  name='stage2StatusDesc'
+  id='stage2StatusDesc'
+  required
+  [(ngModel)]='item.stage2StatusDesc'
+  #stage2StatusDescModel='ngModel'
+  #stage2StatusDescEl
+/>
+<abp-validation-summary
+  [control]='stage2StatusDescModel'
+  [controlEl]='stage2StatusDescEl'
+></abp-validation-summary>
+</div>
+  </div>
+  <div class='form-group row required'>
+<label class='col-md-3 col-form-label' for='stage3StatusDesc'>
+{{ 'Stage3StatusDesc' | localize }}
+</label>
+<div class='col-md-9'>
+<input
+  type='text'
+  class='form-control'
+  name='stage3StatusDesc'
+  id='stage3StatusDesc'
+  required
+  [(ngModel)]='item.stage3StatusDesc'
+  #stage3StatusDescModel='ngModel'
+  #stage3StatusDescEl
+/>
+<abp-validation-summary
+  [control]='stage3StatusDescModel'
+  [controlEl]='stage3StatusDescEl'
+></abp-validation-summary>
+</div>
+  </div>
+  <div class='form-group row required'>
+<label class='col-md-3 col-form-label' for='stage4StatusDesc'>
+{{ 'Stage4StatusDesc' | localize }}
+</label>
+<div class='col-md-9'>
+<input
+  type='text'
+  class='form-control'
+  name='stage4StatusDesc'
+  id='stage4StatusDesc'
+  required
+  [(ngModel)]='item.stage4StatusDesc'
+  #stage4StatusDescModel='ngModel'
+  #stage4StatusDescEl
+/>
+<abp-validation-summary
+  [control]='stage4StatusDescModel'
+  [controlEl]='stage4StatusDescEl'
+></abp-validation-summary>
+</div>
+  </div>
+  <div class='form-group row required'>
+<label class='col-md-3 col-form-label' for='stage5StatusDesc'>
+{{ 'Stage5StatusDesc' | localize }}
+</label>
+<div class='col-md-9'>
+<input
+  type='text'
+  class='form-control'
+  name='stage5StatusDesc'
+  id='stage5StatusDesc'
+  required
+  [(ngModel)]='item.stage5StatusDesc'
+  #stage5StatusDescModel='ngModel'
+  #stage5StatusDescEl
+/>
+<abp-validation-summary
+  [control]='stage5StatusDescModel'
+  [controlEl]='stage5StatusDescEl'
+></abp-validation-summary>
+</div>
+  </div>
+  <div class='form-group row required'>
+<label class='col-md-3 col-form-label' for='stage6StatusDesc'>
+{{ 'Stage6StatusDesc' | localize }}
+</label>
+<div class='col-md-9'>
+<input
+  type='text'
+  class='form-control'
+  name='stage6StatusDesc'
+  id='stage6StatusDesc'
+  required
+  [(ngModel)]='item.stage6StatusDesc'
+  #stage6StatusDescModel='ngModel'
+  #stage6StatusDescEl
+/>
+<abp-validation-summary
+  [control]='stage6StatusDescModel'
+  [controlEl]='stage6StatusDescEl'
+></abp-validation-summary>
+</div>
+  </div>
+  <div class='form-group row required'>
+<label class='col-md-3 col-form-label' for='stage7StatusDesc'>
+{{ 'Stage7StatusDesc' | localize }}
+</label>
+<div class='col-md-9'>
+<input
+  type='text'
+  class='form-control'
+  name='stage7StatusDesc'
+  id='stage7StatusDesc'
+  required
+  [(ngModel)]='item.stage7StatusDesc'
+  #stage7StatusDescModel='ngModel'
+  #stage7StatusDescEl
+/>
+<abp-validation-summary
+  [control]='stage7StatusDescModel'
+  [controlEl]='stage7StatusDescEl'
+></abp-validation-summary>
+</div>
+  </div>
+  <div class='form-group row required'>
+<label class='col-md-3 col-form-label' for='stage8StatusDesc'>
+{{ 'Stage8StatusDesc' | localize }}
+</label>
+<div class='col-md-9'>
+<input
+  type='text'
+  class='form-control'
+  name='stage8StatusDesc'
+  id='stage8StatusDesc'
+  required
+  [(ngModel)]='item.stage8StatusDesc'
+  #stage8StatusDescModel='ngModel'
+  #stage8StatusDescEl
+/>
+<abp-validation-summary
+  [control]='stage8StatusDescModel'
+  [controlEl]='stage8StatusDescEl'
+></abp-validation-summary>
+</div>
+  </div>
+  <div class='form-group row required'>
+<label class='col-md-3 col-form-label' for='stage9StatusDesc'>
+{{ 'Stage9StatusDesc' | localize }}
+</label>
+<div class='col-md-9'>
+<input
+  type='text'
+  class='form-control'
+  name='stage9StatusDesc'
+  id='stage9StatusDesc'
+  required
+  [(ngModel)]='item.stage9StatusDesc'
+  #stage9StatusDescModel='ngModel'
+  #stage9StatusDescEl
+/>
+<abp-validation-summary
+  [control]='stage9StatusDescModel'
+  [controlEl]='stage9StatusDescEl'
+></abp-validation-summary>
+</div>
+  </div>
+  <div class='form-group row required'>
+<label class='col-md-3 col-form-label' for='cityId '>
+{{ 'CityId ' | localize }}
+</label>
+<div class='col-md-9'>
+<input
+  type='text'
+  class='form-control'
+  name='cityId '
+  id='cityId '
+  required
+  [(ngModel)]='item.cityId '
+  #cityId Model='ngModel'
+  #cityId El
+/>
+<abp-validation-summary
+  [control]='cityId Model'
+  [controlEl]='cityId El'
+></abp-validation-summary>
+</div>
+  </div>
+  <div class='form-group row required'>
+<label class='col-md-3 col-form-label' for='finalOfficeId'>
+{{ 'FinalOfficeId' | localize }}
+</label>
+<div class='col-md-9'>
+<input
+  type='text'
+  class='form-control'
+  name='finalOfficeId'
+  id='finalOfficeId'
+  required
+  [(ngModel)]='item.finalOfficeId'
+  #finalOfficeIdModel='ngModel'
+  #finalOfficeIdEl
+/>
+<abp-validation-summary
+  [control]='finalOfficeIdModel'
+  [controlEl]='finalOfficeIdEl'
+></abp-validation-summary>
+</div>
+  </div>
+ </div>
+ <abp-modal-footer
+ [cancelDisabled]='saving'
+ [saveDisabled]='!createItemModal.form.valid || saving'
+ (onCancelClick)='bsModalRef.hide()'
+ ></abp-modal-footer>
+</form> -->

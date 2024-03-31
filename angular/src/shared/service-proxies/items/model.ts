@@ -5,14 +5,18 @@ export interface ItemDto extends EntityDto<number> {
     extID                         : string;
     dispatchID                    : number;
     bagID                         : number;
+    dispatchDate                  : string;
     month                         : number;
     postalCode                    : string;
     serviceCode                   : string;
     productCode                   : string;
     countryCode                   : string;
+    weight                        : number;
     bagNo                         : string;
     sealNo                        : string;
+    price                         : number;
     status                        : number;
+    itemValue                     : number;
     itemDesc                      : string;
     recpName                      : string;
     telNo                         : string;
@@ -24,6 +28,9 @@ export interface ItemDto extends EntityDto<number> {
     address2                      : string;
     addressNo                     : string;
     state                         : string;
+    length                        : number;
+    width                         : number;
+    height                        : number;
     hSCode                        : string;
     qty                           : number;
     passportNo                    : string;
