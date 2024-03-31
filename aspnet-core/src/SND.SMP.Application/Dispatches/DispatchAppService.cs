@@ -12,10 +12,10 @@ using SND.SMP.Dispatches.Dto;
 
 namespace SND.SMP.Dispatches
 {
-    public class DispatchAppService : AsyncCrudAppService<Dispatch, DispatchDto, long, PagedDispatchResultRequestDto>
+    public class DispatchAppService : AsyncCrudAppService<Dispatch, DispatchDto, int, PagedDispatchResultRequestDto>
     {
 
-        public DispatchAppService(IRepository<Dispatch, long> repository) : base(repository)
+        public DispatchAppService(IRepository<Dispatch, int> repository) : base(repository)
         {
         }
         protected override IQueryable<Dispatch> CreateFilteredQuery(PagedDispatchResultRequestDto input)

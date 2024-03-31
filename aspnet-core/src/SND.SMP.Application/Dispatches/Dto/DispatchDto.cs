@@ -6,7 +6,7 @@ namespace SND.SMP.Dispatches.Dto
 {
 
     [AutoMap(typeof(Dispatch))]
-    public class DispatchDto : EntityDto<long>
+    public class DispatchDto : EntityDto<int>
     {
         public string CustomerCode                     { get; set; }
         public string POBox                            { get; set; }
