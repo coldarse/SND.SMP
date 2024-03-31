@@ -154,6 +154,7 @@ namespace SND.SMP.EntityFrameworkCore
                 b.Property(x => x.PaymentMode                     ).HasColumnName(nameof(Dispatch.PaymentMode                     )).HasMaxLength(10);
                 b.Property(x => x.CurrencyId                      ).HasColumnName(nameof(Dispatch.CurrencyId                      )).HasMaxLength(3);
                 b.Property(x => x.ImportProgress                  ).HasColumnName(nameof(Dispatch.ImportProgress                  ));
+                b.HasOne<Customer>().WithMany().HasForeignKey(x => x.CustomerCode).HasPrincipalKey(x => x.Code);
                 b.HasKey(x => x.Id);
             });
 
