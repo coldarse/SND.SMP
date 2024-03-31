@@ -14,6 +14,11 @@ namespace SND.SMP.Authorization
             context.CreatePermission(PermissionNames.Pages_Tenants, L("Tenants"), multiTenancySides: MultiTenancySides.Host);
 
             /* Define your permissions here */
+            context.CreatePermission(PermissionNames.Pages_Bag, L("Bags"));
+            context.CreatePermission(PermissionNames.Pages_Bag_Create, L("BagsCreate"));
+            context.CreatePermission(PermissionNames.Pages_Bag_Edit, L("BagsEdit"));
+            context.CreatePermission(PermissionNames.Pages_Bag_Delete, L("BagsDelete"));
+
             context.CreatePermission(PermissionNames.Pages_DispatchValidation, L("DispatchValidations"));
             context.CreatePermission(PermissionNames.Pages_DispatchValidation_Create, L("DispatchValidationsCreate"));
             context.CreatePermission(PermissionNames.Pages_DispatchValidation_Edit, L("DispatchValidationsEdit"));

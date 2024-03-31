@@ -1,0 +1,224 @@
+<form
+    class='form-horizontal'
+    autocomplete='off'
+    #createBagModal='ngForm'
+    (ngSubmit)='save()'
+>
+    <abp-modal-header
+        [title]='isCreate == true? ("Add Bag" | localize) : ("Edit Bag" | localize)'
+        (onCloseClick)='bsModalRef.hide()'
+    ></abp-modal-header>
+    <div class='modal-body'>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='bagNo                         '>
+            {{ 'BagNo                         ' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='text'
+                class='form-control'
+                name='bagNo                         '
+                id='bagNo                         '
+                required
+                [(ngModel)]='bag.bagNo                         '
+                #bagNo                         Model='ngModel'
+                #bagNo                         El
+            />
+            <abp-validation-summary
+                [control]='bagNo                         Model'
+                [controlEl]='bagNo                         El'
+            ></abp-validation-summary>
+            </div>
+        </div>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='dispatchId                    '>
+            {{ 'DispatchId                    ' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='number'
+                class='form-control'
+                name='dispatchId                    '
+                id='dispatchId                    '
+                required
+                [(ngModel)]='bag.dispatchId                    '
+                #dispatchId                    Model='ngModel'
+                #dispatchId                    El
+            />
+            <abp-validation-summary
+                [control]='dispatchId                    Model'
+                [controlEl]='dispatchId                    El'
+            ></abp-validation-summary>
+            </div>
+        </div>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='countryCode                   '>
+            {{ 'CountryCode                   ' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='text'
+                class='form-control'
+                name='countryCode                   '
+                id='countryCode                   '
+                required
+                [(ngModel)]='bag.countryCode                   '
+                #countryCode                   Model='ngModel'
+                #countryCode                   El
+            />
+            <abp-validation-summary
+                [control]='countryCode                   Model'
+                [controlEl]='countryCode                   El'
+            ></abp-validation-summary>
+            </div>
+        </div>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='weightPre                     '>
+            {{ 'WeightPre                     ' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                class='form-control'
+                name='weightPre                     '
+                id='weightPre                     '
+                required
+                [(ngModel)]='bag.weightPre                     '
+                #weightPre                     Model='ngModel'
+                #weightPre                     El
+            />
+            <abp-validation-summary
+                [control]='weightPre                     Model'
+                [controlEl]='weightPre                     El'
+            ></abp-validation-summary>
+            </div>
+        </div>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='weightPost                    '>
+            {{ 'WeightPost                    ' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                class='form-control'
+                name='weightPost                    '
+                id='weightPost                    '
+                required
+                [(ngModel)]='bag.weightPost                    '
+                #weightPost                    Model='ngModel'
+                #weightPost                    El
+            />
+            <abp-validation-summary
+                [control]='weightPost                    Model'
+                [controlEl]='weightPost                    El'
+            ></abp-validation-summary>
+            </div>
+        </div>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='itemCountPre                  '>
+            {{ 'ItemCountPre                  ' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='number'
+                class='form-control'
+                name='itemCountPre                  '
+                id='itemCountPre                  '
+                required
+                [(ngModel)]='bag.itemCountPre                  '
+                #itemCountPre                  Model='ngModel'
+                #itemCountPre                  El
+            />
+            <abp-validation-summary
+                [control]='itemCountPre                  Model'
+                [controlEl]='itemCountPre                  El'
+            ></abp-validation-summary>
+            </div>
+        </div>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='itemCountPost                 '>
+            {{ 'ItemCountPost                 ' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='number'
+                class='form-control'
+                name='itemCountPost                 '
+                id='itemCountPost                 '
+                required
+                [(ngModel)]='bag.itemCountPost                 '
+                #itemCountPost                 Model='ngModel'
+                #itemCountPost                 El
+            />
+            <abp-validation-summary
+                [control]='itemCountPost                 Model'
+                [controlEl]='itemCountPost                 El'
+            ></abp-validation-summary>
+            </div>
+        </div>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='weightVariance                '>
+            {{ 'WeightVariance                ' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                class='form-control'
+                name='weightVariance                '
+                id='weightVariance                '
+                required
+                [(ngModel)]='bag.weightVariance                '
+                #weightVariance                Model='ngModel'
+                #weightVariance                El
+            />
+            <abp-validation-summary
+                [control]='weightVariance                Model'
+                [controlEl]='weightVariance                El'
+            ></abp-validation-summary>
+            </div>
+        </div>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='cN35No                        '>
+            {{ 'CN35No                        ' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='text'
+                class='form-control'
+                name='cN35No                        '
+                id='cN35No                        '
+                required
+                [(ngModel)]='bag.cN35No                        '
+                #cN35No                        Model='ngModel'
+                #cN35No                        El
+            />
+            <abp-validation-summary
+                [control]='cN35No                        Model'
+                [controlEl]='cN35No                        El'
+            ></abp-validation-summary>
+            </div>
+        </div>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='underAmount                   '>
+            {{ 'UnderAmount                   ' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                class='form-control'
+                name='underAmount                   '
+                id='underAmount                   '
+                required
+                [(ngModel)]='bag.underAmount                   '
+                #underAmount                   Model='ngModel'
+                #underAmount                   El
+            />
+            <abp-validation-summary
+                [control]='underAmount                   Model'
+                [controlEl]='underAmount                   El'
+            ></abp-validation-summary>
+            </div>
+        </div>
+    </div>
+    <abp-modal-footer
+    [cancelDisabled]='saving'
+    [saveDisabled]='!createBagModal.form.valid || saving'
+    (onCancelClick)='bsModalRef.hide()'
+    ></abp-modal-footer>
+</form>

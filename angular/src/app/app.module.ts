@@ -39,6 +39,10 @@ import { SidebarLogoComponent } from "./layout/sidebar-logo.component";
 import { SidebarUserPanelComponent } from "./layout/sidebar-user-panel.component";
 import { SidebarMenuComponent } from "./layout/sidebar-menu.component";
 /* Insert Import */
+import { BagsComponent } from './bags/bags.component';
+import { CreateUpdateBagComponent } from './bags/create-update-bag/create-update-bag.component';
+import { BagService } from '@shared/service-proxies/bags/bag.service';
+
 import { DispatchValidationsComponent } from './dispatchvalidations/dispatchvalidations.component';
 import { CreateUpdateDispatchValidationComponent } from './dispatchvalidations/create-update-dispatchvalidation/create-update-dispatchvalidation.component';
 import { DispatchValidationService } from '@shared/service-proxies/dispatchvalidations/dispatchvalidation.service';
@@ -129,6 +133,8 @@ import { TopUpWalletComponent } from "./wallets/topup-wallet/topup-wallet.compon
     SidebarUserPanelComponent,
     SidebarMenuComponent,
     /* Insert Component */
+        BagsComponent,
+        CreateUpdateBagComponent,
         DispatchValidationsComponent,
         CreateUpdateDispatchValidationComponent,
         DispatchesComponent,
@@ -175,6 +181,7 @@ import { TopUpWalletComponent } from "./wallets/topup-wallet/topup-wallet.compon
   ],
   providers: [
     /* Insert Service */
+        BagService,
         DispatchValidationService,
         DispatchService,
     ChibiService,

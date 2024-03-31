@@ -4,6 +4,7 @@ using SND.SMP.Authorization.Roles;
 using SND.SMP.Authorization.Users;
 using SND.SMP.MultiTenancy;
 /* Using Definition */
+using SND.SMP.Bags;
 using SND.SMP.DispatchValidations;
 using SND.SMP.Dispatches;
 using SND.SMP.Queues;
@@ -42,6 +43,7 @@ namespace SND.SMP.EntityFrameworkCore
         public DbSet<Queue> Queues { get; set; }
         public DbSet<Dispatch> Dispatches { get; set; }
         public DbSet<DispatchValidation> DispatchValidations { get; set; }
+        public DbSet<Bag> Bags { get; set; }
         /* Define a DbSet for each entity of the application */
 
         public SMPDbContext(DbContextOptions<SMPDbContext> options)
@@ -54,6 +56,22 @@ namespace SND.SMP.EntityFrameworkCore
             base.OnModelCreating(builder);
 
             /* Define Tables */
+            builder.Entity<Bag>(b =>
+            {
+                b.ToTable(SMPConsts.DbTablePrefix + "Bags");
+                b.Property(x => x.BagNo                         ).HasColumnName(nameof(Bag.BagNo                         )).HasMaxLength(20);
+                b.Property(x => x.DispatchId                    ).HasColumnName(nameof(Bag.DispatchId                    ));
+                b.Property(x => x.CountryCode                   ).HasColumnName(nameof(Bag.CountryCode                   )).HasMaxLength(2);
+                b.Property(x => x.WeightPre                     ).HasColumnName(nameof(Bag.WeightPre                     )).HasPrecision(18, 3);
+                b.Property(x => x.WeightPost                    ).HasColumnName(nameof(Bag.WeightPost                    )).HasPrecision(18, 3);
+                b.Property(x => x.ItemCountPre                  ).HasColumnName(nameof(Bag.ItemCountPre                  ));
+                b.Property(x => x.ItemCountPost                 ).HasColumnName(nameof(Bag.ItemCountPost                 ));
+                b.Property(x => x.WeightVariance                ).HasColumnName(nameof(Bag.WeightVariance                )).HasPrecision(18, 3);
+                b.Property(x => x.CN35No                        ).HasColumnName(nameof(Bag.CN35No                        )).HasMaxLength(20);
+                b.Property(x => x.UnderAmount                   ).HasColumnName(nameof(Bag.UnderAmount                   )).HasPrecision(18, 2);
+                b.HasKey(x => x.Id);
+            });
+
             builder.Entity<DispatchValidation>(b =>
             {
                 b.ToTable(SMPConsts.DbTablePrefix + "DispatchValidations");
