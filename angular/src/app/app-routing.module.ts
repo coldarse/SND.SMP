@@ -9,6 +9,7 @@ import { TenantsComponent } from "./tenants/tenants.component";
 import { RolesComponent } from "app/roles/roles.component";
 import { ChangePasswordComponent } from "./users/change-password/change-password.component";
 /* Insert Routing Import */
+import { ItemMinsComponent } from './itemmins/itemmins.component';
 import { ItemsComponent } from './items/items.component';
 import { BagsComponent } from './bags/bags.component';
 import { DispatchValidationsComponent } from './dispatchvalidations/dispatchvalidations.component';
@@ -63,6 +64,7 @@ import { PreAlertComponent } from "./pre-alerts/pre-alerts.component";
             canActivate: [AppRouteGuard],
           },
           /* Insert Path */
+                    { path: 'itemmins', data: { permission: 'Pages.ItemMin' }, component: ItemMinsComponent, canActivate: [AppRouteGuard] },
                     { path: 'items', data: { permission: 'Pages.Item' }, component: ItemsComponent, canActivate: [AppRouteGuard] },
                     { path: 'bags', data: { permission: 'Pages.Bag' }, component: BagsComponent, canActivate: [AppRouteGuard] },
                     { path: 'dispatchvalidations', data: { permission: 'Pages.DispatchValidation' }, component: DispatchValidationsComponent, canActivate: [AppRouteGuard] },

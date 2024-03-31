@@ -4,6 +4,7 @@ using SND.SMP.Authorization.Roles;
 using SND.SMP.Authorization.Users;
 using SND.SMP.MultiTenancy;
 /* Using Definition */
+using SND.SMP.ItemMins;
 using SND.SMP.Items;
 using SND.SMP.Bags;
 using SND.SMP.DispatchValidations;
@@ -46,6 +47,7 @@ namespace SND.SMP.EntityFrameworkCore
         public DbSet<DispatchValidation> DispatchValidations { get; set; }
         public DbSet<Bag> Bags { get; set; }
         public DbSet<Item> Items { get; set; }
+        public DbSet<ItemMin> ItemMins { get; set; }
         /* Define a DbSet for each entity of the application */
 
         public SMPDbContext(DbContextOptions<SMPDbContext> options)
@@ -58,6 +60,28 @@ namespace SND.SMP.EntityFrameworkCore
             base.OnModelCreating(builder);
 
             /* Define Tables */
+            builder.Entity<ItemMin>(b =>
+            {
+                b.ToTable(SMPConsts.DbTablePrefix + "ItemMins");
+                b.Property(x => x.ExtID                         ).HasColumnName(nameof(ItemMin.ExtID                         )).HasMaxLength(20);
+                b.Property(x => x.DispatchID                    ).HasColumnName(nameof(ItemMin.DispatchID                    ));
+                b.Property(x => x.BagID                         ).HasColumnName(nameof(ItemMin.BagID                         ));
+                b.Property(x => x.DispatchDate                  ).HasColumnName(nameof(ItemMin.DispatchDate                  ));
+                b.Property(x => x.Month                         ).HasColumnName(nameof(ItemMin.Month                         ));
+                b.Property(x => x.CountryCode                   ).HasColumnName(nameof(ItemMin.CountryCode                   )).HasMaxLength(2);
+                b.Property(x => x.Weight                        ).HasColumnName(nameof(ItemMin.Weight                        )).HasPrecision(18, 3);
+                b.Property(x => x.ItemValue                     ).HasColumnName(nameof(ItemMin.ItemValue                     )).HasPrecision(18, 2);
+                b.Property(x => x.RecpName                      ).HasColumnName(nameof(ItemMin.RecpName                      )).HasMaxLength(30);
+                b.Property(x => x.ItemDesc                      ).HasColumnName(nameof(ItemMin.ItemDesc                      )).HasMaxLength(60);
+                b.Property(x => x.Address                       ).HasColumnName(nameof(ItemMin.Address                       )).HasMaxLength(100);
+                b.Property(x => x.City                          ).HasColumnName(nameof(ItemMin.City                          )).HasMaxLength(30);
+                b.Property(x => x.TelNo                         ).HasColumnName(nameof(ItemMin.TelNo                         )).HasMaxLength(15);
+                b.Property(x => x.DeliveredInDays               ).HasColumnName(nameof(ItemMin.DeliveredInDays               ));
+                b.Property(x => x.IsDelivered                   ).HasColumnName(nameof(ItemMin.IsDelivered                   ));
+                b.Property(x => x.Status                        ).HasColumnName(nameof(ItemMin.Status                        ));
+                b.HasKey(x => x.Id);
+            });
+
             builder.Entity<Item>(b =>
             {
                 b.ToTable(SMPConsts.DbTablePrefix + "Items");

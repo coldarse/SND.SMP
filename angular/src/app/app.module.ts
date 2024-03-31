@@ -39,6 +39,10 @@ import { SidebarLogoComponent } from "./layout/sidebar-logo.component";
 import { SidebarUserPanelComponent } from "./layout/sidebar-user-panel.component";
 import { SidebarMenuComponent } from "./layout/sidebar-menu.component";
 /* Insert Import */
+import { ItemMinsComponent } from './itemmins/itemmins.component';
+import { CreateUpdateItemMinComponent } from './itemmins/create-update-itemmin/create-update-itemmin.component';
+import { ItemMinService } from '@shared/service-proxies/itemmins/itemmin.service';
+
 import { ItemsComponent } from './items/items.component';
 import { CreateUpdateItemComponent } from './items/create-update-item/create-update-item.component';
 import { ItemService } from '@shared/service-proxies/items/item.service';
@@ -137,6 +141,8 @@ import { TopUpWalletComponent } from "./wallets/topup-wallet/topup-wallet.compon
     SidebarUserPanelComponent,
     SidebarMenuComponent,
     /* Insert Component */
+        ItemMinsComponent,
+        CreateUpdateItemMinComponent,
         ItemsComponent,
         CreateUpdateItemComponent,
         BagsComponent,
@@ -187,6 +193,7 @@ import { TopUpWalletComponent } from "./wallets/topup-wallet/topup-wallet.compon
   ],
   providers: [
     /* Insert Service */
+        ItemMinService,
         ItemService,
         BagService,
         DispatchValidationService,
