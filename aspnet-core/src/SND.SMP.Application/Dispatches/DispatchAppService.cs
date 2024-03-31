@@ -3,7 +3,7 @@ using Abp.Application.Services;
 using Abp.Extensions;
 using Abp.Collections.Extensions;
 using Abp.Domain.Repositories;
-using Abp.Linq.Extensions;;
+using Abp.Linq.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;

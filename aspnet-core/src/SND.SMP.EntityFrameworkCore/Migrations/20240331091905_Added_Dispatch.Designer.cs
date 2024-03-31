@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SND.SMP.EntityFrameworkCore;
 
@@ -10,9 +11,11 @@ using SND.SMP.EntityFrameworkCore;
 namespace SND.SMP.Migrations
 {
     [DbContext(typeof(SMPDbContext))]
-    partial class SMPDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240331091905_Added_Dispatch")]
+    partial class Added_Dispatch
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -2086,8 +2089,6 @@ namespace SND.SMP.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CustomerCode");
-
                     b.ToTable("Dispatches", (string)null);
                 });
 
@@ -2706,14 +2707,6 @@ namespace SND.SMP.Migrations
                         .HasForeignKey("Rate")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("SND.SMP.Dispatches.Dispatch", b =>
-                {
-                    b.HasOne("SND.SMP.Customers.Customer", null)
-                        .WithMany()
-                        .HasForeignKey("CustomerCode")
-                        .HasPrincipalKey("Code");
                 });
 
             modelBuilder.Entity("SND.SMP.MultiTenancy.Tenant", b =>
