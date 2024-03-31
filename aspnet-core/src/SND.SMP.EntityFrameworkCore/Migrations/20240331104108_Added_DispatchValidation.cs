@@ -1,5 +1,4 @@
 ﻿using System;
-using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -16,14 +15,12 @@ namespace SND.SMP.Migrations
                 name: "DispatchValidations",
                 columns: table => new
                 {
-                    Id = table.Column<long>(type: "bigint", nullable: false)
-                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    DispatchNo = table.Column<string>(type: "varchar(15)", maxLength: 15, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
                     CustomerCode = table.Column<string>(type: "varchar(10)", maxLength: 10, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     DateStarted = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     DateCompleted = table.Column<DateTime>(type: "datetime(6)", nullable: false),
-                    DispatchNo = table.Column<string>(type: "varchar(15)", maxLength: 15, nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
                     FilePath = table.Column<string>(type: "varchar(200)", maxLength: 200, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     IsFundLack = table.Column<bool>(type: "tinyint(1)", nullable: false),
@@ -37,23 +34,15 @@ namespace SND.SMP.Migrations
                     Status = table.Column<string>(type: "varchar(20)", maxLength: 20, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     TookInSec = table.Column<double>(type: "double", nullable: false),
-                    ValidationProgress = table.Column<int>(type: "int", nullable: false)
+                    ValidationProgress = table.Column<int>(type: "int", nullable: false),
+                    Id = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4")
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_DispatchValidations", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_DispatchValidations_Customers_CustomerCode",
-                        column: x => x.CustomerCode,
-                        principalTable: "Customers",
-                        principalColumn: "Code");
+                    table.PrimaryKey("PK_DispatchValidations", x => x.DispatchNo);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_DispatchValidations_CustomerCode",
-                table: "DispatchValidations",
-                column: "CustomerCode");
         }
 
         /// <inheritdoc />

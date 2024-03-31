@@ -1725,9 +1725,10 @@ namespace SND.SMP.Migrations
 
             modelBuilder.Entity("SND.SMP.DispatchValidations.DispatchValidation", b =>
                 {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
+                    b.Property<string>("DispatchNo")
+                        .HasMaxLength(15)
+                        .HasColumnType("varchar(15)")
+                        .HasColumnName("DispatchNo");
 
                     b.Property<string>("CustomerCode")
                         .HasMaxLength(10)
@@ -1742,15 +1743,13 @@ namespace SND.SMP.Migrations
                         .HasColumnType("datetime(6)")
                         .HasColumnName("DateStarted");
 
-                    b.Property<string>("DispatchNo")
-                        .HasMaxLength(15)
-                        .HasColumnType("varchar(15)")
-                        .HasColumnName("DispatchNo");
-
                     b.Property<string>("FilePath")
                         .HasMaxLength(200)
                         .HasColumnType("varchar(200)")
                         .HasColumnName("FilePath");
+
+                    b.Property<string>("Id")
+                        .HasColumnType("longtext");
 
                     b.Property<bool>("IsFundLack")
                         .HasColumnType("tinyint(1)")
@@ -1788,9 +1787,7 @@ namespace SND.SMP.Migrations
                         .HasColumnType("int")
                         .HasColumnName("ValidationProgress");
 
-                    b.HasKey("Id");
-
-                    b.HasIndex("CustomerCode");
+                    b.HasKey("DispatchNo");
 
                     b.ToTable("DispatchValidations", (string)null);
                 });
@@ -2778,14 +2775,6 @@ namespace SND.SMP.Migrations
                         .HasForeignKey("Rate")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("SND.SMP.DispatchValidations.DispatchValidation", b =>
-                {
-                    b.HasOne("SND.SMP.Customers.Customer", null)
-                        .WithMany()
-                        .HasForeignKey("CustomerCode")
-                        .HasPrincipalKey("Code");
                 });
 
             modelBuilder.Entity("SND.SMP.Dispatches.Dispatch", b =>

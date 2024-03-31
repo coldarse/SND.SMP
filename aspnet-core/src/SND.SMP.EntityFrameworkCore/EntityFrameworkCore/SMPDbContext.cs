@@ -70,7 +70,7 @@ namespace SND.SMP.EntityFrameworkCore
                 b.Property(x => x.Status                          ).HasColumnName(nameof(DispatchValidation.Status                          )).HasMaxLength(20);
                 b.Property(x => x.TookInSec                       ).HasColumnName(nameof(DispatchValidation.TookInSec                       ));
                 b.Property(x => x.ValidationProgress              ).HasColumnName(nameof(DispatchValidation.ValidationProgress              ));
-                b.HasKey(x => x.Id);
+                b.HasKey(x => x.DispatchNo);
             });
 
             builder.Entity<Dispatch>(b =>
