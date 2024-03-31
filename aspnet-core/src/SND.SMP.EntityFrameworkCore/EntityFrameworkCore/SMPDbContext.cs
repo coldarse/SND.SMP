@@ -4,6 +4,7 @@ using SND.SMP.Authorization.Roles;
 using SND.SMP.Authorization.Users;
 using SND.SMP.MultiTenancy;
 /* Using Definition */
+using SND.SMP.Dispatches;
 using SND.SMP.Queues;
 using SND.SMP.Chibis;
 using SND.SMP.RateWeightBreaks;
@@ -38,6 +39,7 @@ namespace SND.SMP.EntityFrameworkCore
         public DbSet<RateWeightBreak> RateWeightBreaks { get; set; }
         public DbSet<Chibi> Chibis { get; set; }
         public DbSet<Queue> Queues { get; set; }
+        public DbSet<Dispatch> Dispatches { get; set; }
         /* Define a DbSet for each entity of the application */
 
         public SMPDbContext(DbContextOptions<SMPDbContext> options)
@@ -50,6 +52,90 @@ namespace SND.SMP.EntityFrameworkCore
             base.OnModelCreating(builder);
 
             /* Define Tables */
+            builder.Entity<Dispatch>(b =>
+            {
+                b.ToTable(SMPConsts.DbTablePrefix + "Dispatches");
+                b.Property(x => x.CustomerCode                    ).HasColumnName(nameof(Dispatch.CustomerCode                    )).HasMaxLength(10);
+                b.Property(x => x.POBox                           ).HasColumnName(nameof(Dispatch.POBox                           )).HasMaxLength(10);
+                b.Property(x => x.PPI                             ).HasColumnName(nameof(Dispatch.PPI                             )).HasMaxLength(10);
+                b.Property(x => x.PostalCode                      ).HasColumnName(nameof(Dispatch.PostalCode                      )).HasMaxLength(5);
+                b.Property(x => x.ServiceCode                     ).HasColumnName(nameof(Dispatch.ServiceCode                     )).HasMaxLength(10);
+                b.Property(x => x.ProductCode                     ).HasColumnName(nameof(Dispatch.ProductCode                     )).HasMaxLength(10);
+                b.Property(x => x.DispatchDate                    ).HasColumnName(nameof(Dispatch.DispatchDate                    ));
+                b.Property(x => x.DispatchNo                      ).HasColumnName(nameof(Dispatch.DispatchNo                      )).HasMaxLength(15);
+                b.Property(x => x.ETAtoHKG                        ).HasColumnName(nameof(Dispatch.ETAtoHKG                        ));
+                b.Property(x => x.FlightTrucking                  ).HasColumnName(nameof(Dispatch.FlightTrucking                  )).HasMaxLength(50);
+                b.Property(x => x.BatchId                         ).HasColumnName(nameof(Dispatch.BatchId                         )).HasMaxLength(35);
+                b.Property(x => x.IsPayment                       ).HasColumnName(nameof(Dispatch.IsPayment                       ));
+                b.Property(x => x.NoofBag                         ).HasColumnName(nameof(Dispatch.NoofBag                         ));
+                b.Property(x => x.ItemCount                       ).HasColumnName(nameof(Dispatch.ItemCount                       ));
+                b.Property(x => x.TotalWeight                     ).HasColumnName(nameof(Dispatch.TotalWeight                     )).HasPrecision(18, 3);
+                b.Property(x => x.TotalPrice                      ).HasColumnName(nameof(Dispatch.TotalPrice                      )).HasPrecision(18, 2);
+                b.Property(x => x.Status                          ).HasColumnName(nameof(Dispatch.Status                          ));
+                b.Property(x => x.IsActive                        ).HasColumnName(nameof(Dispatch.IsActive                        ));
+                b.Property(x => x.CN38                            ).HasColumnName(nameof(Dispatch.CN38                            )).HasMaxLength(30);
+                b.Property(x => x.TransactionDateTime             ).HasColumnName(nameof(Dispatch.TransactionDateTime             ));
+                b.Property(x => x.ATA                             ).HasColumnName(nameof(Dispatch.ATA                             ));
+                b.Property(x => x.PostCheckTotalBags              ).HasColumnName(nameof(Dispatch.PostCheckTotalBags              ));
+                b.Property(x => x.PostCheckTotalWeight            ).HasColumnName(nameof(Dispatch.PostCheckTotalWeight            )).HasPrecision(18, 3);
+                b.Property(x => x.AirportHandling                 ).HasColumnName(nameof(Dispatch.AirportHandling                 ));
+                b.Property(x => x.Remark                          ).HasColumnName(nameof(Dispatch.Remark                          )).HasMaxLength(100);
+                b.Property(x => x.WeightGap                       ).HasColumnName(nameof(Dispatch.WeightGap                       )).HasPrecision(18, 3);
+                b.Property(x => x.WeightAveraged                  ).HasColumnName(nameof(Dispatch.WeightAveraged                  )).HasPrecision(18, 3);
+                b.Property(x => x.DateSOAProcessCompleted         ).HasColumnName(nameof(Dispatch.DateSOAProcessCompleted         ));
+                b.Property(x => x.SOAProcessCompletedByID         ).HasColumnName(nameof(Dispatch.SOAProcessCompletedByID         ));
+                b.Property(x => x.TotalWeightSOA                  ).HasColumnName(nameof(Dispatch.TotalWeightSOA                  )).HasPrecision(18, 3);
+                b.Property(x => x.TotalAmountSOA                  ).HasColumnName(nameof(Dispatch.TotalAmountSOA                  )).HasPrecision(18, 2);
+                b.Property(x => x.PerformanceDaysDiff             ).HasColumnName(nameof(Dispatch.PerformanceDaysDiff             ));
+                b.Property(x => x.DatePerformanceDaysDiff         ).HasColumnName(nameof(Dispatch.DatePerformanceDaysDiff         ));
+                b.Property(x => x.AirlineCode                     ).HasColumnName(nameof(Dispatch.AirlineCode                     )).HasMaxLength(20);
+                b.Property(x => x.FlightNo                        ).HasColumnName(nameof(Dispatch.FlightNo                        )).HasMaxLength(20);
+                b.Property(x => x.PortDeparture                   ).HasColumnName(nameof(Dispatch.PortDeparture                   )).HasMaxLength(50);
+                b.Property(x => x.ExtDispatchNo                   ).HasColumnName(nameof(Dispatch.ExtDispatchNo                   )).HasMaxLength(50);
+                b.Property(x => x.DateFlight                      ).HasColumnName(nameof(Dispatch.DateFlight                      ));
+                b.Property(x => x.AirportTranshipment             ).HasColumnName(nameof(Dispatch.AirportTranshipment             )).HasMaxLength(20);
+                b.Property(x => x.OfficeDestination               ).HasColumnName(nameof(Dispatch.OfficeDestination               )).HasMaxLength(30);
+                b.Property(x => x.OfficeOrigin                    ).HasColumnName(nameof(Dispatch.OfficeOrigin                    )).HasMaxLength(30);
+                b.Property(x => x.Stage1StatusDesc                ).HasColumnName(nameof(Dispatch.Stage1StatusDesc                )).HasMaxLength(250);
+                b.Property(x => x.Stage2StatusDesc                ).HasColumnName(nameof(Dispatch.Stage2StatusDesc                )).HasMaxLength(250);
+                b.Property(x => x.Stage3StatusDesc                ).HasColumnName(nameof(Dispatch.Stage3StatusDesc                )).HasMaxLength(250);
+                b.Property(x => x.Stage4StatusDesc                ).HasColumnName(nameof(Dispatch.Stage4StatusDesc                )).HasMaxLength(250);
+                b.Property(x => x.Stage5StatusDesc                ).HasColumnName(nameof(Dispatch.Stage5StatusDesc                )).HasMaxLength(250);
+                b.Property(x => x.Stage6StatusDesc                ).HasColumnName(nameof(Dispatch.Stage6StatusDesc                )).HasMaxLength(250);
+                b.Property(x => x.Stage7StatusDesc                ).HasColumnName(nameof(Dispatch.Stage7StatusDesc                )).HasMaxLength(250);
+                b.Property(x => x.Stage8StatusDesc                ).HasColumnName(nameof(Dispatch.Stage8StatusDesc                )).HasMaxLength(250);
+                b.Property(x => x.Stage9StatusDesc                ).HasColumnName(nameof(Dispatch.Stage9StatusDesc                )).HasMaxLength(250);
+                b.Property(x => x.DateStartedAPI                  ).HasColumnName(nameof(Dispatch.DateStartedAPI                  ));
+                b.Property(x => x.DateEndedAPI                    ).HasColumnName(nameof(Dispatch.DateEndedAPI                    ));
+                b.Property(x => x.StatusAPI                       ).HasColumnName(nameof(Dispatch.StatusAPI                       )).HasMaxLength(250);
+                b.Property(x => x.CountryOfLoading                ).HasColumnName(nameof(Dispatch.CountryOfLoading                )).HasMaxLength(50);
+                b.Property(x => x.DateFlightArrival               ).HasColumnName(nameof(Dispatch.DateFlightArrival               ));
+                b.Property(x => x.PostManifestSuccess             ).HasColumnName(nameof(Dispatch.PostManifestSuccess             ));
+                b.Property(x => x.PostManifestMsg                 ).HasColumnName(nameof(Dispatch.PostManifestMsg                 )).HasMaxLength(150);
+                b.Property(x => x.PostManifestDate                ).HasColumnName(nameof(Dispatch.PostManifestDate                ));
+                b.Property(x => x.PostDeclarationSuccess          ).HasColumnName(nameof(Dispatch.PostDeclarationSuccess          ));
+                b.Property(x => x.PostDeclarationMsg              ).HasColumnName(nameof(Dispatch.PostDeclarationMsg              )).HasMaxLength(150);
+                b.Property(x => x.PostDeclarationDate             ).HasColumnName(nameof(Dispatch.PostDeclarationDate             ));
+                b.Property(x => x.AirwayBLNo                      ).HasColumnName(nameof(Dispatch.AirwayBLNo                      )).HasMaxLength(20);
+                b.Property(x => x.AirwayBLDate                    ).HasColumnName(nameof(Dispatch.AirwayBLDate                    ));
+                b.Property(x => x.DateLocalDelivery               ).HasColumnName(nameof(Dispatch.DateLocalDelivery               ));
+                b.Property(x => x.DateCLStage1Submitted           ).HasColumnName(nameof(Dispatch.DateCLStage1Submitted           ));
+                b.Property(x => x.DateCLStage2Submitted           ).HasColumnName(nameof(Dispatch.DateCLStage2Submitted           ));
+                b.Property(x => x.DateCLStage3Submitted           ).HasColumnName(nameof(Dispatch.DateCLStage3Submitted           ));
+                b.Property(x => x.DateCLStage4Submitted           ).HasColumnName(nameof(Dispatch.DateCLStage4Submitted           ));
+                b.Property(x => x.DateCLStage5Submitted           ).HasColumnName(nameof(Dispatch.DateCLStage5Submitted           ));
+                b.Property(x => x.DateCLStage6Submitted           ).HasColumnName(nameof(Dispatch.DateCLStage6Submitted           ));
+                b.Property(x => x.BRCN38RequestId                 ).HasColumnName(nameof(Dispatch.BRCN38RequestId                 )).HasMaxLength(20);
+                b.Property(x => x.DateArrival                     ).HasColumnName(nameof(Dispatch.DateArrival                     ));
+                b.Property(x => x.DateAcceptanceScanning          ).HasColumnName(nameof(Dispatch.DateAcceptanceScanning          ));
+                b.Property(x => x.SeqNo                           ).HasColumnName(nameof(Dispatch.SeqNo                           ));
+                b.Property(x => x.CORateOptionId                  ).HasColumnName(nameof(Dispatch.CORateOptionId                  )).HasMaxLength(10);
+                b.Property(x => x.PaymentMode                     ).HasColumnName(nameof(Dispatch.PaymentMode                     )).HasMaxLength(10);
+                b.Property(x => x.CurrencyId                      ).HasColumnName(nameof(Dispatch.CurrencyId                      )).HasMaxLength(3);
+                b.Property(x => x.ImportProgress                  ).HasColumnName(nameof(Dispatch.ImportProgress                  ));
+                b.HasKey(x => x.Id);
+            });
+
             builder.Entity<Queue>(b =>
             {
                 b.ToTable(SMPConsts.DbTablePrefix + "Queues");

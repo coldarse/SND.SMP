@@ -1,0 +1,274 @@
+<div [@routerTransition]>
+    <section class='content-header'>
+        <div class='container-fluid'>
+            <div class='row'>
+                <div class='col-6'>
+                    <h1>{{ 'Dispatches' | localize }}</h1>
+                </div>
+                <div class='col-6 text-right' *ngIf='isButtonVisible("Create")'>
+                    <a href='javascript:;' class='btn bg-blue' (click)='createDispatch()'>
+                        <i class='fa fa-plus-square'></i>
+                        {{ 'Create' | localize }}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+    <section class='content px-2'>
+        <div class='container-fluid'>
+            <div class='card'>
+                <div class='card-header'>
+                    <div class='row'>
+                        <div class='col-md-6'>&emsp;</div>
+                        <div class='col-md-6'>
+                            <div class='input-group'>
+                                <div class='input-group-prepend'>
+                                    <button
+                                            type='button'
+                                            class='btn bg-blue'
+                                            (click)='getDataPage(1)'
+                                    >
+                                        <i class='fas fa-search'></i>
+                                    </button>
+                                </div>
+                                <input
+                                        type='text'
+                                        class='form-control'
+                                        name='keyword'
+                                        [placeholder]='"SearchWithThreeDot" | localize'
+                                        [(ngModel)]='keyword'
+                                        (keyup.enter)='getDataPage(1)'
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class='card-body'>
+                    <div class='table-responsive'>
+                        <table class='table table-striped table-bordered' [busy]='isTableLoading'>
+                            <thead class='bg-light'>
+                            <tr>
+                                <th>{{ 'CustomerCode                    ' | localize }}</th>
+                                <th>{{ 'POBox                           ' | localize }}</th>
+                                <th>{{ 'PPI                             ' | localize }}</th>
+                                <th>{{ 'PostalCode                      ' | localize }}</th>
+                                <th>{{ 'ServiceCode                     ' | localize }}</th>
+                                <th>{{ 'ProductCode                     ' | localize }}</th>
+                                <th>{{ 'DispatchDate                    ' | localize }}</th>
+                                <th>{{ 'DispatchNo                      ' | localize }}</th>
+                                <th>{{ 'ETAtoHKG                        ' | localize }}</th>
+                                <th>{{ 'FlightTrucking                  ' | localize }}</th>
+                                <th>{{ 'BatchId                         ' | localize }}</th>
+                                <th>{{ 'IsPayment                       ' | localize }}</th>
+                                <th>{{ 'NoofBag                         ' | localize }}</th>
+                                <th>{{ 'ItemCount                       ' | localize }}</th>
+                                <th>{{ 'TotalWeight                     ' | localize }}</th>
+                                <th>{{ 'TotalPrice                      ' | localize }}</th>
+                                <th>{{ 'Status                          ' | localize }}</th>
+                                <th>{{ 'IsActive                        ' | localize }}</th>
+                                <th>{{ 'CN38                            ' | localize }}</th>
+                                <th>{{ 'TransactionDateTime             ' | localize }}</th>
+                                <th>{{ 'ATA                             ' | localize }}</th>
+                                <th>{{ 'PostCheckTotalBags              ' | localize }}</th>
+                                <th>{{ 'PostCheckTotalWeight            ' | localize }}</th>
+                                <th>{{ 'AirportHandling                 ' | localize }}</th>
+                                <th>{{ 'Remark                          ' | localize }}</th>
+                                <th>{{ 'WeightGap                       ' | localize }}</th>
+                                <th>{{ 'WeightAveraged                  ' | localize }}</th>
+                                <th>{{ 'DateSOAProcessCompleted         ' | localize }}</th>
+                                <th>{{ 'SOAProcessCompletedByID         ' | localize }}</th>
+                                <th>{{ 'TotalWeightSOA                  ' | localize }}</th>
+                                <th>{{ 'TotalAmountSOA                  ' | localize }}</th>
+                                <th>{{ 'PerformanceDaysDiff             ' | localize }}</th>
+                                <th>{{ 'DatePerformanceDaysDiff         ' | localize }}</th>
+                                <th>{{ 'AirlineCode                     ' | localize }}</th>
+                                <th>{{ 'FlightNo                        ' | localize }}</th>
+                                <th>{{ 'PortDeparture                   ' | localize }}</th>
+                                <th>{{ 'ExtDispatchNo                   ' | localize }}</th>
+                                <th>{{ 'DateFlight                      ' | localize }}</th>
+                                <th>{{ 'AirportTranshipment             ' | localize }}</th>
+                                <th>{{ 'OfficeDestination               ' | localize }}</th>
+                                <th>{{ 'OfficeOrigin                    ' | localize }}</th>
+                                <th>{{ 'Stage1StatusDesc                ' | localize }}</th>
+                                <th>{{ 'Stage2StatusDesc                ' | localize }}</th>
+                                <th>{{ 'Stage3StatusDesc                ' | localize }}</th>
+                                <th>{{ 'Stage4StatusDesc                ' | localize }}</th>
+                                <th>{{ 'Stage5StatusDesc                ' | localize }}</th>
+                                <th>{{ 'Stage6StatusDesc                ' | localize }}</th>
+                                <th>{{ 'Stage7StatusDesc                ' | localize }}</th>
+                                <th>{{ 'Stage8StatusDesc                ' | localize }}</th>
+                                <th>{{ 'Stage9StatusDesc                ' | localize }}</th>
+                                <th>{{ 'DateStartedAPI                  ' | localize }}</th>
+                                <th>{{ 'DateEndedAPI                    ' | localize }}</th>
+                                <th>{{ 'StatusAPI                       ' | localize }}</th>
+                                <th>{{ 'CountryOfLoading                ' | localize }}</th>
+                                <th>{{ 'DateFlightArrival               ' | localize }}</th>
+                                <th>{{ 'PostManifestSuccess             ' | localize }}</th>
+                                <th>{{ 'PostManifestMsg                 ' | localize }}</th>
+                                <th>{{ 'PostManifestDate                ' | localize }}</th>
+                                <th>{{ 'PostDeclarationSuccess          ' | localize }}</th>
+                                <th>{{ 'PostDeclarationMsg              ' | localize }}</th>
+                                <th>{{ 'PostDeclarationDate             ' | localize }}</th>
+                                <th>{{ 'AirwayBLNo                      ' | localize }}</th>
+                                <th>{{ 'AirwayBLDate                    ' | localize }}</th>
+                                <th>{{ 'DateLocalDelivery               ' | localize }}</th>
+                                <th>{{ 'DateCLStage1Submitted           ' | localize }}</th>
+                                <th>{{ 'DateCLStage2Submitted           ' | localize }}</th>
+                                <th>{{ 'DateCLStage3Submitted           ' | localize }}</th>
+                                <th>{{ 'DateCLStage4Submitted           ' | localize }}</th>
+                                <th>{{ 'DateCLStage5Submitted           ' | localize }}</th>
+                                <th>{{ 'DateCLStage6Submitted           ' | localize }}</th>
+                                <th>{{ 'BRCN38RequestId                 ' | localize }}</th>
+                                <th>{{ 'DateArrival                     ' | localize }}</th>
+                                <th>{{ 'DateAcceptanceScanning          ' | localize }}</th>
+                                <th>{{ 'SeqNo                           ' | localize }}</th>
+                                <th>{{ 'CORateOptionId                  ' | localize }}</th>
+                                <th>{{ 'PaymentMode                     ' | localize }}</th>
+                                <th>{{ 'CurrencyId                      ' | localize }}</th>
+                                <th>{{ 'ImportProgress                  ' | localize }}</th>
+                                <th style='width: 310px;' *ngIf='isButtonVisible("Edit") && isButtonVisible("Delete")'>{{ 'Actions' | localize }}</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr
+                                    *ngFor='
+                  let dispatch of dispatches
+                    | paginate
+                      : {
+                          id: "server",
+                          itemsPerPage: pageSize,
+                          currentPage: pageNumber,
+                          totalItems: totalItems
+                        }
+                '
+                            >
+                                <td>{{ dispatch.customerCode                     }}</td>
+                                <td>{{ dispatch.pOBox                            }}</td>
+                                <td>{{ dispatch.pPI                              }}</td>
+                                <td>{{ dispatch.postalCode                       }}</td>
+                                <td>{{ dispatch.serviceCode                      }}</td>
+                                <td>{{ dispatch.productCode                      }}</td>
+                                <td>{{ dispatch.dispatchDate                     }}</td>
+                                <td>{{ dispatch.dispatchNo                       }}</td>
+                                <td>{{ dispatch.eTAtoHKG                         }}</td>
+                                <td>{{ dispatch.flightTrucking                   }}</td>
+                                <td>{{ dispatch.batchId                          }}</td>
+                                <td>{{ dispatch.isPayment                        }}</td>
+                                <td>{{ dispatch.noofBag                          }}</td>
+                                <td>{{ dispatch.itemCount                        }}</td>
+                                <td>{{ dispatch.totalWeight                      }}</td>
+                                <td>{{ dispatch.totalPrice                       }}</td>
+                                <td>{{ dispatch.status                           }}</td>
+                                <td>{{ dispatch.isActive                         }}</td>
+                                <td>{{ dispatch.cN38                             }}</td>
+                                <td>{{ dispatch.transactionDateTime              }}</td>
+                                <td>{{ dispatch.aTA                              }}</td>
+                                <td>{{ dispatch.postCheckTotalBags               }}</td>
+                                <td>{{ dispatch.postCheckTotalWeight             }}</td>
+                                <td>{{ dispatch.airportHandling                  }}</td>
+                                <td>{{ dispatch.remark                           }}</td>
+                                <td>{{ dispatch.weightGap                        }}</td>
+                                <td>{{ dispatch.weightAveraged                   }}</td>
+                                <td>{{ dispatch.dateSOAProcessCompleted          }}</td>
+                                <td>{{ dispatch.sOAProcessCompletedByID          }}</td>
+                                <td>{{ dispatch.totalWeightSOA                   }}</td>
+                                <td>{{ dispatch.totalAmountSOA                   }}</td>
+                                <td>{{ dispatch.performanceDaysDiff              }}</td>
+                                <td>{{ dispatch.datePerformanceDaysDiff          }}</td>
+                                <td>{{ dispatch.airlineCode                      }}</td>
+                                <td>{{ dispatch.flightNo                         }}</td>
+                                <td>{{ dispatch.portDeparture                    }}</td>
+                                <td>{{ dispatch.extDispatchNo                    }}</td>
+                                <td>{{ dispatch.dateFlight                       }}</td>
+                                <td>{{ dispatch.airportTranshipment              }}</td>
+                                <td>{{ dispatch.officeDestination                }}</td>
+                                <td>{{ dispatch.officeOrigin                     }}</td>
+                                <td>{{ dispatch.stage1StatusDesc                 }}</td>
+                                <td>{{ dispatch.stage2StatusDesc                 }}</td>
+                                <td>{{ dispatch.stage3StatusDesc                 }}</td>
+                                <td>{{ dispatch.stage4StatusDesc                 }}</td>
+                                <td>{{ dispatch.stage5StatusDesc                 }}</td>
+                                <td>{{ dispatch.stage6StatusDesc                 }}</td>
+                                <td>{{ dispatch.stage7StatusDesc                 }}</td>
+                                <td>{{ dispatch.stage8StatusDesc                 }}</td>
+                                <td>{{ dispatch.stage9StatusDesc                 }}</td>
+                                <td>{{ dispatch.dateStartedAPI                   }}</td>
+                                <td>{{ dispatch.dateEndedAPI                     }}</td>
+                                <td>{{ dispatch.statusAPI                        }}</td>
+                                <td>{{ dispatch.countryOfLoading                 }}</td>
+                                <td>{{ dispatch.dateFlightArrival                }}</td>
+                                <td>{{ dispatch.postManifestSuccess              }}</td>
+                                <td>{{ dispatch.postManifestMsg                  }}</td>
+                                <td>{{ dispatch.postManifestDate                 }}</td>
+                                <td>{{ dispatch.postDeclarationSuccess           }}</td>
+                                <td>{{ dispatch.postDeclarationMsg               }}</td>
+                                <td>{{ dispatch.postDeclarationDate              }}</td>
+                                <td>{{ dispatch.airwayBLNo                       }}</td>
+                                <td>{{ dispatch.airwayBLDate                     }}</td>
+                                <td>{{ dispatch.dateLocalDelivery                }}</td>
+                                <td>{{ dispatch.dateCLStage1Submitted            }}</td>
+                                <td>{{ dispatch.dateCLStage2Submitted            }}</td>
+                                <td>{{ dispatch.dateCLStage3Submitted            }}</td>
+                                <td>{{ dispatch.dateCLStage4Submitted            }}</td>
+                                <td>{{ dispatch.dateCLStage5Submitted            }}</td>
+                                <td>{{ dispatch.dateCLStage6Submitted            }}</td>
+                                <td>{{ dispatch.bRCN38RequestId                  }}</td>
+                                <td>{{ dispatch.dateArrival                      }}</td>
+                                <td>{{ dispatch.dateAcceptanceScanning           }}</td>
+                                <td>{{ dispatch.seqNo                            }}</td>
+                                <td>{{ dispatch.cORateOptionId                   }}</td>
+                                <td>{{ dispatch.paymentMode                      }}</td>
+                                <td>{{ dispatch.currencyId                       }}</td>
+                                <td>{{ dispatch.importProgress                   }}</td>
+                                <td *ngIf='isButtonVisible("Edit") || isButtonVisible("Delete")'>
+                                    <button
+                                            type='button'
+                                            class='btn btn-sm bg-secondary'
+                                            (click)='editDispatch(dispatch)'
+                                            *ngIf='isButtonVisible("Edit")'
+                                    >
+                                        <i class='fas fa-pencil-alt'></i>
+                                        {{ 'Edit' | localize }}
+                                    </button>
+                                    <button
+                                            type='button'
+                                            class='btn btn-sm bg-danger mx-2'
+                                            (click)='delete(dispatch)'
+                                            *ngIf='isButtonVisible("Delete")'
+                                    >
+                                        <i class='fas fa-trash'></i>
+                                        {{ 'Delete' | localize }}
+                                    </button>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class='card-footer table-card-footer bg-light border-top'>
+                    <div class='row'>
+                        <div class='col-sm-4 col-12 text-sm-left text-center'>
+                            <button class='btn btn-secondary' (click)='refresh()'>
+                                <i class='fas fa-redo-alt'></i>
+                            </button>
+                        </div>
+                        <div class='col-sm-4 col-12 text-center'>
+                            <p class='mb-0 my-2'>
+                                {{ 'TotalRecordsCount' | localize: totalItems }}
+                            </p>
+                        </div>
+                        <div class='col-sm-4 col-12'>
+                            <div class='float-sm-right m-auto'>
+                                <abp-pagination-controls
+                                        id='server'
+                                        (pageChange)='getDataPage($event)'
+                                >
+                                </abp-pagination-controls>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>

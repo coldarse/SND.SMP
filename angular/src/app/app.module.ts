@@ -39,6 +39,10 @@ import { SidebarLogoComponent } from "./layout/sidebar-logo.component";
 import { SidebarUserPanelComponent } from "./layout/sidebar-user-panel.component";
 import { SidebarMenuComponent } from "./layout/sidebar-menu.component";
 /* Insert Import */
+import { DispatchesComponent } from './dispatches/dispatches.component';
+import { CreateUpdateDispatchComponent } from './dispatches/create-update-dispatch/create-update-dispatch.component';
+import { DispatchService } from '@shared/service-proxies/dispatches/dispatch.service';
+
 import { QueuesComponent } from './queues/queues.component';
 import { CreateUpdateQueueComponent } from './queues/create-update-queue/create-update-queue.component';
 import { QueueService } from '@shared/service-proxies/queues/queue.service';
@@ -121,6 +125,8 @@ import { TopUpWalletComponent } from "./wallets/topup-wallet/topup-wallet.compon
     SidebarUserPanelComponent,
     SidebarMenuComponent,
     /* Insert Component */
+        DispatchesComponent,
+        CreateUpdateDispatchComponent,
     QueuesComponent,
     CreateUpdateQueueComponent,
     PreAlertComponent,
@@ -163,6 +169,7 @@ import { TopUpWalletComponent } from "./wallets/topup-wallet/topup-wallet.compon
   ],
   providers: [
     /* Insert Service */
+        DispatchService,
     ChibiService,
     CustomerPostalService,
     PostalCountryService,
