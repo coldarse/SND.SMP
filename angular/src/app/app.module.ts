@@ -39,10 +39,6 @@ import { SidebarLogoComponent } from "./layout/sidebar-logo.component";
 import { SidebarUserPanelComponent } from "./layout/sidebar-user-panel.component";
 import { SidebarMenuComponent } from "./layout/sidebar-menu.component";
 /* Insert Import */
-import { DispatchValidationsComponent } from './dispatchvalidations/dispatchvalidations.component';
-import { CreateUpdateDispatchValidationComponent } from './dispatchvalidations/create-update-dispatchvalidation/create-update-dispatchvalidation.component';
-import { DispatchValidationService } from '@shared/service-proxies/dispatchvalidations/dispatchvalidation.service';
-
 import { DispatchesComponent } from './dispatches/dispatches.component';
 import { CreateUpdateDispatchComponent } from './dispatches/create-update-dispatch/create-update-dispatch.component';
 import { DispatchService } from '@shared/service-proxies/dispatches/dispatch.service';
@@ -129,8 +125,6 @@ import { TopUpWalletComponent } from "./wallets/topup-wallet/topup-wallet.compon
     SidebarUserPanelComponent,
     SidebarMenuComponent,
     /* Insert Component */
-        DispatchValidationsComponent,
-        CreateUpdateDispatchValidationComponent,
         DispatchesComponent,
         CreateUpdateDispatchComponent,
     QueuesComponent,
@@ -175,7 +169,6 @@ import { TopUpWalletComponent } from "./wallets/topup-wallet/topup-wallet.compon
   ],
   providers: [
     /* Insert Service */
-        DispatchValidationService,
         DispatchService,
     ChibiService,
     CustomerPostalService,

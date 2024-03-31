@@ -63,12 +63,6 @@ export class SidebarMenuComponent extends AppComponentBase implements OnInit {
       ),
       /* Insert Menu Path */
             new MenuItem(
-                this.l('DispatchValidations'),
-                '/app/dispatchvalidations',
-                'far fa-circle',
-                'Pages.DispatchValidation'
-            ),
-            new MenuItem(
                 this.l('Dispatches'),
                 '/app/dispatches',
                 'far fa-circle',

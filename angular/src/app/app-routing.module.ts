@@ -9,7 +9,6 @@ import { TenantsComponent } from "./tenants/tenants.component";
 import { RolesComponent } from "app/roles/roles.component";
 import { ChangePasswordComponent } from "./users/change-password/change-password.component";
 /* Insert Routing Import */
-import { DispatchValidationsComponent } from './dispatchvalidations/dispatchvalidations.component';
 import { DispatchesComponent } from './dispatches/dispatches.component';
 import { QueuesComponent } from './queues/queues.component';
 import { RateWeightBreaksComponent } from './rate-weight-breaks/rate-weight-breaks.component';
@@ -61,7 +60,6 @@ import { PreAlertComponent } from "./pre-alerts/pre-alerts.component";
             canActivate: [AppRouteGuard],
           },
           /* Insert Path */
-                    { path: 'dispatchvalidations', data: { permission: 'Pages.DispatchValidation' }, component: DispatchValidationsComponent, canActivate: [AppRouteGuard] },
                     { path: 'dispatches', data: { permission: 'Pages.Dispatch' }, component: DispatchesComponent, canActivate: [AppRouteGuard] },
           {
             path: "queues",

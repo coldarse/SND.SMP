@@ -10,11 +10,6 @@ namespace SND.SMP.Authorization
         public const string Pages_Roles = "Pages.Roles";
 
         /* Define your permissions here */
-        public const string Pages_DispatchValidation = "Pages.DispatchValidation";
-        public const string Pages_DispatchValidation_Create = "Pages.DispatchValidation.Create";
-        public const string Pages_DispatchValidation_Edit = "Pages.DispatchValidation.Edit";
-        public const string Pages_DispatchValidation_Delete = "Pages.DispatchValidation.Delete";
-
         public const string Pages_Dispatch = "Pages.Dispatch";
         public const string Pages_Dispatch_Create = "Pages.Dispatch.Create";
         public const string Pages_Dispatch_Edit = "Pages.Dispatch.Edit";
