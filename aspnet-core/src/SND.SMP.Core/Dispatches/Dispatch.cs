@@ -6,7 +6,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace SND.SMP.Dispatches
 {
 
-    public class Dispatch : Entity<long>
+    public class Dispatch : Entity<int>
     {
         public string CustomerCode                     { get; set; }
         public string POBox                            { get; set; }
