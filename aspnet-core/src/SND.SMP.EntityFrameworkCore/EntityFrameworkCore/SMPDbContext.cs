@@ -79,6 +79,8 @@ namespace SND.SMP.EntityFrameworkCore
                 b.Property(x => x.DeliveredInDays               ).HasColumnName(nameof(ItemMin.DeliveredInDays               ));
                 b.Property(x => x.IsDelivered                   ).HasColumnName(nameof(ItemMin.IsDelivered                   ));
                 b.Property(x => x.Status                        ).HasColumnName(nameof(ItemMin.Status                        ));
+                b.HasOne<Dispatch>().WithMany().HasForeignKey(x => x.DispatchID);
+                b.HasOne<Bag>().WithMany().HasForeignKey(x => x.BagID);
                 b.HasKey(x => x.Id);
             });
 
