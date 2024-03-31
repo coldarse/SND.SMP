@@ -17,7 +17,7 @@ public partial class Rateweightbreak
 
     public string ProductCode { get; set; }
 
-    public string CurrencyId { get; set; }
+    public int CurrencyId { get; set; }
 
     public decimal? ItemRate { get; set; }
 

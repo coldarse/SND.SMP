@@ -6,6 +6,7 @@ using static SND.SMP.Shared.EnumConst;
 using SND.SMP.DispatchConsole.Dto;
 //using SND.SMP.Shared.Modules.Dispatch;
 using Humanizer;
+using Microsoft.EntityFrameworkCore;
 
 namespace SND.SMP.DispatchConsole
 {
@@ -101,8 +102,9 @@ namespace SND.SMP.DispatchConsole
                                         rateOptionId: _dispatchProfile.RateOptionId,
                                         paymentMode: _dispatchProfile.PaymentMode);
 
-                        _currencyId = pricer.CurrencyId;
-
+                        var currency = await db.Currencies.FirstOrDefaultAsync(c => c.Id == pricer.CurrencyId);
+                        _currencyId = currency.Abbr;
+                        
                         var dispatch = new EF.Dispatch
                         {
                             DispatchNo = _dispatchProfile.DispatchNo,
@@ -267,7 +269,7 @@ namespace SND.SMP.DispatchConsole
                                         IdentityType = u.IdentityType,
                                         PassportNo = u.IdentityNo,
                                         DateStage1 = DateTime.Now,
-                                        Status = ((int)DispatchEnumConst.Status.Stage1)
+                                        Status = (int)DispatchEnumConst.Status.Stage1
                                     }));
 
                                     await db.Itemmins.AddRangeAsync(listItems.Select(u => new EF.Itemmin
@@ -285,7 +287,7 @@ namespace SND.SMP.DispatchConsole
                                         TelNo = u.TelNo.Truncate(15, ".."),
                                         Address = u.Address.Truncate(100, ".."),
                                         City = u.City.Truncate(30, ".."),
-                                        Status = ((int)DispatchEnumConst.Status.Stage1)
+                                        Status = (int)DispatchEnumConst.Status.Stage1
                                     }));
 
                                     dispatch.ImportProgress = Convert.ToInt32(Convert.ToDecimal((itemCount) / Convert.ToDecimal(rowCount)) * 100);
@@ -340,7 +342,7 @@ namespace SND.SMP.DispatchConsole
                                 IdentityType = u.IdentityType,
                                 PassportNo = u.IdentityNo,
                                 DateStage1 = DateTime.Now,
-                                Status = ((int)DispatchEnumConst.Status.Stage1)
+                                Status = (int)DispatchEnumConst.Status.Stage1
                             }));
 
                             await db.Itemmins.AddRangeAsync(listItems.Select(u => new EF.Itemmin
@@ -358,7 +360,7 @@ namespace SND.SMP.DispatchConsole
                                 TelNo = u.TelNo.Truncate(15, ".."),
                                 Address = u.Address.Truncate(100, ".."),
                                 City = u.City.Truncate(30, ".."),
-                                Status = ((int)DispatchEnumConst.Status.Stage1)
+                                Status = (int)DispatchEnumConst.Status.Stage1
                             }));
 
                             await db.SaveChangesAsync();
@@ -371,7 +373,7 @@ namespace SND.SMP.DispatchConsole
                         dispatch.ItemCount = itemCount;
                         dispatch.TotalWeight = totalWeight;
                         dispatch.TotalPrice = totalPrice;
-                        dispatch.ImportProgress = Convert.ToInt32(Convert.ToDecimal((itemCount) / Convert.ToDecimal(rowCount)) * 100);
+                        dispatch.ImportProgress = Convert.ToInt32(Convert.ToDecimal(itemCount / Convert.ToDecimal(rowCount)) * 100);
 
                         var queueTask = db.Queues.Find(_queueId);
                         if (queueTask != null)

@@ -18,7 +18,7 @@ namespace SND.SMP.DispatchConsole
 		private List<EF.Rateitem> _rates { get; set; } = null;
 		private List<EF.Rateweightbreak> _rateWeightBreaks { get; set; } = null;
 
-		public string CurrencyId { get; set; }
+		public int CurrencyId { get; set; }
 
 		public DispatchPricer(string accNo, string postalCode, string serviceCode, string productCode, string rateOptionId, string paymentMode)
 		{

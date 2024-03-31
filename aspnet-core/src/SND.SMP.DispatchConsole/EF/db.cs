@@ -18,7 +18,7 @@ public partial class db : DbContext
 
     public virtual DbSet<Bag> Bags { get; set; }
 
-    public virtual DbSet<Currency> Currencies { get; set; }
+    public virtual DbSet<SND.SMP.Currencies.Currency> Currencies { get; set; }
 
     public virtual DbSet<Customer> Customers { get; set; }
 
@@ -87,21 +87,21 @@ public partial class db : DbContext
                 .HasConstraintName("bag_ibfk_1");
         });
 
-        modelBuilder.Entity<Currency>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PRIMARY");
+        // modelBuilder.Entity<Currency>(entity =>
+        // {
+        //     entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.ToTable("currency");
+        //     entity.ToTable("currency");
 
-            entity.Property(e => e.Id)
-                .HasMaxLength(3)
-                .HasDefaultValueSql("''")
-                .IsFixedLength()
-                .HasColumnName("id");
-            entity.Property(e => e.Name)
-                .HasMaxLength(20)
-                .HasColumnName("name");
-        });
+        //     entity.Property(e => e.Id)
+        //         .HasMaxLength(3)
+        //         .HasDefaultValueSql("''")
+        //         .IsFixedLength()
+        //         .HasColumnName("id");
+        //     entity.Property(e => e.Name)
+        //         .HasMaxLength(20)
+        //         .HasColumnName("name");
+        // });
 
         modelBuilder.Entity<Customer>(entity =>
         {

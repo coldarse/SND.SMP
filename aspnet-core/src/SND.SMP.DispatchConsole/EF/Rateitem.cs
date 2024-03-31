@@ -19,7 +19,7 @@ public partial class Rateitem
 
     public decimal? RegisteredFee { get; set; }
 
-    public string CurrencyId { get; set; }
+    public int CurrencyId { get; set; }
 
     public string PaymentMode { get; set; }
 

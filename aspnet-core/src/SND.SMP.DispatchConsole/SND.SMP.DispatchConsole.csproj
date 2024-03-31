@@ -33,5 +33,7 @@
     <ProjectReference Include="..\SND.SMP.Shared\SND.SMP.Shared.csproj">
       <GlobalPropertiesToRemove></GlobalPropertiesToRemove>
     </ProjectReference>
+    <ProjectReference Include="..\SND.SMP.Core\SND.SMP.Core.csproj" />
+    <ProjectReference Include="..\SND.SMP.EntityFrameworkCore\SND.SMP.EntityFrameworkCore.csproj" />
   </ItemGroup>
 </Project>

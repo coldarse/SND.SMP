@@ -9,6 +9,7 @@ using Humanizer;
 using System.Collections.Generic;
 using SND.SMP.DispatchConsole.EF;
 using System.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace SND.SMP.DispatchConsole
 {
@@ -161,7 +162,7 @@ namespace SND.SMP.DispatchConsole
                         var percHistory = new List<int>();
                         for (var i = 1; i <= milestoneCount; i++)
                         {
-                            g += 1 * (ran.Next(15, 25));
+                            g += 1 * ran.Next(15, 25);
                             milestones.Add(g);
                         }
 
@@ -172,7 +173,8 @@ namespace SND.SMP.DispatchConsole
                                         rateOptionId: _dispatchProfile.RateOptionId,
                                         paymentMode: _dispatchProfile.PaymentMode);
 
-                        _currencyId = pricer.CurrencyId;
+                        var currency = await db.Currencies.FirstOrDefaultAsync(c => c.Id == pricer.CurrencyId);
+                        _currencyId = currency.Abbr;
 
                         var rowTouched = 0;
                         var listItems = new List<DispatchItemDto>();
@@ -289,7 +291,7 @@ namespace SND.SMP.DispatchConsole
                             }
                         } while (reader.NextResult());
 
-                        if (listItemIds.Any())
+                        if (listItemIds.Count != 0)
                         {
                             //Block validation
                             Parallel.Invoke(new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount },
@@ -317,6 +319,7 @@ namespace SND.SMP.DispatchConsole
                         #endregion
 
                         #region Dispatch Validation
+                        //----- Write to File to FileServer -----//
                         if (true)
                         {
                             Parallel.Invoke(async () =>
