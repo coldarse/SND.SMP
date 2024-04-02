@@ -172,7 +172,7 @@ export class PreAlertComponent extends AppComponentBase implements OnInit {
       this.isSaving = false;
 
 
-      this.router.navigate(['/home']);
+      this.router.navigate(['/app/home']);
       // this.ngOnInit();
     });
   }
