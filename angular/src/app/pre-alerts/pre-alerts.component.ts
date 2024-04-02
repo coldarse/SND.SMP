@@ -1,4 +1,5 @@
 import { Component, Injector, OnInit } from "@angular/core";
+import { Router } from "@angular/router";
 import { AppComponentBase } from "@shared/app-component-base";
 import { ChibiService } from "@shared/service-proxies/chibis/chibis.service";
 import { CustomerPostalService } from "@shared/service-proxies/customer-postals/customer-postal.service";
@@ -33,6 +34,7 @@ export class PreAlertComponent extends AppComponentBase implements OnInit {
 
   constructor(
     injector: Injector,
+    private router: Router,
     private customerService: CustomerService,
     private customerPostalService: CustomerPostalService,
     private postalService: PostalService,
@@ -169,7 +171,9 @@ export class PreAlertComponent extends AppComponentBase implements OnInit {
       this.notify.info(this.l("UploadedSuccessfully"));
       this.isSaving = false;
 
-      this.ngOnInit();
+
+      this.router.navigate(['/home']);
+      // this.ngOnInit();
     });
   }
 }

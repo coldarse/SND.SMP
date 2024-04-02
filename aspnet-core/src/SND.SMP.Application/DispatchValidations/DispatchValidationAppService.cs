@@ -20,15 +20,27 @@ namespace SND.SMP.DispatchValidations
         }
         protected override IQueryable<DispatchValidation> CreateFilteredQuery(PagedDispatchValidationResultRequestDto input)
         {
-            return Repository.GetAllIncluding()
-                .WhereIf(!input.Keyword.IsNullOrWhiteSpace(), x => 
-                    x.CustomerCode                    .Contains(input.Keyword) ||
-                    x.DispatchNo                      .Contains(input.Keyword) ||
-                    x.FilePath                        .Contains(input.Keyword) ||
-                    x.PostalCode                      .Contains(input.Keyword) ||
-                    x.ServiceCode                     .Contains(input.Keyword) ||
-                    x.ProductCode                     .Contains(input.Keyword) ||
-                    x.Status                          .Contains(input.Keyword));
+            return input.isAdmin ? 
+                Repository.GetAllIncluding()
+                    .WhereIf(!input.Keyword.IsNullOrWhiteSpace(), x => 
+                        x.CustomerCode                    .Contains(input.Keyword) ||
+                        x.DispatchNo                      .Contains(input.Keyword) ||
+                        x.FilePath                        .Contains(input.Keyword) ||
+                        x.PostalCode                      .Contains(input.Keyword) ||
+                        x.ServiceCode                     .Contains(input.Keyword) ||
+                        x.ProductCode                     .Contains(input.Keyword) ||
+                        x.Status                          .Contains(input.Keyword))
+                :
+                Repository.GetAllIncluding()
+                    .WhereIf(!input.Keyword.IsNullOrWhiteSpace(), x => 
+                        x.CustomerCode                    .Contains(input.Keyword) ||
+                        x.DispatchNo                      .Contains(input.Keyword) ||
+                        x.FilePath                        .Contains(input.Keyword) ||
+                        x.PostalCode                      .Contains(input.Keyword) ||
+                        x.ServiceCode                     .Contains(input.Keyword) ||
+                        x.ProductCode                     .Contains(input.Keyword) ||
+                        x.Status                          .Contains(input.Keyword))
+                    .Where(x => x.CustomerCode.Equals(input.CustomerCode));
         }
     }
 }

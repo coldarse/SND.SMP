@@ -28,4 +28,5 @@ export interface PagedDispatchValidationResultRequestDto extends PagedAndSortedR
     serviceCode                     ?: string;
     productCode                     ?: string;
     status                          ?: string;
+    isAdmin?: boolean;
 }
