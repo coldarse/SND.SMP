@@ -27,7 +27,6 @@ export class RateWeightBreaksComponent extends PagedListingComponentBase<RateWei
   products: any[] = [];
   rates: any[] = [];
 
-  grouped: any;
 
   selectedRateCard = 0;
   selectedRateCardName = "";
@@ -74,20 +73,6 @@ export class RateWeightBreaksComponent extends PagedListingComponentBase<RateWei
     }
   }
 
-  private groupBy(list, keyGetter) {
-    const map = new Map();
-    list.forEach((item) => {
-      const key = keyGetter(item);
-      const collection = map.get(key);
-      if (!collection) {
-        map.set(key, [item]);
-      } else {
-        collection.push(item);
-      }
-    });
-    return map;
-  }
-
   uploadRateWeightBreakExcel() {
     this.showUploadRateWeightBreakDialog();
   }
@@ -113,7 +98,6 @@ export class RateWeightBreaksComponent extends PagedListingComponentBase<RateWei
   ): void {
     this.weightbreaks = [];
     this.products = [];
-    this.grouped = undefined;
     this.rateweightbreak = undefined;
     this.isTableLoading = true;
 
@@ -130,28 +114,8 @@ export class RateWeightBreaksComponent extends PagedListingComponentBase<RateWei
           )
           .subscribe((rwb: any) => {
             this.rateweightbreak = rwb.result;
-            this.weightbreaks = rwb.result.weightBreaks;
-            this.products = [
-              ...new Set(this.weightbreaks.map((x) => x.productCode)),
-            ];
-
-            let exceeds = this.weightbreaks.filter(
-              (x) => x.weightBreak === "0.00 - 0.00"
-            );
-
-            // -- Filter out Exeeds Row -- //
-            this.weightbreaks = this.weightbreaks.filter(
-              (x) => x.weightBreak !== "0.00 - 0.00"
-            );
-
-            let grouped = this.groupBy(
-              this.weightbreaks,
-              (x: any) => x.weightBreak
-            );
-
-            grouped["Exceeds"] = exceeds;
-
-            this.grouped = grouped;
+            this.weightbreaks = JSON.parse(rwb.result.weightBreaks);
+            this.products = rwb.result.products;
             this.isTableLoading = false;
           });
       } else {

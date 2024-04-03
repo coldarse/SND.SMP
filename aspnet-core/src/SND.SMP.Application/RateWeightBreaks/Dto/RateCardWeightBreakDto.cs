@@ -9,7 +9,7 @@ namespace SND.SMP.RateWeightBreaks.Dto
         public string Currency { get; set; } = "";
         public string Postal { get; set; } = "";
         public string PaymentMode { get; set; } = "";
-        public List<WeightBreakDto> WeightBreaks { get; set; } = new List<WeightBreakDto>();
+        public List<WeightBreakDto> WeightBreaks { get; set; } = [];
     }
 
     public class RateCardWeightBreakDisplayDto
@@ -18,7 +18,8 @@ namespace SND.SMP.RateWeightBreaks.Dto
         public string Currency { get; set; } = "";
         public string Postal { get; set; } = "";
         public string PaymentMode { get; set; } = "";
-        public List<WeightBreakDisplayDto> WeightBreaks { get; set; } = new List<WeightBreakDisplayDto>();
+        public string WeightBreaks { get; set; } = "";
+        public List<string> Products { get; set; } = [];
     }
 }
 

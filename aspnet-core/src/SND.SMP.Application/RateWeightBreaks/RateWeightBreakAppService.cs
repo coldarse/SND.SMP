@@ -19,6 +19,7 @@ using SND.SMP.Currencies;
 using SND.SMP.Rates;
 using System.Configuration.Internal;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
 
 namespace SND.SMP.RateWeightBreaks
 {
@@ -134,10 +135,10 @@ namespace SND.SMP.RateWeightBreaks
             var postalOrg = await _postalOrgRepository.FirstOrDefaultAsync(x => x.Id.Equals(rateWeight.PostalOrgId));
             var currency = await _currencyRepository.FirstOrDefaultAsync(x => x.Id.Equals(rateWeight.CurrencyId));
 
-            List<WeightBreakDisplayDto> wb = [];
+            List<WeightBreakDisplayDto> wbs = [];
             foreach (RateWeightBreak rwb in rateWeightBreaks)
             {
-                wb.Add(new WeightBreakDisplayDto()
+                wbs.Add(new WeightBreakDisplayDto()
                 {
                     WeightBreak = rwb.WeightMin.ToString() + " - " + rwb.WeightMax.ToString(),
                     ProductCode = rwb.ProductCode,
@@ -147,13 +148,27 @@ namespace SND.SMP.RateWeightBreaks
                 });
             }
 
+            var distinctedProduct = wbs.DistinctBy(x => x.ProductCode);
+            List<string> products = [];
+            foreach (var dp in distinctedProduct.ToList())
+            {
+                products.Add(dp.ProductCode);
+            }
+
+            var exceeds = wbs.Where(x => x.WeightBreak.Equals("0.00 - 0.00")).ToList();
+            var noExceeds = wbs.Where(x => !x.WeightBreak.Equals("0.00 - 0.00")).ToList();
+
+            var groupedWeightBreaks = noExceeds.GroupBy(dto => dto.WeightBreak).ToDictionary(group => group.Key, group => group.ToList());
+            groupedWeightBreaks["Exceeds"] = exceeds;
+
             return new RateCardWeightBreakDisplayDto()
             {
                 RateCardName = rate.CardName,
                 Currency = currency.Abbr,
                 Postal = postalOrg.Id,
                 PaymentMode = rateWeight.PaymentMode,
-                WeightBreaks = wb
+                WeightBreaks = JsonSerializer.Serialize(groupedWeightBreaks),
+                Products = products,
             };
         }
 

@@ -42,7 +42,7 @@
           <div class="table-responsive">
             <div class="row mb-3" *ngIf="selectedRateCard !== 0">
               <div class="col-md-6">
-                {{ selectedRateCardName }}
+                <h5>&nbsp;Rate: {{ selectedRateCardName }}</h5>
               </div>
             </div>
             <table
@@ -71,20 +71,12 @@
                 </tr>
               </thead>
               <tbody>
-                <tr *ngFor="let items of grouped | keyvalue">
-                  <td>{{ items.key }}</td>
+                <tr *ngFor="let items of weightbreaks | keyvalue">
+                  <td >{{ items.key }}</td>
                   @for (item of items.value; track $index) {
-                  <td>{{ item.itemRate | number : "1.2-2" }}</td>
+                  <td>{{ item.ItemRate == '0.00' ? '-' : item.ItemRate | currency }}</td>
                   }
                 </tr>
-                @if (grouped !== undefined && grouped['Exceeds'].length !== 0) {
-                <tr>
-                  <td>Exceeds</td>
-                  @for (item of grouped['Exceeds']; track $index) {
-                  <td>{{ item.itemRate | number : "1.2-2" }}</td>
-                  }
-                </tr>
-                }
               </tbody>
             </table>
           </div>
