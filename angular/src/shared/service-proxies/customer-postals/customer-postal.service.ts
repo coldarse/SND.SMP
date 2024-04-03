@@ -112,4 +112,26 @@ export class CustomerPostalService {
     )
     .pipe(retry(1), catchError(this.handleError));
   }
+
+  // Get Full Customer Postal Details 
+  getFullDetailedCustomerPostal(body: PagedCustomerPostalResultRequestDto) {
+    let url_ = this.url + "/api/services/app/CustomerPostal/GetFullDetailedCustomerPostal?";
+
+    if (body.keyword === null)
+      throw new Error("The parameter 'keyword' cannot be null.");
+    else if (body.keyword !== undefined)
+      url_ += "Keyword=" + encodeURIComponent("" + body.keyword) + "&";
+
+    if (body.skipCount !== undefined)
+      url_ += "SkipCount=" + encodeURIComponent("" + body.skipCount) + "&";
+    
+    if (body.accountNo !== undefined)
+      url_ += "AccountNo=" + encodeURIComponent("" + body.accountNo) + "&";
+
+    url_ = url_.replace(/[?&]$/, "");
+
+    return this.http
+      .get(url_ + `&MaxResultCount=10`, this.options_)
+      .pipe(retry(1), catchError(this.handleError));
+  }
 }

@@ -33,6 +33,43 @@ namespace SND.SMP.CustomerPostals
             return Repository.GetAllIncluding().Where(x => x.AccountNo.Equals(input.AccountNo));
         }
 
+        public async Task<FullDetailedCustomerPostal> GetFullDetailedCustomerPostal(PagedCustomerPostalResultRequestDto input)
+        {
+            var postals = await _postalRepository.GetAllListAsync();
+            postals = postals.DistinctBy(x => x.PostalCode).ToList();
+
+            List<PostalDDL> postalDDL = [];
+            foreach (var postal in postals.ToList())
+            {
+                postalDDL.Add(new PostalDDL()
+                {
+                    PostalCode = postal.PostalCode,
+                    PostalDesc = postal.PostalDesc
+                });
+            }
+
+            var rates = await rateRepository.GetAllListAsync();
+
+            List<RateDDL> rateDDL = [];
+            foreach (var rate in rates.ToList())
+            {
+                rateDDL.Add(new RateDDL()
+                {
+                    Id = rate.Id,
+                    CardName = rate.CardName
+                });
+            }
+
+            var detailed = await GetAllAsync(input);
+
+            return new FullDetailedCustomerPostal()
+            {
+                PagedResultDto = detailed,
+                PostalDDLs = postalDDL,
+                RateDDLs = rateDDL,
+            };
+        }
+
         public override async Task<PagedResultDto<DetailedCustomerPostalDto>> GetAllAsync(PagedCustomerPostalResultRequestDto input)
         {
             CheckGetAllPermission();

@@ -186,6 +186,7 @@ export class WalletsComponent extends PagedListingComponentBase<WalletDto> {
 
           this.wallets.push(tempWallet);
         });
+        this.showPaging(result.result, pageNumber);
       });
   }
 }

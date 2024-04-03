@@ -115,6 +115,8 @@ export class RateItemsComponent extends PagedListingComponentBase<RateItemDto> {
 
           this.rateItems.push(tempRateItem);
         });
+
+        this.showPaging(result.result.pagedRateItemResultDto, pageNumber);
       });
   }
 }

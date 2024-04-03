@@ -62,57 +62,52 @@ export class SidebarMenuComponent extends AppComponentBase implements OnInit {
         "Pages.Users"
       ),
       /* Insert Menu Path */
-            new MenuItem(
-                this.l('ItemMins'),
-                '/app/itemmins',
-                'far fa-circle',
-                'Pages.ItemMin'
-            ),
-            new MenuItem(
-                this.l('Items'),
-                '/app/items',
-                'far fa-circle',
-                'Pages.Item'
-            ),
-            new MenuItem(
-                this.l('Bags'),
-                '/app/bags',
-                'far fa-circle',
-                'Pages.Bag'
-            ),
-            new MenuItem(
-                this.l('DispatchValidations'),
-                '/app/dispatchvalidations',
-                'far fa-circle',
-                'Pages.DispatchValidation'
-            ),
-            new MenuItem(
-                this.l('Dispatches'),
-                '/app/dispatches',
-                'far fa-circle',
-                'Pages.Dispatch'
-            ),
+      // new MenuItem(
+      //   this.l("ItemMins"),
+      //   "/app/itemmins",
+      //   "far fa-circle",
+      //   "Pages.ItemMin"
+      // ),
+      // new MenuItem(
+      //   this.l("Items"),
+      //   "/app/items",
+      //   "far fa-circle",
+      //   "Pages.Item"
+      // ),
+      // new MenuItem(this.l("Bags"), "/app/bags", "far fa-circle", "Pages.Bag"),
+      // new MenuItem(
+      //   this.l("DispatchValidations"),
+      //   "/app/dispatchvalidations",
+      //   "far fa-circle",
+      //   "Pages.DispatchValidation"
+      // ),
+      // new MenuItem(
+      //   this.l("Dispatches"),
+      //   "/app/dispatches",
+      //   "far fa-circle",
+      //   "Pages.Dispatch"
+      // ),
       new MenuItem(
         this.l("Queues"),
         "/app/queues",
-        "far fa-arrow-down-wide-short",
+        "fas fa-arrow-down-wide-short",
         "Pages.Queue"
       ),
       new MenuItem(
         this.l("Pre-Check Upload"),
         "/app/pre-alerts",
         "fas fa-bell"
-        ),
+      ),
       new MenuItem(
         this.l("Rate Weight Breaks"),
         "/app/rate-weight-breaks",
-        "far fa-scale-unbalanced",
+        "fas fa-scale-unbalanced",
         "Pages.RateWeightBreak"
       ),
       new MenuItem(
         this.l("Postal Countries"),
         "/app/postal-countries",
-        "far fa-globe-asia",
+        "fas fa-earth-asia",
         "Pages.PostalCountry"
       ),
       new MenuItem(

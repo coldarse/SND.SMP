@@ -245,40 +245,31 @@ export class CustomersComponent extends PagedListingComponentBase<CustomerDto> {
       postal_request.accountNo = this.selectedCustomer.id;
       this.customerpostals = [];
       this._customerpostalService
-        .getAll(request)
+        .getFullDetailedCustomerPostal(request)
         .pipe(
           finalize(() => {
             finishedCallback();
           })
         )
         .subscribe((result: any) => {
-          this._rateService.getRateDDL().subscribe((rateResult: any) => {
-            this._postalService
-              .getPostalDDL()
-              .subscribe((postalResult: any) => {
-                this.postalItems = postalResult.result;
-                this.rateItems = rateResult.result;
-                this.customerpostals = [];
-                result.result.items.forEach(
-                  (element: DetailedCustomerPostalDto) => {
-                    let tempCustomerPostal = {
-                      id: element.id,
-                      postal: element.postal,
-                      rate: element.rate,
-                      rateCard: element.rateCard,
-                      accountNo: element.accountNo,
-                      code: element.code,
-                    };
+          this.postalItems = result.result.postalDDLs;
+          this.rateItems = result.result.rateDDLs;
+          this.customerpostals = [];
+          result.result.pagedResultDto.items.forEach(
+            (element: DetailedCustomerPostalDto) => {
+              let tempCustomerPostal = {
+                id: element.id,
+                postal: element.postal,
+                rate: element.rate,
+                rateCard: element.rateCard,
+                accountNo: element.accountNo,
+                code: element.code,
+              };
 
-                    this.customerpostals.push(tempCustomerPostal);
-                  }
-                );
-
-                this.showPostalPaging(result.result, pageNumber);
-              });
-          });
-
-          
+              this.customerpostals.push(tempCustomerPostal);
+            }
+          );
+          this.showPostalPaging(result.result, pageNumber);
         });
 
       let customer_request: PagedCustomersRequestDto;
@@ -325,9 +316,12 @@ export class CustomersComponent extends PagedListingComponentBase<CustomerDto> {
   pagePostalSize = 10;
 
   private showPostalPaging(result: PagedResultDto, pageNumber: number): void {
-    this.totalPostalPages = ((result.totalCount - (result.totalCount % this.pageSize)) / this.pageSize) + 1;
+    this.totalPostalPages =
+      (result.totalCount - (result.totalCount % this.pageSize)) /
+        this.pageSize +
+      1;
 
     this.totalPostalItems = result.totalCount;
     this.pagePostalNumber = pageNumber;
-}
+  }
 }
