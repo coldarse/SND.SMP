@@ -138,6 +138,31 @@ export class RateItemService {
         )
     }
 
+    // Get Full Rate Item Detail
+    getFullRateItemDetail(body: PagedRateItemsResultRequestDto){
+        let url_ = this.url + "/api/services/app/RateItem/GetFullRateItemDetail?";
+
+        if (body.keyword === null)
+            throw new Error("The parameter 'keyword' cannot be null.");
+        else if (body.keyword !== undefined)
+            url_ += "Keyword=" + encodeURIComponent("" + body.keyword) + "&";
+
+        if (body.skipCount !== undefined)
+            url_ += "SkipCount=" + encodeURIComponent("" + body.skipCount) + "&";
+
+
+        url_ = url_.replace(/[?&]$/, "");
+
+
+        return this.http.get(
+            url_ + `&MaxResultCount=10`,
+            this.options_
+        ).pipe(
+            retry(1),
+            catchError(this.handleError),
+        )
+    }
+
     
 
 }

@@ -17,6 +17,8 @@ using OfficeOpenXml;
 using Abp.EntityFrameworkCore.Repositories;
 using Microsoft.EntityFrameworkCore;
 using System.IO;
+using Abp.Application.Services.Dto;
+using System.Linq.Dynamic.Core;
 
 namespace SND.SMP.RateItems
 {
@@ -33,9 +35,100 @@ namespace SND.SMP.RateItems
                     x.RateId.ToString().Equals(input.Keyword));
         }
 
+        private IQueryable<RateItemDetailDto> ApplySorting(IQueryable<RateItemDetailDto> query, PagedRateItemResultRequestDto input)
+        {
+            //Try to sort query if available
+            if (input is ISortedResultRequest sortInput)
+            {
+                if (!sortInput.Sorting.IsNullOrWhiteSpace())
+                {
+                    return query.OrderBy(sortInput.Sorting);
+                }
+            }
+
+            //IQueryable.Task requires sorting, so we should sort if Take will be used.
+            if (input is ILimitedResultRequest)
+            {
+                return query.OrderByDescending(e => e.Id);
+            }
+
+            //No sorting
+            return query;
+        }
+
+        private IQueryable<RateItemDetailDto> ApplyPaging(IQueryable<RateItemDetailDto> query, PagedRateItemResultRequestDto input)
+        {
+            if ((object)input is IPagedResultRequest pagedResultRequest)
+            {
+                return query.PageBy(pagedResultRequest);
+            }
+
+            if ((object)input is ILimitedResultRequest limitedResultRequest)
+            {
+                return query.Take(limitedResultRequest.MaxResultCount);
+            }
+
+            return query;
+        }
+
         public async Task<int> GetAllRateItemsCount()
         {
             return await Repository.CountAsync();
+        }
+
+        public async Task<FullRateItemDetailDto> GetFullRateItemDetail(PagedRateItemResultRequestDto input)
+        {
+            CheckGetAllPermission();
+
+            var query = CreateFilteredQuery(input);
+
+            var rates = await rateRepository.GetAllListAsync();
+
+            var currencies = await currencyRepository.GetAllListAsync();
+
+            List<RateItemDetailDto> detailed = [];
+
+            foreach (var rateItem in query.ToList())
+            {
+                var rate = rates.FirstOrDefault(x => x.Id.Equals(rateItem.RateId));
+
+                var currency = currencies.FirstOrDefault(x => x.Id.Equals(rateItem.CurrencyId));
+
+                detailed.Add(new RateItemDetailDto()
+                {
+                    Id = rateItem.Id,
+                    RateId = rateItem.RateId,
+                    RateCardName = rate.CardName,
+                    ServiceCode = rateItem.ServiceCode,
+                    ProductCode = rateItem.ProductCode,
+                    CountryCode = rateItem.CountryCode,
+                    Total = rateItem.Total,
+                    Fee = rateItem.Fee,
+                    CurrencyId = rateItem.CurrencyId,
+                    Currency = currency.Abbr,
+                    PaymentMode = rateItem.PaymentMode,
+                });
+            }
+
+            var totalCount = detailed.Count;
+
+            detailed = [.. ApplySorting(detailed.AsQueryable(), input)];
+            detailed = [.. ApplyPaging(detailed.AsQueryable(), input)];
+
+            int rateItemCount = await Repository.CountAsync();
+
+            rates.Insert(0, new Rate()
+            {
+                Id = 0,
+                CardName = "All",
+                Count = rateItemCount
+            });
+
+            return new FullRateItemDetailDto()
+            {
+                PagedRateItemResultDto = new PagedResultDto<RateItemDetailDto>(totalCount, [..detailed]),
+                Rates = rates
+            };
         }
 
         private async Task<DataTable> ConvertToDatatable(Stream ms)

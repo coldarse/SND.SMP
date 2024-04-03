@@ -23,3 +23,19 @@ export interface PagedRateItemsResultRequestDto extends PagedAndSortedResultRequ
     paymentMode?: string;
 }
 
+export interface RateItemDetailDto {
+    id: number;
+    rateId: number;
+    rateCardName : number;
+    serviceCode: string;
+    productCode: string;
+    countryCode: string;
+    total: number;
+    fee: number;
+    currencyId: number;
+    currency: string;
+    paymentMode: string;
+}
+
+
+

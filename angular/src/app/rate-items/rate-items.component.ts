@@ -6,7 +6,7 @@ import {
 } from "@shared/paged-listing-component-base";
 import { BsModalRef, BsModalService } from "ngx-bootstrap/modal";
 import { finalize } from "rxjs/operators";
-import { RateItemDto } from "@shared/service-proxies/rate-items/model";
+import { RateItemDetailDto, RateItemDto } from "@shared/service-proxies/rate-items/model";
 import { RateItemService } from "@shared/service-proxies/rate-items/rate-item.service";
 import { RateService } from "@shared/service-proxies/rates/rate.service";
 import { CurrencyService } from "@shared/service-proxies/currencies/currency.service";
@@ -26,7 +26,6 @@ export class RateItemsComponent extends PagedListingComponentBase<RateItemDto> {
   keyword = "";
   rateItems: any[] = [];
   rates: any[] = [];
-
 
   constructor(
     injector: Injector,
@@ -62,8 +61,7 @@ export class RateItemsComponent extends PagedListingComponentBase<RateItemDto> {
     if (input.toString() === "0") {
       this.keyword = "";
       this.getDataPage(1);
-    }
-    else{
+    } else {
       this.keyword = input.toString();
       this.getDataPage(1);
     }
@@ -91,53 +89,31 @@ export class RateItemsComponent extends PagedListingComponentBase<RateItemDto> {
   ): void {
     request.keyword = this.keyword;
     this._rateItemService
-      .getAll(request)
+      .getFullRateItemDetail(request)
       .pipe(
         finalize(() => {
           finishedCallback();
-          this.isTableLoading = true;
         })
       )
       .subscribe((result: any) => {
         this.rateItems = [];
-        this._rateService.getRates().subscribe((rates: any) => {
-          this._currencyService.getCurrencies().subscribe((currencies: any) => {
-            this.rates = rates.result;
-            result.result.items.forEach((element: RateItemDto) => {
-              const rateCardName = rates.result.find(
-                (x: any) => x.id === element.rateId
-              );
-              const currency = currencies.result.find(
-                (x: any) => x.id === element.currencyId
-              );
+        this.rates = result.result.rates;
+        result.result.pagedRateItemResultDto.items.forEach((element: RateItemDetailDto) => {
+          let tempRateItem = {
+            id: element.id,
+            rateId: element.rateId,
+            rateCardName: element.rateCardName,
+            serviceCode: element.serviceCode,
+            productCode: element.productCode,
+            countryCode: element.countryCode,
+            total: element.total,
+            fee: element.fee,
+            currencyId: element.currencyId,
+            currency: element.currency,
+            paymentMode: element.paymentMode,
+          };
 
-              let tempRateItem = {
-                id: element.id,
-                rateId: element.rateId,
-                rateCardName: rateCardName.cardName,
-                serviceCode: element.serviceCode,
-                productCode: element.productCode,
-                countryCode: element.countryCode,
-                total: element.total,
-                fee: element.fee,
-                currencyId: element.currencyId,
-                currency: currency.abbr,
-                paymentMode: element.paymentMode,
-              };
-
-              this.rateItems.push(tempRateItem);
-            });
-            this._rateItemService.getAllRateItemsCount().subscribe((count: any) => {
-              this.showPaging(result.result, pageNumber);
-              this.rates.unshift({
-                id: 0,
-                cardName: 'All',
-                count: count.result
-              });
-
-              this.isTableLoading = false;
-            });
-          });
+          this.rateItems.push(tempRateItem);
         });
       });
   }
