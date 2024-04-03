@@ -1,10 +1,11 @@
-import { Component, EventEmitter, Injector, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Injector, Input, OnInit, Output } from '@angular/core';
 import { AppComponentBase } from '../../../shared/app-component-base';
 import { CustomerPostalDto } from '../../../shared/service-proxies/customer-postals/model';
 import { CustomerPostalService } from '../../../shared/service-proxies/customer-postals/customer-postal.service';
 import { BsModalRef } from 'ngx-bootstrap/modal';
 import { RateDDL } from '@shared/service-proxies/rates/model';
 import { PostalDDL } from '@shared/service-proxies/postals/model';
+import { CustomerDto } from '@shared/service-proxies/customers/model';
 
 @Component({
   selector: 'app-create-update-customerpostal',
@@ -23,7 +24,7 @@ export class CreateUpdateCustomerPostalComponent extends AppComponentBase
   rateItems: RateDDL[];
 
   formInvalid = true;
-  
+
   @Output() onSave = new EventEmitter<any>();
 
   constructor(

@@ -2,7 +2,6 @@ import { Component, Injector } from "@angular/core";
 import {
   PagedListingComponentBase,
   PagedRequestDto,
-  PagedResultDto,
 } from "@shared/paged-listing-component-base";
 import { BsModalRef, BsModalService } from "ngx-bootstrap/modal";
 import { finalize } from "rxjs/operators";
@@ -12,7 +11,6 @@ import { CreateUpdateCustomerComponent } from "../customers/create-update-custom
 import { CustomerPostalService } from "@shared/service-proxies/customer-postals/customer-postal.service";
 import {
   CustomerPostalDto,
-  DetailedCustomerPostalDto,
 } from "@shared/service-proxies/customer-postals/model";
 import { CreateUpdateCustomerPostalComponent } from "@app/customer-postals/create-update-customer-postal/create-update-customer-postal.component";
 import { PostalDDL } from "@shared/service-proxies/postals/model";
@@ -24,10 +22,7 @@ class PagedCustomersRequestDto extends PagedRequestDto {
   keyword: string;
 }
 
-class PagedCustomerPostalsRequestDto extends PagedRequestDto {
-  keyword: string;
-  accountNo: number;
-}
+
 
 @Component({
   selector: "app-customers",
@@ -65,51 +60,7 @@ export class CustomersComponent extends PagedListingComponentBase<CustomerDto> {
     this.showCreateOrEditCustomerDialog(entity);
   }
 
-  createCustomerPostal() {
-    this.showCreateOrEditCustomerPostalDialog();
-  }
-
-  private showCreateOrEditCustomerPostalDialog(entity?: CustomerPostalDto) {
-    let createOrEditCustomerPostalDialog: BsModalRef;
-    if (!entity) {
-      createOrEditCustomerPostalDialog = this._modalService.show(
-        CreateUpdateCustomerPostalComponent,
-        {
-          class: "modal-lg",
-          initialState: {
-            customerpostal: {
-              accountNo: this.selectedCustomer.id,
-              postal: undefined,
-              rate: undefined,
-            },
-            postalItems: this.postalItems,
-            rateItems: this.rateItems,
-          },
-        }
-      );
-    } else {
-      createOrEditCustomerPostalDialog = this._modalService.show(
-        CreateUpdateCustomerPostalComponent,
-        {
-          class: "modal-lg",
-          initialState: {
-            customerpostal: {
-              accountNo: this.selectedCustomer.id,
-              postal: undefined,
-              rate: undefined,
-            },
-            postalItems: this.postalItems,
-            rateItems: this.rateItems,
-          },
-        }
-      );
-    }
-
-    createOrEditCustomerPostalDialog.content.onSave.subscribe(() => {
-      this.refresh();
-    });
-  }
-
+ 
   private showCreateOrEditCustomerDialog(entity?: CustomerDto) {
     let createOrEditCustomerDialog: BsModalRef;
     if (!entity) {
@@ -137,8 +88,7 @@ export class CustomersComponent extends PagedListingComponentBase<CustomerDto> {
   }
 
   clearFilters(): void {
-    this.keyword = "";
-    this.getDataPage(1);
+    this.closePostal();
   }
 
   postal(entity: CustomerDto): void {
@@ -181,11 +131,6 @@ export class CustomersComponent extends PagedListingComponentBase<CustomerDto> {
     }
   }
 
-  entries(event: any) {
-    this.pagePostalSize = event.target.value;
-    this.getDataPage(1);
-  }
-
   protected deleteCustomerPostal(entity: CustomerPostalDto): void {
     abp.message.confirm("", undefined, (result: boolean) => {
       if (result) {
@@ -197,131 +142,55 @@ export class CustomersComponent extends PagedListingComponentBase<CustomerDto> {
     });
   }
 
+  gotPostalDDL(value: PostalDDL[]) {
+    this.postalItems = [];
+    this.postalItems = value;
+  }
+
+  gotRateDDL(value: RateDDL[]) {
+    this.rateItems = [];
+    this.rateItems = value;
+  }
+
   protected list(
-    request: any,
+    request: PagedCustomersRequestDto,
     pageNumber: number,
     finishedCallback: Function
   ): void {
-    if (this.selectedCustomer == undefined) {
-      let customer_request: PagedCustomersRequestDto;
-      customer_request = request;
-      customer_request.keyword = this.keyword;
-      this._customerService
-        .getAll(request)
-        .pipe(
-          finalize(() => {
-            finishedCallback();
-          })
-        )
-        .subscribe((result: any) => {
-          this.customers = [];
-          result.result.items.forEach((element: CustomerDto) => {
-            let tempCustomer = {
-              id: element.id,
-              code: element.code,
-              companyName: element.companyName,
-              emailAddress: element.emailAddress,
-              password: element.password,
-              addressLine1: element.addressLine1,
-              addressLine2: element.addressLine2,
-              city: element.city,
-              state: element.state,
-              country: element.country,
-              phoneNumber: element.phoneNumber,
-              registrationNo: element.registrationNo,
-              emailAddress2: element.emailAddress2,
-              emailAddress3: element.emailAddress3,
-              isActive: element.isActive,
-            };
+    let customer_request: PagedCustomersRequestDto;
+    customer_request = request;
+    customer_request.keyword = this.keyword;
+    this._customerService
+      .getAll(request)
+      .pipe(
+        finalize(() => {
+          finishedCallback();
+        })
+      )
+      .subscribe((result: any) => {
+        this.customers = [];
+        result.result.items.forEach((element: CustomerDto) => {
+          let tempCustomer = {
+            id: element.id,
+            code: element.code,
+            companyName: element.companyName,
+            emailAddress: element.emailAddress,
+            password: element.password,
+            addressLine1: element.addressLine1,
+            addressLine2: element.addressLine2,
+            city: element.city,
+            state: element.state,
+            country: element.country,
+            phoneNumber: element.phoneNumber,
+            registrationNo: element.registrationNo,
+            emailAddress2: element.emailAddress2,
+            emailAddress3: element.emailAddress3,
+            isActive: element.isActive,
+          };
 
-            this.customers.push(tempCustomer);
-          });
-          this.showPaging(result.result, pageNumber);
+          this.customers.push(tempCustomer);
         });
-    } else {
-      let postal_request: PagedCustomerPostalsRequestDto;
-      postal_request = request;
-      postal_request.keyword = this.postal_keyword;
-      postal_request.accountNo = this.selectedCustomer.id;
-      this.customerpostals = [];
-      this._customerpostalService
-        .getFullDetailedCustomerPostal(request)
-        .pipe(
-          finalize(() => {
-            finishedCallback();
-          })
-        )
-        .subscribe((result: any) => {
-          this.postalItems = result.result.postalDDLs;
-          this.rateItems = result.result.rateDDLs;
-          this.customerpostals = [];
-          result.result.pagedResultDto.items.forEach(
-            (element: DetailedCustomerPostalDto) => {
-              let tempCustomerPostal = {
-                id: element.id,
-                postal: element.postal,
-                rate: element.rate,
-                rateCard: element.rateCard,
-                accountNo: element.accountNo,
-                code: element.code,
-              };
-
-              this.customerpostals.push(tempCustomerPostal);
-            }
-          );
-          this.showPostalPaging(result.result, pageNumber);
-        });
-
-      let customer_request: PagedCustomersRequestDto;
-      customer_request = request;
-      customer_request.keyword = this.keyword;
-      this._customerService
-        .getAll(request)
-        .pipe(
-          finalize(() => {
-            finishedCallback();
-          })
-        )
-        .subscribe((result: any) => {
-          this.customers = [];
-          result.result.items.forEach((element: CustomerDto) => {
-            let tempCustomer = {
-              id: element.id,
-              code: element.code,
-              companyName: element.companyName,
-              emailAddress: element.emailAddress,
-              password: element.password,
-              addressLine1: element.addressLine1,
-              addressLine2: element.addressLine2,
-              city: element.city,
-              state: element.state,
-              country: element.country,
-              phoneNumber: element.phoneNumber,
-              registrationNo: element.registrationNo,
-              emailAddress2: element.emailAddress2,
-              emailAddress3: element.emailAddress3,
-              isActive: element.isActive,
-            };
-
-            this.customers.push(tempCustomer);
-          });
-          this.showPaging(result.result, pageNumber);
-        });
-    }
-  }
-
-  totalPostalPages = 1;
-  totalPostalItems = 0;
-  pagePostalNumber = 1;
-  pagePostalSize = 10;
-
-  private showPostalPaging(result: PagedResultDto, pageNumber: number): void {
-    this.totalPostalPages =
-      (result.totalCount - (result.totalCount % this.pageSize)) /
-        this.pageSize +
-      1;
-
-    this.totalPostalItems = result.totalCount;
-    this.pagePostalNumber = pageNumber;
+        this.showPaging(result.result, pageNumber);
+      });
   }
 }

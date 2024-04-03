@@ -92,7 +92,7 @@ export class CustomerPostalService {
 
     if (body.skipCount !== undefined)
       url_ += "SkipCount=" + encodeURIComponent("" + body.skipCount) + "&";
-    
+
     if (body.accountNo !== undefined)
       url_ += "AccountNo=" + encodeURIComponent("" + body.accountNo) + "&";
 
@@ -106,16 +106,19 @@ export class CustomerPostalService {
   //Get Customer Postals By AccountNo
   getCustomerPostalsByAccountNo(accountNo: number) {
     return this.http
-    .get(
-      this.url + `/api/services/app/CustomerPostal/GetCustomerPostalsByAccountNo?accountNo=${accountNo}`,
-      this.options_
-    )
-    .pipe(retry(1), catchError(this.handleError));
+      .get(
+        this.url +
+          `/api/services/app/CustomerPostal/GetCustomerPostalsByAccountNo?accountNo=${accountNo}`,
+        this.options_
+      )
+      .pipe(retry(1), catchError(this.handleError));
   }
 
-  // Get Full Customer Postal Details 
+  // Get Full Customer Postal Details
   getFullDetailedCustomerPostal(body: PagedCustomerPostalResultRequestDto) {
-    let url_ = this.url + "/api/services/app/CustomerPostal/GetFullDetailedCustomerPostal?";
+    let url_ =
+      this.url +
+      "/api/services/app/CustomerPostal/GetFullDetailedCustomerPostal?";
 
     if (body.keyword === null)
       throw new Error("The parameter 'keyword' cannot be null.");
@@ -124,14 +127,18 @@ export class CustomerPostalService {
 
     if (body.skipCount !== undefined)
       url_ += "SkipCount=" + encodeURIComponent("" + body.skipCount) + "&";
-    
+
     if (body.accountNo !== undefined)
       url_ += "AccountNo=" + encodeURIComponent("" + body.accountNo) + "&";
+
+    let count = 10;
+    if (body.maxResultCount !== undefined) 
+      count = body.maxResultCount;
 
     url_ = url_.replace(/[?&]$/, "");
 
     return this.http
-      .get(url_ + `&MaxResultCount=10`, this.options_)
+      .get(url_ + `&MaxResultCount=${count}`, this.options_)
       .pipe(retry(1), catchError(this.handleError));
   }
 }
