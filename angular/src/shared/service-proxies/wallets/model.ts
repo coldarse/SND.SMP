@@ -52,3 +52,14 @@ export interface DetailedEWallet {
     balance: number;
     eWalletType: number;
 }
+
+
+export interface WalletDetailDto {
+    customer: string;
+    eWalletType: number;
+    eWalletTypeDesc: string;
+    currency: number;
+    currencyDesc: string;
+    balance: number;
+    id: string;
+}

@@ -6,7 +6,7 @@ import {
 } from "@shared/paged-listing-component-base";
 import { BsModalRef, BsModalService } from "ngx-bootstrap/modal";
 import { finalize } from "rxjs/operators";
-import { EWalletDto, WalletDto } from "@shared/service-proxies/wallets/model";
+import { EWalletDto, WalletDetailDto, WalletDto } from "@shared/service-proxies/wallets/model";
 import { WalletService } from "@shared/service-proxies/wallets/wallet.service";
 import { CreateUpdateWalletComponent } from "../wallets/create-update-wallet/create-update-wallet.component";
 import { EWalletTypeService } from "@shared/service-proxies/ewallettypes/ewallettype.service";
@@ -165,45 +165,27 @@ export class WalletsComponent extends PagedListingComponentBase<WalletDto> {
 
     request.keyword = this.keyword;
     this._walletService
-      .getAll(request)
+      .getWalletDetail(request)
       .pipe(
         finalize(() => {
           finishedCallback();
-          this.isTableLoading = true;
         })
       )
       .subscribe((result: any) => {
         this.wallets = [];
-        this._eWalletTypeService
-          .getEWalletTypes()
-          .subscribe((ewallettypes: any) => {
-            this._currencyService
-              .getCurrencies()
-              .subscribe((currencies: any) => {
-                result.result.items.forEach((element: WalletDto) => {
-                  const ewallettype = ewallettypes.result.find(
-                    (x) => x.id === element.eWalletType
-                  );
-                  const currency = currencies.result.find(
-                    (x) => x.id === element.currency
-                  );
+        result.result.items.forEach((element: WalletDetailDto) => {
+          let tempWallet = {
+            customer: element.customer,
+            eWalletType: element.eWalletType,
+            eWalletTypeDesc: element.eWalletTypeDesc,
+            currency: element.currency,
+            currencyDesc: element.currencyDesc,
+            balance: element.balance,
+            id: element.id,
+          };
 
-                  let tempWallet = {
-                    customer: element.customer,
-                    eWalletType: element.eWalletType,
-                    eWalletTypeDesc: ewallettype.type,
-                    currency: element.currency,
-                    currencyDesc: currency.abbr,
-                    balance: element.balance,
-                    id: element.id,
-                  };
-
-                  this.wallets.push(tempWallet);
-                });
-                this.showPaging(result.result, pageNumber);
-                this.isTableLoading = false;
-              });
-          });
+          this.wallets.push(tempWallet);
+        });
       });
   }
 }

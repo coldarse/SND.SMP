@@ -12,12 +12,9 @@ using SND.SMP.Wallets.Dto;
 using Abp.Application.Services.Dto;
 using Abp.UI;
 using SND.SMP.Currencies;
-using System.Reflection.Metadata.Ecma335;
-using JetBrains.Annotations;
 using SND.SMP.EWalletTypes;
-using System.ComponentModel;
 using SND.SMP.CustomerTransactions;
-using System.Diagnostics;
+using System.Linq.Dynamic.Core;
 
 namespace SND.SMP.Wallets
 {
@@ -33,6 +30,42 @@ namespace SND.SMP.Wallets
             return Repository.GetAllIncluding()
                 .WhereIf(!input.Keyword.IsNullOrWhiteSpace(), x =>
                     x.Customer.Contains(input.Keyword));
+        }
+
+        private IQueryable<WalletDetailDto> ApplySorting(IQueryable<WalletDetailDto> query, PagedWalletResultRequestDto input)
+        {
+            //Try to sort query if available
+            if (input is ISortedResultRequest sortInput)
+            {
+                if (!sortInput.Sorting.IsNullOrWhiteSpace())
+                {
+                    return query.OrderBy(sortInput.Sorting);
+                }
+            }
+
+            //IQueryable.Task requires sorting, so we should sort if Take will be used.
+            if (input is ILimitedResultRequest)
+            {
+                return query.OrderByDescending(e => e.Id);
+            }
+
+            //No sorting
+            return query;
+        }
+
+        private IQueryable<WalletDetailDto> ApplyPaging(IQueryable<WalletDetailDto> query, PagedWalletResultRequestDto input)
+        {
+            if ((object)input is IPagedResultRequest pagedResultRequest)
+            {
+                return query.PageBy(pagedResultRequest);
+            }
+
+            if ((object)input is ILimitedResultRequest limitedResultRequest)
+            {
+                return query.Take(limitedResultRequest.MaxResultCount);
+            }
+
+            return query;
         }
 
         public async Task<List<DetailedEWallet>> GetAllWalletsAsync(string code)
@@ -54,6 +87,47 @@ namespace SND.SMP.Wallets
             }
 
             return wallets;
+        }
+
+        public async Task<PagedResultDto<WalletDetailDto>> GetWalletDetail(PagedWalletResultRequestDto input)
+        {
+            CheckGetAllPermission();
+
+            var query = CreateFilteredQuery(input);
+
+            var eWalletTypes = await eWalletTypeRepository.GetAllListAsync();
+
+            var currencies = await currencyRepository.GetAllListAsync();
+
+            List<WalletDetailDto> detailed = [];
+
+            foreach (var wallet in query.ToList())
+            {
+                var eWalletType = eWalletTypes.FirstOrDefault(x => x.Id.Equals(wallet.EWalletType));
+                var currency = currencies.FirstOrDefault(x => x.Id.Equals(wallet.Currency));
+
+                detailed.Add(new WalletDetailDto()
+                {
+                    Customer = wallet.Customer,
+                    EWalletType = wallet.EWalletType,
+                    EWalletTypeDesc = eWalletType.Type,
+                    Currency = wallet.Currency,
+                    CurrencyDesc = currency.Abbr,
+                    Balance = wallet.Balance,
+                    Id = wallet.Id
+                });
+            }
+
+            var totalCount = detailed.Count;
+
+            detailed = [.. ApplySorting(detailed.AsQueryable(), input)];
+            detailed = [.. ApplyPaging(detailed.AsQueryable(), input)];
+
+
+            return new PagedResultDto<WalletDetailDto>(
+                totalCount,
+                [.. detailed]
+            );
         }
 
         public override async Task<WalletDto> CreateAsync(WalletDto input)

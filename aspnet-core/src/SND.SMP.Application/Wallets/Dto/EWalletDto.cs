@@ -14,3 +14,4 @@ public class EWalletDto : EntityDto<string>
     public List<Currency> CurrencyList { get; set; }
     public decimal Balance { get; set; }
 }
+
