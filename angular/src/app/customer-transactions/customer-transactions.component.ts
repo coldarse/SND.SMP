@@ -1,60 +1,69 @@
-import { Component, Injector } from '@angular/core';
-import { PagedListingComponentBase, PagedRequestDto, PagedResultDto } from '@shared/paged-listing-component-base';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
-import { finalize } from 'rxjs/operators';
-import { CustomerTransactionDto } from '@shared/service-proxies/customer-transactions/model';
-import { CustomerTransactionService } from '@shared/service-proxies/customer-transactions/customer-transaction.service';
-import { CreateUpdateCustomerTransactionComponent } from './create-update-customer-transaction/create-update-customer-transaction.component';
+import { Component, Injector, Input } from "@angular/core";
+import {
+  PagedListingComponentBase,
+  PagedRequestDto,
+  PagedResultDto,
+} from "@shared/paged-listing-component-base";
+import { BsModalRef, BsModalService } from "ngx-bootstrap/modal";
+import { finalize } from "rxjs/operators";
+import { CustomerTransactionDto } from "@shared/service-proxies/customer-transactions/model";
+import { CustomerTransactionService } from "@shared/service-proxies/customer-transactions/customer-transaction.service";
+import { CreateUpdateCustomerTransactionComponent } from "./create-update-customer-transaction/create-update-customer-transaction.component";
 
-class PagedCustomerTransactionsRequestDto extends PagedRequestDto{
+class PagedCustomerTransactionsRequestDto extends PagedRequestDto {
   keyword: string;
   isAdmin: boolean;
+  customer: string;
 }
 
 @Component({
-  selector: 'app-customer-transactions',
-  templateUrl: './customer-transactions.component.html',
-  styleUrls: ['./customer-transactions.component.css']
+  selector: "app-customer-transactions",
+  templateUrl: "./customer-transactions.component.html",
+  styleUrls: ["./customer-transactions.component.css"],
 })
-
 export class CustomerTransactionsComponent extends PagedListingComponentBase<CustomerTransactionDto> {
-
-  keyword = '';
+  keyword = "";
   customerTransactions: any[] = [];
+
+  isAdmin = true;
+  companyCode = "";
+
+  @Input() showHeader: boolean = true;
 
   constructor(
     injector: Injector,
     private _customerTransactionService: CustomerTransactionService,
     private _modalService: BsModalService
-  ){
+  ) {
     super(injector);
   }
 
-  createCustomerTransaction(){
+  createCustomerTransaction() {
     this.showCreateOrEditCustomerTransactionDialog();
   }
 
-  editCustomerTransaction(entity: CustomerTransactionDto){
+  editCustomerTransaction(entity: CustomerTransactionDto) {
     this.showCreateOrEditCustomerTransactionDialog(entity);
   }
 
-  private showCreateOrEditCustomerTransactionDialog(entity?: CustomerTransactionDto){
+  private showCreateOrEditCustomerTransactionDialog(
+    entity?: CustomerTransactionDto
+  ) {
     let createOrEditCustomerTransactionDialog: BsModalRef;
-    if(!entity){
+    if (!entity) {
       createOrEditCustomerTransactionDialog = this._modalService.show(
         CreateUpdateCustomerTransactionComponent,
         {
-          class: 'modal-lg',
+          class: "modal-lg",
         }
       );
-    }
-    else{
+    } else {
       createOrEditCustomerTransactionDialog = this._modalService.show(
         CreateUpdateCustomerTransactionComponent,
         {
-          class: 'modal-lg',
+          class: "modal-lg",
           initialState: {
-            customerTransaction: entity
+            customerTransaction: entity,
           },
         }
       );
@@ -66,27 +75,28 @@ export class CustomerTransactionsComponent extends PagedListingComponentBase<Cus
   }
 
   clearFilters(): void {
-    this.keyword = '';
+    this.keyword = "";
     this.getDataPage(1);
   }
 
-  protected delete(entity: CustomerTransactionDto): void{
-    abp.message.confirm(
-      '',
-      undefined,
-      (result: boolean) => {
-        if (result) {
-          this._customerTransactionService.delete(entity.id).subscribe(() => {
-            abp.notify.success(this.l('SuccessfullyDeleted'));
-            this.refresh();
-          });
-        }
+  protected delete(entity: CustomerTransactionDto): void {
+    abp.message.confirm("", undefined, (result: boolean) => {
+      if (result) {
+        this._customerTransactionService.delete(entity.id).subscribe(() => {
+          abp.notify.success(this.l("SuccessfullyDeleted"));
+          this.refresh();
+        });
       }
-    );
+    });
   }
 
   isButtonVisible(action: string): boolean {
-    return this.permission.isGranted('Pages.CustomerTransaction.' + action);
+    return this.permission.isGranted("Pages.CustomerTransaction." + action);
+  }
+
+  entries(event: any) {
+    this.pageSize = event.target.value;
+    this.getDataPage(1);
   }
 
   protected list(
@@ -94,20 +104,27 @@ export class CustomerTransactionsComponent extends PagedListingComponentBase<Cus
     pageNumber: number,
     finishedCallback: Function
   ): void {
-    request.keyword = this.keyword;
-    request.isAdmin = true;
-    this._customerTransactionService
-    .getAll(
-      request
-    ).pipe(
-      finalize(() => {
-        finishedCallback();
-      })
-    )
-    .subscribe((result: any) => {
-      this.customerTransactions = [];
-        result.result.items.forEach((element: CustomerTransactionDto) => {
+    let admin = this.appSession
+      .getShownLoginName()
+      .replace(".\\", "")
+      .includes("admin");
+    this.isAdmin = admin;
+    this.companyCode = admin ? "" : this.appSession.getCompanyCode();
 
+    request.keyword = this.keyword;
+    request.isAdmin = this.isAdmin;
+    request.customer = this.companyCode;
+
+    this._customerTransactionService
+      .getAll(request)
+      .pipe(
+        finalize(() => {
+          finishedCallback();
+        })
+      )
+      .subscribe((result: any) => {
+        this.customerTransactions = [];
+        result.result.items.forEach((element: CustomerTransactionDto) => {
           let tempCustomerTransaction = {
             wallet: element.wallet,
             customer: element.customer,
@@ -117,13 +134,12 @@ export class CustomerTransactionsComponent extends PagedListingComponentBase<Cus
             amount: element.amount,
             referenceNo: element.referenceNo,
             description: element.description,
-            transactionDate: element.transactionDate
-          }
+            transactionDate: element.transactionDate,
+          };
 
           this.customerTransactions.push(tempCustomerTransaction);
         });
-      this.showPaging(result.result, pageNumber);
-    });
+        this.showPaging(result.result, pageNumber);
+      });
   }
 }
-

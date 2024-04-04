@@ -7,11 +7,13 @@ import { DispatchValidationService } from '@shared/service-proxies/dispatchvalid
 import { CreateUpdateDispatchValidationComponent } from '../dispatchvalidations/create-update-dispatchvalidation/create-update-dispatchvalidation.component'
 
 class PagedDispatchValidationsRequestDto extends PagedRequestDto{
-  keyword: string
+  keyword: string;
+  isAdmin: boolean;
+  customerCode: string;
 }
 
 @Component({
-  selector: 'app-dispatchvalidations',
+  selector: 'app-dispatch-validations',
   templateUrl: './dispatchvalidations.component.html',
   styleUrls: ['./dispatchvalidations.component.css']
 })
@@ -19,6 +21,9 @@ export class DispatchValidationsComponent extends PagedListingComponentBase<Disp
 
   keyword = '';
   dispatchvalidations: any[] = [];
+
+  isAdmin = true;
+  companyCode = "";
 
   constructor(
     injector: Injector,
@@ -92,7 +97,18 @@ export class DispatchValidationsComponent extends PagedListingComponentBase<Disp
     pageNumber: number,
     finishedCallback: Function
   ): void {
+
+    let admin = this.appSession
+      .getShownLoginName()
+      .replace(".\\", "")
+      .includes("admin");
+    this.isAdmin = admin;
+    this.companyCode = admin ? "" : this.appSession.getCompanyCode();
+
     request.keyword = this.keyword;
+    request.customerCode = this.companyCode;
+    request.isAdmin = this.isAdmin;
+    
     this._dispatchvalidationService
     .getAll(
       request

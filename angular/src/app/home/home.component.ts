@@ -35,13 +35,16 @@ class PagedDispatchValidationsRequestDto extends PagedRequestDto {
 export class HomeComponent
   extends PagedListingComponentBase<CustomerTransactionDto>
 {
-  keyword = "";
+  
   customerTransactions: any[] = [];
   dispatchvalidations: any[] = [];
+  wallets: DetailedEWallet[] = [];
+
   isAdmin = true;
+
+  keyword = "";
   showLoginName = "";
   companyCode = "";
-  wallets: DetailedEWallet[] = [];
 
   type1 = { eWalletType: 1 };
   type2 = { eWalletType: 2 };
@@ -97,19 +100,13 @@ export class HomeComponent
     pageNumber: number,
     finishedCallback: Function
   ): void {
-    if (
-      this.appSession.getShownLoginName().replace(".\\", "").includes("admin")
-    ) {
-      this.isAdmin = true;
-      this.showLoginName = this.appSession
-        .getShownLoginName()
-        .replace(".\\", "");
-      this.companyCode = "";
-    } else {
-      this.isAdmin = false;
-      this.showLoginName = this.appSession.getShownCustomerCompanyName();
-      this.companyCode = this.appSession.getCompanyCode();
-    }
+    let admin = this.appSession
+      .getShownLoginName()
+      .replace(".\\", "")
+      .includes("admin");
+    this.isAdmin = admin;
+    this.companyCode = admin ? "" : this.appSession.getCompanyCode();
+    
     request.keyword = this.keyword;
     request.isAdmin = this.isAdmin;
     request.customer = this.companyCode;

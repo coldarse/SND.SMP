@@ -1,88 +1,118 @@
 <div [@routerTransition]>
-    <section class='content-header'>
-        <div class='container-fluid'>
-            <div class='row'>
-                <div class='col-6'>
-                    <h1>{{ 'Customer Transactions' | localize }}</h1>
-                </div>
-                <div class='col-6 text-right' *ngIf='isButtonVisible("Create")'>
-                    <!-- <a href='javascript:;' class='btn bg-blue' (click)='createCustomerTransaction()'>
-                        <i class='fa fa-plus-square'></i>
-                        {{ 'Create' | localize }}
-                    </a> -->
-                </div>
-            </div>
+  @if (showHeader) {
+    <section class="content-header">
+      <div class="container-fluid">
+        <div class="row">
+          <div class="col-6">
+            <h1>{{ "Customer Transactions" | localize }}</h1>
+          </div>
+          <div class="col-6 text-right" *ngIf="isButtonVisible('Create')">
+            <!-- <a href='javascript:;' class='btn bg-blue' (click)='createCustomerTransaction()'>
+                          <i class='fa fa-plus-square'></i>
+                          {{ 'Create' | localize }}
+                      </a> -->
+          </div>
         </div>
+      </div>
     </section>
-    <section class='content px-2'>
-        <div class='container-fluid'>
-            <div class='card'>
-                <div class='card-header'>
-                    <div class='row'>
-                        <div class='col-md-6'>&emsp;</div>
-                        <div class='col-md-6'>
-                            <div class='input-group'>
-                                <div class='input-group-prepend'>
-                                    <button
-                                            type='button'
-                                            class='btn bg-blue'
-                                            (click)='getDataPage(1)'
-                                    >
-                                        <i class='fas fa-search'></i>
-                                    </button>
-                                </div>
-                                <input
-                                        type='text'
-                                        class='form-control'
-                                        name='keyword'
-                                        [placeholder]='"SearchWithThreeDot" | localize'
-                                        [(ngModel)]='keyword'
-                                        (keyup.enter)='getDataPage(1)'
-                                />
-                            </div>
-                        </div>
-                    </div>
+  }
+  <section class="content px-2">
+    <div class="container-fluid">
+      <div class="card">
+        <div class="card-header">
+          <div class="row">
+            <div class="col-md-6">
+              <div
+                class="row"
+                style="
+                  display: flex;
+                  justify-content: left;
+                  align-items: center;
+                "
+              >
+                <select
+                  name="entriesCount"
+                  id="entriesCount"
+                  class="form-control col-2"
+                  (change)="entries($event)"
+                >
+                  <option value="10">10</option>
+                  <option value="25">25</option>
+                  <option value="50">50</option>
+                  <option value="100">100</option>
+                  <option value="250">250</option>
+                </select>
+                <h6 class="ml-2 mt-2">Entries</h6>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <button
+                    type="button"
+                    class="btn bg-blue"
+                    (click)="getDataPage(1)"
+                  >
+                    <i class="fas fa-search"></i>
+                  </button>
                 </div>
-                <div class='card-body'>
-                    <div class='table-responsive'>
-                        <table class='table table-striped table-bordered' [busy]='isTableLoading'>
-                            <thead class='bg-light'>
-                            <tr>
-                                <th>{{ 'Wallet' | localize }}</th>
-                                <th>{{ 'Customer' | localize }}</th>
-                                <th>{{ 'Payment Mode' | localize }}</th>
-                                <th>{{ 'Currency' | localize }}</th>
-                                <th>{{ 'Transaction Type' | localize }}</th>
-                                <th>{{ 'Amount' | localize }}</th>
-                                <th>{{ 'Reference No' | localize }}</th>
-                                <th>{{ 'Description' | localize }}</th>
-                                <th>{{ 'Transaction Date' | localize }}</th>
-                                <!-- <th style='width: 310px;' *ngIf='isButtonVisible("Edit") && isButtonVisible("Delete")'>{{ 'Actions' | localize }}</th> -->
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <tr
-                                    *ngFor='
-                  let customerTransaction of customerTransactions
-                    | paginate
-                      : {
-                          id: "server",
-                          itemsPerPage: pageSize,
-                          currentPage: pageNumber,
-                          totalItems: totalItems
-                        }
-                '
-                            >
-                                <td>{{ customerTransaction.wallet }}</td>
-                                <td>{{ customerTransaction.customer }}</td>
-                                <td>{{ customerTransaction.paymentMode }}</td>
-                                <td>{{ customerTransaction.currency }}</td>
-                                <td>{{ customerTransaction.transactionType }}</td>
-                                <td>{{ customerTransaction.amount | currency }}</td>
-                                <td>{{ customerTransaction.referenceNo }}</td>
-                                <td>{{ customerTransaction.description }}</td>
-                                <td>{{ customerTransaction.transactionDate | date: 'short' }}</td>
-                                <!-- <td *ngIf='isButtonVisible("Edit") || isButtonVisible("Delete")'>
+                <input
+                  type="text"
+                  class="form-control"
+                  name="keyword"
+                  [placeholder]="'SearchWithThreeDot' | localize"
+                  [(ngModel)]="keyword"
+                  (keyup.enter)="getDataPage(1)"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table
+              class="table table-striped table-bordered"
+              [busy]="isTableLoading"
+            >
+              <thead class="bg-light">
+                <tr>
+                  <th>{{ "Wallet" | localize }}</th>
+                  <th>{{ "Customer" | localize }}</th>
+                  <th>{{ "Payment Mode" | localize }}</th>
+                  <th>{{ "Currency" | localize }}</th>
+                  <th>{{ "Transaction Type" | localize }}</th>
+                  <th>{{ "Amount" | localize }}</th>
+                  <th>{{ "Reference No" | localize }}</th>
+                  <th>{{ "Description" | localize }}</th>
+                  <th>{{ "Transaction Date" | localize }}</th>
+                  <!-- <th style='width: 310px;' *ngIf='isButtonVisible("Edit") && isButtonVisible("Delete")'>{{ 'Actions' | localize }}</th> -->
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  *ngFor="
+                    let customerTransaction of customerTransactions
+                      | paginate
+                        : {
+                            id: 'server',
+                            itemsPerPage: pageSize,
+                            currentPage: pageNumber,
+                            totalItems: totalItems
+                          }
+                  "
+                >
+                  <td>{{ customerTransaction.wallet }}</td>
+                  <td>{{ customerTransaction.customer }}</td>
+                  <td>{{ customerTransaction.paymentMode }}</td>
+                  <td>{{ customerTransaction.currency }}</td>
+                  <td>{{ customerTransaction.transactionType }}</td>
+                  <td>{{ customerTransaction.amount | currency }}</td>
+                  <td>{{ customerTransaction.referenceNo }}</td>
+                  <td>{{ customerTransaction.description }}</td>
+                  <td>
+                    {{ customerTransaction.transactionDate | date : "short" }}
+                  </td>
+                  <!-- <td *ngIf='isButtonVisible("Edit") || isButtonVisible("Delete")'>
                                     <button
                                             type='button'
                                             class='btn btn-sm bg-secondary'
@@ -102,35 +132,35 @@
                                         {{ 'Delete' | localize }}
                                     </button>
                                 </td> -->
-                            </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                <div class='card-footer table-card-footer bg-light border-top'>
-                    <div class='row'>
-                        <div class='col-sm-4 col-12 text-sm-left text-center'>
-                            <button class='btn btn-secondary' (click)='refresh()'>
-                                <i class='fas fa-redo-alt'></i>
-                            </button>
-                        </div>
-                        <div class='col-sm-4 col-12 text-center'>
-                            <p class='mb-0 my-2'>
-                                {{ 'TotalRecordsCount' | localize: totalItems }}
-                            </p>
-                        </div>
-                        <div class='col-sm-4 col-12'>
-                            <div class='float-sm-right m-auto'>
-                                <abp-pagination-controls
-                                        id='server'
-                                        (pageChange)='getDataPage($event)'
-                                >
-                                </abp-pagination-controls>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
-    </section>
+        <div class="card-footer table-card-footer bg-light border-top">
+          <div class="row">
+            <div class="col-sm-4 col-12 text-sm-left text-center">
+              <button class="btn btn-secondary" (click)="refresh()">
+                <i class="fas fa-redo-alt"></i>
+              </button>
+            </div>
+            <div class="col-sm-4 col-12 text-center">
+              <p class="mb-0 my-2">
+                {{ "TotalRecordsCount" | localize : totalItems }}
+              </p>
+            </div>
+            <div class="col-sm-4 col-12">
+              <div class="float-sm-right m-auto">
+                <abp-pagination-controls
+                  id="server"
+                  (pageChange)="getDataPage($event)"
+                >
+                </abp-pagination-controls>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 </div>
