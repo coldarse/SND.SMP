@@ -2,18 +2,18 @@ import { Component, Injector } from '@angular/core';
 import { PagedListingComponentBase, PagedRequestDto, PagedResultDto } from '@shared/paged-listing-component-base';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { finalize } from 'rxjs/operators';
-import { ItemMinDto } from '@shared/service-proxies/itemmins/model'
-import { ItemMinService } from '@shared/service-proxies/itemmins/itemmin.service'
-import { CreateUpdateItemMinComponent } from '../itemmins/create-update-itemmin/create-update-itemmin.component'
+import { ItemMinDto } from '@shared/service-proxies/item-mins/model'
+import { ItemMinService } from '@shared/service-proxies/item-mins/item-min.service'
+import { CreateUpdateItemMinComponent } from './create-update-item-min/create-update-item-min.component'
 
 class PagedItemMinsRequestDto extends PagedRequestDto{
   keyword: string
 }
 
 @Component({
-  selector: 'app-itemmins',
-  templateUrl: './itemmins.component.html',
-  styleUrls: ['./itemmins.component.css']
+  selector: 'app-item-mins',
+  templateUrl: './item-mins.component.html',
+  styleUrls: ['./item-mins.component.css']
 })
 export class ItemMinsComponent extends PagedListingComponentBase<ItemMinDto> {
 

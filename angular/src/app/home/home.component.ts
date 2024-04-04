@@ -12,8 +12,8 @@ import {
   DetailedEWallet,
   WalletDto,
 } from "@shared/service-proxies/wallets/model";
-import { DispatchValidationService } from "@shared/service-proxies/dispatchvalidations/dispatchvalidation.service";
-import { DispatchValidationDto } from "@shared/service-proxies/dispatchvalidations/model";
+import { DispatchValidationService } from "@shared/service-proxies/dispatch-validations/dispatch-validation.service";
+import { DispatchValidationDto } from "@shared/service-proxies/dispatch-validations/model";
 
 class PagedCustomerTransactionsRequestDto extends PagedRequestDto {
   keyword: string;

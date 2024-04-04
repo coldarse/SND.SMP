@@ -19,7 +19,7 @@ export class SidebarMenuComponent extends AppComponentBase implements OnInit {
   menuItemsMap: { [key: number]: MenuItem } = {};
   activatedMenuItems: MenuItem[] = [];
   routerEvents: BehaviorSubject<RouterEvent> = new BehaviorSubject(undefined);
-  homeRoute = "/app/about";
+  homeRoute = "/app/home";
 
   constructor(injector: Injector, private router: Router) {
     super(injector);
@@ -29,8 +29,20 @@ export class SidebarMenuComponent extends AppComponentBase implements OnInit {
     this.menuItems = this.getMenuItems();
     this.patchMenuItems(this.menuItems);
 
+    const currentUrl =
+      this.router.url !== "/" || this.router.url != undefined ? this.router.url : this.homeRoute;
+    const primaryUrlSegmentGroup =
+      this.router.parseUrl(currentUrl).root.children[PRIMARY_OUTLET];
+    if (primaryUrlSegmentGroup) {
+      this.activateMenuItems("/" + primaryUrlSegmentGroup.toString());
+    }
+
     this.router.events.subscribe((event: NavigationEnd) => {
-      const currentUrl = event.url !== "/" ? event.url : this.homeRoute;
+      console.log(event.url);
+      const currentUrl =
+        event.url !== "/" || event.url != undefined
+          ? event.url
+          : this.homeRoute;
       const primaryUrlSegmentGroup =
         this.router.parseUrl(currentUrl).root.children[PRIMARY_OUTLET];
       if (primaryUrlSegmentGroup) {
@@ -75,12 +87,12 @@ export class SidebarMenuComponent extends AppComponentBase implements OnInit {
       //   "Pages.Item"
       // ),
       // new MenuItem(this.l("Bags"), "/app/bags", "far fa-circle", "Pages.Bag"),
-      // new MenuItem(
-      //   this.l("DispatchValidations"),
-      //   "/app/dispatchvalidations",
-      //   "far fa-circle",
-      //   "Pages.DispatchValidation"
-      // ),
+      new MenuItem(
+        this.l("Dispatch Validations"),
+        "/app/dispatch-validations",
+        "fas fa-tasks",
+        "Pages.DispatchValidation"
+      ),
       // new MenuItem(
       //   this.l("Dispatches"),
       //   "/app/dispatches",

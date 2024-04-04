@@ -80,6 +80,7 @@ namespace SND.SMP.Customers
                     // GrantedPermissions.Add("Pages.Customer.Delete");
                     // GrantedPermissions.Add("Pages.Customer.Edit");
                     "Pages.Customer",
+                    "Pages.DispatchValidation"
                 ];
 
                 await _roleAppService.CreateAsync(new CreateRoleDto()

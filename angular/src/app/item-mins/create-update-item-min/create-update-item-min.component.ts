@@ -1,13 +1,13 @@
 import { Component, EventEmitter, Injector, OnInit, Output } from '@angular/core';
 import { AppComponentBase } from '../../../shared/app-component-base';
-import { ItemMinDto } from '../../../shared/service-proxies/itemmins/model';
-import { ItemMinService } from '../../../shared/service-proxies/itemmins/itemmin.service';
+import { ItemMinDto } from '../../../shared/service-proxies/item-mins/model';
+import { ItemMinService } from '../../../shared/service-proxies/item-mins/item-min.service';
 import { BsModalRef } from 'ngx-bootstrap/modal';
 
 @Component({
   selector: 'app-create-update-itemmin',
-  templateUrl: './create-update-itemmin.component.html',
-  styleUrls: ['./create-update-itemmin.component.css']
+  templateUrl: './create-update-item-min.component.html',
+  styleUrls: ['./create-update-item-min.component.css']
 })
 export class CreateUpdateItemMinComponent extends AppComponentBase
  implements OnInit {

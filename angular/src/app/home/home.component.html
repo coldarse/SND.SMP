@@ -82,9 +82,10 @@
       </div>
       <div class="row">
         <div [ngClass]="!isAdmin ? 'col-md-9' : 'col-md-12'">
-          <app-dispatch-validations></app-dispatch-validations>
+          <app-dispatch-validations [showPagination]="false" [maxItems]="3">
+          </app-dispatch-validations>
         </div>
       </div>
     </div>
-  </section>
+</section>
 </div>

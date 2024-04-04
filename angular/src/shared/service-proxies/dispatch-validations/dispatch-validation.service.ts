@@ -99,10 +99,14 @@ export class DispatchValidationService {
     if (body.customerCode !== undefined)
       url_ += "CustomerCode=" + encodeURIComponent("" + body.customerCode) + "&";
 
+    let count = 10;
+    if (body.maxResultCount !== undefined) 
+      count = body.maxResultCount;
+
     url_ = url_.replace(/[?&]$/, "");
 
     return this.http
-      .get(url_ + `&MaxResultCount=10`, this.options_)
+      .get(url_ + `&MaxResultCount=${count}`, this.options_)
       .pipe(retry(1), catchError(this.handleError));
   }
 }

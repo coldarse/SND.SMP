@@ -9,14 +9,14 @@ import { TenantsComponent } from "./tenants/tenants.component";
 import { RolesComponent } from "app/roles/roles.component";
 import { ChangePasswordComponent } from "./users/change-password/change-password.component";
 /* Insert Routing Import */
-import { ItemMinsComponent } from './itemmins/itemmins.component';
-import { ItemsComponent } from './items/items.component';
-import { BagsComponent } from './bags/bags.component';
-import { DispatchValidationsComponent } from './dispatchvalidations/dispatchvalidations.component';
-import { DispatchesComponent } from './dispatches/dispatches.component';
-import { QueuesComponent } from './queues/queues.component';
-import { RateWeightBreaksComponent } from './rate-weight-breaks/rate-weight-breaks.component';
-import { CustomerPostalsComponent } from './customer-postals/customer-postals.component';
+import { ItemMinsComponent } from "./item-mins/item-mins.component";
+import { ItemsComponent } from "./items/items.component";
+import { BagsComponent } from "./bags/bags.component";
+import { DispatchValidationsComponent } from "./dispatch-validations/dispatch-validations.component";
+import { DispatchesComponent } from "./dispatches/dispatches.component";
+import { QueuesComponent } from "./queues/queues.component";
+import { RateWeightBreaksComponent } from "./rate-weight-breaks/rate-weight-breaks.component";
+import { CustomerPostalsComponent } from "./customer-postals/customer-postals.component";
 import { PostalCountriesComponent } from "./postal-countries/postal-countries.component";
 import { PostalsComponent } from "./postals/postals.component";
 import { CurrenciesComponent } from "./currencies/currencies.component";
@@ -64,11 +64,36 @@ import { PreAlertComponent } from "./pre-alerts/pre-alerts.component";
             canActivate: [AppRouteGuard],
           },
           /* Insert Path */
-                    { path: 'itemmins', data: { permission: 'Pages.ItemMin' }, component: ItemMinsComponent, canActivate: [AppRouteGuard] },
-                    { path: 'items', data: { permission: 'Pages.Item' }, component: ItemsComponent, canActivate: [AppRouteGuard] },
-                    { path: 'bags', data: { permission: 'Pages.Bag' }, component: BagsComponent, canActivate: [AppRouteGuard] },
-                    { path: 'dispatchvalidations', data: { permission: 'Pages.DispatchValidation' }, component: DispatchValidationsComponent, canActivate: [AppRouteGuard] },
-                    { path: 'dispatches', data: { permission: 'Pages.Dispatch' }, component: DispatchesComponent, canActivate: [AppRouteGuard] },
+          {
+            path: "itemmins",
+            data: { permission: "Pages.ItemMin" },
+            component: ItemMinsComponent,
+            canActivate: [AppRouteGuard],
+          },
+          {
+            path: "items",
+            data: { permission: "Pages.Item" },
+            component: ItemsComponent,
+            canActivate: [AppRouteGuard],
+          },
+          {
+            path: "bags",
+            data: { permission: "Pages.Bag" },
+            component: BagsComponent,
+            canActivate: [AppRouteGuard],
+          },
+          {
+            path: "dispatch-validations",
+            data: { permission: "Pages.DispatchValidation" },
+            component: DispatchValidationsComponent,
+            canActivate: [AppRouteGuard],
+          },
+          {
+            path: "dispatches",
+            data: { permission: "Pages.Dispatch" },
+            component: DispatchesComponent,
+            canActivate: [AppRouteGuard],
+          },
           {
             path: "queues",
             data: { permission: "Pages.Queue" },

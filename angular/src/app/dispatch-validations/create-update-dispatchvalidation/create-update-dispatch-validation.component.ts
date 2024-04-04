@@ -1,13 +1,13 @@
 import { Component, EventEmitter, Injector, OnInit, Output } from '@angular/core';
 import { AppComponentBase } from '../../../shared/app-component-base';
-import { DispatchValidationDto } from '../../../shared/service-proxies/dispatchvalidations/model';
-import { DispatchValidationService } from '../../../shared/service-proxies/dispatchvalidations/dispatchvalidation.service';
+import { DispatchValidationDto } from '../../../shared/service-proxies/dispatch-validations/model';
+import { DispatchValidationService } from '../../../shared/service-proxies/dispatch-validations/dispatch-validation.service';
 import { BsModalRef } from 'ngx-bootstrap/modal';
 
 @Component({
-  selector: 'app-create-update-dispatchvalidation',
-  templateUrl: './create-update-dispatchvalidation.component.html',
-  styleUrls: ['./create-update-dispatchvalidation.component.css']
+  selector: 'app-create-update-dispatch-validation',
+  templateUrl: './create-update-dispatch-validation.component.html',
+  styleUrls: ['./create-update-dispatch-validation.component.css']
 })
 export class CreateUpdateDispatchValidationComponent extends AppComponentBase
  implements OnInit {

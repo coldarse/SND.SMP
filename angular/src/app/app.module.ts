@@ -39,40 +39,40 @@ import { SidebarLogoComponent } from "./layout/sidebar-logo.component";
 import { SidebarUserPanelComponent } from "./layout/sidebar-user-panel.component";
 import { SidebarMenuComponent } from "./layout/sidebar-menu.component";
 /* Insert Import */
-import { ItemMinsComponent } from './itemmins/itemmins.component';
-import { CreateUpdateItemMinComponent } from './itemmins/create-update-itemmin/create-update-itemmin.component';
-import { ItemMinService } from '@shared/service-proxies/itemmins/itemmin.service';
+import { ItemMinsComponent } from "./item-mins/item-mins.component";
+import { CreateUpdateItemMinComponent } from "./item-mins/create-update-item-min/create-update-item-min.component";
+import { ItemMinService } from "@shared/service-proxies/item-mins/item-min.service";
 
-import { ItemsComponent } from './items/items.component';
-import { CreateUpdateItemComponent } from './items/create-update-item/create-update-item.component';
-import { ItemService } from '@shared/service-proxies/items/item.service';
+import { ItemsComponent } from "./items/items.component";
+import { CreateUpdateItemComponent } from "./items/create-update-item/create-update-item.component";
+import { ItemService } from "@shared/service-proxies/items/item.service";
 
-import { BagsComponent } from './bags/bags.component';
-import { CreateUpdateBagComponent } from './bags/create-update-bag/create-update-bag.component';
-import { BagService } from '@shared/service-proxies/bags/bag.service';
+import { BagsComponent } from "./bags/bags.component";
+import { CreateUpdateBagComponent } from "./bags/create-update-bag/create-update-bag.component";
+import { BagService } from "@shared/service-proxies/bags/bag.service";
 
-import { DispatchValidationsComponent } from './dispatchvalidations/dispatchvalidations.component';
-import { CreateUpdateDispatchValidationComponent } from './dispatchvalidations/create-update-dispatchvalidation/create-update-dispatchvalidation.component';
-import { DispatchValidationService } from '@shared/service-proxies/dispatchvalidations/dispatchvalidation.service';
+import { DispatchValidationsComponent } from "./dispatch-validations/dispatch-validations.component";
+import { CreateUpdateDispatchValidationComponent } from "./dispatch-validations/create-update-dispatchvalidation/create-update-dispatch-validation.component";
+import { DispatchValidationService } from "@shared/service-proxies/dispatch-validations/dispatch-validation.service";
 
-import { DispatchesComponent } from './dispatches/dispatches.component';
-import { CreateUpdateDispatchComponent } from './dispatches/create-update-dispatch/create-update-dispatch.component';
-import { DispatchService } from '@shared/service-proxies/dispatches/dispatch.service';
+import { DispatchesComponent } from "./dispatches/dispatches.component";
+import { CreateUpdateDispatchComponent } from "./dispatches/create-update-dispatch/create-update-dispatch.component";
+import { DispatchService } from "@shared/service-proxies/dispatches/dispatch.service";
 
-import { QueuesComponent } from './queues/queues.component';
-import { CreateUpdateQueueComponent } from './queues/create-update-queue/create-update-queue.component';
-import { QueueService } from '@shared/service-proxies/queues/queue.service';
+import { QueuesComponent } from "./queues/queues.component";
+import { CreateUpdateQueueComponent } from "./queues/create-update-queue/create-update-queue.component";
+import { QueueService } from "@shared/service-proxies/queues/queue.service";
 
-import { PreAlertComponent } from './pre-alerts/pre-alerts.component';
-import { ChibiService } from '@shared/service-proxies/chibis/chibis.service';
+import { PreAlertComponent } from "./pre-alerts/pre-alerts.component";
+import { ChibiService } from "@shared/service-proxies/chibis/chibis.service";
 
-import { RateWeightBreaksComponent } from './rate-weight-breaks/rate-weight-breaks.component';
-import { UploadRateWeightBreakComponent } from './rate-weight-breaks/upload-rate-weight-break/upload-rate-weight-break.component';
-import { RateWeightBreakService } from '@shared/service-proxies/rate-weight-breaks/rate-weight-break.service';
+import { RateWeightBreaksComponent } from "./rate-weight-breaks/rate-weight-breaks.component";
+import { UploadRateWeightBreakComponent } from "./rate-weight-breaks/upload-rate-weight-break/upload-rate-weight-break.component";
+import { RateWeightBreakService } from "@shared/service-proxies/rate-weight-breaks/rate-weight-break.service";
 
-import { CustomerPostalsComponent } from './customer-postals/customer-postals.component';
-import { CreateUpdateCustomerPostalComponent } from './customer-postals/create-update-customer-postal/create-update-customer-postal.component';
-import { CustomerPostalService } from '@shared/service-proxies/customer-postals/customer-postal.service';
+import { CustomerPostalsComponent } from "./customer-postals/customer-postals.component";
+import { CreateUpdateCustomerPostalComponent } from "./customer-postals/create-update-customer-postal/create-update-customer-postal.component";
+import { CustomerPostalService } from "@shared/service-proxies/customer-postals/customer-postal.service";
 
 import { PostalCountriesComponent } from "./postal-countries/postal-countries.component";
 import { PostalCountryService } from "@shared/service-proxies/postal-countries/postal-country.service";
@@ -141,16 +141,16 @@ import { TopUpWalletComponent } from "./wallets/topup-wallet/topup-wallet.compon
     SidebarUserPanelComponent,
     SidebarMenuComponent,
     /* Insert Component */
-        ItemMinsComponent,
-        CreateUpdateItemMinComponent,
-        ItemsComponent,
-        CreateUpdateItemComponent,
-        BagsComponent,
-        CreateUpdateBagComponent,
-        DispatchValidationsComponent,
-        CreateUpdateDispatchValidationComponent,
-        DispatchesComponent,
-        CreateUpdateDispatchComponent,
+    ItemMinsComponent,
+    CreateUpdateItemMinComponent,
+    ItemsComponent,
+    CreateUpdateItemComponent,
+    BagsComponent,
+    CreateUpdateBagComponent,
+    DispatchValidationsComponent,
+    CreateUpdateDispatchValidationComponent,
+    DispatchesComponent,
+    CreateUpdateDispatchComponent,
     QueuesComponent,
     CreateUpdateQueueComponent,
     PreAlertComponent,
@@ -193,11 +193,11 @@ import { TopUpWalletComponent } from "./wallets/topup-wallet/topup-wallet.compon
   ],
   providers: [
     /* Insert Service */
-        ItemMinService,
-        ItemService,
-        BagService,
-        DispatchValidationService,
-        DispatchService,
+    ItemMinService,
+    ItemService,
+    BagService,
+    DispatchValidationService,
+    DispatchService,
     ChibiService,
     CustomerPostalService,
     PostalCountryService,

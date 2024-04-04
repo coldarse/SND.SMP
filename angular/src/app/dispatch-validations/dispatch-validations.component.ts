@@ -1,10 +1,12 @@
-import { Component, Injector } from '@angular/core';
+import { Component, Injector, Input } from '@angular/core';
 import { PagedListingComponentBase, PagedRequestDto, PagedResultDto } from '@shared/paged-listing-component-base';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { finalize } from 'rxjs/operators';
-import { DispatchValidationDto } from '@shared/service-proxies/dispatchvalidations/model'
-import { DispatchValidationService } from '@shared/service-proxies/dispatchvalidations/dispatchvalidation.service'
-import { CreateUpdateDispatchValidationComponent } from '../dispatchvalidations/create-update-dispatchvalidation/create-update-dispatchvalidation.component'
+import { DispatchValidationDto } from '@shared/service-proxies/dispatch-validations/model'
+import { DispatchValidationService } from '@shared/service-proxies/dispatch-validations/dispatch-validation.service'
+import { CreateUpdateDispatchValidationComponent } from '../dispatch-validations/create-update-dispatchvalidation/create-update-dispatch-validation.component'
+import { Router } from '@angular/router';
+import { SidebarComponent } from '@app/layout/sidebar.component';
 
 class PagedDispatchValidationsRequestDto extends PagedRequestDto{
   keyword: string;
@@ -14,21 +16,25 @@ class PagedDispatchValidationsRequestDto extends PagedRequestDto{
 
 @Component({
   selector: 'app-dispatch-validations',
-  templateUrl: './dispatchvalidations.component.html',
-  styleUrls: ['./dispatchvalidations.component.css']
+  templateUrl: './dispatch-validations.component.html',
+  styleUrls: ['./dispatch-validations.component.css']
 })
 export class DispatchValidationsComponent extends PagedListingComponentBase<DispatchValidationDto> {
 
   keyword = '';
   dispatchvalidations: any[] = [];
 
+  @Input() showPagination: boolean = true;
+  @Input() maxItems: number = 10;
+
   isAdmin = true;
   companyCode = "";
 
   constructor(
     injector: Injector,
+    private router: Router,
     private _dispatchvalidationService: DispatchValidationService,
-    private _modalService: BsModalService
+    private _modalService: BsModalService,
   ){
     super(injector);
   }
@@ -73,6 +79,10 @@ export class DispatchValidationsComponent extends PagedListingComponentBase<Disp
     this.getDataPage(1);
   }
 
+  rerouteToModule(){
+    this.router.navigate(['/app/dispatch-validations']);
+  }
+
   protected delete(entity: DispatchValidationDto): void{
     abp.message.confirm(
       '',
@@ -108,6 +118,7 @@ export class DispatchValidationsComponent extends PagedListingComponentBase<Disp
     request.keyword = this.keyword;
     request.customerCode = this.companyCode;
     request.isAdmin = this.isAdmin;
+    request.maxResultCount = this.maxItems;
     
     this._dispatchvalidationService
     .getAll(
