@@ -4,7 +4,7 @@ using System;
 namespace SND.SMP.DispatchValidations
 {
 
-    public class PagedDispatchValidationResultRequestDto : PagedResultRequestDto
+    public class PagedDispatchValidationResultRequestDto : PagedResultRequestDto, ILimitedResultRequest
     {
         public string Keyword { get; set; }
         public string CustomerCode { get; set; }

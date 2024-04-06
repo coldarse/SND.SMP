@@ -23,7 +23,11 @@
       <div class="card">
         <div class="card-header">
           <div class="row">
-            <div class="col-md-6">&emsp;</div>
+            <div class="col-md-6">
+              @if (!showPagination) {
+                <h5 class="mt-2">Showing Latest 3 Records</h5>
+              }
+            </div>
             <div class="col-md-6">
               <div class="input-group">
                 <div class="input-group-prepend">
