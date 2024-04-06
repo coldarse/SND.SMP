@@ -3,6 +3,7 @@ import { HttpClient, HttpErrorResponse, HttpHeaders, HttpParams } from '@angular
 import { catchError, retry, throwError } from 'rxjs';
 import { PagedCurrencyResultRequestDto, CurrencyDto } from './model';
 import { AppConsts } from '@shared/AppConsts';
+import { ErrorMessage } from '@shared/service-proxies/error-handling'
 
 @Injectable()
 export class CurrencyService {
@@ -10,7 +11,7 @@ export class CurrencyService {
     url = '';
     options_: any;
 
-    constructor(private http: HttpClient){
+    constructor(private http: HttpClient, private errorMessage: ErrorMessage){
         this.url = AppConsts.remoteServiceBaseUrl;
         this.options_ = {
             headers: new HttpHeaders({
@@ -20,17 +21,18 @@ export class CurrencyService {
         };
     }
 
-    private handleError(error: HttpErrorResponse) {
-        if (error.error instanceof ErrorEvent) {
-          console.error('An error occurred:', error.error.message);
-        }
-        else {
-          console.error(
-            `Backend returned code ${error.status}, ` +
-            `body was: ${error.error}`);
-        }
-        return throwError(() => new Error(error.error.message));
-    }
+    // private handleError(error: HttpErrorResponse) {
+    //     // console.log(error.error.error);
+    //     if (error.error instanceof ErrorEvent) {
+    //       console.error('An error occurred:', error.error.message);
+    //     }
+    //     else {
+    //       console.error(
+    //         `Backend returned code ${error.status}, ` +
+    //         `body was: ${error.error}`);
+    //     }
+    //     return throwError(() => error.error.error);
+    // }
 
     //Create Currency
     create(body: CurrencyDto){
@@ -40,7 +42,7 @@ export class CurrencyService {
             this.options_
         ).pipe(
             retry(1),
-            catchError(this.handleError),
+            catchError(this.errorMessage.HandleErrorResponse),
         )
     }
 
@@ -52,7 +54,7 @@ export class CurrencyService {
             this.options_
         ).pipe(
             retry(1),
-            catchError(this.handleError),
+            catchError(this.errorMessage.HandleErrorResponse),
         )
     }
 
@@ -63,7 +65,7 @@ export class CurrencyService {
             this.options_
         ).pipe(
             retry(1),
-            catchError(this.handleError),
+            catchError(this.errorMessage.HandleErrorResponse),
         )
     }
 
@@ -74,7 +76,7 @@ export class CurrencyService {
             this.options_
         ).pipe(
             retry(1),
-            catchError(this.handleError),
+            catchError(this.errorMessage.HandleErrorResponse),
         )
     }
 
@@ -99,7 +101,7 @@ export class CurrencyService {
             this.options_
         ).pipe(
             retry(1),
-            catchError(this.handleError),
+            catchError(this.errorMessage.HandleErrorResponse),
         )
     }
 
@@ -110,7 +112,7 @@ export class CurrencyService {
             this.options_
         ).pipe(
             retry(1),
-            catchError(this.handleError),
+            catchError(this.errorMessage.HandleErrorResponse),
         )
     }
 }

@@ -3,6 +3,7 @@ import { HttpClient, HttpErrorResponse, HttpHeaders, HttpParams } from '@angular
 import { catchError, retry, throwError } from 'rxjs';
 import { PagedQueueResultRequestDto, QueueDto } from './model';
 import { AppConsts } from '@shared/AppConsts';
+import { ErrorMessage } from '../error-handling';
 
 @Injectable()
 export class QueueService {
@@ -10,7 +11,7 @@ export class QueueService {
     url = '';
     options_: any;
 
-    constructor(private http: HttpClient){
+    constructor(private http: HttpClient, private errorMessage: ErrorMessage){
         this.url = AppConsts.remoteServiceBaseUrl;
         this.options_ = {
             headers: new HttpHeaders({
@@ -20,17 +21,17 @@ export class QueueService {
         };
     }
 
-    private handleError(error: HttpErrorResponse) {
-        if (error.error instanceof ErrorEvent) {
-          console.error('An error occurred:', error.error.message);
-        }
-        else {
-          console.error(
-            `Backend returned code ${error.status}, ` +
-            `body was: ${error.error}`);
-        }
-        return throwError(() => new Error(error.error.message));
-    }
+    // private handleError(error: HttpErrorResponse) {
+    //     if (error.error instanceof ErrorEvent) {
+    //       console.error('An error occurred:', error.error.message);
+    //     }
+    //     else {
+    //       console.error(
+    //         `Backend returned code ${error.status}, ` +
+    //         `body was: ${error.error}`);
+    //     }
+    //     return throwError(() => new Error(error.error.message));
+    // }
 
     //Create Queue
     create(body: QueueDto){
@@ -40,7 +41,7 @@ export class QueueService {
             this.options_
         ).pipe(
             retry(1),
-            catchError(this.handleError),
+            catchError(this.errorMessage.HandleErrorResponse),
         )
     }
 
@@ -52,7 +53,7 @@ export class QueueService {
             this.options_
         ).pipe(
             retry(1),
-            catchError(this.handleError),
+            catchError(this.errorMessage.HandleErrorResponse),
         )
     }
 
@@ -63,7 +64,7 @@ export class QueueService {
             this.options_
         ).pipe(
             retry(1),
-            catchError(this.handleError),
+            catchError(this.errorMessage.HandleErrorResponse),
         )
     }
 
@@ -74,7 +75,7 @@ export class QueueService {
             this.options_
         ).pipe(
             retry(1),
-            catchError(this.handleError),
+            catchError(this.errorMessage.HandleErrorResponse),
         )
     }
 
@@ -99,7 +100,7 @@ export class QueueService {
             this.options_
         ).pipe(
             retry(1),
-            catchError(this.handleError),
+            catchError(this.errorMessage.HandleErrorResponse),
         )
     }
 }

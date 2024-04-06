@@ -11,13 +11,14 @@ import {
   CustomerTransactionDto,
 } from "./model";
 import { AppConsts } from "@shared/AppConsts";
+import { ErrorMessage } from "../error-handling";
 
 @Injectable()
 export class CustomerTransactionService {
   url = "";
   options_: any;
 
-  constructor(private http: HttpClient) {
+  constructor(private http: HttpClient, private errorMessage: ErrorMessage){
     this.url = AppConsts.remoteServiceBaseUrl;
     this.options_ = {
       headers: new HttpHeaders({
@@ -27,16 +28,16 @@ export class CustomerTransactionService {
     };
   }
 
-  private handleError(error: HttpErrorResponse) {
-    if (error.error instanceof ErrorEvent) {
-      console.error("An error occurred:", error.error.message);
-    } else {
-      console.error(
-        `Backend returned code ${error.status}, ` + `body was: ${error.error}`
-      );
-    }
-    return throwError(() => new Error(error.error.message));
-  }
+  // private handleError(error: HttpErrorResponse) {
+  //   if (error.error instanceof ErrorEvent) {
+  //     console.error("An error occurred:", error.error.message);
+  //   } else {
+  //     console.error(
+  //       `Backend returned code ${error.status}, ` + `body was: ${error.error}`
+  //     );
+  //   }
+  //   return throwError(() => new Error(error.error.message));
+  // }
 
   //Create Currency
   create(body: CustomerTransactionDto) {
@@ -46,7 +47,7 @@ export class CustomerTransactionService {
         body,
         this.options_
       )
-      .pipe(retry(1), catchError(this.handleError));
+      .pipe(retry(1), catchError(this.errorMessage.HandleErrorResponse));
   }
 
   //Update Currency
@@ -57,7 +58,7 @@ export class CustomerTransactionService {
         body,
         this.options_
       )
-      .pipe(retry(1), catchError(this.handleError));
+      .pipe(retry(1), catchError(this.errorMessage.HandleErrorResponse));
   }
 
   //Delete Currency
@@ -68,7 +69,7 @@ export class CustomerTransactionService {
           `/api/services/app/CustomerTransaction/Delete?Id=${id.toString()}`,
         this.options_
       )
-      .pipe(retry(1), catchError(this.handleError));
+      .pipe(retry(1), catchError(this.errorMessage.HandleErrorResponse));
   }
 
   //Get Currency
@@ -78,7 +79,7 @@ export class CustomerTransactionService {
         this.url + `/api/services/app/CustomerTransaction/Get?Id=${id}`,
         this.options_
       )
-      .pipe(retry(1), catchError(this.handleError));
+      .pipe(retry(1), catchError(this.errorMessage.HandleErrorResponse));
   }
 
   //Get All Currencies
@@ -107,7 +108,7 @@ export class CustomerTransactionService {
 
     return this.http
       .get(url_ + `&MaxResultCount=${count}`, this.options_)
-      .pipe(retry(1), catchError(this.handleError));
+      .pipe(retry(1), catchError(this.errorMessage.HandleErrorResponse));
   }
 
   // Get All CustomerTransaction without filter
@@ -118,6 +119,6 @@ export class CustomerTransactionService {
           `/api/services/app/CustomerTransaction/GetCustomerTransactions`,
         this.options_
       )
-      .pipe(retry(1), catchError(this.handleError));
+      .pipe(retry(1), catchError(this.errorMessage.HandleErrorResponse));
   }
 }

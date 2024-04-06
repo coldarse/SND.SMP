@@ -12,8 +12,10 @@ import {
   WalletDto,
 } from "../../../shared/service-proxies/wallets/model";
 import { WalletService } from "../../../shared/service-proxies/wallets/wallet.service";
-import { BsModalRef } from "ngx-bootstrap/modal";
+import { BsModalRef, BsModalService } from "ngx-bootstrap/modal";
 import { CustomerDto } from "@shared/service-proxies/customers/model";
+import { HttpErrorResponse } from "@angular/common/http";
+import { ErrorModalComponent } from "@shared/components/error-modal/error-modal.component";
 
 @Component({
   selector: "app-create-update-wallet",
@@ -38,7 +40,8 @@ export class CreateUpdateWalletComponent
   constructor(
     injector: Injector,
     public _walletService: WalletService,
-    public bsModalRef: BsModalRef
+    public bsModalRef: BsModalRef,
+    private _modalService: BsModalService
   ) {
     super(injector);
   }
@@ -105,6 +108,22 @@ export class CreateUpdateWalletComponent
             this.bsModalRef.hide();
             this.onSave.emit();
           },
+          (error: HttpErrorResponse) => {
+            this.saving = false;
+            //Handle error
+            this.bsModalRef.hide();
+            let cc: BsModalRef;
+            cc = this._modalService.show(
+              ErrorModalComponent,
+              {
+                class: 'modal-lg',
+                initialState: {
+                  title: "",
+                  errorMessage: error.message,
+                },
+              }
+            )
+          },
           () => {
             this.saving = false;
           }
@@ -132,6 +151,22 @@ export class CreateUpdateWalletComponent
           this.notify.info(this.l("SavedSuccessfully"));
           this.bsModalRef.hide();
           this.onSave.emit();
+        },
+        (error: HttpErrorResponse) => {
+          this.saving = false;
+          //Handle error
+          this.bsModalRef.hide();
+          let cc: BsModalRef;
+          cc = this._modalService.show(
+            ErrorModalComponent,
+            {
+              class: 'modal-lg',
+              initialState: {
+                title: "",
+                errorMessage: error.message,
+              },
+            }
+          )
         },
         () => {
           this.saving = false;

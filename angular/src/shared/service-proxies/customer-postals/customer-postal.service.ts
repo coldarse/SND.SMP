@@ -11,13 +11,14 @@ import {
   CustomerPostalDto,
 } from "./model";
 import { AppConsts } from "@shared/AppConsts";
+import { ErrorMessage } from "../error-handling";
 
 @Injectable()
 export class CustomerPostalService {
   url = "";
   options_: any;
 
-  constructor(private http: HttpClient) {
+  constructor(private http: HttpClient, private errorMessage: ErrorMessage){
     this.url = AppConsts.remoteServiceBaseUrl;
     this.options_ = {
       headers: new HttpHeaders({
@@ -27,16 +28,16 @@ export class CustomerPostalService {
     };
   }
 
-  private handleError(error: HttpErrorResponse) {
-    if (error.error instanceof ErrorEvent) {
-      console.error("An error occurred:", error.error.message);
-    } else {
-      console.error(
-        `Backend returned code ${error.status}, ` + `body was: ${error.error}`
-      );
-    }
-    return throwError(() => new Error(error.error.message));
-  }
+  // private handleError(error: HttpErrorResponse) {
+  //   if (error.error instanceof ErrorEvent) {
+  //     console.error("An error occurred:", error.error.message);
+  //   } else {
+  //     console.error(
+  //       `Backend returned code ${error.status}, ` + `body was: ${error.error}`
+  //     );
+  //   }
+  //   return throwError(() => new Error(error.error.message));
+  // }
 
   //Create CustomerPostal
   create(body: CustomerPostalDto) {
@@ -46,7 +47,7 @@ export class CustomerPostalService {
         body,
         this.options_
       )
-      .pipe(retry(1), catchError(this.handleError));
+      .pipe(retry(1), catchError(this.errorMessage.HandleErrorResponse));
   }
 
   //Update CustomerPostal
@@ -57,7 +58,7 @@ export class CustomerPostalService {
         body,
         this.options_
       )
-      .pipe(retry(1), catchError(this.handleError));
+      .pipe(retry(1), catchError(this.errorMessage.HandleErrorResponse));
   }
 
   //Delete CustomerPostal
@@ -68,7 +69,7 @@ export class CustomerPostalService {
           `/api/services/app/CustomerPostal/Delete?Id=${id.toString()}`,
         this.options_
       )
-      .pipe(retry(1), catchError(this.handleError));
+      .pipe(retry(1), catchError(this.errorMessage.HandleErrorResponse));
   }
 
   //Get CustomerPostal
@@ -78,7 +79,7 @@ export class CustomerPostalService {
         this.url + `/api/services/app/CustomerPostal/Get?Id=${id}`,
         this.options_
       )
-      .pipe(retry(1), catchError(this.handleError));
+      .pipe(retry(1), catchError(this.errorMessage.HandleErrorResponse));
   }
 
   //Get All CustomerPostals
@@ -100,7 +101,7 @@ export class CustomerPostalService {
 
     return this.http
       .get(url_ + `&MaxResultCount=10`, this.options_)
-      .pipe(retry(1), catchError(this.handleError));
+      .pipe(retry(1), catchError(this.errorMessage.HandleErrorResponse));
   }
 
   //Get Customer Postals By AccountNo
@@ -111,7 +112,7 @@ export class CustomerPostalService {
           `/api/services/app/CustomerPostal/GetCustomerPostalsByAccountNo?accountNo=${accountNo}`,
         this.options_
       )
-      .pipe(retry(1), catchError(this.handleError));
+      .pipe(retry(1), catchError(this.errorMessage.HandleErrorResponse));
   }
 
   // Get Full Customer Postal Details
@@ -139,6 +140,6 @@ export class CustomerPostalService {
 
     return this.http
       .get(url_ + `&MaxResultCount=${count}`, this.options_)
-      .pipe(retry(1), catchError(this.handleError));
+      .pipe(retry(1), catchError(this.errorMessage.HandleErrorResponse));
   }
 }

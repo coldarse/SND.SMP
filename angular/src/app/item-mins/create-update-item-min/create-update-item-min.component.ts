@@ -2,7 +2,9 @@ import { Component, EventEmitter, Injector, OnInit, Output } from '@angular/core
 import { AppComponentBase } from '../../../shared/app-component-base';
 import { ItemMinDto } from '../../../shared/service-proxies/item-mins/model';
 import { ItemMinService } from '../../../shared/service-proxies/item-mins/item-min.service';
-import { BsModalRef } from 'ngx-bootstrap/modal';
+import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { HttpErrorResponse } from '@angular/common/http';
+import { ErrorModalComponent } from '@shared/components/error-modal/error-modal.component';
 
 @Component({
   selector: 'app-create-update-itemmin',
@@ -21,7 +23,8 @@ export class CreateUpdateItemMinComponent extends AppComponentBase
   constructor(
     injector: Injector,
     public _itemminService: ItemMinService,
-    public bsModalRef: BsModalRef
+    public bsModalRef: BsModalRef,
+    private _modalService: BsModalService
   ) {
     super(injector);
   }
@@ -43,6 +46,22 @@ export class CreateUpdateItemMinComponent extends AppComponentBase
           this.bsModalRef.hide();
           this.onSave.emit();
         },
+        (error: HttpErrorResponse) => {
+          this.saving = false;
+          //Handle error
+          this.bsModalRef.hide();
+          let cc: BsModalRef;
+          cc = this._modalService.show(
+            ErrorModalComponent,
+            {
+              class: 'modal-lg',
+              initialState: {
+                title: "",
+                errorMessage: error.message,
+              },
+            }
+          )
+        },
         () => {
           this.saving = false;
         }
@@ -54,6 +73,22 @@ export class CreateUpdateItemMinComponent extends AppComponentBase
           this.notify.info(this.l('SavedSuccessfully'));
           this.bsModalRef.hide();
           this.onSave.emit();
+        },
+        (error: HttpErrorResponse) => {
+          this.saving = false;
+          //Handle error
+          this.bsModalRef.hide();
+          let cc: BsModalRef;
+          cc = this._modalService.show(
+            ErrorModalComponent,
+            {
+              class: 'modal-lg',
+              initialState: {
+                title: "",
+                errorMessage: error.message,
+              },
+            }
+          )
         },
         () => {
           this.saving = false;

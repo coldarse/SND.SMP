@@ -5,7 +5,7 @@ import {
   EventEmitter,
   Output,
 } from '@angular/core';
-import { BsModalRef } from 'ngx-bootstrap/modal';
+import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { AppComponentBase } from '@shared/app-component-base';
 import {
   RoleServiceProxy,
@@ -15,6 +15,8 @@ import {
   PermissionDtoListResultDto
 } from '@shared/service-proxies/service-proxies';
 import { forEach as _forEach, map as _map } from 'lodash-es';
+import { HttpErrorResponse } from '@angular/common/http';
+import { ErrorModalComponent } from '@shared/components/error-modal/error-modal.component';
 
 @Component({
   templateUrl: 'create-role-dialog.component.html'
@@ -32,7 +34,8 @@ export class CreateRoleDialogComponent extends AppComponentBase
   constructor(
     injector: Injector,
     private _roleService: RoleServiceProxy,
-    public bsModalRef: BsModalRef
+    public bsModalRef: BsModalRef,
+    private _modalService: BsModalService
   ) {
     super(injector);
   }
@@ -88,6 +91,22 @@ export class CreateRoleDialogComponent extends AppComponentBase
           this.notify.info(this.l('SavedSuccessfully'));
           this.bsModalRef.hide();
           this.onSave.emit();
+        },
+        (error: HttpErrorResponse) => {
+          this.saving = false;
+          //Handle error
+          this.bsModalRef.hide();
+          let cc: BsModalRef;
+          cc = this._modalService.show(
+            ErrorModalComponent,
+            {
+              class: 'modal-lg',
+              initialState: {
+                title: "",
+                errorMessage: error.message,
+              },
+            }
+          )
         },
         () => {
           this.saving = false;

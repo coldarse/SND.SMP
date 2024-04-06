@@ -2,10 +2,12 @@ import { Component, EventEmitter, Injector, Input, OnInit, Output } from '@angul
 import { AppComponentBase } from '../../../shared/app-component-base';
 import { CustomerPostalDto } from '../../../shared/service-proxies/customer-postals/model';
 import { CustomerPostalService } from '../../../shared/service-proxies/customer-postals/customer-postal.service';
-import { BsModalRef } from 'ngx-bootstrap/modal';
+import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { RateDDL } from '@shared/service-proxies/rates/model';
 import { PostalDDL } from '@shared/service-proxies/postals/model';
 import { CustomerDto } from '@shared/service-proxies/customers/model';
+import { ErrorModalComponent } from '../../../shared/components/error-modal/error-modal.component';
+import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
   selector: 'app-create-update-customerpostal',
@@ -30,7 +32,8 @@ export class CreateUpdateCustomerPostalComponent extends AppComponentBase
   constructor(
     injector: Injector,
     public _customerpostalService: CustomerPostalService,
-    public bsModalRef: BsModalRef
+    public bsModalRef: BsModalRef,
+    private _modalService: BsModalService
   ) {
     super(injector);
   }
@@ -40,7 +43,7 @@ export class CreateUpdateCustomerPostalComponent extends AppComponentBase
     //   this.isCreate = false;
     // }
     this.isCreate = true;
-    console.log(this.postalItems)
+    // console.log(this.postalItems)
   }
 
   selectedPostal(event: any){
@@ -69,6 +72,22 @@ export class CreateUpdateCustomerPostalComponent extends AppComponentBase
           this.bsModalRef.hide();
           this.onSave.emit();
         },
+        (error: HttpErrorResponse) => {
+          this.saving = false;
+          //Handle error
+          this.bsModalRef.hide();
+          let cc: BsModalRef;
+          cc = this._modalService.show(
+            ErrorModalComponent,
+            {
+              class: 'modal-lg',
+              initialState: {
+                title: "",
+                errorMessage: error.message,
+              },
+            }
+          )
+        },
         () => {
           this.saving = false;
         }
@@ -80,6 +99,22 @@ export class CreateUpdateCustomerPostalComponent extends AppComponentBase
           this.notify.info(this.l('SavedSuccessfully'));
           this.bsModalRef.hide();
           this.onSave.emit();
+        },
+        (error: HttpErrorResponse) => {
+          this.saving = false;
+          //Handle error
+          this.bsModalRef.hide();
+          let cc: BsModalRef;
+          cc = this._modalService.show(
+            ErrorModalComponent,
+            {
+              class: 'modal-lg',
+              initialState: {
+                title: "",
+                errorMessage: error.message,
+              },
+            }
+          )
         },
         () => {
           this.saving = false;

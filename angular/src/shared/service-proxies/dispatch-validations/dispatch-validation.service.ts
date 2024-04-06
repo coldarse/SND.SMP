@@ -11,13 +11,14 @@ import {
   DispatchValidationDto,
 } from "./model";
 import { AppConsts } from "@shared/AppConsts";
+import { ErrorMessage } from "../error-handling";
 
 @Injectable()
 export class DispatchValidationService {
   url = "";
   options_: any;
 
-  constructor(private http: HttpClient) {
+  constructor(private http: HttpClient, private errorMessage: ErrorMessage){
     this.url = AppConsts.remoteServiceBaseUrl;
     this.options_ = {
       headers: new HttpHeaders({
@@ -27,16 +28,16 @@ export class DispatchValidationService {
     };
   }
 
-  private handleError(error: HttpErrorResponse) {
-    if (error.error instanceof ErrorEvent) {
-      console.error("An error occurred:", error.error.message);
-    } else {
-      console.error(
-        `Backend returned code ${error.status}, ` + `body was: ${error.error}`
-      );
-    }
-    return throwError(() => new Error(error.error.message));
-  }
+  // private handleError(error: HttpErrorResponse) {
+  //   if (error.error instanceof ErrorEvent) {
+  //     console.error("An error occurred:", error.error.message);
+  //   } else {
+  //     console.error(
+  //       `Backend returned code ${error.status}, ` + `body was: ${error.error}`
+  //     );
+  //   }
+  //   return throwError(() => new Error(error.error.message));
+  // }
 
   //Create DispatchValidation
   create(body: DispatchValidationDto) {
@@ -46,7 +47,7 @@ export class DispatchValidationService {
         body,
         this.options_
       )
-      .pipe(retry(1), catchError(this.handleError));
+      .pipe(retry(1), catchError(this.errorMessage.HandleErrorResponse));
   }
 
   //Update DispatchValidation
@@ -57,7 +58,7 @@ export class DispatchValidationService {
         body,
         this.options_
       )
-      .pipe(retry(1), catchError(this.handleError));
+      .pipe(retry(1), catchError(this.errorMessage.HandleErrorResponse));
   }
 
   //Delete DispatchValidation
@@ -68,7 +69,7 @@ export class DispatchValidationService {
           `/api/services/app/DispatchValidation/Delete?Id=${id.toString()}`,
         this.options_
       )
-      .pipe(retry(1), catchError(this.handleError));
+      .pipe(retry(1), catchError(this.errorMessage.HandleErrorResponse));
   }
 
   //Get DispatchValidation
@@ -78,7 +79,7 @@ export class DispatchValidationService {
         this.url + `/api/services/app/DispatchValidation/Get?Id=${id}`,
         this.options_
       )
-      .pipe(retry(1), catchError(this.handleError));
+      .pipe(retry(1), catchError(this.errorMessage.HandleErrorResponse));
   }
 
   //Get All DispatchValidations
@@ -107,6 +108,6 @@ export class DispatchValidationService {
 
     return this.http
       .get(url_ + `&MaxResultCount=${count}`, this.options_)
-      .pipe(retry(1), catchError(this.handleError));
+      .pipe(retry(1), catchError(this.errorMessage.HandleErrorResponse));
   }
 }

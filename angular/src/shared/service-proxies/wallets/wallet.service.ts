@@ -4,6 +4,7 @@ import { catchError, retry, throwError as _observableThrow, Observable } from 'r
 import { PagedWalletsResultRequestDto, TopUpEWalletDto, UpdateWalletDto, WalletDto } from './model';
 import { AppConsts } from '@shared/AppConsts';
 import { ApiException } from '../service-proxies';
+import { ErrorMessage } from '../error-handling';
 
 @Injectable()
 export class WalletService {
@@ -11,7 +12,7 @@ export class WalletService {
     url = '';
     options_: any;
 
-    constructor(private http: HttpClient){
+    constructor(private http: HttpClient, private errorMessage: ErrorMessage){
         this.url = AppConsts.remoteServiceBaseUrl;
         this.options_ = {
             headers: new HttpHeaders({
@@ -21,17 +22,17 @@ export class WalletService {
         };
     }
 
-    private handleError(error: HttpErrorResponse) {
-        if (error.error instanceof ErrorEvent) {
-          console.error('An error occurred:', error.error.message);
-        }
-        else {
-          console.error(
-            `Backend returned code ${error.status}, ` +
-            `body was: ${error.error}`);
-        }
-        return this.throwException(error.error.message, error.status, "", this.options_);
-    }
+    // private handleError(error: HttpErrorResponse) {
+    //     if (error.error instanceof ErrorEvent) {
+    //       console.error('An error occurred:', error.error.message);
+    //     }
+    //     else {
+    //       console.error(
+    //         `Backend returned code ${error.status}, ` +
+    //         `body was: ${error.error}`);
+    //     }
+    //     return this.throwException(error.error.message, error.status, "", this.options_);
+    // }
 
     private throwException(message: string, status: number, response: string, headers: { [key: string]: any; }, result?: any): Observable<any> {
         if (result !== null && result !== undefined)
@@ -48,7 +49,7 @@ export class WalletService {
             this.options_
         ).pipe(
             retry(1),
-            catchError(this.handleError),
+            catchError(this.errorMessage.HandleErrorResponse),
         )
     }
 
@@ -60,7 +61,7 @@ export class WalletService {
             this.options_
         ).pipe(
             retry(1),
-            catchError(this.handleError),
+            catchError(this.errorMessage.HandleErrorResponse),
         )
     }
 
@@ -71,7 +72,7 @@ export class WalletService {
             this.options_
         ).pipe(
             retry(1),
-            catchError(this.handleError),
+            catchError(this.errorMessage.HandleErrorResponse),
         )
     }
 
@@ -82,7 +83,7 @@ export class WalletService {
             this.options_
         ).pipe(
             retry(1),
-            catchError(this.handleError),
+            catchError(this.errorMessage.HandleErrorResponse),
         )
     }
 
@@ -107,7 +108,7 @@ export class WalletService {
             this.options_
         ).pipe(
             retry(1),
-            catchError(this.handleError),
+            catchError(this.errorMessage.HandleErrorResponse),
         )
     }
 
@@ -121,7 +122,7 @@ export class WalletService {
             this.options_
         ).pipe(
             retry(1),
-            catchError(this.handleError),
+            catchError(this.errorMessage.HandleErrorResponse),
         )
     }
 
@@ -132,7 +133,7 @@ export class WalletService {
             this.options_
         ).pipe(
             retry(1),
-            catchError(this.handleError),
+            catchError(this.errorMessage.HandleErrorResponse),
         )
     }
 
@@ -144,7 +145,7 @@ export class WalletService {
                 this.options_
             ).pipe(
                 retry(1),
-                catchError(this.handleError),
+                catchError(this.errorMessage.HandleErrorResponse),
             )
         }
         else{
@@ -153,7 +154,7 @@ export class WalletService {
                 this.options_
             ).pipe(
                 retry(1),
-                catchError(this.handleError),
+                catchError(this.errorMessage.HandleErrorResponse),
             )
         }
     }
@@ -166,7 +167,7 @@ export class WalletService {
             this.options_
         ).pipe(
             retry(1),
-            catchError(this.handleError),
+            catchError(this.errorMessage.HandleErrorResponse),
         )
     }
 
@@ -177,7 +178,7 @@ export class WalletService {
             this.options_
         ).pipe(
             retry(1),
-            catchError(this.handleError),
+            catchError(this.errorMessage.HandleErrorResponse),
         )
     }
 
@@ -202,7 +203,7 @@ export class WalletService {
             this.options_
         ).pipe(
             retry(1),
-            catchError(this.handleError),
+            catchError(this.errorMessage.HandleErrorResponse),
         )
     }
 }
