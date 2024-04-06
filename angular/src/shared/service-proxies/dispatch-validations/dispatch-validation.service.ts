@@ -109,4 +109,33 @@ export class DispatchValidationService {
       .get(url_ + `&MaxResultCount=${count}`, this.options_)
       .pipe(retry(1), catchError(this.handleError));
   }
+
+  //Get Dispatch Validation
+  getDispatchValidation(body: PagedDispatchValidationResultRequestDto) {
+    let url_ = this.url + "/api/services/app/DispatchValidation/GetDispatchValidation?";
+
+    if (body.keyword === null)
+      throw new Error("The parameter 'keyword' cannot be null.");
+    else if (body.keyword !== undefined)
+      url_ += "Keyword=" + encodeURIComponent("" + body.keyword) + "&";
+
+    if (body.skipCount !== undefined)
+      url_ += "SkipCount=" + encodeURIComponent("" + body.skipCount) + "&";
+
+    if (body.isAdmin !== undefined)
+      url_ += "IsAdmin=" + encodeURIComponent("" + body.isAdmin) + "&";
+
+    if (body.customerCode !== undefined)
+      url_ += "CustomerCode=" + encodeURIComponent("" + body.customerCode) + "&";
+
+    let count = 10;
+    if (body.maxResultCount !== undefined) 
+      count = body.maxResultCount;
+
+    url_ = url_.replace(/[?&]$/, "");
+
+    return this.http
+      .get(url_ + `&MaxResultCount=${count}`, this.options_)
+      .pipe(retry(1), catchError(this.handleError));
+  }
 }

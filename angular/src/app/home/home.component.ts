@@ -1,31 +1,9 @@
 import { Component, Injector, OnInit } from "@angular/core";
 import { appModuleAnimation } from "@shared/animations/routerTransition";
-import {
-  PagedListingComponentBase,
-  PagedRequestDto,
-} from "@shared/paged-listing-component-base";
-import { CustomerTransactionDto } from "@shared/service-proxies/customer-transactions/model";
-import { CustomerTransactionService } from "@shared/service-proxies/customer-transactions/customer-transaction.service";
-import { finalize } from "rxjs";
+import { PagedListingComponentBase } from "@shared/paged-listing-component-base";
+
 import { WalletService } from "@shared/service-proxies/wallets/wallet.service";
-import {
-  DetailedEWallet,
-  WalletDto,
-} from "@shared/service-proxies/wallets/model";
-import { DispatchValidationService } from "@shared/service-proxies/dispatch-validations/dispatch-validation.service";
-import { DispatchValidationDto } from "@shared/service-proxies/dispatch-validations/model";
-
-class PagedCustomerTransactionsRequestDto extends PagedRequestDto {
-  keyword: string;
-  isAdmin: boolean;
-  customer: string;
-}
-
-class PagedDispatchValidationsRequestDto extends PagedRequestDto {
-  keyword: string;
-  isAdmin: boolean;
-  customerCode: string;
-}
+import { DetailedEWallet } from "@shared/service-proxies/wallets/model";
 
 @Component({
   templateUrl: "./home.component.html",
@@ -33,11 +11,9 @@ class PagedDispatchValidationsRequestDto extends PagedRequestDto {
   styleUrls: ["./home.component.css"],
 })
 export class HomeComponent
-  extends PagedListingComponentBase<CustomerTransactionDto>
+  extends PagedListingComponentBase<any>
+  implements OnInit
 {
-  
-  customerTransactions: any[] = [];
-  dispatchvalidations: any[] = [];
   wallets: DetailedEWallet[] = [];
 
   isAdmin = true;
@@ -49,15 +25,24 @@ export class HomeComponent
   type1 = { eWalletType: 1 };
   type2 = { eWalletType: 2 };
 
-  reloadDispatchValidation: any;
 
-  constructor(
-    injector: Injector,
-    private _customerTransactionService: CustomerTransactionService,
-    private _dispatchvalidationService: DispatchValidationService,
-    private _walletService: WalletService
-  ) {
+  constructor(injector: Injector, private _walletService: WalletService) {
     super(injector);
+  }
+
+  ngOnInit(): void {
+    this.isAdmin = this.appSession
+      .getShownLoginName()
+      .replace(".\\", "")
+      .includes("admin");
+    this.showLoginName = this.appSession.getShownLoginName().replace(".\\", "");
+    this.companyCode = this.appSession.getCompanyCode();
+
+    this._walletService
+      .getAllWalletsAsync(this.companyCode)
+      .subscribe((result: any) => {
+        this.wallets = result.result;
+      });
   }
 
   clearFilters(): void {
@@ -65,124 +50,13 @@ export class HomeComponent
     this.getDataPage(1);
   }
 
-  startReloadInterval(){
-    if (
-      this.appSession.getShownLoginName().replace(".\\", "").includes("admin")
-    ) {
-      this.isAdmin = true;
-      this.showLoginName = this.appSession
-        .getShownLoginName()
-        .replace(".\\", "");
-      this.companyCode = "";
-    } else {
-      this.isAdmin = false;
-      this.showLoginName = this.appSession.getShownCustomerCompanyName();
-      this.companyCode = this.appSession.getCompanyCode();
-    }
-    const req = new PagedDispatchValidationsRequestDto();
-    req.maxResultCount = this.pageSize;
-    req.skipCount = (1 - 1) * this.pageSize;
-    req.keyword = this.keyword;
-    req.isAdmin = this.isAdmin;
-    req.customerCode = this.companyCode;
-    this.GetDispatchValidation(req, 1, () => {});
-    this.reloadDispatchValidation = setInterval(() => {
-      this.GetDispatchValidation(req, 1, () => {});
-    }, 30000);
-  }
-
-  ngOnDestroy(): void {
-    clearInterval(this.reloadDispatchValidation);
-  }
-
   protected list(
-    request: PagedCustomerTransactionsRequestDto,
+    request: any,
     pageNumber: number,
     finishedCallback: Function
-  ): void {
-    let admin = this.appSession
-      .getShownLoginName()
-      .replace(".\\", "")
-      .includes("admin");
-    this.isAdmin = admin;
-    this.companyCode = admin ? "" : this.appSession.getCompanyCode();
-    
-    request.keyword = this.keyword;
-    request.isAdmin = this.isAdmin;
-    request.customer = this.companyCode;
-    this._customerTransactionService
-      .getAll(request)
-      .pipe(
-        finalize(() => {
-          finishedCallback();
-        })
-      )
-      .subscribe((result: any) => {
-        this.customerTransactions = [];
-        result.result.items.forEach((element: CustomerTransactionDto) => {
-          let tempCustomerTransaction = {
-            wallet: element.wallet,
-            customer: element.customer,
-            paymentMode: element.paymentMode,
-            currency: element.currency,
-            transactionType: element.transactionType,
-            amount: element.amount,
-            referenceNo: element.referenceNo,
-            description: element.description,
-            transactionDate: element.transactionDate,
-          };
+  ): void {}
 
-          this.customerTransactions.push(tempCustomerTransaction);
-        });
-        this.startReloadInterval();
-        this._walletService
-          .getAllWalletsAsync(this.companyCode)
-          .subscribe((result: any) => {
-            this.wallets = result.result;
-            this.showPaging(result.result, pageNumber);
-          });
-      });
-  }
-
-  private GetDispatchValidation(
-    request: PagedDispatchValidationsRequestDto,
-    pageNumber: number,
-    finishedCallback: Function
-  ): void {
-    this._dispatchvalidationService
-      .getAll(request)
-      .pipe(
-        finalize(() => {
-          finishedCallback();
-        })
-      )
-      .subscribe((result: any) => {
-        this.dispatchvalidations = [];
-        result.result.items.forEach((element: DispatchValidationDto) => {
-          let tempDispatchValidation = {
-            id: element.id,
-            customerCode: element.customerCode,
-            dateStarted: element.dateStarted,
-            dateCompleted: element.dateCompleted,
-            dispatchNo: element.dispatchNo,
-            filePath: element.filePath,
-            isFundLack: element.isFundLack,
-            isValid: element.isValid,
-            postalCode: element.postalCode,
-            serviceCode: element.serviceCode,
-            productCode: element.productCode,
-            status: element.status,
-            tookInSec: element.tookInSec,
-            validationProgress: element.validationProgress,
-          };
-
-          this.dispatchvalidations.push(tempDispatchValidation);
-        });
-        this.showPaging(result.result, pageNumber);
-      });
-  }
-
-  protected delete(entity: CustomerTransactionDto): void {
+  protected delete(entity: any): void {
     throw new Error("Method not implemented.");
   }
 
@@ -190,8 +64,4 @@ export class HomeComponent
     return this.wallets.filter((w) => w.eWalletType === type);
   }
 
-  entries(event: any) {
-    this.pageSize = event.target.value;
-    this.getDataPage(1);
-  }
 }
