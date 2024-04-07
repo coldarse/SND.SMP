@@ -52,7 +52,7 @@ public partial class db : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseMySql("server=signaturemail.co;port=3306;database=smi;uid=smi_dev;pwd=C56bV{(}Igx<Pqx", Microsoft.EntityFrameworkCore.ServerVersion.Parse("8.0.30-mysql"));
+        => optionsBuilder.UseMySql("server=signaturemail.co;port=3306;database=SMPDb;uid=smi_dev;pwd=C56bV{(}Igx<Pqx", Microsoft.EntityFrameworkCore.ServerVersion.Parse("8.0.30-mysql"));
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -64,7 +64,7 @@ public partial class db : DbContext
         {
             entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.ToTable("bag");
+            entity.ToTable("bags");
 
             entity.HasIndex(e => e.DispatchId, "DispatchId");
 
@@ -107,7 +107,7 @@ public partial class db : DbContext
         {
             entity.HasKey(e => e.CustomerCode).HasName("PRIMARY");
 
-            entity.ToTable("customer");
+            entity.ToTable("customers");
 
             entity.Property(e => e.CustomerCode)
                 .HasMaxLength(10)
@@ -119,7 +119,7 @@ public partial class db : DbContext
         {
             entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.ToTable("customercurrency");
+            entity.ToTable("customercurrencys");
 
             entity.HasIndex(e => e.CurrencyId, "CurrencyId");
 
@@ -147,7 +147,7 @@ public partial class db : DbContext
         {
             entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.ToTable("customerpostal");
+            entity.ToTable("customerpostals");
 
             entity.HasIndex(e => e.CustomerCode, "CustomerCode");
 
@@ -172,7 +172,7 @@ public partial class db : DbContext
         {
             entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.ToTable("customertransaction");
+            entity.ToTable("customertransactions");
 
             entity.HasIndex(e => e.CustomerCode, "customerCode");
 
@@ -210,7 +210,7 @@ public partial class db : DbContext
         {
             entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.ToTable("dispatch");
+            entity.ToTable("dispatches");
 
             entity.Property(e => e.AirlineCode).HasMaxLength(20);
             entity.Property(e => e.AirportTranshipment).HasMaxLength(20);
@@ -370,7 +370,7 @@ public partial class db : DbContext
         {
             entity.HasKey(e => e.DispatchNo).HasName("PRIMARY");
 
-            entity.ToTable("dispatchvalidation");
+            entity.ToTable("dispatchvalidations");
 
             entity.Property(e => e.DispatchNo)
                 .HasMaxLength(15)
@@ -606,7 +606,7 @@ public partial class db : DbContext
         {
             entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.ToTable("itemmin");
+            entity.ToTable("itemmins");
 
             entity.HasIndex(e => e.BagId, "BagID");
 
@@ -658,7 +658,7 @@ public partial class db : DbContext
         {
             entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.ToTable("postal");
+            entity.ToTable("postals");
 
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.ItemTopupValue)
@@ -688,7 +688,7 @@ public partial class db : DbContext
         {
             entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.ToTable("postalcountry");
+            entity.ToTable("postalcountries");
 
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.CountryCode)
@@ -704,7 +704,7 @@ public partial class db : DbContext
         {
             entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.ToTable("postalorg");
+            entity.ToTable("postalorgs");
 
             entity.Property(e => e.Id)
                 .HasMaxLength(2)
@@ -719,7 +719,7 @@ public partial class db : DbContext
         {
             entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.ToTable("queue");
+            entity.ToTable("queues");
 
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.DateCreated).HasColumnType("datetime");
@@ -737,7 +737,7 @@ public partial class db : DbContext
         {
             entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.ToTable("rate");
+            entity.ToTable("rates");
 
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.CardName).HasMaxLength(30);
@@ -747,7 +747,7 @@ public partial class db : DbContext
         {
             entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.ToTable("rateitem");
+            entity.ToTable("rateitems");
 
             entity.HasIndex(e => e.RateId, "RateId");
 
@@ -773,7 +773,7 @@ public partial class db : DbContext
         {
             entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.ToTable("rateweightbreak");
+            entity.ToTable("rateweightbreaks");
 
             entity.HasIndex(e => e.PostalOrgId, "PostalId");
 

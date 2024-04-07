@@ -10,3 +10,5 @@ aspnet-core/src/SND.SMP.Migrator/Logs/Logs.txt
 aspnet-core/build/outputs/
 aspnet-core/docker/mvc/Mvc-Logs/
 
+aspnet-core/src/SND.SMP.DispatchConsole/appsettings.json
+aspnet-core/src/SND.SMP.DispatchConsole/appsettings.Development.json

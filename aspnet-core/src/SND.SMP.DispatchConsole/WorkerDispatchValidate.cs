@@ -39,7 +39,7 @@ public class WorkerDispatchValidate : BackgroundService
             int batchSize = _configuration.GetValue<int>("Validate:BatchSize");
             int blockSize = _configuration.GetValue<int>("Validate:BlockSize");
 
-            DispatchValidator dispatchValidator = new DispatchValidator();
+            DispatchValidator dispatchValidator = new DispatchValidator(_configuration);
 
             await dispatchValidator.DiscoverAndValidate(dirPath: dirPath, fileType: fileType, batchSize: batchSize, blockSize: blockSize);
 
