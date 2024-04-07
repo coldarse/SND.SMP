@@ -140,7 +140,9 @@
                   <td>
                     <div class="progress">
                       <div
-                        class="progress-bar progress-bar-striped progress-bar-animated"
+                        class="progress-bar progress-bar-striped"
+                        [class.bg-success]="dispatchvalidation.validationProgress == 100"
+                        [class.progress-bar-animated]="dispatchvalidation.validationProgress < 100"
                         role="progressbar"
                         aria-valuenow="dispatchvalidation.validationProgress"
                         aria-valuemin="0"
