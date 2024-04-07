@@ -137,6 +137,6 @@ export class DispatchValidationService {
 
     return this.http
       .get(url_ + `&MaxResultCount=${count}`, this.options_)
-      .pipe(retry(1), catchError(this.handleError));
+      .pipe(retry(1), catchError(this.errorMessage.HandleErrorResponse));
   }
 }

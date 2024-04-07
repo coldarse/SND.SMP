@@ -63,5 +63,4 @@ export class HomeComponent
   filterType(type: number) {
     return this.wallets.filter((w) => w.eWalletType === type);
   }
-
 }

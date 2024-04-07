@@ -40,7 +40,7 @@ export abstract class PagedListingComponentBase<TEntityDto> extends AppComponent
 
     public showPaging(result: PagedResultDto, pageNumber: number): void {
         this.totalPages = ((result.totalCount - (result.totalCount % this.pageSize)) / this.pageSize) + 1;
-
+        
         this.totalItems = result.totalCount;
         this.pageNumber = pageNumber;
     }

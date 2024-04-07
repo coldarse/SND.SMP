@@ -10,7 +10,6 @@ import { DispatchValidationDto } from "@shared/service-proxies/dispatch-validati
 import { DispatchValidationService } from "@shared/service-proxies/dispatch-validations/dispatch-validation.service";
 import { CreateUpdateDispatchValidationComponent } from "../dispatch-validations/create-update-dispatchvalidation/create-update-dispatch-validation.component";
 import { Router } from "@angular/router";
-import { SidebarComponent } from "@app/layout/sidebar.component";
 
 class PagedDispatchValidationsRequestDto extends PagedRequestDto {
   keyword: string;
@@ -174,7 +173,7 @@ export class DispatchValidationsComponent
 
           this.dispatchvalidations.push(tempDispatchValidation);
         });
-        this.showPaging(result.result, pageNumber);
+        if(this.showPagination) this.showPaging(result.result, pageNumber);
       });
   }
 }
