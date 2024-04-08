@@ -157,21 +157,21 @@ namespace SND.SMP.Chibis
 
             uploadPreCheck.UploadFile.fileName = uuidFileName + ".xlsx.profile.json";
             uploadPreCheck.UploadFile.fileType = "json";
-            await UploadFile(uploadPreCheck.UploadFile);
+            await UploadFile(uploadPreCheck.UploadFile, xlsxFile.originalName);
 
             await _queueRepository.InsertAsync(new Queue()
             {
-                EventType = "Upload Dispatch",
+                EventType = "Validate Dispatch",
                 FilePath = xlsxFile.url,
                 DateCreated = DateTime.Now,
-                Status = "Draft"
+                Status = "New"
             });
 
             return true;
         }
 
         [Consumes("multipart/form-data")]
-        public async Task<ChibiUpload> UploadFile([FromForm] ChibiUploadDto uploadFile)
+        public async Task<ChibiUpload> UploadFile([FromForm] ChibiUploadDto uploadFile, string originalName = null)
         {
             var client = new HttpClient();
             client.DefaultRequestHeaders.Clear();
@@ -207,13 +207,14 @@ namespace SND.SMP.Chibis
 
             if (result != null)
             {
+                result.originalName = uploadFile.file.FileName.Replace(".xlsx", "") + $"_{result.name}";
                 //Insert to DB
                 Chibi entity = new()
                 {
                     FileName = result.name == null ? "" : DateTime.Now.ToString("yyyyMMdd") + "_" + result.name,
                     UUID = result.uuid ?? "",
                     URL = result.url ?? "",
-                    OriginalName = uploadFile.file.FileName ?? "",
+                    OriginalName = originalName is null ? result.originalName : originalName,
                     GeneratedName = result.name ?? ""
                 };
 

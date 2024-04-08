@@ -8,8 +8,8 @@ namespace SND.SMP.DispatchConsole
             using var response = await httpClient.GetAsync(url);
             if (response.IsSuccessStatusCode)
             {
-                using var contentStream = await response.Content.ReadAsStreamAsync();
-                return contentStream;
+                var contentByteArray = await response.Content.ReadAsByteArrayAsync();
+                return new MemoryStream(contentByteArray);
             }
             return null;
         }

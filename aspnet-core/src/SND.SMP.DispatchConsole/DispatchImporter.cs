@@ -384,8 +384,8 @@ namespace SND.SMP.DispatchConsole
                             queueTask.Status = QueueEnumConst.STATUS_FINISH;
                             queueTask.ErrorMsg = null;
                             queueTask.TookInSec = Math.Round(tookInSec, 0);
-                            queueTask.DateStart = dateImportStart;
-                            queueTask.DateEnd = dateImportCompleted;
+                            queueTask.StartTime = dateImportStart;
+                            queueTask.EndTime = dateImportCompleted;
                         }
 
                         await db.SaveChangesAsync();

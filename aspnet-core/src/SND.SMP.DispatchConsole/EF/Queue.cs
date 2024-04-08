@@ -23,7 +23,7 @@ public partial class Queue
 
     public string ErrorMsg { get; set; }
 
-    public DateTime? DateStart { get; set; }
+    public DateTime? StartTime { get; set; }
 
-    public DateTime? DateEnd { get; set; }
+    public DateTime? EndTime { get; set; }
 }

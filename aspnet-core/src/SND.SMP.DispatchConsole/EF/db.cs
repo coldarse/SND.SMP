@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Pomelo.EntityFrameworkCore.MySql.Scaffolding.Internal;
+using SND.SMP.Chibis;
+using SND.SMP.Wallets;
 
 namespace SND.SMP.DispatchConsole.EF;
 
@@ -20,11 +22,13 @@ public partial class db : DbContext
 
     public virtual DbSet<SND.SMP.Currencies.Currency> Currencies { get; set; }
 
-    public virtual DbSet<Customer> Customers { get; set; }
+    public virtual DbSet<SND.SMP.Customers.Customer> Customers { get; set; }
 
     public virtual DbSet<Customercurrency> Customercurrencies { get; set; }
 
-    public virtual DbSet<Customerpostal> Customerpostals { get; set; }
+    public virtual DbSet<SND.SMP.Wallets.Wallet> Wallets { get; set; }
+
+    public virtual DbSet<SND.SMP.CustomerPostals.CustomerPostal> Customerpostals { get; set; }
 
     public virtual DbSet<Customertransaction> Customertransactions { get; set; }
 
@@ -49,6 +53,8 @@ public partial class db : DbContext
     public virtual DbSet<Rateitem> Rateitems { get; set; }
 
     public virtual DbSet<Rateweightbreak> Rateweightbreaks { get; set; }
+
+    public virtual DbSet<Chibi> Chibis { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
@@ -87,6 +93,24 @@ public partial class db : DbContext
                 .HasConstraintName("bag_ibfk_1");
         });
 
+        modelBuilder.Entity<Wallets.Wallet>(b =>
+            {
+                b.ToTable(SMPConsts.DbTablePrefix + "Wallets");
+                b.Property(x => x.Customer).HasColumnName(nameof(Wallet.Customer));
+                b.Property(x => x.EWalletType).HasColumnName(nameof(Wallet.EWalletType));
+                b.Property(x => x.Currency).HasColumnName(nameof(Wallet.Currency));
+                b.Property(x => x.Balance).HasColumnName(nameof(Wallet.Balance)).HasPrecision(18, 2);
+                b.HasOne<Customer>().WithMany().HasForeignKey(x => x.Customer).HasPrincipalKey(x => x.Code);
+                b.HasOne<SND.SMP.EWalletTypes.EWalletType>().WithMany().HasForeignKey(x => x.EWalletType);
+                b.HasOne<SND.SMP.Currencies.Currency>().WithMany().HasForeignKey(x => x.Currency);
+                b.HasKey(x => new
+                {
+                    x.Customer,
+                    x.EWalletType,
+                    x.Currency,
+                });
+            });
+
         // modelBuilder.Entity<Currency>(entity =>
         // {
         //     entity.HasKey(e => e.Id).HasName("PRIMARY");
@@ -105,15 +129,35 @@ public partial class db : DbContext
 
         modelBuilder.Entity<Customer>(entity =>
         {
-            entity.HasKey(e => e.CustomerCode).HasName("PRIMARY");
+            entity.HasKey(e => e.Code).HasName("PRIMARY");
 
             entity.ToTable("customers");
 
-            entity.Property(e => e.CustomerCode)
+            entity.Property(e => e.Code)
                 .HasMaxLength(10)
                 .HasDefaultValueSql("''");
             entity.Property(e => e.CompanyName).HasMaxLength(50);
         });
+
+        // modelBuilder.Entity<SND.SMP.Customers.Customer>(b =>
+        // {
+        //     b.ToTable(SMPConsts.DbTablePrefix + "Customers");
+        //     b.Property(x => x.CompanyName).HasColumnName(nameof(SND.SMP.Customers.Customer.CompanyName));
+        //     b.Property(x => x.EmailAddress).HasColumnName(nameof(SND.SMP.Customers.Customer.EmailAddress));
+        //     b.Property(x => x.Password).HasColumnName(nameof(SND.SMP.Customers.Customer.Password));
+        //     b.Property(x => x.AddressLine1).HasColumnName(nameof(SND.SMP.Customers.Customer.AddressLine1));
+        //     b.Property(x => x.AddressLine2).HasColumnName(nameof(SND.SMP.Customers.Customer.AddressLine2));
+        //     b.Property(x => x.City).HasColumnName(nameof(SND.SMP.Customers.Customer.City));
+        //     b.Property(x => x.State).HasColumnName(nameof(SND.SMP.Customers.Customer.State));
+        //     b.Property(x => x.Country).HasColumnName(nameof(SND.SMP.Customers.Customer.Country));
+        //     b.Property(x => x.PhoneNumber).HasColumnName(nameof(SND.SMP.Customers.Customer.PhoneNumber));
+        //     b.Property(x => x.RegistrationNo).HasColumnName(nameof(SND.SMP.Customers.Customer.RegistrationNo));
+        //     b.Property(x => x.EmailAddress2).HasColumnName(nameof(SND.SMP.Customers.Customer.EmailAddress2));
+        //     b.Property(x => x.EmailAddress3).HasColumnName(nameof(SND.SMP.Customers.Customer.EmailAddress3));
+        //     b.Property(x => x.IsActive).HasColumnName(nameof(SND.SMP.Customers.Customer.IsActive));
+        //     b.HasKey(x => x.Id);
+        //     b.HasAlternateKey(x => x.Code);
+        // });
 
         modelBuilder.Entity<Customercurrency>(entity =>
         {
@@ -149,21 +193,21 @@ public partial class db : DbContext
 
             entity.ToTable("customerpostals");
 
-            entity.HasIndex(e => e.CustomerCode, "CustomerCode");
+            entity.HasIndex(e => e.AccountNo, "AccountNo");
 
-            entity.HasIndex(e => e.RateId, "RateId");
+            entity.HasIndex(e => e.Rate, "Rate");
 
             entity.Property(e => e.Id).HasColumnName("id");
-            entity.Property(e => e.CustomerCode).HasMaxLength(10);
-            entity.Property(e => e.PostalCode).HasMaxLength(5);
+            entity.Property(e => e.AccountNo).HasMaxLength(10);
+            entity.Property(e => e.Postal).HasMaxLength(5);
 
             entity.HasOne(d => d.CustomerCodeNavigation).WithMany(p => p.Customerpostals)
-                .HasForeignKey(d => d.CustomerCode)
+                .HasForeignKey(d => d.AccountNo)
                 .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("customerpostal_ibfk_1");
 
-            entity.HasOne(d => d.Rate).WithMany(p => p.Customerpostals)
-                .HasForeignKey(d => d.RateId)
+            entity.HasOne(d => d.RateNav).WithMany(p => p.Customerpostals)
+                .HasForeignKey(d => d.Rate)
                 .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("customerpostal_ibfk_2");
         });
@@ -723,8 +767,8 @@ public partial class db : DbContext
 
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.DateCreated).HasColumnType("datetime");
-            entity.Property(e => e.DateEnd).HasColumnType("datetime");
-            entity.Property(e => e.DateStart).HasColumnType("datetime");
+            entity.Property(e => e.EndTime).HasColumnType("datetime");
+            entity.Property(e => e.StartTime).HasColumnType("datetime");
             entity.Property(e => e.DeleteFileOnFailed).HasColumnType("bit(1)");
             entity.Property(e => e.DeleteFileOnSuccess).HasColumnType("bit(1)");
             entity.Property(e => e.ErrorMsg).HasColumnType("text");
@@ -759,7 +803,7 @@ public partial class db : DbContext
                 .IsFixedLength();
             entity.Property(e => e.PaymentMode).HasMaxLength(20);
             entity.Property(e => e.ProductCode).HasMaxLength(10);
-            entity.Property(e => e.RegisteredFee).HasPrecision(18, 2);
+            entity.Property(e => e.Fee).HasPrecision(18, 2);
             entity.Property(e => e.ServiceCode).HasMaxLength(2);
             entity.Property(e => e.Total).HasPrecision(18, 2);
 
@@ -802,6 +846,17 @@ public partial class db : DbContext
                 .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("rateweightbreak_ibfk_1");
         });
+
+        modelBuilder.Entity<Chibi>(b =>
+            {
+                b.ToTable(SMPConsts.DbTablePrefix + "Chibis");
+                b.Property(x => x.FileName).HasColumnName(nameof(Chibi.FileName)).HasMaxLength(128);
+                b.Property(x => x.UUID).HasColumnName(nameof(Chibi.UUID)).HasMaxLength(128);
+                b.Property(x => x.URL).HasColumnName(nameof(Chibi.URL)).HasMaxLength(128);
+                b.Property(x => x.OriginalName).HasColumnName(nameof(Chibi.OriginalName)).HasMaxLength(128);
+                b.Property(x => x.GeneratedName).HasColumnName(nameof(Chibi.GeneratedName)).HasMaxLength(128);
+                b.HasKey(x => x.Id);
+            });
 
         OnModelCreatingPartial(modelBuilder);
     }

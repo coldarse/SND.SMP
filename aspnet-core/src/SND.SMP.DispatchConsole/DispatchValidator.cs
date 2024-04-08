@@ -32,7 +32,8 @@ namespace SND.SMP.DispatchConsole
         private string _customerCode { get; set; }
         private string _serviceCode { get; set; }
         private string _postalCode { get; set; }
-        private string _currencyId { get; set; }
+        private long _currencyId { get; set; }
+        private string _currency { get; set; }
 
         private int _blockSize { get; set; } = 50;
 
@@ -73,7 +74,7 @@ namespace SND.SMP.DispatchConsole
 
                     newTask.Status = QueueEnumConst.STATUS_RUNNING;
                     newTask.ErrorMsg = null;
-                    newTask.TookInSec = null;
+                    newTask.TookInSec = 0;
 
                     await db.SaveChangesAsync();
                 }
@@ -81,7 +82,16 @@ namespace SND.SMP.DispatchConsole
 
             if (!string.IsNullOrWhiteSpace(_filePath))
             {
-                var fileProfile = $"{_filePath}.profile.json";
+                // var fileProfile = $"{_filePath}.profile.json";
+                var fileProfile = "";
+                using EF.db chibiDB = new();
+                var dispatchFile = chibiDB.Chibis.FirstOrDefault(x => x.URL.Equals(_filePath));
+                if (dispatchFile is not null)
+                {
+                    var dispatchFilePair = chibiDB.Chibis.Where(x => x.OriginalName.Equals(dispatchFile.OriginalName)).ToList();
+                    var jsonDispatchFile = dispatchFilePair.FirstOrDefault(x => x.URL.Contains("json"));
+                    fileProfile = jsonDispatchFile.URL;
+                }
                 //var filesExist = File.Exists(fileProfile) && File.Exists(_filePath);
                 var fileString = await FileServer.GetFileStreamAsString(fileProfile);
 
@@ -108,7 +118,12 @@ namespace SND.SMP.DispatchConsole
                                 ServiceCode = _dispatchProfile.ServiceCode,
                                 ProductCode = _dispatchProfile.ProductCode,
                                 DateStarted = DateTime.Now,
+                                DateCompleted = DateTime.MinValue,
+                                FilePath = _filePath,
+                                IsFundLack = 0,
+                                IsValid = 0,
                                 Status = DispatchValidationEnumConst.STATUS_RUNNING,
+                                TookInSec = 0,
                                 ValidationProgress = 0
                             });
 
@@ -161,390 +176,406 @@ namespace SND.SMP.DispatchConsole
                     #region Validation
                     // using (var stream = File.Open(_filePath, FileMode.Open, FileAccess.Read))
                     var stream = await FileServer.GetFileStream(_filePath);
-                    using (var reader = ExcelReaderFactory.CreateReader(stream))
+                    using var reader = ExcelReaderFactory.CreateReader(stream);
+                    var rowCount = reader.RowCount;
+                    var ran = new Random();
+                    var milestoneCount = 4;
+                    var milestones = new List<int>();
+                    var g = 0;
+                    var percHistory = new List<int>();
+                    for (var i = 1; i <= milestoneCount; i++)
                     {
-                        var rowCount = reader.RowCount;
-                        var ran = new Random();
-                        var milestoneCount = 4;
-                        var milestones = new List<int>();
-                        var g = 0;
-                        var percHistory = new List<int>();
-                        for (var i = 1; i <= milestoneCount; i++)
+                        g += 1 * ran.Next(15, 25);
+                        milestones.Add(g);
+                    }
+
+                    // _dispatchProfile.PaymentMode = "Prepaid";
+                    // _dispatchProfile.ServiceCode = "TS";
+                    
+
+                    var pricer = new DispatchPricer(accNo: _dispatchProfile.AccNo,
+                                    postalCode: _dispatchProfile.PostalCode,
+                                    serviceCode: _dispatchProfile.ServiceCode,
+                                    productCode: _dispatchProfile.ProductCode,
+                                    rateOptionId: _dispatchProfile.RateOptionId,
+                                    paymentMode: _dispatchProfile.PaymentMode);
+
+                    var currency = await db.Currencies.FirstOrDefaultAsync(c => c.Id == pricer.CurrencyId);
+                    _currencyId = currency.Id;
+                    _currency = currency.Abbr;
+
+                    var rowTouched = 0;
+                    var listItems = new List<DispatchItemDto>();
+
+                    var itemCount = 0;
+                    var totalWeight = 0m;
+                    var totalPrice = 0m;
+
+                    var month = Convert.ToInt32($"{_dispatchProfile.DateDispatch.Year}{_dispatchProfile.DateDispatch.Month.ToString().PadLeft(2, '0')}");
+                    var listItemIds = new List<string>();
+                    var listCountryCodes = new List<Dto.DispatchValidateCountryDto>();
+                    var listParticulars = new List<Dto.DispatchValidateParticularsDto>();
+
+                    do
+                    {
+                        while (reader.Read())
                         {
-                            g += 1 * ran.Next(15, 25);
-                            milestones.Add(g);
-                        }
-
-                        var pricer = new DispatchPricer(accNo: _dispatchProfile.AccNo,
-                                        postalCode: _dispatchProfile.PostalCode,
-                                        serviceCode: _dispatchProfile.ServiceCode,
-                                        productCode: _dispatchProfile.ProductCode,
-                                        rateOptionId: _dispatchProfile.RateOptionId,
-                                        paymentMode: _dispatchProfile.PaymentMode);
-
-                        var currency = await db.Currencies.FirstOrDefaultAsync(c => c.Id == pricer.CurrencyId);
-                        _currencyId = currency.Abbr;
-
-                        var rowTouched = 0;
-                        var listItems = new List<DispatchItemDto>();
-
-                        var itemCount = 0;
-                        var totalWeight = 0m;
-                        var totalPrice = 0m;
-
-                        var month = Convert.ToInt32($"{_dispatchProfile.DateDispatch.Year}{_dispatchProfile.DateDispatch.Month.ToString().PadLeft(2, '0')}");
-                        var listItemIds = new List<string>();
-                        var listCountryCodes = new List<Dto.DispatchValidateCountryDto>();
-                        var listParticulars = new List<Dto.DispatchValidateParticularsDto>();
-
-                        do
-                        {
-                            while (reader.Read())
+                            if (rowTouched > 0)
                             {
-                                if (rowTouched > 0)
+                                var strPostalCode = reader[0].ToString()!;
+                                var dispatchDate = DateOnly.ParseExact(reader[1].ToString()!, "dd/MM/yyyy", CultureInfo.InvariantCulture);
+                                var strServiceCode = reader[2].ToString()!;
+                                var strProductCode = reader[3].ToString()!;
+                                var bagNo = reader[4].ToString()!;
+                                var countryCode = reader[5].ToString()!;
+                                var weight = Math.Round(Convert.ToDecimal(reader[6]), 3);
+                                var itemId = reader[7].ToString()!;
+                                var sealNo = reader[8].ToString()!;
+                                var strDispatchNo = reader[9].ToString()!;
+                                var itemValue = Convert.ToDecimal(reader[10]);
+                                var itemDesc = reader[11].ToString()!;
+                                var recpName = reader[12].ToString()!;
+                                var telNo = reader[13].ToString()!;
+                                var email = reader[14] == null ? "" : reader[14].ToString()!;
+                                var address = reader[15].ToString()!;
+                                var postcode = reader[16].ToString()!;
+                                var city = reader[17].ToString()!;
+                                var addressLine2 = reader[18] == null ? "" : reader[18].ToString()!;
+                                var addressNo = reader[19] == null ? "" : reader[19].ToString()!;
+                                var identityNo = reader[20] == null ? "" : reader[20].ToString()!;
+                                var identityType = reader[21] == null ? "" : reader[21].ToString()!;
+                                var state = reader[22].ToString()!;
+                                var length = reader[23] == null ? 0 : Convert.ToDecimal(reader[23]);
+                                var width = reader[24] == null ? 0 : Convert.ToDecimal(reader[24]);
+                                var height = reader[25] == null ? 0 : Convert.ToDecimal(reader[25]);
+                                var taxPaymentMethod = reader[26] == null ? "" : reader[26].ToString()!;
+                                var hsCode = reader[27] == null ? "" : reader[27].ToString()!;
+                                var qty = reader[28] == null ? 0 : Convert.ToInt32(reader[28]);
+
+                                var price = pricer.CalculatePrice(countryCode: countryCode, weight: weight);
+
+                                itemCount++;
+                                totalWeight += weight;
+                                totalPrice += price;
+
+                                listItemIds.Add(itemId);
+                                listCountryCodes.Add(new DispatchValidateCountryDto { Id = itemId, CountryCode = countryCode });
+                                listParticulars.Add(new DispatchValidateParticularsDto { Id = itemId, DispatchNo = strDispatchNo, PostalCode = strPostalCode, ServiceCode = strServiceCode, ProductCode = strProductCode });
+
+                                var blockMilestone = rowTouched % _blockSize;
+                                if (blockMilestone == 0)
                                 {
-                                    var strPostalCode = reader[0].ToString()!;
-                                    var dispatchDate = DateOnly.ParseExact(reader[1].ToString()!, "dd/MM/yyyy", CultureInfo.InvariantCulture);
-                                    var strServiceCode = reader[2].ToString()!;
-                                    var strProductCode = reader[3].ToString()!;
-                                    var bagNo = reader[4].ToString()!;
-                                    var countryCode = reader[5].ToString()!;
-                                    var weight = Math.Round(Convert.ToDecimal(reader[6]), 3);
-                                    var itemId = reader[7].ToString()!;
-                                    var sealNo = reader[8].ToString()!;
-                                    var strDispatchNo = reader[9].ToString()!;
-                                    var itemValue = Convert.ToDecimal(reader[10]);
-                                    var itemDesc = reader[11].ToString()!;
-                                    var recpName = reader[12].ToString()!;
-                                    var telNo = reader[13].ToString()!;
-                                    var email = reader[14] == null ? "" : reader[14].ToString()!;
-                                    var address = reader[15].ToString()!;
-                                    var postcode = reader[16].ToString()!;
-                                    var city = reader[17].ToString()!;
-                                    var addressLine2 = reader[18] == null ? "" : reader[18].ToString()!;
-                                    var addressNo = reader[19] == null ? "" : reader[19].ToString()!;
-                                    var identityNo = reader[20] == null ? "" : reader[20].ToString()!;
-                                    var identityType = reader[21] == null ? "" : reader[21].ToString()!;
-                                    var state = reader[22].ToString()!;
-                                    var length = reader[23] == null ? 0 : Convert.ToDecimal(reader[23]);
-                                    var width = reader[24] == null ? 0 : Convert.ToDecimal(reader[24]);
-                                    var height = reader[25] == null ? 0 : Convert.ToDecimal(reader[25]);
-                                    var taxPaymentMethod = reader[26] == null ? "" : reader[26].ToString()!;
-                                    var hsCode = reader[27] == null ? "" : reader[27].ToString()!;
-                                    var qty = reader[28] == null ? 0 : Convert.ToInt32(reader[28]);
+                                    //Block validation
+                                    Parallel.Invoke(new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount },
+                                        () => Id_IsDuplicate(ref validationResult_id_IsDuplicate, listItemIds),
+                                        () => Id_HasInvalidLength(ref validationResult_id_HasInvalidLength, listItemIds),
+                                        () => Id_HasInvalidPrefixSuffix(ref validationResult_id_HasInvalidPrefixSuffix, listItemIds),
+                                        () => Id_HasInvalidCheckDigit(ref validationResult_id_HasInvalidCheckDigit, listItemIds),
+                                        () => Country_IsInvalidCountry(ref validationResult_country_HasInvalidCountry, listCountryCodes),
+                                        () => Dispatch_IsParticularsNotTally(ref validationResult_dispatch_IsParticularsNotTally, listParticulars));
 
-                                    var price = pricer.CalculatePrice(countryCode: countryCode, weight: weight);
-
-                                    itemCount++;
-                                    totalWeight += weight;
-                                    totalPrice += price;
-
-                                    listItemIds.Add(itemId);
-                                    listCountryCodes.Add(new DispatchValidateCountryDto { Id = itemId, CountryCode = countryCode });
-                                    listParticulars.Add(new DispatchValidateParticularsDto { Id = itemId, DispatchNo = strDispatchNo, PostalCode = strPostalCode, ServiceCode = strServiceCode, ProductCode = strProductCode });
-
-                                    var blockMilestone = rowTouched % _blockSize;
-                                    if (blockMilestone == 0)
-                                    {
-                                        //Block validation
-                                        Parallel.Invoke(new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount },
-                                            () => Id_IsDuplicate(ref validationResult_id_IsDuplicate, listItemIds),
-                                            () => Id_HasInvalidLength(ref validationResult_id_HasInvalidLength, listItemIds),
-                                            () => Id_HasInvalidPrefixSuffix(ref validationResult_id_HasInvalidPrefixSuffix, listItemIds),
-                                            () => Id_HasInvalidCheckDigit(ref validationResult_id_HasInvalidCheckDigit, listItemIds),
-                                            () => Country_IsInvalidCountry(ref validationResult_country_HasInvalidCountry, listCountryCodes),
-                                            () => Dispatch_IsParticularsNotTally(ref validationResult_dispatch_IsParticularsNotTally, listParticulars));
-
-                                        listItemIds.Clear();
-                                        listCountryCodes.Clear();
-                                        listParticulars.Clear();
-                                    }
-                                    else
-                                    {
-                                        //Single validation
-                                        //Parallel.Invoke(new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount },
-                                        //    () => Id_HasInvalidCheckDigit(ref validationResult_id_HasInvalidCheckDigit, itemId));
-                                    }
-                                }
-
-                                rowTouched++;
-
-                                #region Validation Progress
-                                var perc = Convert.ToInt32((Convert.ToDecimal(rowTouched) / Convert.ToDecimal(rowCount)) * 100);
-
-                                if (perc > 0)
-                                {
-                                    if (milestones.Contains(perc) && !percHistory.Contains(perc))
-                                    {
-                                        percHistory.Add(perc);
-
-                                        Parallel.Invoke(async () =>
-                                        {
-                                            using (EF.db db = new EF.db())
-                                            {
-                                                var dispatchValidation = db.Dispatchvalidations
-                                                    .Where(u => u.DispatchNo == _dispatchProfile.DispatchNo)
-                                                    .FirstOrDefault();
-
-                                                if (dispatchValidation != null)
-                                                {
-                                                    dispatchValidation.ValidationProgress = perc;
-                                                }
-
-                                                await db.SaveChangesAsync();
-                                            }
-                                        });
-                                    }
-                                }
-                                #endregion
-                            }
-                        } while (reader.NextResult());
-
-                        if (listItemIds.Count != 0)
-                        {
-                            //Block validation
-                            Parallel.Invoke(new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount },
-                                () => Id_IsDuplicate(ref validationResult_id_IsDuplicate, listItemIds),
-                                () => Id_HasInvalidLength(ref validationResult_id_HasInvalidLength, listItemIds),
-                                () => Id_HasInvalidPrefixSuffix(ref validationResult_id_HasInvalidPrefixSuffix, listItemIds),
-                                () => Id_HasInvalidCheckDigit(ref validationResult_id_HasInvalidCheckDigit, listItemIds),
-                                () => Country_IsInvalidCountry(ref validationResult_country_HasInvalidCountry, listCountryCodes),
-                                () => Dispatch_IsParticularsNotTally(ref validationResult_dispatch_IsParticularsNotTally, listParticulars));
-                        }
-
-                        #region Wallet Balance
-                        var walletBalance = db.Customercurrencies
-                            .Where(u => u.CustomerCode == _customerCode)
-                            .Where(u => u.CurrencyId == _currencyId)
-                            .Select(u => u.Balance)
-                            .FirstOrDefault();
-
-                        if (walletBalance.GetValueOrDefault() < totalPrice)
-                        {
-                            isFundLack = true;
-                            var lack = totalPrice - walletBalance.GetValueOrDefault();
-                            validationResult_wallet_InsufficientBalance.Message = $"Insufficient fund by {_currencyId} {lack.ToString("N2")}. Your wallet balance is {_currencyId} {walletBalance.GetValueOrDefault().ToString("N2")}. Total payment is {_currencyId} {totalPrice.ToString("N2")}.";
-                        }
-                        #endregion
-
-                        #region Dispatch Validation
-
-                        bool writeToJSON = true;
-                        //----- Write to File to FileServer -----//
-                        if (true)
-                        {
-                            Parallel.Invoke(async () =>
-                            {
-                                var dateValidationEnd = DateTime.Now;
-                                var tookInSec = Math.Round(dateValidationEnd.Subtract(dateValidationStart).TotalSeconds, 0);
-                                var filePath = "";
-                                if (writeToJSON)
-                                {
-                                    #region Validation Result JSON
-
-                                    validations.Add(validationResult_dispatch_IsDuplicate);
-                                    validations.Add(validationResult_dispatch_IsParticularsNotTally);
-                                    validations.Add(validationResult_id_IsDuplicate);
-                                    validations.Add(validationResult_id_HasInvalidLength);
-                                    validations.Add(validationResult_id_HasInvalidPrefixSuffix);
-                                    validations.Add(validationResult_id_HasInvalidCheckDigit);
-                                    validations.Add(validationResult_country_HasInvalidCountry);
-                                    validations.Add(validationResult_wallet_InsufficientBalance);
-
-                                    string validationJSON = JsonConvert.SerializeObject(validations);
-
-                                    var client = new HttpClient();
-                                    client.DefaultRequestHeaders.Clear();
-                                    client.DefaultRequestHeaders.Add("x-api-key", _configuration["Authentication:ChibiAPIKey"]);
-                                    var formData = new MultipartFormDataContent();
-
-                                    var jsonContent = new StringContent(validationJSON);
-                                    jsonContent.Headers.ContentType = MediaTypeHeaderValue.Parse("multipart/form-data");
-                                    formData.Add(jsonContent, "file", _dispatchProfile.DispatchNo);
-
-                                    var request = new HttpRequestMessage
-                                    {
-                                        Method = HttpMethod.Post,
-                                        RequestUri = new Uri(_configuration["App:ChibiURL"] + "upload"),
-                                        Content = formData,
-                                    };
-
-                                    using var response = await client.SendAsync(request);
-
-                                    response.EnsureSuccessStatusCode();
-                                    var body = await response.Content.ReadAsStringAsync();
-                                    var result = System.Text.Json.JsonSerializer.Deserialize<ChibiUpload>(body);
-                                    filePath = result.url;
-                                    #endregion
+                                    listItemIds.Clear();
+                                    listCountryCodes.Clear();
+                                    listParticulars.Clear();
                                 }
                                 else
                                 {
-                                    #region Validation Result File
-                                    filePath = Path.Combine(_dirPath, $"_{_dispatchProfile.DispatchNo}");
-                                    var fi = new FileInfo(filePath);
-                                    if (!fi.Directory.Exists)
-                                    {
-                                        fi.Directory.Create();
-                                    }
-                                    if (fi.Exists)
-                                    {
-                                        fi.Delete();
-                                    }
-
-                                    using (var sw = fi.CreateText())
-                                    {
-                                        if (!string.IsNullOrWhiteSpace(validationResult_dispatch_IsDuplicate.Message))
-                                        {
-                                            isValid = false;
-
-                                            await sw.WriteLineAsync($"{validationResult_dispatch_IsDuplicate.Category}:");
-                                            await sw.WriteLineAsync(validationResult_dispatch_IsDuplicate.Message);
-                                            await sw.WriteLineAsync();
-                                        }
-
-                                        if (validationResult_id_IsDuplicate.ItemIds.Any() || !string.IsNullOrWhiteSpace(validationResult_id_IsDuplicate.Message))
-                                        {
-                                            isValid = false;
-
-                                            await sw.WriteLineAsync($"{validationResult_id_IsDuplicate.Category}:");
-                                            foreach (var line in validationResult_id_IsDuplicate.ItemIds)
-                                            {
-                                                await sw.WriteLineAsync($"{line}");
-                                            }
-                                            await sw.WriteLineAsync(validationResult_id_IsDuplicate.Message);
-                                            await sw.WriteLineAsync();
-                                        }
-
-                                        if (validationResult_id_HasInvalidLength.ItemIds.Any() || !string.IsNullOrWhiteSpace(validationResult_id_HasInvalidLength.Message))
-                                        {
-                                            isValid = false;
-
-                                            await sw.WriteLineAsync($"{validationResult_id_HasInvalidLength.Category}:");
-                                            foreach (var line in validationResult_id_HasInvalidLength.ItemIds)
-                                            {
-                                                await sw.WriteLineAsync($"{line}");
-                                            }
-                                            await sw.WriteLineAsync(validationResult_id_HasInvalidLength.Message);
-                                            await sw.WriteLineAsync();
-                                        }
-
-                                        if (validationResult_id_HasInvalidPrefixSuffix.ItemIds.Any() || !string.IsNullOrWhiteSpace(validationResult_id_HasInvalidPrefixSuffix.Message))
-                                        {
-                                            isValid = false;
-
-                                            await sw.WriteLineAsync($"{validationResult_id_HasInvalidPrefixSuffix.Category}:");
-                                            foreach (var line in validationResult_id_HasInvalidPrefixSuffix.ItemIds)
-                                            {
-                                                await sw.WriteLineAsync($"{line}");
-                                            }
-                                            await sw.WriteLineAsync(validationResult_id_HasInvalidPrefixSuffix.Message);
-                                            await sw.WriteLineAsync();
-                                        }
-
-                                        if (validationResult_id_HasInvalidCheckDigit.ItemIds.Any() || !string.IsNullOrWhiteSpace(validationResult_id_HasInvalidCheckDigit.Message))
-                                        {
-                                            isValid = false;
-
-                                            await sw.WriteLineAsync($"{validationResult_id_HasInvalidCheckDigit.Category}:");
-                                            foreach (var line in validationResult_id_HasInvalidCheckDigit.ItemIds)
-                                            {
-                                                await sw.WriteLineAsync($"{line}");
-                                            }
-                                            await sw.WriteLineAsync(validationResult_id_HasInvalidCheckDigit.Message);
-                                            await sw.WriteLineAsync();
-                                        }
-
-                                        if (validationResult_country_HasInvalidCountry.ItemIds.Any() || !string.IsNullOrWhiteSpace(validationResult_country_HasInvalidCountry.Message))
-                                        {
-                                            isValid = false;
-
-                                            await sw.WriteLineAsync($"{validationResult_country_HasInvalidCountry.Category}:");
-                                            foreach (var line in validationResult_country_HasInvalidCountry.ItemIds)
-                                            {
-                                                await sw.WriteLineAsync($"{line}");
-                                            }
-                                            await sw.WriteLineAsync(validationResult_country_HasInvalidCountry.Message);
-                                            await sw.WriteLineAsync();
-                                        }
-
-                                        if (validationResult_dispatch_IsParticularsNotTally.ItemIds.Any() || !string.IsNullOrWhiteSpace(validationResult_dispatch_IsParticularsNotTally.Message))
-                                        {
-                                            isValid = false;
-
-                                            await sw.WriteLineAsync($"{validationResult_dispatch_IsParticularsNotTally.Category}:");
-                                            foreach (var line in validationResult_dispatch_IsParticularsNotTally.ItemIds)
-                                            {
-                                                await sw.WriteLineAsync($"{line}");
-                                            }
-                                            await sw.WriteLineAsync(validationResult_dispatch_IsParticularsNotTally.Message);
-                                            await sw.WriteLineAsync();
-                                        }
-
-                                        if (validationResult_wallet_InsufficientBalance.ItemIds.Any() || !string.IsNullOrWhiteSpace(validationResult_wallet_InsufficientBalance.Message))
-                                        {
-                                            isValid = false;
-
-                                            await sw.WriteLineAsync($"{validationResult_wallet_InsufficientBalance.Category}:");
-                                            await sw.WriteLineAsync(validationResult_wallet_InsufficientBalance.Message);
-                                            await sw.WriteLineAsync();
-                                        }
-                                    }
-
-                                    if (isValid)
-                                    {
-                                        fi.Delete();
-                                    }
-                                    #endregion
-
+                                    //Single validation
+                                    //Parallel.Invoke(new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount },
+                                    //    () => Id_HasInvalidCheckDigit(ref validationResult_id_HasInvalidCheckDigit, itemId));
                                 }
+                            }
 
-                                using EF.db db = new EF.db();
-                                var dispatchValidation = db.Dispatchvalidations
-                                    .Where(u => u.DispatchNo == _dispatchProfile.DispatchNo)
-                                    .FirstOrDefault();
+                            rowTouched++;
 
-                                if (dispatchValidation != null)
+                            #region Validation Progress
+                            var perc = Convert.ToInt32((Convert.ToDecimal(rowTouched) / Convert.ToDecimal(rowCount)) * 100);
+
+                            if (perc > 0)
+                            {
+                                if (milestones.Contains(perc) && !percHistory.Contains(perc))
                                 {
-                                    dispatchValidation.TookInSec = tookInSec;
-                                    dispatchValidation.IsValid = isValid ? 1u : 0u;
-                                    dispatchValidation.FilePath = isValid ? null : filePath;
-                                    dispatchValidation.DateCompleted = dateValidationEnd;
-                                    dispatchValidation.Status = DispatchValidationEnumConst.STATUS_FINISH;
-                                    dispatchValidation.ValidationProgress = 100;
-                                    dispatchValidation.IsFundLack = isFundLack ? 1u : 0u;
+                                    percHistory.Add(perc);
+
+                                    Parallel.Invoke(async () =>
+                                    {
+                                        using (EF.db db = new EF.db())
+                                        {
+                                            var dispatchValidation = db.Dispatchvalidations
+                                                .Where(u => u.DispatchNo == _dispatchProfile.DispatchNo)
+                                                .FirstOrDefault();
+
+                                            if (dispatchValidation != null)
+                                            {
+                                                dispatchValidation.ValidationProgress = perc;
+                                            }
+
+                                            await db.SaveChangesAsync();
+                                        }
+                                    });
+                                }
+                            }
+                            #endregion
+                        }
+                    } while (reader.NextResult());
+
+                    if (listItemIds.Count != 0)
+                    {
+                        //Block validation
+                        Parallel.Invoke(new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount },
+                            () => Id_IsDuplicate(ref validationResult_id_IsDuplicate, listItemIds),
+                            () => Id_HasInvalidLength(ref validationResult_id_HasInvalidLength, listItemIds),
+                            () => Id_HasInvalidPrefixSuffix(ref validationResult_id_HasInvalidPrefixSuffix, listItemIds),
+                            () => Id_HasInvalidCheckDigit(ref validationResult_id_HasInvalidCheckDigit, listItemIds),
+                            () => Country_IsInvalidCountry(ref validationResult_country_HasInvalidCountry, listCountryCodes),
+                            () => Dispatch_IsParticularsNotTally(ref validationResult_dispatch_IsParticularsNotTally, listParticulars));
+                    }
+
+                    #region Wallet Balance
+                    // var walletBalance = db.Customercurrencies
+                    //     .Where(u => u.CustomerCode == _customerCode)
+                    //     .Where(u => u.CurrencyId == _currency)
+                    //     .Select(u => u.Balance)
+                    //     .FirstOrDefault();
+
+                    var walletBalance = db.Wallets
+                        .Where(u => u.Customer == _customerCode)
+                        .Where(u => u.Currency == _currencyId)
+                        .Select(u => u.Balance)
+                        .FirstOrDefault();
+
+                    if (walletBalance < totalPrice)
+                    {
+                        isFundLack = true;
+                        var lack = totalPrice - walletBalance;
+                        validationResult_wallet_InsufficientBalance.Message = $"Insufficient fund by {_currencyId} {lack.ToString("N2")}. Your wallet balance is {_currencyId} {walletBalance.ToString("N2")}. Total payment is {_currencyId} {totalPrice.ToString("N2")}.";
+                    }
+                    #endregion
+
+                    #region Dispatch Validation
+
+                    bool writeToJSON = true;
+                    //----- Write to File to FileServer -----//
+                    if (true)
+                    {
+                        Parallel.Invoke(async () =>
+                        {
+                            var dateValidationEnd = DateTime.Now;
+                            var tookInSec = Math.Round(dateValidationEnd.Subtract(dateValidationStart).TotalSeconds, 0);
+                            var filePath = "";
+                            if (writeToJSON)
+                            {
+                                #region Validation Result JSON
+
+                                validations.Add(validationResult_dispatch_IsDuplicate);
+                                validations.Add(validationResult_dispatch_IsParticularsNotTally);
+                                validations.Add(validationResult_id_IsDuplicate);
+                                validations.Add(validationResult_id_HasInvalidLength);
+                                validations.Add(validationResult_id_HasInvalidPrefixSuffix);
+                                validations.Add(validationResult_id_HasInvalidCheckDigit);
+                                validations.Add(validationResult_country_HasInvalidCountry);
+                                validations.Add(validationResult_wallet_InsufficientBalance);
+
+                                string validationJSON = JsonConvert.SerializeObject(validations);
+
+                                var client = new HttpClient();
+                                client.DefaultRequestHeaders.Clear();
+                                client.DefaultRequestHeaders.Add("x-api-key", _configuration["Authentication:ChibiAPIKey"]);
+                                var formData = new MultipartFormDataContent();
+
+                                var jsonContent = new StringContent(validationJSON);
+                                jsonContent.Headers.ContentType = MediaTypeHeaderValue.Parse("multipart/form-data");
+                                formData.Add(jsonContent, "file", _dispatchProfile.DispatchNo + ".json");
+
+                                var request = new HttpRequestMessage
+                                {
+                                    Method = HttpMethod.Post,
+                                    RequestUri = new Uri(_configuration["App:ChibiURL"] + "upload"),
+                                    Content = formData,
+                                };
+
+                                using var response = await client.SendAsync(request);
+
+                                response.EnsureSuccessStatusCode();
+                                var body = await response.Content.ReadAsStringAsync();
+                                var result = System.Text.Json.JsonSerializer.Deserialize<ChibiUpload>(body);
+                                filePath = result.url;
+                                #endregion
+                            }
+                            else
+                            {
+                                #region Validation Result File
+                                filePath = Path.Combine(_dirPath, $"_{_dispatchProfile.DispatchNo}");
+                                var fi = new FileInfo(filePath);
+                                if (!fi.Directory.Exists)
+                                {
+                                    fi.Directory.Create();
+                                }
+                                if (fi.Exists)
+                                {
+                                    fi.Delete();
                                 }
 
-                                await db.SaveChangesAsync();
+                                using (var sw = fi.CreateText())
+                                {
+                                    if (!string.IsNullOrWhiteSpace(validationResult_dispatch_IsDuplicate.Message))
+                                    {
+                                        isValid = false;
+
+                                        await sw.WriteLineAsync($"{validationResult_dispatch_IsDuplicate.Category}:");
+                                        await sw.WriteLineAsync(validationResult_dispatch_IsDuplicate.Message);
+                                        await sw.WriteLineAsync();
+                                    }
+
+                                    if (validationResult_id_IsDuplicate.ItemIds.Any() || !string.IsNullOrWhiteSpace(validationResult_id_IsDuplicate.Message))
+                                    {
+                                        isValid = false;
+
+                                        await sw.WriteLineAsync($"{validationResult_id_IsDuplicate.Category}:");
+                                        foreach (var line in validationResult_id_IsDuplicate.ItemIds)
+                                        {
+                                            await sw.WriteLineAsync($"{line}");
+                                        }
+                                        await sw.WriteLineAsync(validationResult_id_IsDuplicate.Message);
+                                        await sw.WriteLineAsync();
+                                    }
+
+                                    if (validationResult_id_HasInvalidLength.ItemIds.Any() || !string.IsNullOrWhiteSpace(validationResult_id_HasInvalidLength.Message))
+                                    {
+                                        isValid = false;
+
+                                        await sw.WriteLineAsync($"{validationResult_id_HasInvalidLength.Category}:");
+                                        foreach (var line in validationResult_id_HasInvalidLength.ItemIds)
+                                        {
+                                            await sw.WriteLineAsync($"{line}");
+                                        }
+                                        await sw.WriteLineAsync(validationResult_id_HasInvalidLength.Message);
+                                        await sw.WriteLineAsync();
+                                    }
+
+                                    if (validationResult_id_HasInvalidPrefixSuffix.ItemIds.Any() || !string.IsNullOrWhiteSpace(validationResult_id_HasInvalidPrefixSuffix.Message))
+                                    {
+                                        isValid = false;
+
+                                        await sw.WriteLineAsync($"{validationResult_id_HasInvalidPrefixSuffix.Category}:");
+                                        foreach (var line in validationResult_id_HasInvalidPrefixSuffix.ItemIds)
+                                        {
+                                            await sw.WriteLineAsync($"{line}");
+                                        }
+                                        await sw.WriteLineAsync(validationResult_id_HasInvalidPrefixSuffix.Message);
+                                        await sw.WriteLineAsync();
+                                    }
+
+                                    if (validationResult_id_HasInvalidCheckDigit.ItemIds.Any() || !string.IsNullOrWhiteSpace(validationResult_id_HasInvalidCheckDigit.Message))
+                                    {
+                                        isValid = false;
+
+                                        await sw.WriteLineAsync($"{validationResult_id_HasInvalidCheckDigit.Category}:");
+                                        foreach (var line in validationResult_id_HasInvalidCheckDigit.ItemIds)
+                                        {
+                                            await sw.WriteLineAsync($"{line}");
+                                        }
+                                        await sw.WriteLineAsync(validationResult_id_HasInvalidCheckDigit.Message);
+                                        await sw.WriteLineAsync();
+                                    }
+
+                                    if (validationResult_country_HasInvalidCountry.ItemIds.Any() || !string.IsNullOrWhiteSpace(validationResult_country_HasInvalidCountry.Message))
+                                    {
+                                        isValid = false;
+
+                                        await sw.WriteLineAsync($"{validationResult_country_HasInvalidCountry.Category}:");
+                                        foreach (var line in validationResult_country_HasInvalidCountry.ItemIds)
+                                        {
+                                            await sw.WriteLineAsync($"{line}");
+                                        }
+                                        await sw.WriteLineAsync(validationResult_country_HasInvalidCountry.Message);
+                                        await sw.WriteLineAsync();
+                                    }
+
+                                    if (validationResult_dispatch_IsParticularsNotTally.ItemIds.Any() || !string.IsNullOrWhiteSpace(validationResult_dispatch_IsParticularsNotTally.Message))
+                                    {
+                                        isValid = false;
+
+                                        await sw.WriteLineAsync($"{validationResult_dispatch_IsParticularsNotTally.Category}:");
+                                        foreach (var line in validationResult_dispatch_IsParticularsNotTally.ItemIds)
+                                        {
+                                            await sw.WriteLineAsync($"{line}");
+                                        }
+                                        await sw.WriteLineAsync(validationResult_dispatch_IsParticularsNotTally.Message);
+                                        await sw.WriteLineAsync();
+                                    }
+
+                                    if (validationResult_wallet_InsufficientBalance.ItemIds.Any() || !string.IsNullOrWhiteSpace(validationResult_wallet_InsufficientBalance.Message))
+                                    {
+                                        isValid = false;
+
+                                        await sw.WriteLineAsync($"{validationResult_wallet_InsufficientBalance.Category}:");
+                                        await sw.WriteLineAsync(validationResult_wallet_InsufficientBalance.Message);
+                                        await sw.WriteLineAsync();
+                                    }
+                                }
+
+                                if (isValid)
+                                {
+                                    fi.Delete();
+                                }
+                                #endregion
+
+                            }
+
+                            using EF.db db = new EF.db();
+                            var dispatchValidation = db.Dispatchvalidations
+                                .Where(u => u.DispatchNo == _dispatchProfile.DispatchNo)
+                                .FirstOrDefault();
+
+                            if (dispatchValidation != null)
+                            {
+                                dispatchValidation.TookInSec = tookInSec;
+                                dispatchValidation.IsValid = isValid ? 1u : 0u;
+                                dispatchValidation.FilePath = isValid ? null : filePath;
+                                dispatchValidation.DateCompleted = dateValidationEnd;
+                                dispatchValidation.Status = DispatchValidationEnumConst.STATUS_FINISH;
+                                dispatchValidation.ValidationProgress = 100;
+                                dispatchValidation.IsFundLack = isFundLack ? 1u : 0u;
+                            }
+
+                            await db.SaveChangesAsync();
+                        });
+                    }
+                    #endregion
+
+                    var queueTask = db.Queues.Find(_queueId);
+                    if (queueTask != null)
+                    {
+                        DateTime dateImportCompleted = DateTime.Now;
+                        var tookInSec = dateImportCompleted.Subtract(dateValidationStart).TotalSeconds;
+
+                        queueTask.Status = QueueEnumConst.STATUS_FINISH;
+                        queueTask.ErrorMsg = null;
+                        queueTask.TookInSec = Math.Round(tookInSec, 0);
+                        queueTask.StartTime = dateValidationStart;
+                        queueTask.EndTime = dateImportCompleted;
+                        queueTask.DeleteFileOnFailed = 0;
+                        queueTask.DeleteFileOnSuccess = 0;
+
+                        if (isValid)
+                        {
+                            await db.Queues.AddAsync(new Queue
+                            {
+                                EventType = "Upload Dispatch",
+                                FilePath = _filePath,
+                                Status = QueueEnumConst.STATUS_NEW,
+                                DateCreated = DateTime.Now,
+                                DeleteFileOnFailed = 0,
+                                DeleteFileOnSuccess = 0,
+                                StartTime = DateTime.Now,
+                                EndTime = DateTime.MinValue,
+                                TookInSec = 0,
                             });
                         }
-                        #endregion
-
-                        var queueTask = db.Queues.Find(_queueId);
-                        if (queueTask != null)
-                        {
-                            DateTime dateImportCompleted = DateTime.Now;
-                            var tookInSec = dateImportCompleted.Subtract(dateValidationStart).TotalSeconds;
-
-                            queueTask.Status = QueueEnumConst.STATUS_FINISH;
-                            queueTask.ErrorMsg = null;
-                            queueTask.TookInSec = Math.Round(tookInSec, 0);
-                            queueTask.DateStart = dateValidationStart;
-                            queueTask.DateEnd = dateImportCompleted;
-
-                            if (isValid)
-                            {
-                                await db.Queues.AddAsync(new Queue
-                                {
-                                    EventType = "Upload Dispatch",
-                                    FilePath = _filePath,
-                                    Status = QueueEnumConst.STATUS_NEW,
-                                    DateCreated = DateTime.Now
-                                });
-                            }
-                        }
-
-                        await db.SaveChangesAsync();
                     }
+
+                    await db.SaveChangesAsync();
                     #endregion
                 }
                 catch (Exception ex)
@@ -575,7 +606,7 @@ namespace SND.SMP.DispatchConsole
                 {
                     q.Status = QueueEnumConst.STATUS_ERROR;
                     q.ErrorMsg = arg.ErrorMsg;
-                    q.TookInSec = null;
+                    q.TookInSec = 0;
 
                     await db.SaveChangesAsync();
                 }

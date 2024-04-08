@@ -34,31 +34,47 @@ namespace SND.SMP.DispatchConsole
 
 			using (EF.db db = new EF.db())
 			{
+				var acctNo = db.Customers.FirstOrDefault(u => u.Code == _accNo);
 				if (_useRateMaintenance)
 				{
-					_rates = db.Customerpostals
-						.Where(u => u.CustomerCode == _accNo)
-						.Where(u => u.PostalCode == _postalCode)
-						.SelectMany(u => u.Rate.Rateitems)
-						.Where(u => u.ServiceCode == _serviceCode)
-						.Where(u => u.ProductCode == _productCode)
-						.Where(u => u.PaymentMode == _paymentMode)
-						.ToList();
+					// _rates = db.Customerpostals
+					// 	.Where(u => u.AccountNo == _accNo)
+					// 	.Where(u => u.Postal == _postalCode)
+					// 	.SelectMany(u => u.RateNav.Rateitems)
+					// 	.Where(u => u.ServiceCode == _serviceCode)
+					// 	.Where(u => u.ProductCode == _productCode)
+					// 	.Where(u => u.PaymentMode == _paymentMode)
+					// 	.ToList();
 
-					this.CurrencyId = _rates.Select(u => u.CurrencyId).FirstOrDefault();
+					var _customerPostal = db.Customerpostals.FirstOrDefault(u => (u.AccountNo == acctNo.Id) && (u.Postal == _postalCode));
+					_rates = db.Rateitems
+								.Where(u => u.Id == _customerPostal.Rate)
+								.Where(u => u.ServiceCode == _serviceCode)
+								.Where(u => u.PaymentMode == _paymentMode)
+								.ToList();
+
+
+					CurrencyId = _rates.Select(u => u.CurrencyId).FirstOrDefault();
 				}
 
 				if (_useRateWeightBreak)
 				{
-					_rateWeightBreaks = db.Customerpostals
-						.Where(u => u.CustomerCode == _accNo)
-						.Where(u => u.PostalCode == _postalCode)
-						.SelectMany(u => u.Rate.Rateweightbreaks)
-						.Where(u => u.ProductCode == _productCode)
-						.Where(u => u.PaymentMode == _paymentMode)
-						.ToList();
+					// _rateWeightBreaks = db.Customerpostals
+					// 	.Where(u => u.AccountNo == _accNo)
+					// 	.Where(u => u.Postal == _postalCode)
+					// 	.SelectMany(u => u.RateNav.Rateweightbreaks)
+					// 	.Where(u => u.ProductCode == _productCode)
+					// 	.Where(u => u.PaymentMode == _paymentMode)
+					// 	.ToList();
 
-					this.CurrencyId = _rateWeightBreaks.Select(u => u.CurrencyId).FirstOrDefault();
+					var _customerPostal = db.Customerpostals.FirstOrDefault(u => (u.AccountNo == acctNo.Id) && (u.Postal == _postalCode));
+					_rateWeightBreaks = db.Rateweightbreaks
+											.Where(u => u.Id == _customerPostal.Rate)
+											.Where(u => u.ProductCode == _productCode)
+											.Where(u => u.PaymentMode == _paymentMode)
+											.ToList();
+
+					CurrencyId = _rateWeightBreaks.Select(u => u.CurrencyId).FirstOrDefault();
 				}
 			}
 		}
@@ -73,7 +89,7 @@ namespace SND.SMP.DispatchConsole
 				{
 					var rate = _rates
 						.Where(u => u.CountryCode == countryCode)
-						.Select(u => new { Total = u.Total, RegisteredFee = u.RegisteredFee })
+						.Select(u => new { Total = u.Total, RegisteredFee = u.Fee })
 						.FirstOrDefault();
 
 					if (rate != null)

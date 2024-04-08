@@ -5,7 +5,8 @@ namespace SND.SMP.DispatchConsole.EF;
 
 public partial class Customer
 {
-    public string CustomerCode { get; set; }
+    // public string CustomerCode { get; set; }
+    public string Code { get; set; }
 
     public string CompanyName { get; set; }
 

@@ -7,13 +7,13 @@ public partial class Customerpostal
 {
     public uint Id { get; set; }
 
-    public string CustomerCode { get; set; }
+    public string AccountNo { get; set; }
 
-    public uint? RateId { get; set; }
+    public uint? Rate { get; set; }
 
-    public string PostalCode { get; set; }
+    public string Postal { get; set; }
 
     public virtual Customer CustomerCodeNavigation { get; set; }
 
-    public virtual Rate Rate { get; set; }
+    public virtual Rate RateNav { get; set; }
 }

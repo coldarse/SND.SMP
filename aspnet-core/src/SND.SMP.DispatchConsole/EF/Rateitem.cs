@@ -17,7 +17,7 @@ public partial class Rateitem
 
     public decimal? Total { get; set; }
 
-    public decimal? RegisteredFee { get; set; }
+    public decimal? Fee { get; set; }
 
     public int CurrencyId { get; set; }
 
