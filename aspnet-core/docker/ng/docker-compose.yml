@@ -3,13 +3,14 @@ version: '3'
 services:
 
   abp_host:
-    image: abp/host
+    build: ./
+    image: dannychen98/smp_api:v1.0.0
     environment:
       ASPNETCORE_ENVIRONMENT: "Staging"
-      ConnectionStrings__Default: "Server=10.0.75.1; Database=SMPDb; User=SMPUser; Password=YourStrongPassword;TrustServerCertificate=True;"
-      App__ServerRootAddress: "http://localhost:44311/"
-      App__ClientRootAddress: "http://localhost:4200/"
-      App__CorsOrigins: "http://localhost:4200"
+      ConnectionStrings__Default: "server=signaturemail.co;port=3306;database=SMPDb;uid=smi_dev;pwd=C56bV{(}Igx<Pqx;"
+      App__ServerRootAddress: "http://65.21.224.66:44311/"
+      App__ClientRootAddress: "http://65.21.224.66:4200/"
+      App__CorsOrigins: "http://65.21.224.66:4200"
       TZ: "America/Toronto"
       Kestrel__Endpoints__Http__Url: "http://+:80"
     ports:
@@ -19,6 +20,7 @@ services:
     restart: always
 
   abp_ng:
-    image: abp/ng
+    build: ./
+    image: dannychen98/smp_ms:v1.0.0
     ports:
       - "4200:80"

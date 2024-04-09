@@ -2,9 +2,9 @@ echo " Welcome to docker build"
 echo ""
 echo ""
 
-$ABP_HOST="abp/host"
+$ABP_HOST="dannychen98/smp_api:v1.0.0"
 $ABP_HOST_DOCKERFILE_PATH="src/SND.SMP.Web.Host/Dockerfile"
-$ABP_NG="abp/ng"
+$ABP_NG="dannychen98/smp_ms:v1.0.0"
 
 cd ..
 echo " Building docker image $ABP_HOST..."
