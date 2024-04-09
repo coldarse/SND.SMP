@@ -2,6 +2,12 @@ version: '3'
 
 services:
 
+  dispatch_console:
+    build: ./
+    image: dannychen98/dispatch_console:v1.0.0
+    environment:
+      ConnectionStrings__Default: "server=signaturemail.co;port=3306;database=SMPDb;uid=smi_dev;pwd=C56bV{(}Igx<Pqx;"
+
   abp_host:
     build: ./
     image: dannychen98/smp_api:v1.0.0
