@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 
 WORKDIR /src
 COPY ["src/SND.SMP.Web.Host/SND.SMP.Web.Host.csproj", "src/SND.SMP.Web.Host/"]
@@ -18,7 +18,7 @@ COPY ["src/SND.SMP.EntityFrameworkCore", "src/SND.SMP.EntityFrameworkCore"]
 WORKDIR "/src/src/SND.SMP.Web.Host"
 RUN dotnet publish -c Release -o /publish --no-restore
 
-FROM mcr.microsoft.com/dotnet/aspnet:7.0
+FROM mcr.microsoft.com/dotnet/aspnet:8.0
 EXPOSE 80
 WORKDIR /app
 COPY --from=build /publish .
