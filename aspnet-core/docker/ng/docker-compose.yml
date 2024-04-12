@@ -6,14 +6,14 @@ services:
     build: ./
     image: dannychen98/dispatch_console:v1.0.0
     environment:
-      ConnectionStrings__Default: "server=signaturemail.co;port=3306;database=SMPDb;uid=smi_dev;pwd=C56bV{(}Igx<Pqx;"
+      ConnectionStrings__Default: "server=65.21.224.66;port=3306;database=SMPDb;uid=droot;pwd=snd@1234"
 
   abp_host:
     build: ./
     image: dannychen98/smp_api:v1.0.0
     environment:
       ASPNETCORE_ENVIRONMENT: "Staging"
-      ConnectionStrings__Default: "server=signaturemail.co;port=3306;database=SMPDb;uid=smi_dev;pwd=C56bV{(}Igx<Pqx;"
+      ConnectionStrings__Default: "server=65.21.224.66;port=3306;database=SMPDb;uid=droot;pwd=snd@1234"
       App__ServerRootAddress: "http://65.21.224.66:44311/"
       App__ClientRootAddress: "http://65.21.224.66:4200/"
       App__CorsOrigins: "http://65.21.224.66:4200"
