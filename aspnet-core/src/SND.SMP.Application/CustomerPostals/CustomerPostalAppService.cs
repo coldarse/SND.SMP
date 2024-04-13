@@ -156,6 +156,7 @@ namespace SND.SMP.CustomerPostals
         public async Task<List<PostalDDL>> GetCustomerPostalsByAccountNo(long accountNo)
         {
             var customerPostals = await Repository.GetAllListAsync(x => x.AccountNo.Equals(accountNo));
+            customerPostals = customerPostals.DistinctBy(x => x.Postal).ToList();
 
             var postals = await _postalRepository.GetAllListAsync();
             postals = postals.DistinctBy(x => x.PostalCode).ToList();
