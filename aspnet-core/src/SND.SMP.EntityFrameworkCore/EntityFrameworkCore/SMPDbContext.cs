@@ -4,7 +4,6 @@ using SND.SMP.Authorization.Roles;
 using SND.SMP.Authorization.Users;
 using SND.SMP.MultiTenancy;
 /* Using Definition */
-using SND.SMP.ApplicationSettings;
 using SND.SMP.ItemMins;
 using SND.SMP.Items;
 using SND.SMP.Bags;
@@ -49,7 +48,6 @@ namespace SND.SMP.EntityFrameworkCore
         public DbSet<Bag> Bags { get; set; }
         public DbSet<Item> Items { get; set; }
         public DbSet<ItemMin> ItemMins { get; set; }
-        public DbSet<ApplicationSetting> ApplicationSettings { get; set; }
         /* Define a DbSet for each entity of the application */
 
         public SMPDbContext(DbContextOptions<SMPDbContext> options)
@@ -62,14 +60,6 @@ namespace SND.SMP.EntityFrameworkCore
             base.OnModelCreating(builder);
 
             /* Define Tables */
-            builder.Entity<ApplicationSetting>(b =>
-            {
-                b.ToTable(SMPConsts.DbTablePrefix + "ApplicationSettings");
-                b.Property(x => x.Name).HasColumnName(nameof(ApplicationSetting.Name)).HasMaxLength(64);
-                b.Property(x => x.8).HasColumnName(nameof(ApplicationSetting.8)).HasMaxLength(256);
-                b.HasKey(x => x.Id);
-            });
-
             builder.Entity<ItemMin>(b =>
             {
                 b.ToTable(SMPConsts.DbTablePrefix + "ItemMins");
