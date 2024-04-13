@@ -18,13 +18,14 @@ using Microsoft.Extensions.Configuration;
 using SND.SMP.Queues;
 using System.Data;
 using OfficeOpenXml;
+using SND.SMP.ApplicationSettings;
 
 namespace SND.SMP.Chibis
 {
-    public class ChibiAppService(IRepository<Chibi, long> repository, IConfiguration configuration, IRepository<Queue, long> queueRepository) : AsyncCrudAppService<Chibi, ChibiDto, long, PagedChibiResultRequestDto>(repository)
+    public class ChibiAppService(IRepository<Chibi, long> repository, IRepository<Queue, long> queueRepository, IRepository<ApplicationSetting, int> applicationSettingRepository) : AsyncCrudAppService<Chibi, ChibiDto, long, PagedChibiResultRequestDto>(repository)
     {
         private readonly IRepository<Queue, long> _queueRepository = queueRepository;
-        private readonly IConfiguration _configuration = configuration;
+        private readonly IRepository<ApplicationSetting, int> _applicationSettingRepository = applicationSettingRepository;
 
         protected override IQueryable<Chibi> CreateFilteredQuery(PagedChibiResultRequestDto input)
         {
@@ -129,14 +130,16 @@ namespace SND.SMP.Chibis
 
         public async Task<GetFileDto> GetFile(string uuid)
         {
+            var chibiKey = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("ChibiKey"));    
+            var chibiURL = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("ChibiURL"));    
             var client = new HttpClient();
             client.DefaultRequestHeaders.Clear();
-            client.DefaultRequestHeaders.Add("x-api-key", _configuration["Authentication:ChibiAPIKey"]);
+            client.DefaultRequestHeaders.Add("x-api-key", chibiKey.Value);
 
             var request = new HttpRequestMessage
             {
                 Method = HttpMethod.Get,
-                RequestUri = new Uri(_configuration["App:ChibiURL"] + $"file/{uuid}"),
+                RequestUri = new Uri(chibiURL.Value + $"file/{uuid}"),
             };
 
             using var response = await client.SendAsync(request);
@@ -173,9 +176,11 @@ namespace SND.SMP.Chibis
         [Consumes("multipart/form-data")]
         public async Task<ChibiUpload> UploadFile([FromForm] ChibiUploadDto uploadFile, string originalName = null)
         {
+            var chibiKey = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("ChibiKey"));    
+            var chibiURL = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("ChibiURL"));   
             var client = new HttpClient();
             client.DefaultRequestHeaders.Clear();
-            client.DefaultRequestHeaders.Add("x-api-key", _configuration["Authentication:ChibiAPIKey"]);
+            client.DefaultRequestHeaders.Add("x-api-key", chibiKey.Value);
             var formData = new MultipartFormDataContent();
 
             switch (uploadFile.fileType)
@@ -195,7 +200,7 @@ namespace SND.SMP.Chibis
             var request = new HttpRequestMessage
             {
                 Method = HttpMethod.Post,
-                RequestUri = new Uri(_configuration["App:ChibiURL"] + "upload"),
+                RequestUri = new Uri(chibiURL.Value + "upload"),
                 Content = formData,
             };
 

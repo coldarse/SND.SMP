@@ -75,9 +75,9 @@ export class SidebarMenuComponent extends AppComponentBase implements OnInit {
       ),
       /* Insert Menu Path */
             new MenuItem(
-                this.l('ApplicationSettings'),
+                this.l('Application Settings'),
                 '/app/applicationsettings',
-                'far fa-circle',
+                'fas fa-toolbox',
                 'Pages.ApplicationSetting'
             ),
       // new MenuItem(
