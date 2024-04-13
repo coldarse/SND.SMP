@@ -9,6 +9,7 @@ import { TenantsComponent } from "./tenants/tenants.component";
 import { RolesComponent } from "app/roles/roles.component";
 import { ChangePasswordComponent } from "./users/change-password/change-password.component";
 /* Insert Routing Import */
+import { ApplicationSettingsComponent } from './applicationsettings/applicationsettings.component';
 import { ItemMinsComponent } from "./item-mins/item-mins.component";
 import { ItemsComponent } from "./items/items.component";
 import { BagsComponent } from "./bags/bags.component";
@@ -64,6 +65,7 @@ import { PreAlertComponent } from "./pre-alerts/pre-alerts.component";
             canActivate: [AppRouteGuard],
           },
           /* Insert Path */
+                    { path: 'applicationsettings', data: { permission: 'Pages.ApplicationSetting' }, component: ApplicationSettingsComponent, canActivate: [AppRouteGuard] },
           {
             path: "itemmins",
             data: { permission: "Pages.ItemMin" },
