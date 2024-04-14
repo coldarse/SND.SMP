@@ -30,3 +30,9 @@ export interface PagedDispatchValidationResultRequestDto extends PagedAndSortedR
     status                          ?: string;
     isAdmin?: boolean;
 }
+
+export interface DispatchValidateDto {
+    category: string;
+    itemIds: string[];
+    message: string;
+}

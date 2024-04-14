@@ -64,7 +64,7 @@
                   <th>{{ "Date Completed                   " | localize }}</th>
                   <th>{{ "DispatchNo                      " | localize }}</th>
                   <!-- <th>{{ 'FilePath                        ' | localize }}</th> -->
-                  <th>{{ "Fund Lacking                      " | localize }}</th>
+                  <th>{{ "Sufficient Fund                      " | localize }}</th>
                   <th>{{ "Valid                         " | localize }}</th>
                   <!-- <th>{{ 'PostalCode                      ' | localize }}</th>
                                 <th>{{ 'ServiceCode                     ' | localize }}</th>
@@ -99,14 +99,14 @@
                   <!-- <td>{{ dispatchvalidation.filePath                         }}</td> -->
                   @if (dispatchvalidation.validationProgress == 100) {
                   <td
-                    *ngIf="dispatchvalidation.isFundLack"
+                    *ngIf="!dispatchvalidation.isFundLack"
                     class="text-center"
                     style="color: rgb(9, 145, 41)"
                   >
                     <i class="fas fa-check-circle"></i>
                   </td>
                   <td
-                    *ngIf="!dispatchvalidation.isFundLack"
+                    *ngIf="dispatchvalidation.isFundLack"
                     class="text-center"
                     style="color: rgb(212, 5, 5)"
                   >
@@ -156,13 +156,21 @@
                     </div>
                   </td>
                   <td>
-                    <button class="btn btn-danger mx-auto">
+                    <button 
+                      class="btn btn-danger mx-auto"
+                      
+                      (click)="selectedErrorDetails(dispatchvalidation.dispatchNo)"
+                    >
                       <i class="fa-solid fa-circle-info"></i>
                       Details
                     </button>
                   </td>
                   <td>
-                    <button class="btn btn-warning mx-auto">
+                    <button 
+                      class="btn btn-warning mx-auto"
+                      [disabled]="!dispatchvalidation.isFundLack" 
+                      (click)="retryDispatchValidation(dispatchvalidation.filePath)" 
+                    >
                       <i class="fa-solid fa-rotate-right"></i>
                       Retry
                     </button>

@@ -3,6 +3,7 @@ import { HttpClient, HttpErrorResponse, HttpHeaders, HttpParams } from '@angular
 import { catchError, retry, throwError } from 'rxjs';
 import { AppConsts } from '@shared/AppConsts';
 import { ErrorMessage } from '../error-handling';
+import { DispatchValidateDto } from '../dispatch-validations/model';
 
 @Injectable()
 export class ChibiService {
@@ -42,6 +43,16 @@ export class ChibiService {
                     "Accept": "text/plain"
                 })
             }
+        ).pipe(
+            retry(1),
+            catchError(this.errorMessage.HandleErrorResponse),
+        )
+    }
+
+    getDispatchValidationError(dispatchNo: string){
+        return this.http.get(
+            this.url + `/api/services/app/Chibi/GetDispatchValidationError?dispatchNo=${dispatchNo}`,
+            this.options_
         ).pipe(
             retry(1),
             catchError(this.errorMessage.HandleErrorResponse),

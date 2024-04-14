@@ -103,4 +103,14 @@ export class QueueService {
             catchError(this.errorMessage.HandleErrorResponse),
         )
     }
+
+    getDispatchValidationUpdateStatusByFilePath(filepath: string){
+        return this.http.get(
+            this.url + `/api/services/app/Queue/GetDispatchValidationUpdateStatusByFilePath?filePath=${filepath}`,
+            this.options_
+        ).pipe(
+            retry(1),
+            catchError(this.errorMessage.HandleErrorResponse),
+        )
+    }
 }

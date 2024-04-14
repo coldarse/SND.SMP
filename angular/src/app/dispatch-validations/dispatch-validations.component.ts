@@ -6,10 +6,16 @@ import {
 } from "@shared/paged-listing-component-base";
 import { BsModalRef, BsModalService } from "ngx-bootstrap/modal";
 import { finalize } from "rxjs/operators";
-import { DispatchValidationDto } from "@shared/service-proxies/dispatch-validations/model";
+import {
+  DispatchValidateDto,
+  DispatchValidationDto,
+} from "@shared/service-proxies/dispatch-validations/model";
 import { DispatchValidationService } from "@shared/service-proxies/dispatch-validations/dispatch-validation.service";
 import { CreateUpdateDispatchValidationComponent } from "../dispatch-validations/create-update-dispatchvalidation/create-update-dispatch-validation.component";
 import { Router } from "@angular/router";
+import { ChibiService } from "@shared/service-proxies/chibis/chibis.service";
+import { DispatchValidationErrorComponent } from "./dipatch-validation-error/dispatch-validation-error.component";
+import { QueueService } from "@shared/service-proxies/queues/queue.service";
 
 class PagedDispatchValidationsRequestDto extends PagedRequestDto {
   keyword: string;
@@ -29,6 +35,7 @@ export class DispatchValidationsComponent
 {
   keyword = "";
   dispatchvalidations: any[] = [];
+  errorValidations: DispatchValidateDto[] = [];
 
   @Input() showPagination: boolean = true;
   @Input() maxItems: number = 10;
@@ -42,6 +49,8 @@ export class DispatchValidationsComponent
     injector: Injector,
     private router: Router,
     private _dispatchvalidationService: DispatchValidationService,
+    private _chibiService: ChibiService,
+    private _queueService: QueueService,
     private _modalService: BsModalService
   ) {
     super(injector);
@@ -50,8 +59,7 @@ export class DispatchValidationsComponent
   ngOnInit(): void {
     if (!this.showPagination) {
       this.startReloadInterval();
-    }
-    else{
+    } else {
       this.getDataPage(1);
     }
   }
@@ -127,6 +135,32 @@ export class DispatchValidationsComponent
     return this.permission.isGranted("Pages.DispatchValidation." + action);
   }
 
+  selectedErrorDetails(dispatchNo: string) {
+    let dispatchValidationErrorDialog: BsModalRef;
+    dispatchValidationErrorDialog = this._modalService.show(
+      DispatchValidationErrorComponent,
+      {
+        class: "modal-lg",
+        initialState: {
+          dispatchNo: dispatchNo
+        }
+      }
+    );
+
+    dispatchValidationErrorDialog.content.onClose.subscribe(() => {
+      this._modalService.hide();
+    });
+  }
+
+  retryDispatchValidation(filepath: string) {
+    this._queueService
+      .getDispatchValidationUpdateStatusByFilePath(filepath)
+      .subscribe((result: any) => {
+        if (result.result) this.notify.info(this.l("SavedSuccessfully"));
+        else this.notify.error("Failed to Retry");
+      });
+  }
+
   protected list(
     request: PagedDispatchValidationsRequestDto,
     pageNumber: number,
@@ -173,7 +207,7 @@ export class DispatchValidationsComponent
 
           this.dispatchvalidations.push(tempDispatchValidation);
         });
-        if(this.showPagination) this.showPaging(result.result, pageNumber);
+        if (this.showPagination) this.showPaging(result.result, pageNumber);
       });
   }
 }

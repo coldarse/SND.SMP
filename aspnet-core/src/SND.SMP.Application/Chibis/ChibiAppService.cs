@@ -19,6 +19,8 @@ using SND.SMP.Queues;
 using System.Data;
 using OfficeOpenXml;
 using SND.SMP.ApplicationSettings;
+using System.Collections.Generic;
+using Abp.UI;
 
 namespace SND.SMP.Chibis
 {
@@ -127,6 +129,29 @@ namespace SND.SMP.Chibis
         }
 
 
+        public async Task<List<DispatchValidateDto>> GetDispatchValidationError(string dispatchNo)
+        {
+            var file = await Repository.FirstOrDefaultAsync(x => x.OriginalName == dispatchNo) ?? throw new UserFriendlyException("Error Details Not Found");
+
+            using var httpClient = new HttpClient();
+            try
+            {
+                using var response = await httpClient.GetAsync(file.URL);
+                if (response.IsSuccessStatusCode)
+                {
+                    string contentString = await response.Content.ReadAsStringAsync();
+                    return Newtonsoft.Json.JsonConvert.DeserializeObject<List<DispatchValidateDto>>(contentString);
+                }
+                else
+                {
+                    throw new UserFriendlyException($"Failed to download file. Status code: {response.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new UserFriendlyException($"Error downloading file: {ex.Message}");
+            }
+        }
 
         public async Task<GetFileDto> GetFile(string uuid)
         {

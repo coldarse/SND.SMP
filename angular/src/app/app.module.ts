@@ -57,6 +57,7 @@ import { BagService } from "@shared/service-proxies/bags/bag.service";
 
 import { DispatchValidationsComponent } from "./dispatch-validations/dispatch-validations.component";
 import { CreateUpdateDispatchValidationComponent } from "./dispatch-validations/create-update-dispatchvalidation/create-update-dispatch-validation.component";
+import { DispatchValidationErrorComponent } from "./dispatch-validations/dipatch-validation-error/dispatch-validation-error.component";
 import { DispatchValidationService } from "@shared/service-proxies/dispatch-validations/dispatch-validation.service";
 
 import { DispatchesComponent } from "./dispatches/dispatches.component";
@@ -181,6 +182,7 @@ import { TopUpWalletComponent } from "./wallets/topup-wallet/topup-wallet.compon
     TopUpWalletComponent,
     RateWeightBreaksComponent,
     UploadRateWeightBreakComponent,
+    DispatchValidationErrorComponent,
   ],
   imports: [
     CommonModule,

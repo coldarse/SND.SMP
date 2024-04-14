@@ -1,0 +1,35 @@
+<div class="modal-header">
+  <h2 class="col-md-12">Error Details</h2>
+</div>
+<div class="modal-body" style="max-height: 300px; overflow: auto">
+  @if (errors.length != 0) {
+  <div class="form-group row" *ngFor="let error of errors">
+    <h4 class="col-md-12">
+      <span class="badge badge-danger">{{ error.category }}</span> 
+      &nbsp;
+      <span class="badge badge-info" *ngIf="error.itemIds.length > 0"
+        >{{ error.itemIds.length }} items</span
+      >
+    </h4>
+    <h5 class="col-md-12">
+      {{ error.message }}
+    </h5>
+    <section class="loop" style="max-height: 150px; overflow: auto; width: 80%">
+      <p class="col-md-12" *ngFor="let item of error.itemIds">
+        {{ item }}
+      </p>
+    </section>
+  </div>
+  } @else {
+  <div class="text-center">
+    <div class="spinner-border" style="width: 3rem; height: 3rem" role="status">
+      <span class="sr-only">Loading...</span>
+    </div>
+  </div>
+  }
+</div>
+<div class="modal-footer">
+  <div class="row text-center">
+    <button class="btn btn-primary" (click)="closeDialog()">Close</button>
+  </div>
+</div>
