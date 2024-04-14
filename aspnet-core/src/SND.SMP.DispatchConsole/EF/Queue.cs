@@ -19,7 +19,7 @@ public partial class Queue
 
     public string Status { get; set; }
 
-    public double? TookInSec { get; set; }
+    public double? TookInSec { get; set; } = 0;
 
     public string ErrorMsg { get; set; }
 

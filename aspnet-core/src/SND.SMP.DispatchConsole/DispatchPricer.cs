@@ -32,52 +32,50 @@ namespace SND.SMP.DispatchConsole
 			_useRateMaintenance = _serviceCode == DispatchEnumConst.SERVICE_TS;
 			_useRateWeightBreak = _serviceCode == DispatchEnumConst.SERVICE_DE;
 
-			using (EF.db db = new EF.db())
-			{
-				var acctNo = db.Customers.FirstOrDefault(u => u.Code == _accNo);
-				if (_useRateMaintenance)
-				{
-					// _rates = db.Customerpostals
-					// 	.Where(u => u.AccountNo == _accNo)
-					// 	.Where(u => u.Postal == _postalCode)
-					// 	.SelectMany(u => u.RateNav.Rateitems)
-					// 	.Where(u => u.ServiceCode == _serviceCode)
-					// 	.Where(u => u.ProductCode == _productCode)
-					// 	.Where(u => u.PaymentMode == _paymentMode)
-					// 	.ToList();
+            using EF.db db = new();
+            var acctNo = db.Customers.FirstOrDefault(u => u.Code == _accNo);
+            if (_useRateMaintenance)
+            {
+                // _rates = db.Customerpostals
+                // 	.Where(u => u.AccountNo == _accNo)
+                // 	.Where(u => u.Postal == _postalCode)
+                // 	.SelectMany(u => u.RateNav.Rateitems)
+                // 	.Where(u => u.ServiceCode == _serviceCode)
+                // 	.Where(u => u.ProductCode == _productCode)
+                // 	.Where(u => u.PaymentMode == _paymentMode)
+                // 	.ToList();
 
-					var _customerPostal = db.Customerpostals.FirstOrDefault(u => (u.AccountNo == acctNo.Id) && (u.Postal == _postalCode));
-					_rates = db.Rateitems
-								.Where(u => u.Id == _customerPostal.Rate)
-								.Where(u => u.ServiceCode == _serviceCode)
-								.Where(u => u.PaymentMode == _paymentMode)
-								.ToList();
+                var _customerPostal = db.Customerpostals.FirstOrDefault(u => (u.AccountNo == acctNo.Id) && (u.Postal == _postalCode));
+                _rates = db.Rateitems
+                            .Where(u => u.Id == _customerPostal.Rate)
+                            .Where(u => u.ServiceCode == _serviceCode)
+                            // .Where(u => u.PaymentMode == _paymentMode)
+                            .ToList();
 
 
-					CurrencyId = _rates.Select(u => u.CurrencyId).FirstOrDefault();
-				}
+                CurrencyId = _rates.Select(u => u.CurrencyId).FirstOrDefault();
+            }
 
-				if (_useRateWeightBreak)
-				{
-					// _rateWeightBreaks = db.Customerpostals
-					// 	.Where(u => u.AccountNo == _accNo)
-					// 	.Where(u => u.Postal == _postalCode)
-					// 	.SelectMany(u => u.RateNav.Rateweightbreaks)
-					// 	.Where(u => u.ProductCode == _productCode)
-					// 	.Where(u => u.PaymentMode == _paymentMode)
-					// 	.ToList();
+            if (_useRateWeightBreak)
+            {
+                // _rateWeightBreaks = db.Customerpostals
+                // 	.Where(u => u.AccountNo == _accNo)
+                // 	.Where(u => u.Postal == _postalCode)
+                // 	.SelectMany(u => u.RateNav.Rateweightbreaks)
+                // 	.Where(u => u.ProductCode == _productCode)
+                // 	.Where(u => u.PaymentMode == _paymentMode)
+                // 	.ToList();
 
-					var _customerPostal = db.Customerpostals.FirstOrDefault(u => (u.AccountNo == acctNo.Id) && (u.Postal == _postalCode));
-					_rateWeightBreaks = db.Rateweightbreaks
-											.Where(u => u.Id == _customerPostal.Rate)
-											.Where(u => u.ProductCode == _productCode)
-											.Where(u => u.PaymentMode == _paymentMode)
-											.ToList();
+                var _customerPostal = db.Customerpostals.FirstOrDefault(u => (u.AccountNo == acctNo.Id) && (u.Postal == _postalCode));
+                _rateWeightBreaks = db.Rateweightbreaks
+                                        .Where(u => u.Id == _customerPostal.Rate)
+                                        .Where(u => u.ProductCode == _productCode)
+                                        // .Where(u => u.PaymentMode == _paymentMode)
+                                        .ToList();
 
-					CurrencyId = _rateWeightBreaks.Select(u => u.CurrencyId).FirstOrDefault();
-				}
-			}
-		}
+                CurrencyId = _rateWeightBreaks.Select(u => u.CurrencyId).FirstOrDefault();
+            }
+        }
 
 		public decimal CalculatePrice(string countryCode, decimal weight)
 		{

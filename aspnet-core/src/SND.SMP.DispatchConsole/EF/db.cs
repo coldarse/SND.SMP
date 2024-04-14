@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Pomelo.EntityFrameworkCore.MySql.Scaffolding.Internal;
+using SND.SMP.ApplicationSettings;
 using SND.SMP.Chibis;
 using SND.SMP.Wallets;
 
@@ -56,8 +57,9 @@ public partial class db : DbContext
 
     public virtual DbSet<Chibi> Chibis { get; set; }
 
+    public virtual DbSet<ApplicationSetting> ApplicationSettings { get; set; }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
         => optionsBuilder.UseMySql("server=65.21.224.66;port=3306;database=SMPDb;uid=droot;pwd=snd@1234", Microsoft.EntityFrameworkCore.ServerVersion.Parse("8.0.30-mysql"));
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -65,6 +67,14 @@ public partial class db : DbContext
         modelBuilder
             .UseCollation("utf8mb4_0900_ai_ci")
             .HasCharSet("utf8mb4");
+
+        modelBuilder.Entity<ApplicationSetting>(b =>
+        {
+            b.ToTable(SMPConsts.DbTablePrefix + "ApplicationSettings");
+            b.Property(x => x.Name).HasColumnName(nameof(ApplicationSetting.Name)).HasMaxLength(64);
+            b.Property(x => x.Value).HasColumnName(nameof(ApplicationSetting.Value)).HasMaxLength(256);
+            b.HasKey(x => x.Id);
+        });
 
         modelBuilder.Entity<Bag>(entity =>
         {

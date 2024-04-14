@@ -52,7 +52,7 @@ namespace SND.SMP.DispatchConsole
             _batchSize = batchSize;
             _blockSize = blockSize;
 
-            using (EF.db db = new EF.db())
+            using (EF.db db = new())
             {
                 var hasRunning = db.Queues
                     .Where(u => u.EventType == QueueEnumConst.EVENT_TYPE_DISPATCH_VALIDATE)
@@ -106,7 +106,7 @@ namespace SND.SMP.DispatchConsole
                         _serviceCode = _dispatchProfile.ServiceCode;
                         _postalCode = _dispatchProfile.PostalCode;
 
-                        using (EF.db db = new EF.db())
+                        using (EF.db db = new())
                         {
                             db.Dispatchvalidations.RemoveRange(db.Dispatchvalidations.Where(u => u.DispatchNo == _dispatchProfile.DispatchNo));
 
@@ -147,18 +147,18 @@ namespace SND.SMP.DispatchConsole
 
             List<DispatchValidateDto> validations = [];
 
-            DispatchValidateDto validationResult_dispatch_IsDuplicate = new DispatchValidateDto { Category = "Duplicated Dispatch No." };
-            DispatchValidateDto validationResult_dispatch_IsParticularsNotTally = new DispatchValidateDto { Category = "Dispatch Particulars Not Tally" };
-            DispatchValidateDto validationResult_id_IsDuplicate = new DispatchValidateDto { Category = "Duplicated Item ID" };
-            DispatchValidateDto validationResult_id_HasInvalidLength = new DispatchValidateDto { Category = "Invalid Length" };
-            DispatchValidateDto validationResult_id_HasInvalidPrefixSuffix = new DispatchValidateDto { Category = "Invalid Prefix & Suffix" };
-            DispatchValidateDto validationResult_id_HasInvalidCheckDigit = new DispatchValidateDto { Category = "Invalid Check Digit" };
-            DispatchValidateDto validationResult_country_HasInvalidCountry = new DispatchValidateDto { Category = "Invalid Country Code" };
-            DispatchValidateDto validationResult_wallet_InsufficientBalance = new DispatchValidateDto { Category = "Insufficient Wallet Balance" };
+            DispatchValidateDto validationResult_dispatch_IsDuplicate = new() { Category = "Duplicated Dispatch No." };
+            DispatchValidateDto validationResult_dispatch_IsParticularsNotTally = new() { Category = "Dispatch Particulars Not Tally" };
+            DispatchValidateDto validationResult_id_IsDuplicate = new() { Category = "Duplicated Item ID" };
+            DispatchValidateDto validationResult_id_HasInvalidLength = new() { Category = "Invalid Length" };
+            DispatchValidateDto validationResult_id_HasInvalidPrefixSuffix = new() { Category = "Invalid Prefix & Suffix" };
+            DispatchValidateDto validationResult_id_HasInvalidCheckDigit = new() { Category = "Invalid Check Digit" };
+            DispatchValidateDto validationResult_country_HasInvalidCountry = new() { Category = "Invalid Country Code" };
+            DispatchValidateDto validationResult_wallet_InsufficientBalance = new() { Category = "Insufficient Wallet Balance" };
 
 
 
-            using (EF.db db = new EF.db())
+            using (EF.db db = new())
             {
                 try
                 {
@@ -299,7 +299,7 @@ namespace SND.SMP.DispatchConsole
 
                                     Parallel.Invoke(async () =>
                                     {
-                                        using (EF.db db = new EF.db())
+                                        using (EF.db db = new())
                                         {
                                             var dispatchValidation = db.Dispatchvalidations
                                                 .Where(u => u.DispatchNo == _dispatchProfile.DispatchNo)
@@ -378,9 +378,12 @@ namespace SND.SMP.DispatchConsole
 
                                 string validationJSON = JsonConvert.SerializeObject(validations);
 
+                                using var dbconn = new db();
+                                var ChibiKey = await dbconn.ApplicationSettings.FirstOrDefaultAsync(x => x.Name.Equals("ChibiKey"));
+                                var ChibiURL = await dbconn.ApplicationSettings.FirstOrDefaultAsync(x => x.Name.Equals("ChibiURL"));
                                 var client = new HttpClient();
                                 client.DefaultRequestHeaders.Clear();
-                                client.DefaultRequestHeaders.Add("x-api-key", _configuration["Authentication:ChibiAPIKey"]);
+                                client.DefaultRequestHeaders.Add("x-api-key", ChibiKey.Value);
                                 var formData = new MultipartFormDataContent();
 
                                 var jsonContent = new StringContent(validationJSON);
@@ -390,7 +393,7 @@ namespace SND.SMP.DispatchConsole
                                 var request = new HttpRequestMessage
                                 {
                                     Method = HttpMethod.Post,
-                                    RequestUri = new Uri(_configuration["App:ChibiURL"] + "upload"),
+                                    RequestUri = new Uri(ChibiURL.Value + "upload"),
                                     Content = formData,
                                 };
 
@@ -523,7 +526,7 @@ namespace SND.SMP.DispatchConsole
 
                             }
 
-                            using EF.db db = new EF.db();
+                            using EF.db db = new();
                             var dispatchValidation = db.Dispatchvalidations
                                 .Where(u => u.DispatchNo == _dispatchProfile.DispatchNo)
                                 .FirstOrDefault();
@@ -594,7 +597,7 @@ namespace SND.SMP.DispatchConsole
 
         private async Task LogQueueError(QueueErrorEventArg arg)
         {
-            using (EF.db db = new EF.db())
+            using (EF.db db = new())
             {
                 #region Queue
                 var q = db.Queues
@@ -618,7 +621,7 @@ namespace SND.SMP.DispatchConsole
         {
             var result = false;
 
-            using (EF.db db = new EF.db())
+            using (EF.db db = new())
             {
                 db.ChangeTracker.AutoDetectChangesEnabled = false;
 
