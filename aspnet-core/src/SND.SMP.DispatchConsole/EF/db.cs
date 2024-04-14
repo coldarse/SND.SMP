@@ -445,7 +445,7 @@ public partial class db : DbContext
         {
             entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.ToTable("item");
+            entity.ToTable("items");
 
             entity.HasIndex(e => e.BagId, "BagID");
 

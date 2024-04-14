@@ -4,7 +4,6 @@ using static SND.SMP.DispatchConsole.WorkerDispatchImport;
 using System.Globalization;
 using static SND.SMP.Shared.EnumConst;
 using SND.SMP.DispatchConsole.Dto;
-//using SND.SMP.Shared.Modules.Dispatch;
 using Humanizer;
 using System.Collections.Generic;
 using SND.SMP.DispatchConsole.EF;
@@ -19,32 +18,27 @@ namespace SND.SMP.DispatchConsole
     {
         private const string SERVICE_TS = "TS";
         private const string SERVICE_DE = "DE";
-
         private const int ID_LENGTH = 13;
 
         private uint _queueId { get; set; }
         private string _dirPath { get; set; }
         private string _filePath { get; set; }
-        private int _batchSize { get; set; }
         private string _fileType { get; set; }
-        private DispatchProfileDto _dispatchProfile { get; set; }
-
         private string _customerCode { get; set; }
         private string _serviceCode { get; set; }
         private string _postalCode { get; set; }
         private long _currencyId { get; set; }
-        private string _currency { get; set; }
-
         private int _blockSize { get; set; } = 50;
 
         private List<string> _listPostalCountry { get; set; }
+        private DispatchProfileDto _dispatchProfile { get; set; }
 
-        private readonly IConfiguration _configuration;
+        private string _currency { get; set; }
+        private int _batchSize { get; set; }
 
-        public DispatchValidator(IConfiguration configuration)
-        {
-            _configuration = configuration;
-        }
+
+        public DispatchValidator() { }
+
         public async Task DiscoverAndValidate(string dirPath, string fileType, int batchSize = 750, int blockSize = 50)
         {
             _dirPath = dirPath;
@@ -82,7 +76,6 @@ namespace SND.SMP.DispatchConsole
 
             if (!string.IsNullOrWhiteSpace(_filePath))
             {
-                // var fileProfile = $"{_filePath}.profile.json";
                 var fileProfile = "";
                 using EF.db chibiDB = new();
                 var dispatchFile = chibiDB.Chibis.FirstOrDefault(x => x.URL.Equals(_filePath));
@@ -92,13 +85,11 @@ namespace SND.SMP.DispatchConsole
                     var jsonDispatchFile = dispatchFilePair.FirstOrDefault(x => x.URL.Contains("json"));
                     fileProfile = jsonDispatchFile.URL;
                 }
-                //var filesExist = File.Exists(fileProfile) && File.Exists(_filePath);
                 var fileString = await FileServer.GetFileStreamAsString(fileProfile);
 
                 if (fileString is not null)
                 {
-                    // var t = await File.ReadAllTextAsync(fileProfile);
-                    _dispatchProfile = Newtonsoft.Json.JsonConvert.DeserializeObject<DispatchProfileDto>(fileString);
+                    _dispatchProfile = JsonConvert.DeserializeObject<DispatchProfileDto>(fileString);
 
                     if (_dispatchProfile != null)
                     {
@@ -108,7 +99,9 @@ namespace SND.SMP.DispatchConsole
 
                         using (EF.db db = new())
                         {
-                            db.Dispatchvalidations.RemoveRange(db.Dispatchvalidations.Where(u => u.DispatchNo == _dispatchProfile.DispatchNo));
+                            db.Dispatchvalidations
+                                .RemoveRange(db.Dispatchvalidations
+                                    .Where(u => u.DispatchNo == _dispatchProfile.DispatchNo));
 
                             await db.Dispatchvalidations.AddAsync(new EF.Dispatchvalidation
                             {
@@ -174,7 +167,6 @@ namespace SND.SMP.DispatchConsole
                     }
 
                     #region Validation
-                    // using (var stream = File.Open(_filePath, FileMode.Open, FileAccess.Read))
                     var stream = await FileServer.GetFileStream(_filePath);
                     using var reader = ExcelReaderFactory.CreateReader(stream);
                     var rowCount = reader.RowCount;
@@ -189,11 +181,8 @@ namespace SND.SMP.DispatchConsole
                         milestones.Add(g);
                     }
 
-                    // _dispatchProfile.PaymentMode = "Prepaid";
-                    // _dispatchProfile.ServiceCode = "TS";
-                    
-
-                    var pricer = new DispatchPricer(accNo: _dispatchProfile.AccNo,
+                    var pricer = new DispatchPricer(
+                                    accNo: _dispatchProfile.AccNo,
                                     postalCode: _dispatchProfile.PostalCode,
                                     serviceCode: _dispatchProfile.ServiceCode,
                                     productCode: _dispatchProfile.ProductCode,
@@ -289,7 +278,7 @@ namespace SND.SMP.DispatchConsole
                             rowTouched++;
 
                             #region Validation Progress
-                            var perc = Convert.ToInt32((Convert.ToDecimal(rowTouched) / Convert.ToDecimal(rowCount)) * 100);
+                            var perc = Convert.ToInt32(Convert.ToDecimal(rowTouched) / Convert.ToDecimal(rowCount) * 100);
 
                             if (perc > 0)
                             {
@@ -299,19 +288,17 @@ namespace SND.SMP.DispatchConsole
 
                                     Parallel.Invoke(async () =>
                                     {
-                                        using (EF.db db = new())
+                                        using EF.db db = new();
+                                        var dispatchValidation = db.Dispatchvalidations
+                                            .Where(u => u.DispatchNo == _dispatchProfile.DispatchNo)
+                                            .FirstOrDefault();
+
+                                        if (dispatchValidation != null)
                                         {
-                                            var dispatchValidation = db.Dispatchvalidations
-                                                .Where(u => u.DispatchNo == _dispatchProfile.DispatchNo)
-                                                .FirstOrDefault();
-
-                                            if (dispatchValidation != null)
-                                            {
-                                                dispatchValidation.ValidationProgress = perc;
-                                            }
-
-                                            await db.SaveChangesAsync();
+                                            dispatchValidation.ValidationProgress = perc;
                                         }
+
+                                        await db.SaveChangesAsync();
                                     });
                                 }
                             }
@@ -332,11 +319,6 @@ namespace SND.SMP.DispatchConsole
                     }
 
                     #region Wallet Balance
-                    // var walletBalance = db.Customercurrencies
-                    //     .Where(u => u.CustomerCode == _customerCode)
-                    //     .Where(u => u.CurrencyId == _currency)
-                    //     .Select(u => u.Balance)
-                    //     .FirstOrDefault();
 
                     var walletBalance = db.Wallets
                         .Where(u => u.Customer == _customerCode)
