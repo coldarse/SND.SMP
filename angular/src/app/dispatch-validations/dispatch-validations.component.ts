@@ -161,6 +161,10 @@ export class DispatchValidationsComponent
       });
   }
 
+  postCheck(dispatchNo: string) {
+    this.router.navigate(["/app/postchecks"]);
+  }
+
   protected list(
     request: PagedDispatchValidationsRequestDto,
     pageNumber: number,

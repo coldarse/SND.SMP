@@ -111,10 +111,10 @@ import { CreateUpdateCustomerTransactionComponent } from "./customer-transaction
 import { CustomerTransactionService } from "@shared/service-proxies/customer-transactions/customer-transaction.service";
 
 import { UploadPostalComponent } from "./postals/upload-postal/upload-postal.component";
-
 import { UploadPostalCountryComponent } from "./postal-countries/upload-postal-country/upload-postal-country.component";
-
 import { TopUpWalletComponent } from "./wallets/topup-wallet/topup-wallet.component";
+
+import { PostChecksComponent } from "./post-checks/post-checks.component";
 
 @NgModule({
   declarations: [
@@ -183,6 +183,7 @@ import { TopUpWalletComponent } from "./wallets/topup-wallet/topup-wallet.compon
     RateWeightBreaksComponent,
     UploadRateWeightBreakComponent,
     DispatchValidationErrorComponent,
+    PostChecksComponent,
   ],
   imports: [
     CommonModule,

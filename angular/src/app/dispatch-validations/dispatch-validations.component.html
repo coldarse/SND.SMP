@@ -25,7 +25,7 @@
           <div class="row">
             <div class="col-md-6">
               @if (!showPagination) {
-                <h5 class="mt-2">Showing Latest 3 Records</h5>
+              <h5 class="mt-2">Showing Latest 3 Records</h5>
               }
             </div>
             <div class="col-md-6">
@@ -64,7 +64,9 @@
                   <th>{{ "Date Completed                   " | localize }}</th>
                   <th>{{ "DispatchNo                      " | localize }}</th>
                   <!-- <th>{{ 'FilePath                        ' | localize }}</th> -->
-                  <th>{{ "Sufficient Fund                      " | localize }}</th>
+                  <th>
+                    {{ "Sufficient Fund                      " | localize }}
+                  </th>
                   <th>{{ "Valid                         " | localize }}</th>
                   <!-- <th>{{ 'PostalCode                      ' | localize }}</th>
                                 <th>{{ 'ServiceCode                     ' | localize }}</th>
@@ -95,7 +97,14 @@
                   <td>
                     {{ dispatchvalidation.dateCompleted | date : "short" }}
                   </td>
-                  <td>{{ dispatchvalidation.dispatchNo }}</td>
+                  <td>
+                    <span
+                      class="badge badge-pill badge-warning"
+                      style="cursor: pointer"
+                      (click)="postCheck(dispatchvalidation.dispatchNo)"
+                      >{{ dispatchvalidation.dispatchNo }}</span
+                    >
+                  </td>
                   <!-- <td>{{ dispatchvalidation.filePath                         }}</td> -->
                   @if (dispatchvalidation.validationProgress == 100) {
                   <td
@@ -141,8 +150,12 @@
                     <div class="progress">
                       <div
                         class="progress-bar progress-bar-striped"
-                        [class.bg-success]="dispatchvalidation.validationProgress == 100"
-                        [class.progress-bar-animated]="dispatchvalidation.validationProgress < 100"
+                        [class.bg-success]="
+                          dispatchvalidation.validationProgress == 100
+                        "
+                        [class.progress-bar-animated]="
+                          dispatchvalidation.validationProgress < 100
+                        "
                         role="progressbar"
                         aria-valuenow="dispatchvalidation.validationProgress"
                         aria-valuemin="0"
@@ -156,20 +169,23 @@
                     </div>
                   </td>
                   <td>
-                    <button 
+                    <button
                       class="btn btn-danger mx-auto"
-                      
-                      (click)="selectedErrorDetails(dispatchvalidation.dispatchNo)"
+                      (click)="
+                        selectedErrorDetails(dispatchvalidation.dispatchNo)
+                      "
                     >
                       <i class="fa-solid fa-circle-info"></i>
                       Details
                     </button>
                   </td>
                   <td>
-                    <button 
+                    <button
                       class="btn btn-warning mx-auto"
-                      [disabled]="!dispatchvalidation.isFundLack" 
-                      (click)="retryDispatchValidation(dispatchvalidation.filePath)" 
+                      [disabled]="!dispatchvalidation.isFundLack"
+                      (click)="
+                        retryDispatchValidation(dispatchvalidation.filePath)
+                      "
                     >
                       <i class="fa-solid fa-rotate-right"></i>
                       Retry
@@ -215,25 +231,24 @@
               </p>
             </div>
             @if (showPagination) {
-              <div class="col-sm-4 col-12">
-                <div class="float-sm-right m-auto">
-                  <abp-pagination-controls
-                    id="server"
-                    (pageChange)="getDataPage($event)"
-                  >
-                  </abp-pagination-controls>
-                </div>
+            <div class="col-sm-4 col-12">
+              <div class="float-sm-right m-auto">
+                <abp-pagination-controls
+                  id="server"
+                  (pageChange)="getDataPage($event)"
+                >
+                </abp-pagination-controls>
               </div>
-            }
-            @else if (!showPagination) {
-              <div class="col-sm-4 col-12">
-                <div class="float-sm-right m-auto">
-                  <button class="btn btn-info" (click)="rerouteToModule()">
-                    <i class="far fa-file-alt"></i>
-                    Show More
-                  </button>
-                </div>
+            </div>
+            } @else if (!showPagination) {
+            <div class="col-sm-4 col-12">
+              <div class="float-sm-right m-auto">
+                <button class="btn btn-info" (click)="rerouteToModule()">
+                  <i class="far fa-file-alt"></i>
+                  Show More
+                </button>
               </div>
+            </div>
             }
           </div>
         </div>

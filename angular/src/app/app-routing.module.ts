@@ -9,7 +9,7 @@ import { TenantsComponent } from "./tenants/tenants.component";
 import { RolesComponent } from "app/roles/roles.component";
 import { ChangePasswordComponent } from "./users/change-password/change-password.component";
 /* Insert Routing Import */
-import { ApplicationSettingsComponent } from './applicationsettings/applicationsettings.component';
+import { ApplicationSettingsComponent } from "./applicationsettings/applicationsettings.component";
 import { ItemMinsComponent } from "./item-mins/item-mins.component";
 import { ItemsComponent } from "./items/items.component";
 import { BagsComponent } from "./bags/bags.component";
@@ -27,6 +27,7 @@ import { WalletsComponent } from "./wallets/wallets.component";
 import { RateItemsComponent } from "./rate-items/rate-items.component";
 import { CustomerTransactionsComponent } from "./customer-transactions/customer-transactions.component";
 import { PreAlertComponent } from "./pre-alerts/pre-alerts.component";
+import { PostChecksComponent } from "./post-checks/post-checks.component";
 
 @NgModule({
   imports: [
@@ -65,7 +66,18 @@ import { PreAlertComponent } from "./pre-alerts/pre-alerts.component";
             canActivate: [AppRouteGuard],
           },
           /* Insert Path */
-                    { path: 'applicationsettings', data: { permission: 'Pages.ApplicationSetting' }, component: ApplicationSettingsComponent, canActivate: [AppRouteGuard] },
+          {
+            path: "postchecks",
+            data: { permission: "Pages.Users" },
+            component: PostChecksComponent,
+            canActivate: [AppRouteGuard],
+          },
+          {
+            path: "applicationsettings",
+            data: { permission: "Pages.ApplicationSetting" },
+            component: ApplicationSettingsComponent,
+            canActivate: [AppRouteGuard],
+          },
           {
             path: "itemmins",
             data: { permission: "Pages.ItemMin" },

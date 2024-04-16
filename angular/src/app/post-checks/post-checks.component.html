@@ -1,0 +1,334 @@
+<div [@routerTransition]>
+  <section class="content-header">
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-6">
+          <h1>{{ "Post-Check" | localize }}</h1>
+        </div>
+        <div class="col-6 text-right"></div>
+      </div>
+    </div>
+  </section>
+  <div class="content px-2">
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-md-6">
+          <div class="card">
+            <div class="card-header">
+              <h4 class="mt-2">
+                <strong> Bypass </strong>
+              </h4>
+            </div>
+            <div class="card-body">
+              <div class="form-group row">
+                <label class="col-md-3 col-form-label" for="weightGap">
+                  {{ "Weight Gap (KG)" | localize }}
+                </label>
+                <div class="col-md-9">
+                  <input
+                    type="number"
+                    placeholder="Eg. 1.88"
+                    class="form-control"
+                    name="weightGap"
+                    id="weightGap"
+                    maxlength="32"
+                    [(ngModel)]="bypassValue"
+                  />
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-md-12 text-right">
+                  <button class="btn btn-danger">Bypass Post Check</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="card">
+            <div class="card-header">
+              <div class="row">
+                <div class="col-md-6">
+                  <h4 class="mt-2">
+                    <strong> Upload Post Check </strong>
+                  </h4>
+                </div>
+                <div class="col-md-6 text-right">
+                  <button class="btn btn-info">Download Template</button>
+                </div>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="form-group row">
+                <label class="col-md-3 col-form-label" for="uploadPostCheck">
+                  {{ "File must be in .xls format (Excel 97-2003)" | localize }}
+                </label>
+                <div class="col-md-9">
+                  <input
+                    type="file"
+                    accept=".xls"
+                    class="file-upload"
+                    name="uploadPostCheck"
+                    id="uploadPostCheck"
+                    [(ngModel)]="fileUpload"
+                  />
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-md-12 text-right">
+                  <button class="btn btn-primary">Upload</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-12">
+          <div class="card">
+            <div class="card-header">
+              <div class="row">
+                <div class="col-md-6">
+                  <h4 class="mt-2">
+                    <strong> Post Check </strong>
+                  </h4>
+                </div>
+                <div class="col-md-6 text-right">
+                  <button class="btn btn-primary">Save Changes</button>
+                </div>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="form-group row">
+                    <label class="col-md-3 col-form-label" for="customer">
+                      {{ "Customer" | localize }}
+                    </label>
+                    <div class="col-md-9">
+                      <input
+                        type="text"
+                        [disabled]="true"
+                        class="form-control"
+                        name="customer"
+                        id="customer"
+                        maxlength="32"
+                        [(ngModel)]="customer"
+                      />
+                    </div>
+                  </div>
+
+                  <div class="form-group row">
+                    <label class="col-md-3 col-form-label" for="dispatchNo">
+                      {{ "Dispatch No." | localize }}
+                    </label>
+                    <div class="col-md-9">
+                      <input
+                        type="text"
+                        [disabled]="true"
+                        class="form-control"
+                        name="dispatchNo"
+                        id="dispatchNo"
+                        maxlength="32"
+                        [(ngModel)]="dispatchNo"
+                      />
+                    </div>
+                  </div>
+
+                  <div class="form-group row">
+                    <label class="col-md-3 col-form-label" for="flight">
+                      {{ "Flight" | localize }}
+                    </label>
+                    <div class="col-md-9">
+                      <input
+                        type="text"
+                        [disabled]="true"
+                        class="form-control"
+                        name="flight"
+                        id="flight"
+                        maxlength="32"
+                        [(ngModel)]="flight"
+                      />
+                    </div>
+                  </div>
+
+                  <div class="form-group row">
+                    <label class="col-md-3 col-form-label" for="eta">
+                      {{ "ETA" | localize }}
+                    </label>
+                    <div class="col-md-9">
+                      <input
+                        type="datetime"
+                        [disabled]="true"
+                        class="form-control"
+                        name="eta"
+                        id="eta"
+                        [(ngModel)]="eta"
+                      />
+                    </div>
+                  </div>
+
+                  <div class="form-group row">
+                    <label class="col-md-3 col-form-label" for="ata">
+                      {{ "ATA" | localize }}
+                    </label>
+                    <div class="col-md-9">
+                      <input
+                        type="datetime"
+                        [disabled]="false"
+                        class="form-control"
+                        name="ata"
+                        id="ata"
+                        [(ngModel)]="ata"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-group row">
+                    <label class="col-md-3 col-form-label" for="accountNo">
+                      {{ "Account No." | localize }}
+                    </label>
+                    <div class="col-md-9">
+                      <input
+                        type="text"
+                        [disabled]="true"
+                        class="form-control"
+                        name="accountNo"
+                        id="accountNo"
+                        maxlength="32"
+                        [(ngModel)]="accountNo"
+                      />
+                    </div>
+                  </div>
+
+                  <div class="form-group row">
+                    <label class="col-md-3 col-form-label" for="mawb">
+                      {{ "MAWB No." | localize }}
+                    </label>
+                    <div class="col-md-9">
+                      <input
+                        type="text"
+                        [disabled]="true"
+                        class="form-control"
+                        name="mawb"
+                        id="mawb"
+                        maxlength="32"
+                        [(ngModel)]="mawb"
+                      />
+                    </div>
+                  </div>
+
+                  <div class="form-group row">
+                    <label
+                      class="col-md-3 col-form-label"
+                      for="preCheckNoOfBag"
+                    >
+                      {{ "Pre-Check No. of Bag" | localize }}
+                    </label>
+                    <div class="col-md-9">
+                      <input
+                        type="text"
+                        [disabled]="true"
+                        class="form-control"
+                        name="preCheckNoOfBag"
+                        id="preCheckNoOfBag"
+                        maxlength="32"
+                        [(ngModel)]="preCheckNoOfBag"
+                      />
+                    </div>
+                  </div>
+
+                  <div class="form-group row">
+                    <label
+                      class="col-md-3 col-form-label"
+                      for="postCheckNoOfBag"
+                    >
+                      {{ "Post-Check No. of Bag" | localize }}
+                    </label>
+                    <div class="col-md-9">
+                      <input
+                        type="datetime"
+                        [disabled]="false"
+                        class="form-control"
+                        name="postCheckNoOfBag"
+                        id="postCheckNoOfBag"
+                        [(ngModel)]="postCheckNoOfBag"
+                      />
+                    </div>
+                  </div>
+
+                  <div class="form-group row">
+                    <label class="col-md-3 col-form-label" for="preCheckWeight">
+                      {{ "Pre-Check Weight (KG)" | localize }}
+                    </label>
+                    <div class="col-md-9">
+                      <input
+                        type="datetime"
+                        [disabled]="true"
+                        class="form-control"
+                        name="preCheckWeight"
+                        id="preCheckWeight"
+                        [(ngModel)]="preCheckWeight"
+                      />
+                    </div>
+                  </div>
+
+                  <div class="form-group row">
+                    <label
+                      class="col-md-3 col-form-label"
+                      for="postCheckWeight"
+                    >
+                      {{ "Post-Check Weight (KG)" | localize }}
+                    </label>
+                    <div class="col-md-9">
+                      <input
+                        type="datetime"
+                        [disabled]="false"
+                        class="form-control"
+                        name="postCheckWeight"
+                        id="postCheckWeight"
+                        [(ngModel)]="postCheckWeight"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="card-footer">
+              <div class="table-responsive">
+                <table class="table table-striped table-bordered">
+                  <thead class="bg-light">
+                    <tr>
+                      <th>{{ "Bag No." | localize }}</th>
+                      <th>{{ "Quantity" | localize }}</th>
+                      <th>{{ "Total Weight" | localize }}</th>
+                      <th>{{ "Actual Weight" | localize }}</th>
+                      <th>{{ "Weight Variance" | localize }}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let bag of bags; let i as index;">
+                      <td>{{ bag.bagno }}</td>
+                      <td>{{ bag.quantity }}</td>
+                      <td>{{ bag.totalWeight }}</td>
+                      <td>
+                        <input
+                          type="text"
+                          class="form-control"
+                          (change)="calculate(i)"
+                          [(ngModel)]="bag.actualWeight"
+                        />
+                      </td>
+                      <td>{{ bag.weightVariance }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
