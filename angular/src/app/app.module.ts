@@ -39,9 +39,9 @@ import { SidebarLogoComponent } from "./layout/sidebar-logo.component";
 import { SidebarUserPanelComponent } from "./layout/sidebar-user-panel.component";
 import { SidebarMenuComponent } from "./layout/sidebar-menu.component";
 /* Insert Import */
-import { ApplicationSettingsComponent } from './applicationsettings/applicationsettings.component';
-import { CreateUpdateApplicationSettingComponent } from './applicationsettings/create-update-applicationsetting/create-update-applicationsetting.component';
-import { ApplicationSettingService } from '@shared/service-proxies/applicationsettings/applicationsetting.service';
+import { ApplicationSettingsComponent } from "./applicationsettings/applicationsettings.component";
+import { CreateUpdateApplicationSettingComponent } from "./applicationsettings/create-update-applicationsetting/create-update-applicationsetting.component";
+import { ApplicationSettingService } from "@shared/service-proxies/applicationsettings/applicationsetting.service";
 
 import { ItemMinsComponent } from "./item-mins/item-mins.component";
 import { CreateUpdateItemMinComponent } from "./item-mins/create-update-item-min/create-update-item-min.component";
@@ -56,7 +56,7 @@ import { CreateUpdateBagComponent } from "./bags/create-update-bag/create-update
 import { BagService } from "@shared/service-proxies/bags/bag.service";
 
 import { DispatchValidationsComponent } from "./dispatch-validations/dispatch-validations.component";
-import { CreateUpdateDispatchValidationComponent } from "./dispatch-validations/create-update-dispatchvalidation/create-update-dispatch-validation.component";
+import { CreateUpdateDispatchValidationComponent } from "./dispatch-validations/create-update-dispatch-validation/create-update-dispatch-validation.component";
 import { DispatchValidationErrorComponent } from "./dispatch-validations/dipatch-validation-error/dispatch-validation-error.component";
 import { DispatchValidationService } from "@shared/service-proxies/dispatch-validations/dispatch-validation.service";
 
@@ -146,8 +146,8 @@ import { TopUpWalletComponent } from "./wallets/topup-wallet/topup-wallet.compon
     SidebarUserPanelComponent,
     SidebarMenuComponent,
     /* Insert Component */
-        ApplicationSettingsComponent,
-        CreateUpdateApplicationSettingComponent,
+    ApplicationSettingsComponent,
+    CreateUpdateApplicationSettingComponent,
     ItemMinsComponent,
     CreateUpdateItemMinComponent,
     ItemsComponent,
@@ -201,7 +201,7 @@ import { TopUpWalletComponent } from "./wallets/topup-wallet/topup-wallet.compon
   ],
   providers: [
     /* Insert Service */
-        ApplicationSettingService,
+    ApplicationSettingService,
     ItemMinService,
     ItemService,
     BagService,

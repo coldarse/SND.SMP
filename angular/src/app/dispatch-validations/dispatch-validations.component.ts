@@ -11,7 +11,7 @@ import {
   DispatchValidationDto,
 } from "@shared/service-proxies/dispatch-validations/model";
 import { DispatchValidationService } from "@shared/service-proxies/dispatch-validations/dispatch-validation.service";
-import { CreateUpdateDispatchValidationComponent } from "../dispatch-validations/create-update-dispatchvalidation/create-update-dispatch-validation.component";
+import { CreateUpdateDispatchValidationComponent } from "./create-update-dispatch-validation/create-update-dispatch-validation.component";
 import { Router } from "@angular/router";
 import { ChibiService } from "@shared/service-proxies/chibis/chibis.service";
 import { DispatchValidationErrorComponent } from "./dipatch-validation-error/dispatch-validation-error.component";
