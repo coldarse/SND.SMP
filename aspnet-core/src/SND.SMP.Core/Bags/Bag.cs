@@ -9,14 +9,14 @@ namespace SND.SMP.Bags
     public class Bag : Entity<int>
     {
         public string BagNo                          { get; set; }
-        public int DispatchId                     { get; set; }
+        public int? DispatchId                     { get; set; } = 0;
         public string CountryCode                    { get; set; }
-        public decimal WeightPre                      { get; set; }
-        public decimal WeightPost                     { get; set; }
-        public int ItemCountPre                   { get; set; }
-        public int ItemCountPost                  { get; set; }
-        public decimal WeightVariance                 { get; set; }
+        public decimal? WeightPre                      { get; set; } = 0;
+        public decimal? WeightPost                     { get; set; } = 0;
+        public int? ItemCountPre                   { get; set; } = 0;
+        public int? ItemCountPost                  { get; set; } = 0;
+        public decimal? WeightVariance                 { get; set; } = 0;
         public string CN35No                         { get; set; }
-        public decimal UnderAmount                    { get; set; }
+        public decimal? UnderAmount                    { get; set; } = 0;
     }
 }

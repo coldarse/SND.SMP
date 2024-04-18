@@ -113,7 +113,7 @@
                         name="customer"
                         id="customer"
                         maxlength="32"
-                        [(ngModel)]="customer"
+                        [(ngModel)]="postchecks.companyName"
                       />
                     </div>
                   </div>
@@ -147,7 +147,7 @@
                         name="flight"
                         id="flight"
                         maxlength="32"
-                        [(ngModel)]="flight"
+                        [(ngModel)]="postchecks.flightTrucking"
                       />
                     </div>
                   </div>
@@ -158,12 +158,12 @@
                     </label>
                     <div class="col-md-9">
                       <input
-                        type="datetime"
+                        type="date"
                         [disabled]="true"
                         class="form-control"
                         name="eta"
                         id="eta"
-                        [(ngModel)]="eta"
+                        [(ngModel)]="postchecks.eta"
                       />
                     </div>
                   </div>
@@ -174,12 +174,12 @@
                     </label>
                     <div class="col-md-9">
                       <input
-                        type="datetime"
+                        type="date"
                         [disabled]="false"
                         class="form-control"
                         name="ata"
                         id="ata"
-                        [(ngModel)]="ata"
+                        [(ngModel)]="postchecks.ata"
                       />
                     </div>
                   </div>
@@ -197,12 +197,12 @@
                         name="accountNo"
                         id="accountNo"
                         maxlength="32"
-                        [(ngModel)]="accountNo"
+                        [(ngModel)]="postchecks.companyCode"
                       />
                     </div>
                   </div>
 
-                  <div class="form-group row">
+                  <!-- <div class="form-group row">
                     <label class="col-md-3 col-form-label" for="mawb">
                       {{ "MAWB No." | localize }}
                     </label>
@@ -217,7 +217,7 @@
                         [(ngModel)]="mawb"
                       />
                     </div>
-                  </div>
+                  </div> -->
 
                   <div class="form-group row">
                     <label
@@ -234,7 +234,7 @@
                         name="preCheckNoOfBag"
                         id="preCheckNoOfBag"
                         maxlength="32"
-                        [(ngModel)]="preCheckNoOfBag"
+                        [(ngModel)]="postchecks.preCheckNoOfBag"
                       />
                     </div>
                   </div>
@@ -253,7 +253,7 @@
                         class="form-control"
                         name="postCheckNoOfBag"
                         id="postCheckNoOfBag"
-                        [(ngModel)]="postCheckNoOfBag"
+                        [(ngModel)]="postchecks.postCheckNoOfBag"
                       />
                     </div>
                   </div>
@@ -269,7 +269,7 @@
                         class="form-control"
                         name="preCheckWeight"
                         id="preCheckWeight"
-                        [(ngModel)]="preCheckWeight"
+                        [(ngModel)]="postchecks.preCheckWeight"
                       />
                     </div>
                   </div>
@@ -288,7 +288,7 @@
                         class="form-control"
                         name="postCheckWeight"
                         id="postCheckWeight"
-                        [(ngModel)]="postCheckWeight"
+                        [(ngModel)]="postchecks.postCheckWeight"
                       />
                     </div>
                   </div>
@@ -308,19 +308,19 @@
                     </tr>
                   </thead>
                   <tbody>
-                    <tr *ngFor="let bag of bags; let i as index;">
-                      <td>{{ bag.bagno }}</td>
-                      <td>{{ bag.quantity }}</td>
-                      <td>{{ bag.totalWeight }}</td>
+                    <tr *ngFor="let bag of postchecks.bags; let i as index;">
+                      <td>{{ bag.bagNo }}</td>
+                      <td>{{ bag.itemCountPre }}</td>
+                      <td>{{ bag.weightPre }}</td>
                       <td>
                         <input
                           type="text"
                           class="form-control"
                           (change)="calculate(i)"
-                          [(ngModel)]="bag.actualWeight"
+                          [(ngModel)]="bag.weightPost == null ? 0 : bag.weightPost"
                         />
                       </td>
-                      <td>{{ bag.weightVariance }}</td>
+                      <td>{{ bag.weightVariance == null ? 0 : bag.weightPost }}</td>
                     </tr>
                   </tbody>
                 </table>

@@ -1,5 +1,8 @@
 import { Component, OnInit } from "@angular/core";
 import { CommonModule } from "@angular/common";
+import { ActivatedRoute } from "@angular/router";
+import { DispatchService } from "@shared/service-proxies/dispatches/dispatch.service";
+import { GetPostCheck } from "@shared/service-proxies/dispatches/model";
 
 @Component({
   selector: "app-post-checks",
@@ -7,11 +10,18 @@ import { CommonModule } from "@angular/common";
   styleUrl: "./post-checks.component.css",
 })
 export class PostChecksComponent implements OnInit {
+
+  constructor(
+    private _Activatedroute: ActivatedRoute,
+    private _dispatchService: DispatchService 
+  ){
+
+  }
   bypassValue: string = "";
   fileUpload: any;
 
   customer: string = "Signature Mail";
-  dispatchNo: string = "KGOMTY0048";
+  dispatchNo: string = "";
   flight: string = "";
   eta: string = "";
   ata: string = "";
@@ -23,31 +33,20 @@ export class PostChecksComponent implements OnInit {
   preCheckWeight: number = 377.83;
   postCheckWeight: number = 380.8;
 
-  bags: any[] = [
-    {
-      bagno: "81AU240412001",
-      quantity: 0,
-      totalWeight: 17.38,
-      actualWeight: 0,
-      weightVariance: 0,
-    },
-    {
-      bagno: "81AU240412002",
-      quantity: 0,
-      totalWeight: 21.23,
-      actualWeight: 0,
-      weightVariance: 0,
-    },
-    {
-      bagno: "81AU240412003",
-      quantity: 0,
-      totalWeight: 18.69,
-      actualWeight: 0,
-      weightVariance: 0,
-    },
-  ];
+  sub: any;
+  postchecks: GetPostCheck;
 
-  ngOnInit(): void {}
+  bags: any[] = []
+
+  ngOnInit(): void {
+    this.sub = this._Activatedroute.paramMap.subscribe((params) => {
+      this.dispatchNo = params.get('dispatchNo');
+      this._dispatchService.getPostCheck(this.dispatchNo).subscribe((result: any) => {
+        this.postchecks = result.result;
+      });
+    });
+      
+  }
 
   calculate(index: number) {
     let bag = this.bags.at(index);

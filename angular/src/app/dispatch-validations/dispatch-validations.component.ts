@@ -162,7 +162,7 @@ export class DispatchValidationsComponent
   }
 
   postCheck(dispatchNo: string) {
-    this.router.navigate(["/app/postchecks"]);
+    this.router.navigate(["/app/postchecks", dispatchNo]);
   }
 
   protected list(

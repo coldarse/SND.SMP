@@ -103,4 +103,15 @@ export class DispatchService {
             catchError(this.errorMessage.HandleErrorResponse),
         )
     }
+
+    // Get Post Check
+    getPostCheck(dispatchNo: string) {
+        return this.http.get(
+            this.url + `/api/services/app/Dispatch/GetPostCheck?dispatchNo=${dispatchNo}`,
+            this.options_
+        ).pipe(
+            retry(1),
+            catchError(this.errorMessage.HandleErrorResponse),
+        ) 
+    }
 }

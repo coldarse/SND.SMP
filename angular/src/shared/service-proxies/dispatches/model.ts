@@ -1,4 +1,5 @@
 import type { PagedAndSortedResultRequestDto, EntityDto } from '@abp/ng.core';
+import { BagDto } from '../bags/model';
 
 
 export interface DispatchDto extends EntityDto<number> {
@@ -140,4 +141,18 @@ export interface PagedDispatchResultRequestDto extends PagedAndSortedResultReque
     cORateOptionId                  ?: string;
     paymentMode                     ?: string;
     currencyId                      ?: string;
+}
+
+export interface GetPostCheck {
+    companyName: string;
+    dispatchNo: string;
+    flightTrucking: string;
+    eta: Date,
+    ata: Date,
+    companyCode: string;
+    preCheckNoOfBag: number;
+    postCheckNoOfBag: number;
+    preCheckWeight: number;
+    postCheckWeight: number;
+    bags: BagDto[];
 }

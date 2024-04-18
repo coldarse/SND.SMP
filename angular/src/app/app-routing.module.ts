@@ -67,7 +67,7 @@ import { PostChecksComponent } from "./post-checks/post-checks.component";
           },
           /* Insert Path */
           {
-            path: "postchecks",
+            path: "postchecks/:dispatchNo",
             data: { permission: "Pages.Users" },
             component: PostChecksComponent,
             canActivate: [AppRouteGuard],
