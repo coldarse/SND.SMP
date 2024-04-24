@@ -12,19 +12,28 @@ using SND.SMP.Dispatches.Dto;
 using SND.SMP.Customers;
 using SND.SMP.Bags;
 using Abp.UI;
+using SND.SMP.Items;
+using Abp.Runtime.Session;
+using Abp.EntityFrameworkCore.Repositories;
+using SND.SMP.CustomerPostals;
+using SND.SMP.Rates;
+using SND.SMP.Authorization.Users;
+using SND.SMP.RateItems;
+using SND.SMP.Wallets;
 
 namespace SND.SMP.Dispatches
 {
-    public class DispatchAppService : AsyncCrudAppService<Dispatch, DispatchDto, int, PagedDispatchResultRequestDto>
+    public class DispatchAppService(IRepository<Dispatch, int> repository, IRepository<Customer, long> customerRepository, IRepository<Bag, int> bagRepository, IRepository<Item, string> itemRepository, IRepository<CustomerPostal, long> customerPostalRepository, IRepository<Rate, int> rateRepository, IRepository<RateItem, long> rateItemRepository, IRepository<Wallet, string> walletRepository) : AsyncCrudAppService<Dispatch, DispatchDto, int, PagedDispatchResultRequestDto>(repository)
     {
 
-        public readonly IRepository<Customer, long> _customerRepository;
-        public readonly IRepository<Bag, int> _bagRepository;
-        public DispatchAppService(IRepository<Dispatch, int> repository, IRepository<Customer, long> customerRepository, IRepository<Bag, int> bagRepository) : base(repository)
-        {
-            _customerRepository = customerRepository;
-            _bagRepository = bagRepository;
-        }
+        public readonly IRepository<Customer, long> _customerRepository = customerRepository;
+        public readonly IRepository<Bag, int> _bagRepository = bagRepository;
+        public readonly IRepository<Item, string> _itemRepository = itemRepository;
+        public readonly IRepository<CustomerPostal, long> _customerPostalRepository = customerPostalRepository;
+        public readonly IRepository<Rate, int> _rateRepository = rateRepository;
+        public readonly IRepository<RateItem, long> _rateItemRepository = rateItemRepository;
+        public readonly IRepository<Wallet, string> _walletRepository = walletRepository;
+
         protected override IQueryable<Dispatch> CreateFilteredQuery(PagedDispatchResultRequestDto input)
         {
             return Repository.GetAllIncluding()
@@ -90,6 +99,131 @@ namespace SND.SMP.Dispatches
                 PostCheckWeight = dispatch.PostCheckTotalWeight ?? Convert.ToDecimal(0),
                 Bags = bags ?? []
             };
+        }
+
+        private async Task<PriceAndCurrencyId> CalculatePrice(decimal weightVariance, string countryCode, int rateId, string productCode, string serviceCode, int totalItems, bool skipRegisterFee)
+        {
+            decimal registerFee = 0;
+            if (!skipRegisterFee)
+            {
+                var rateItemForFee = await _rateItemRepository.FirstOrDefaultAsync(x =>
+                                x.RateId.Equals(rateId) &&
+                                x.CountryCode.Equals(countryCode) &&
+                                x.ProductCode.Equals(productCode) &&
+                                x.ServiceCode.Equals(serviceCode)) ?? throw new UserFriendlyException("No Rate Item Found");
+
+                registerFee = rateItemForFee.Fee;
+            }
+
+            var rateItem = await _rateItemRepository.FirstOrDefaultAsync(x =>
+                                x.RateId.Equals(rateId) &&
+                                x.CountryCode.Equals(countryCode) &&
+                                x.ProductCode.Equals(productCode) &&
+                                x.ServiceCode.Equals(serviceCode)) ?? throw new UserFriendlyException("No Rate Item Found");
+
+            return new PriceAndCurrencyId()
+            {
+                Price = (rateItem.Total * weightVariance) + (totalItems * registerFee),
+                CurrencyId = rateItem.CurrencyId,
+            };
+        }
+
+        public async Task<bool> ByPassPostCheck(string dispatchNo, decimal weightGap)
+        {
+            var dispatch = await Repository.FirstOrDefaultAsync(x => x.DispatchNo.Equals(dispatchNo)) ?? throw new UserFriendlyException("No Dispatch Found");
+
+            decimal averageWeight = (decimal)(weightGap / dispatch.NoofBag);
+
+            var remainingItems = await _itemRepository.GetAllListAsync(x => x.DispatchID.Equals(dispatch.Id) && x.DateStage2.Equals(null)) ?? throw new UserFriendlyException("No Items with this Dispatch");
+
+            foreach (var item in remainingItems)
+            {
+                item.DateStage2 = DateTime.Now;
+                await _itemRepository.UpdateAsync(item);
+                await _itemRepository.GetDbContext().SaveChangesAsync();
+            }
+
+            var remainingBags = await _bagRepository.GetAllListAsync(x => x.DispatchId.Equals(dispatch.Id)) ?? throw new UserFriendlyException("No Bags with this Dispatch");
+
+            foreach (var bag in remainingBags)
+            {
+                bag.WeightPost = (bag.WeightPre == null ? 0 : bag.WeightPre) + averageWeight;
+                bag.WeightVariance = averageWeight;
+                await _bagRepository.UpdateAsync(bag);
+                await _bagRepository.GetDbContext().SaveChangesAsync();
+            }
+
+            dispatch.WeightGap = weightGap;
+            dispatch.WeightAveraged = averageWeight;
+            dispatch.Status = 2;
+            dispatch.PostCheckTotalBags = dispatch.NoofBag;
+            dispatch.PostCheckTotalWeight = (dispatch.TotalWeight.Equals(null) ? 0 : dispatch.TotalWeight) + weightGap;
+            await Repository.UpdateAsync(dispatch);
+            await Repository.GetDbContext().SaveChangesAsync();
+
+            var weightAdjustmentBags = await _bagRepository.GetAllListAsync(x => x.DispatchId.Equals(dispatch.Id) && !x.WeightVariance.Equals(null)) ?? throw new UserFriendlyException("No Bags without WeightVariance");
+
+            decimal totalWeightAdjustmentPrice = 0;
+            decimal totalWeightAdjustment = 0;
+            decimal totalSurchargePrice = 0;
+            decimal totalSurchargeWeight = 0;
+            decimal totalRefundPrice = 0;
+            decimal totalRefundWeight = 0;
+            PriceAndCurrencyId priceAndCurrencyId = new();
+
+            var customer = await _customerRepository.FirstOrDefaultAsync(x => x.Code.Equals(dispatch.CustomerCode)) ?? throw new UserFriendlyException("No Customer Found");
+
+            var customerPostal = await _customerPostalRepository.FirstOrDefaultAsync(x => x.AccountNo.Equals(customer.Id) && x.Postal.Equals(dispatch.PostalCode)) ?? throw new UserFriendlyException("No Customer Postal Found with this Customer and Postal Code");
+
+            var rate = await _rateRepository.FirstOrDefaultAsync(x => x.Id.Equals(customerPostal.Rate)) ?? throw new UserFriendlyException("No Rate Found");
+
+            foreach (var bag in weightAdjustmentBags)
+            {
+                var itemList = await _itemRepository.GetAllListAsync(x => x.BagNo == bag.BagNo) ?? throw new UserFriendlyException($"No Items found with Bag No of {bag.BagNo}");
+                int totalItems = itemList.Count;
+
+                priceAndCurrencyId = await CalculatePrice((decimal)bag.WeightVariance, bag.CountryCode, rate.Id, dispatch.ProductCode, dispatch.ServiceCode, totalItems, true);
+                totalWeightAdjustmentPrice = priceAndCurrencyId.Price;
+                totalWeightAdjustment = (decimal)bag.WeightVariance;
+
+                if (totalWeightAdjustmentPrice > 0)
+                {
+                    totalSurchargePrice += totalWeightAdjustmentPrice;
+                    totalSurchargeWeight += totalWeightAdjustment;
+                }
+                if (totalWeightAdjustmentPrice < 0)
+                {
+                    totalRefundPrice += totalWeightAdjustmentPrice;
+                    totalRefundWeight += totalWeightAdjustment;
+                }
+            }
+
+            var rateItems = await _rateItemRepository.GetAllListAsync(x => x.Id.Equals(customerPostal.Rate) && x.ServiceCode.Equals(dispatch.ServiceCode)) ?? throw new UserFriendlyException("No Rate Items found.");
+
+            int currencyId = rateItems.FirstOrDefault(x => );
+
+
+
+            if (totalSurchargePrice > 0)
+            {
+                // db.WeightAdjustment.Add(new WeightAdjustment()
+                // {
+                //     Amount = totalSurchargePrice,
+                //     DateTime = DateTime.UtcNow,
+                //     Description = PTS.Services.Common.SystemHelper.PostCheck + " Under Declare",
+                //     ReferenceNo = dispatch.DispatchNo,
+                //     UserId = customer.UserId,
+                //     Weight = totalSurchargeWeight
+                // });
+
+                var wallet = await _walletRepository.FirstOrDefaultAsync(x => x.Customer.Equals(customer.Code) && x.Currency.Equals(customer));
+
+                var c = db.Customer.Where(u => u.AccountNo == customer.AccountNo).ToList();
+                foreach (var item in c)
+                {
+                    item.Credit = currentCredit - totalSurchargePrice;
+                }
+            }
         }
     }
 }
