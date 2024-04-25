@@ -14,6 +14,7 @@ using Abp.Linq.Extensions;
 using System.Linq.Dynamic.Core;
 using Abp.UI;
 using SND.SMP.Postals;
+using System.Drawing;
 
 namespace SND.SMP.CustomerPostals
 {
@@ -21,12 +22,14 @@ namespace SND.SMP.CustomerPostals
         IRepository<CustomerPostal, long> repository,
         IRepository<Rate, int> rateRepository,
         IRepository<Customer, long> customerRepository,
-        IRepository<Postal, long> postalRepository
+        IRepository<Postal, long> postalRepository,
+        IRepository<CustomerPostal, long> customerPostalRepository
         ) : AsyncCrudAppService<CustomerPostal, DetailedCustomerPostalDto, long, PagedCustomerPostalResultRequestDto>(repository)
     {
         private readonly IRepository<Rate, int> _rateRepository = rateRepository;
         private readonly IRepository<Customer, long> _customerRepository = customerRepository;
         private readonly IRepository<Postal, long> _postalRepository = postalRepository;
+        private readonly IRepository<CustomerPostal, long> _customerPostalRepository = customerPostalRepository;
 
         protected override IQueryable<CustomerPostal> CreateFilteredQuery(PagedCustomerPostalResultRequestDto input)
         {
@@ -36,6 +39,8 @@ namespace SND.SMP.CustomerPostals
         public async Task<FullDetailedCustomerPostal> GetFullDetailedCustomerPostal(PagedCustomerPostalResultRequestDto input)
         {
             var postals = await _postalRepository.GetAllListAsync();
+            var rates = await rateRepository.GetAllListAsync();
+
             postals = postals.DistinctBy(x => x.PostalCode).ToList();
 
             List<PostalDDL> postalDDL = [];
@@ -47,8 +52,6 @@ namespace SND.SMP.CustomerPostals
                     PostalDesc = postal.PostalDesc
                 });
             }
-
-            var rates = await rateRepository.GetAllListAsync();
 
             List<RateDDL> rateDDL = [];
             foreach (var rate in rates.ToList())
@@ -161,15 +164,18 @@ namespace SND.SMP.CustomerPostals
             var postals = await _postalRepository.GetAllListAsync();
             postals = postals.DistinctBy(x => x.PostalCode).ToList();
 
+            var rates = await _rateRepository.GetAllListAsync();
+
             List<PostalDDL> postalDDLs = [];
             foreach (CustomerPostal cp in customerPostals.ToList())
             {
                 var postal = postals.FirstOrDefault(x => x.PostalCode.Equals(cp.Postal));
+                string rateCardName = rates.FirstOrDefault(x => x.Id.Equals(cp.Rate)).CardName;
 
                 postalDDLs.Add(new PostalDDL()
                 {
                     PostalCode = postal.PostalCode,
-                    PostalDesc = postal.PostalDesc,
+                    PostalDesc = postal.PostalDesc + $" ({rateCardName})",
                 });
             }
 

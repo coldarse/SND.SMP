@@ -321,17 +321,21 @@ namespace SND.SMP.DispatchConsole
 
                 #region Wallet Balance
 
-                var walletBalance = db.Wallets
+                var wallet = db.Wallets
                     .Where(u => u.Customer == CustomerCode)
                     .Where(u => u.Currency == CurrencyId)
-                    .Select(u => u.Balance)
                     .FirstOrDefault();
 
-                if (walletBalance < totalPrice)
+                if (wallet.Balance < totalPrice)
                 {
                     isFundLack = true;
-                    var lack = totalPrice - walletBalance;
-                    validationResult_wallet_InsufficientBalance.Message = $"Insufficient fund by {CurrencyId} {lack:N2}. Your wallet balance is {CurrencyId} {walletBalance:N2}. Total payment is {CurrencyId} {totalPrice:N2}.";
+                    var lack = totalPrice - wallet.Balance;
+                    validationResult_wallet_InsufficientBalance.Message = $"Insufficient fund by {CurrencyId} {lack:N2}. Your wallet balance is {CurrencyId} {wallet.Balance:N2}. Total payment is {CurrencyId} {totalPrice:N2}.";
+                }
+                else
+                {
+                    wallet.Balance -= totalPrice;
+                    await db.SaveChangesAsync();
                 }
                 #endregion
 

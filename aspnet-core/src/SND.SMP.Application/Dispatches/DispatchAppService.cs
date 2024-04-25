@@ -128,6 +128,7 @@ namespace SND.SMP.Dispatches
             };
         }
 
+
         public async Task<bool> ByPassPostCheck(string dispatchNo, decimal weightGap)
         {
             var dispatch = await Repository.FirstOrDefaultAsync(x => x.DispatchNo.Equals(dispatchNo)) ?? throw new UserFriendlyException("No Dispatch Found");
@@ -198,11 +199,7 @@ namespace SND.SMP.Dispatches
                 }
             }
 
-            var rateItems = await _rateItemRepository.GetAllListAsync(x => x.Id.Equals(customerPostal.Rate) && x.ServiceCode.Equals(dispatch.ServiceCode)) ?? throw new UserFriendlyException("No Rate Items found.");
-
-            int currencyId = rateItems.FirstOrDefault(x => );
-
-
+            var rateItem = await _rateItemRepository.FirstOrDefaultAsync(x => x.Id.Equals(customerPostal.Rate) && x.ServiceCode.Equals(dispatch.ServiceCode));
 
             if (totalSurchargePrice > 0)
             {
@@ -216,14 +213,31 @@ namespace SND.SMP.Dispatches
                 //     Weight = totalSurchargeWeight
                 // });
 
-                var wallet = await _walletRepository.FirstOrDefaultAsync(x => x.Customer.Equals(customer.Code) && x.Currency.Equals(customer));
-
-                var c = db.Customer.Where(u => u.AccountNo == customer.AccountNo).ToList();
-                foreach (var item in c)
-                {
-                    item.Credit = currentCredit - totalSurchargePrice;
-                }
+                var wallet = await _walletRepository.FirstOrDefaultAsync(x => x.Customer.Equals(customer.Code) && x.Currency.Equals(rateItem.CurrencyId));
+                wallet.Balance -= totalSurchargePrice;
+                await _walletRepository.UpdateAsync(wallet);
+                await _walletRepository.GetDbContext().SaveChangesAsync();
             }
+
+            if (totalRefundPrice < 0)
+            {
+                // db.WeightAdjustment.Add(new WeightAdjustment()
+                // {
+                //     Amount = totalRefundPrice * (-1),
+                //     DateTime = DateTime.UtcNow,
+                //     Description = PTS.Services.Common.SystemHelper.PostCheck + " Over Declare",
+                //     ReferenceNo = dispatch.DispatchNo,
+                //     UserId = customer.UserId,
+                //     Weight = totalRefundWeight
+                // });
+
+                var wallet = await _walletRepository.FirstOrDefaultAsync(x => x.Customer.Equals(customer.Code) && x.Currency.Equals(rateItem.CurrencyId));
+                wallet.Balance -= totalRefundPrice;
+                await _walletRepository.UpdateAsync(wallet);
+                await _walletRepository.GetDbContext().SaveChangesAsync();
+            }
+
+            return true;
         }
     }
 }
