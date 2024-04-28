@@ -20,10 +20,14 @@ using SND.SMP.Rates;
 using SND.SMP.Authorization.Users;
 using SND.SMP.RateItems;
 using SND.SMP.Wallets;
+using Microsoft.AspNetCore.Mvc;
+using OfficeOpenXml;
+using System.Data;
+using System.IO;
 
 namespace SND.SMP.Dispatches
 {
-    public class DispatchAppService(IRepository<Dispatch, int> repository, IRepository<Customer, long> customerRepository, IRepository<Bag, int> bagRepository, IRepository<Item, string> itemRepository, IRepository<CustomerPostal, long> customerPostalRepository, IRepository<Rate, int> rateRepository, IRepository<RateItem, long> rateItemRepository, IRepository<Wallet, string> walletRepository) : AsyncCrudAppService<Dispatch, DispatchDto, int, PagedDispatchResultRequestDto>(repository)
+    public class DispatchAppService(IRepository<Dispatch, int> repository, IRepository<Customer, long> customerRepository, IRepository<Bag, int> bagRepository, IRepository<Item, string> itemRepository, IRepository<CustomerPostal, long> customerPostalRepository, IRepository<Rate, int> rateRepository, IRepository<RateItem, long> rateItemRepository, IRepository<Wallet, string> walletRepository, IRepository<Dispatch, int> dispatchRepository) : AsyncCrudAppService<Dispatch, DispatchDto, int, PagedDispatchResultRequestDto>(repository)
     {
 
         public readonly IRepository<Customer, long> _customerRepository = customerRepository;
@@ -33,6 +37,7 @@ namespace SND.SMP.Dispatches
         public readonly IRepository<Rate, int> _rateRepository = rateRepository;
         public readonly IRepository<RateItem, long> _rateItemRepository = rateItemRepository;
         public readonly IRepository<Wallet, string> _walletRepository = walletRepository;
+        public readonly IRepository<Dispatch, int> _dispatchRepository = dispatchRepository;
 
         protected override IQueryable<Dispatch> CreateFilteredQuery(PagedDispatchResultRequestDto input)
         {
@@ -101,6 +106,40 @@ namespace SND.SMP.Dispatches
             };
         }
 
+        private async Task<DataTable> ConvertToDatatable(Stream ms)
+        {
+            DataTable dataTable = new();
+
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
+            using (var package = new ExcelPackage(ms))
+            {
+                ExcelWorksheet worksheet = package.Workbook.Worksheets[0];
+
+                // Assuming the first row is the header
+                for (int i = 1; i <= worksheet.Dimension.End.Column; i++)
+                {
+                    string columnName = worksheet.Cells[1, i].Value?.ToString();
+                    if (!string.IsNullOrEmpty(columnName))
+                    {
+                        dataTable.Columns.Add(columnName);
+                    }
+                }
+
+                // Populate DataTable with data from Excel
+                for (int row = 2; row <= worksheet.Dimension.End.Row; row++)
+                {
+                    DataRow dataRow = dataTable.NewRow();
+                    for (int col = 1; col <= worksheet.Dimension.End.Column; col++)
+                    {
+                        dataRow[col - 1] = worksheet.Cells[row, col].Value;
+                    }
+                    dataTable.Rows.Add(dataRow);
+                }
+            }
+
+            return dataTable;
+        }
         private async Task<PriceAndCurrencyId> CalculatePrice(decimal weightVariance, string countryCode, int rateId, string productCode, string serviceCode, int totalItems, bool skipRegisterFee)
         {
             decimal registerFee = 0;
@@ -128,9 +167,241 @@ namespace SND.SMP.Dispatches
             };
         }
 
+        public async Task<bool> UndoPostCheck(string dispatchNo)
+        {
+            var dispatch = await _dispatchRepository.FirstOrDefaultAsync(x => x.DispatchNo.Equals(dispatchNo)) ?? throw new UserFriendlyException("No Dispatch Found");
+
+            var customer = await _customerRepository.FirstOrDefaultAsync(x => x.Code.Equals(dispatch.CustomerCode)) ?? throw new UserFriendlyException("No Customer Found");
+
+            var customerPostal = await _customerPostalRepository.FirstOrDefaultAsync(x => x.AccountNo.Equals(customer.Id) && x.Postal.Equals(dispatch.PostalCode)) ?? throw new UserFriendlyException("No Customer Postal Found with this Customer and Postal Code");
+
+            var rate = await _rateRepository.FirstOrDefaultAsync(x => x.Id.Equals(customerPostal.Rate)) ?? throw new UserFriendlyException("No Rate Found");
+
+            var rateItem = await _rateItemRepository.FirstOrDefaultAsync(x => x.Id.Equals(customerPostal.Rate) && x.ServiceCode.Equals(dispatch.ServiceCode));
+
+            dispatch.Status = 1;
+            dispatch.WeightAveraged = null;
+            dispatch.WeightGap = null;
+            dispatch.PostCheckTotalBags = null;
+            dispatch.PostCheckTotalWeight = null;
+
+            var bags = await _bagRepository.GetAllListAsync(x => x.DispatchId.Equals(dispatch.Id));
+            foreach (var bag in bags)
+            {
+                bag.WeightVariance = null;
+                bag.WeightPost = null;
+            }
+
+            var items = await _itemRepository.GetAllListAsync(x => x.DispatchID.Equals(dispatch.Id));
+            foreach (var item in items)
+            {
+                item.DateStage2 = DateTime.MinValue;
+            }
+
+            var wa = db.WeightAdjustments
+                .Where(u => u.ReferenceNo == dispatch.DispatchNo)
+                .Where(u => u.Description.Contains("Under Declare"))
+                .Where(u => u.InvoiceID == null)
+                .FirstOrDefault();
+
+            if (wa is not null)
+            {
+                decimal refundAmount = wa.Amount.Equals(null) ? 0 : wa.Amount.Value;
+
+                var wallet = await _walletRepository.FirstOrDefaultAsync(x => x.Customer.Equals(customer.Code) && x.Currency.Equals(rateItem.CurrencyId));
+                wallet.Balance += refundAmount;
+                await _walletRepository.UpdateAsync(wallet);
+                await _walletRepository.GetDbContext().SaveChangesAsync();
+
+                db.WeightAdjustments.Remove(wa);
+            }
+
+            return true;
+        }
+
+        public async Task<bool> SavePostCheck(GetPostCheck getPostCheck)
+        {
+            if (getPostCheck.Bags is not null && getPostCheck.Bags.Count > 0)
+            {
+                var random = new Random();
+
+                int? dispatchId = getPostCheck.Bags[0].DispatchId is null ? 0 : getPostCheck.Bags[0].DispatchId;
+                Dispatch dispatch = await _dispatchRepository.FirstOrDefaultAsync(x => x.Id.Equals(dispatchId)) ?? throw new UserFriendlyException("No dispatch found");
+
+                string productCode = dispatch.ProductCode;
+
+                Customer customer = await _customerRepository.FirstOrDefaultAsync(x => x.Code.Equals(getPostCheck.CompanyCode));
+
+                dispatch.ATA = getPostCheck.ATA;
+                dispatch.PostCheckTotalBags = getPostCheck.PostCheckNoOfBag;
+                dispatch.PostCheckTotalWeight = getPostCheck.PostCheckWeight;
+                dispatch.NoofBag = dispatch.PostCheckTotalBags;
+                dispatch.TotalWeight = dispatch.PostCheckTotalWeight;
+                dispatch.Status = 2;
+
+                await _dispatchRepository.UpdateAsync(dispatch);
+                await _dispatchRepository.GetDbContext().SaveChangesAsync();
+
+
+                var customerPostal = await _customerPostalRepository.FirstOrDefaultAsync(x => x.AccountNo.Equals(customer.Id) && x.Postal.Equals(dispatch.PostalCode)) ?? throw new UserFriendlyException("No Customer Postal Found with this Customer and Postal Code");
+
+                var rate = await _rateRepository.FirstOrDefaultAsync(x => x.Id.Equals(customerPostal.Rate)) ?? throw new UserFriendlyException("No Rate Found");
+
+                var rateItem = await _rateItemRepository.FirstOrDefaultAsync(x => x.Id.Equals(customerPostal.Rate) && x.ServiceCode.Equals(dispatch.ServiceCode));
+
+                var items = await _itemRepository.GetAllListAsync(u => u.DispatchID.Equals(dispatchId));
+
+                foreach (var bag in getPostCheck.Bags)
+                {
+                    if (bag.WeightPost is not null)
+                    {
+                        var bagItems = items.Where(x => x.BagNo.Equals(bag.BagNo)).ToList();
+
+                        foreach (var bagItem in bagItems)
+                        {
+                            bagItem.DateStage2 = DateTime.Now.AddMilliseconds(random.Next(5000, 60000));
+                            await _itemRepository.UpdateAsync(bagItem);
+                            await _itemRepository.GetDbContext().SaveChangesAsync();
+                        }
+
+                        await _bagRepository.UpdateAsync(bag);
+                        await _bagRepository.GetDbContext().SaveChangesAsync();
+                    }
+                }
+
+                var missingBags = await _bagRepository.GetAllListAsync(x =>
+                                                    x.DispatchId.Equals(dispatchId) &&
+                                                    x.WeightPost.Equals(0));
+
+                if (missingBags is not null)
+                {
+                    decimal totalRefund = 0;
+                    decimal? missingWeight = 0;
+                    var itemsUnderCurrenctDispatch = await _itemRepository.GetAllListAsync(u => u.DispatchID.Equals(dispatchId));
+
+                    foreach (var missingBag in missingBags)
+                    {
+                        missingWeight = missingBag.WeightVariance;
+
+                        var missingItems = itemsUnderCurrenctDispatch.Where(x => x.BagNo.Equals(missingBag.BagNo)).ToList();
+                        if (missingItems is not null)
+                        {
+                            foreach (var missingItem in missingItems)
+                            {
+                                totalRefund += missingItem.Price is null ? Convert.ToDecimal(0) : Convert.ToDecimal(missingItem.Price);
+                            }
+                        }
+                    }
+
+                    if (totalRefund > 0)
+                    {
+                        // db.Refund.Add(new Refund()
+                        // {
+                        //     Amount = totalRefund,
+                        //     DateTime = DateTime.UtcNow,
+                        //     Description = PTS.Services.Common.SystemHelper.PostCheck + " Over Declare",
+                        //     ReferenceNo = dispatch.DispatchNo,
+                        //     UserId = customer.UserId,
+                        //     Weight = missingWeight
+                        // });
+
+                        var wallet = await _walletRepository.FirstOrDefaultAsync(x => x.Customer.Equals(customer.Code) && x.Currency.Equals(rateItem.CurrencyId));
+                        wallet.Balance += totalRefund;
+                        await _walletRepository.UpdateAsync(wallet);
+                        await _walletRepository.GetDbContext().SaveChangesAsync();
+                    }
+                }
+
+                var waBags = await _bagRepository.GetAllListAsync(x => x.DispatchId.Equals(dispatchId) && !x.WeightVariance.Equals(null));
+
+
+                decimal totalWeightAdjustmentPrice = 0;
+                decimal totalWeightAdjustment = 0;
+                decimal totalSurchargePrice = 0;
+                decimal totalSurchargeWeight = 0;
+                decimal totalRefundPrice = 0;
+                decimal totalRefundWeight = 0;
+
+                PriceAndCurrencyId priceAndCurrencyId;
+
+                string rateCardName = rate.CardName;
+
+                if (waBags is null)
+                {
+                    var dispatchItems = await _itemRepository.GetAllListAsync(x => x.DispatchID.Equals(dispatchId));
+
+                    foreach (var waBag in waBags)
+                    {
+                        int totalItems = dispatchItems.Count(x => x.BagNo.Equals(waBag.BagNo));
+
+                        priceAndCurrencyId = await CalculatePrice(waBag.WeightVariance.Value, waBag.CountryCode, rate.Id, dispatch.ProductCode, dispatch.ServiceCode, totalItems, true);
+                        totalWeightAdjustmentPrice = priceAndCurrencyId.Price;
+                        totalWeightAdjustment = waBag.WeightVariance.Value;
+
+                        if (totalWeightAdjustmentPrice >= 0)
+                        {
+                            totalSurchargePrice += totalWeightAdjustmentPrice;
+                            totalSurchargeWeight += totalWeightAdjustment;
+                            waBag.UnderAmount = totalWeightAdjustmentPrice;
+                        }
+                        else
+                        {
+                            totalRefundPrice += totalWeightAdjustmentPrice;
+                            totalRefundWeight += totalWeightAdjustment;
+                            waBag.UnderAmount = totalWeightAdjustmentPrice * (-1);
+                        }
+                    }
+
+
+                    if (totalSurchargePrice > 0)
+                    {
+                        // db.WeightAdjustment.Add(new WeightAdjustment()
+                        // {
+                        //     Amount = totalSurchargePrice,
+                        //     DateTime = DateTime.UtcNow,
+                        //     Description = PTS.Services.Common.SystemHelper.PostCheck + " Under Declare",
+                        //     ReferenceNo = dispatch.DispatchNo,
+                        //     UserId = customer.UserId,
+                        //     Weight = totalSurchargeWeight
+                        // });
+
+                        var wallet = await _walletRepository.FirstOrDefaultAsync(x => x.Customer.Equals(customer.Code) && x.Currency.Equals(rateItem.CurrencyId));
+                        wallet.Balance -= totalSurchargePrice;
+                        await _walletRepository.UpdateAsync(wallet);
+                        await _walletRepository.GetDbContext().SaveChangesAsync();
+                    }
+
+
+                    if (totalRefundPrice < 0)
+                    {
+                        // db.WeightAdjustment.Add(new WeightAdjustment()
+                        // {
+                        //     Amount = totalRefundPrice * (-1),
+                        //     DateTime = DateTime.UtcNow,
+                        //     Description = PTS.Services.Common.SystemHelper.PostCheck + " Over Declare",
+                        //     ReferenceNo = dispatch.DispatchNo,
+                        //     UserId = customer.UserId,
+                        //     Weight = totalRefundWeight
+                        // });
+
+                        var wallet = await _walletRepository.FirstOrDefaultAsync(x => x.Customer.Equals(customer.Code) && x.Currency.Equals(rateItem.CurrencyId));
+                        wallet.Balance -= totalRefundPrice;
+                        await _walletRepository.UpdateAsync(wallet);
+                        await _walletRepository.GetDbContext().SaveChangesAsync();
+                    }
+                }
+                return true;
+            }
+
+            return false;
+
+
+        }
 
         public async Task<bool> ByPassPostCheck(string dispatchNo, decimal weightGap)
         {
+            var random = new Random();
+
             var dispatch = await Repository.FirstOrDefaultAsync(x => x.DispatchNo.Equals(dispatchNo)) ?? throw new UserFriendlyException("No Dispatch Found");
 
             decimal averageWeight = (decimal)(weightGap / dispatch.NoofBag);
@@ -139,7 +410,7 @@ namespace SND.SMP.Dispatches
 
             foreach (var item in remainingItems)
             {
-                item.DateStage2 = DateTime.Now;
+                item.DateStage2 = DateTime.Now.AddMilliseconds(random.Next(5000, 60000));
                 await _itemRepository.UpdateAsync(item);
                 await _itemRepository.GetDbContext().SaveChangesAsync();
             }
@@ -237,6 +508,195 @@ namespace SND.SMP.Dispatches
                 await _walletRepository.GetDbContext().SaveChangesAsync();
             }
 
+            return true;
+        }
+
+        [Consumes("multipart/form-data")]
+        public async Task<bool> UploadPostCheck([FromForm] UploadPostCheck input)
+        {
+            if (input.file == null || input.file.Length == 0) throw new UserFriendlyException("File is no uploaded.");
+
+            DataTable dataTable = await ConvertToDatatable(input.file.OpenReadStream());
+
+            if (dataTable.Rows.Count == 0) throw new UserFriendlyException("No Rows in the Uploaded Excel");
+
+            var random = new Random();
+
+            List<Bag> bags = [];
+            foreach (DataRow dr in dataTable.Rows)
+            {
+                bags.Add(new Bag()
+                {
+                    BagNo = dr.ItemArray[4].ToString(),
+                    WeightPost = dr.ItemArray[6] is null ? 0 : Convert.ToDecimal(dr.ItemArray[6]),
+                    ItemCountPost = dr.ItemArray[7] is null ? 0 : Convert.ToInt32(dr.ItemArray[7]),
+                    WeightVariance = 0,
+                });
+            }
+
+            int postCheckTotalBags = bags.Count;
+            decimal postCheckTotalWeight = bags
+                                            .Where(x => !x.WeightPost.Equals(null))
+                                            .Where(x => !Convert.ToString(x.WeightPost).Trim().Equals(""))
+                                            .Sum(x => Convert.ToDecimal(x.WeightPost));
+
+            var dispatch = await _dispatchRepository.FirstOrDefaultAsync(x => x.DispatchNo.Equals(input.dispatchNo)) ?? throw new UserFriendlyException("No Dispatch Found");
+            var customer = await _customerRepository.FirstOrDefaultAsync(x => x.Code.Equals(dispatch.CustomerCode));
+            var dispatchBags = await _bagRepository.GetAllListAsync(x => x.DispatchId.Equals(dispatch.Id));
+            var dispatchItems = await _itemRepository.GetAllListAsync(x => x.DispatchID.Equals(dispatch.Id));
+            var customerPostal = await _customerPostalRepository.FirstOrDefaultAsync(x => x.AccountNo.Equals(customer.Id) && x.Postal.Equals(dispatch.PostalCode)) ?? throw new UserFriendlyException("No Customer Postal Found with this Customer and Postal Code");
+            var rate = await _rateRepository.FirstOrDefaultAsync(x => x.Id.Equals(customerPostal.Rate)) ?? throw new UserFriendlyException("No Rate Found");
+            var rateItem = await _rateItemRepository.FirstOrDefaultAsync(x => x.Id.Equals(customerPostal.Rate) && x.ServiceCode.Equals(dispatch.ServiceCode));
+
+            int dispatchID = dispatch.Id;
+            string productCode = dispatch.ProductCode;
+
+            dispatch.PostCheckTotalBags = postCheckTotalBags;
+            dispatch.PostCheckTotalWeight = postCheckTotalWeight;
+            dispatch.Status = 2;
+
+            foreach (Bag bag in bags)
+            {
+                var dipatchBag = dispatchBags.FirstOrDefault(x => x.BagNo.Equals(bag.BagNo)) ?? throw new UserFriendlyException("Bag not found");
+                decimal bagPrecheckWeight = dipatchBag.WeightPre == null ? 0 : dipatchBag.WeightPre.Value;
+
+                bag.WeightVariance = bag.WeightPost >= bagPrecheckWeight ? (bag.WeightPost.Value - bagPrecheckWeight) : 0;
+                bag.WeightPost = bag.WeightPost.Value >= bagPrecheckWeight ? bag.WeightPost.Value : bagPrecheckWeight;
+
+                var listItems = dispatchItems.Where(x => x.BagNo.Equals(bag.BagNo)).ToList();
+
+                foreach (var bagItem in listItems)
+                {
+                    bagItem.DateStage2 = DateTime.Now.AddMilliseconds(random.Next(5000, 60000));
+
+                    await _itemRepository.UpdateAsync(bagItem);
+                    await _itemRepository.GetDbContext().SaveChangesAsync();
+                }
+
+                await _bagRepository.UpdateAsync(bag);
+                await _bagRepository.GetDbContext().SaveChangesAsync();
+            }
+
+            var missingBags = await _bagRepository.GetAllListAsync(x =>
+                                                    x.DispatchId.Equals(dispatch.Id) &&
+                                                    x.WeightPost.Equals(0));
+
+            if (missingBags is not null)
+            {
+                decimal totalRefund = 0;
+                decimal? missingWeight = 0;
+                var itemsUnderCurrenctDispatch = await _itemRepository.GetAllListAsync(u => u.DispatchID.Equals(dispatch.Id));
+
+                foreach (var missingBag in missingBags)
+                {
+                    missingWeight = missingBag.WeightVariance;
+
+                    var missingItems = itemsUnderCurrenctDispatch.Where(x => x.BagNo.Equals(missingBag.BagNo)).ToList();
+                    if (missingItems is not null)
+                    {
+                        foreach (var missingItem in missingItems)
+                        {
+                            totalRefund += missingItem.Price is null ? Convert.ToDecimal(0) : Convert.ToDecimal(missingItem.Price);
+                        }
+                    }
+                }
+
+                if (totalRefund > 0)
+                {
+                    // db.Refund.Add(new Refund()
+                    // {
+                    //     Amount = totalRefund,
+                    //     DateTime = DateTime.UtcNow,
+                    //     Description = PTS.Services.Common.SystemHelper.PostCheck + " Over Declare",
+                    //     ReferenceNo = dispatch.DispatchNo,
+                    //     UserId = customer.UserId,
+                    //     Weight = missingWeight
+                    // });
+
+                    var wallet = await _walletRepository.FirstOrDefaultAsync(x => x.Customer.Equals(customer.Code) && x.Currency.Equals(rateItem.CurrencyId));
+                    wallet.Balance += totalRefund;
+                    await _walletRepository.UpdateAsync(wallet);
+                    await _walletRepository.GetDbContext().SaveChangesAsync();
+                }
+            }
+
+            var waBags = await _bagRepository.GetAllListAsync(x => x.DispatchId.Equals(dispatch.Id) && !x.WeightVariance.Equals(null));
+
+            decimal totalWeightAdjustmentPrice = 0;
+            decimal totalWeightAdjustment = 0;
+            decimal totalSurchargePrice = 0;
+            decimal totalSurchargeWeight = 0;
+            decimal totalRefundPrice = 0;
+            decimal totalRefundWeight = 0;
+
+            PriceAndCurrencyId priceAndCurrencyId;
+
+            string rateCardName = rate.CardName;
+
+            if (waBags is null)
+            {
+                dispatchItems = await _itemRepository.GetAllListAsync(x => x.DispatchID.Equals(dispatch.Id));
+
+                foreach (var waBag in waBags)
+                {
+                    int totalItems = dispatchItems.Count(x => x.BagNo.Equals(waBag.BagNo));
+
+                    priceAndCurrencyId = await CalculatePrice(waBag.WeightVariance.Value, waBag.CountryCode, rate.Id, dispatch.ProductCode, dispatch.ServiceCode, totalItems, true);
+                    totalWeightAdjustmentPrice = priceAndCurrencyId.Price;
+                    totalWeightAdjustment = waBag.WeightVariance.Value;
+
+                    if (totalWeightAdjustmentPrice >= 0)
+                    {
+                        totalSurchargePrice += totalWeightAdjustmentPrice;
+                        totalSurchargeWeight += totalWeightAdjustment;
+                        waBag.UnderAmount = totalWeightAdjustmentPrice;
+                    }
+                    else
+                    {
+                        totalRefundPrice += totalWeightAdjustmentPrice;
+                        totalRefundWeight += totalWeightAdjustment;
+                        waBag.UnderAmount = totalWeightAdjustmentPrice * (-1);
+                    }
+                }
+
+
+                if (totalSurchargePrice > 0)
+                {
+                    // db.WeightAdjustment.Add(new WeightAdjustment()
+                    // {
+                    //     Amount = totalSurchargePrice,
+                    //     DateTime = DateTime.UtcNow,
+                    //     Description = PTS.Services.Common.SystemHelper.PostCheck + " Under Declare",
+                    //     ReferenceNo = dispatch.DispatchNo,
+                    //     UserId = customer.UserId,
+                    //     Weight = totalSurchargeWeight
+                    // });
+
+                    var wallet = await _walletRepository.FirstOrDefaultAsync(x => x.Customer.Equals(customer.Code) && x.Currency.Equals(rateItem.CurrencyId));
+                    wallet.Balance -= totalSurchargePrice;
+                    await _walletRepository.UpdateAsync(wallet);
+                    await _walletRepository.GetDbContext().SaveChangesAsync();
+                }
+
+
+                if (totalRefundPrice < 0)
+                {
+                    // db.WeightAdjustment.Add(new WeightAdjustment()
+                    // {
+                    //     Amount = totalRefundPrice * (-1),
+                    //     DateTime = DateTime.UtcNow,
+                    //     Description = PTS.Services.Common.SystemHelper.PostCheck + " Over Declare",
+                    //     ReferenceNo = dispatch.DispatchNo,
+                    //     UserId = customer.UserId,
+                    //     Weight = totalRefundWeight
+                    // });
+
+                    var wallet = await _walletRepository.FirstOrDefaultAsync(x => x.Customer.Equals(customer.Code) && x.Currency.Equals(rateItem.CurrencyId));
+                    wallet.Balance -= totalRefundPrice;
+                    await _walletRepository.UpdateAsync(wallet);
+                    await _walletRepository.GetDbContext().SaveChangesAsync();
+                }
+            }
             return true;
         }
     }

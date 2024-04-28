@@ -20,26 +20,26 @@ export class PostChecksComponent implements OnInit {
     private _modalService: BsModalService,
     private router: Router
   ) {}
-  bypassValue: string = "";
+  
   fileUpload: any;
+  sub: any;
+  bags: any[] = [];
 
-  customer: string = "Signature Mail";
+  bypassValue: string = "";
+  customer: string = "";
   dispatchNo: string = "";
   flight: string = "";
   eta: string = "";
   ata: string = "";
+  accountNo: string = "";
+  mawb: string = "";
 
-  accountNo: string = "IPS";
-  mawb: string = ".";
-  preCheckNoOfBag: number = 21;
-  postCheckNoOfBag: number = 21;
-  preCheckWeight: number = 377.83;
-  postCheckWeight: number = 380.8;
+  preCheckNoOfBag: number = 0;
+  postCheckNoOfBag: number = 0;
+  preCheckWeight: number = 0;
+  postCheckWeight: number = 0;
 
-  sub: any;
   postchecks: GetPostCheck = undefined;
-
-  bags: any[] = [];
 
   ngOnInit(): void {
     this.postchecks = undefined;
@@ -68,7 +68,7 @@ export class PostChecksComponent implements OnInit {
   calculate(event: any, index: any) {
     let bag = this.postchecks.bags.find((x) => x.id === index.id);
     bag.weightPost = +event.target.value;
-    bag.weightVariance = bag.weightPre - bag.weightPost;
+    bag.weightVariance = +(bag.weightPre - bag.weightPost).toFixed(3);
   }
 
   backToHome() {
@@ -84,5 +84,9 @@ export class PostChecksComponent implements OnInit {
     var ws = XLSX.utils.aoa_to_sheet(postCheckTemplate);
     XLSX.utils.book_append_sheet(wb, ws, 'Sheet 1');
     XLSX.writeFile(wb, `PostCheckUpload.xlsx`);
+  }
+
+  SubmitPostCheck(){
+    console.log(this.postchecks);
   }
 }

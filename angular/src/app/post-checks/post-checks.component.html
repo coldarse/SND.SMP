@@ -63,7 +63,7 @@
             <div class="card-body">
               <div class="form-group row">
                 <label class="col-md-3 col-form-label" for="uploadPostCheck">
-                  {{ "File must be in .xls format (Excel 97-2003)" | localize }}
+                  {{ "File must be in .xlsx format" | localize }}
                 </label>
                 <div class="col-md-9">
                   <input
@@ -98,6 +98,7 @@
                 <div class="col-md-6 text-right">
                   <button
                     class="btn btn-primary"
+                    (click)="SubmitPostCheck()"
                     [disabled]="postchecks == undefined || postchecks.companyName == undefined"
                   >
                     Save Changes

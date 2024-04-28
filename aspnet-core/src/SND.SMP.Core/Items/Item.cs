@@ -20,7 +20,7 @@ namespace SND.SMP.Items
         public decimal Weight                         { get; set; }
         public string BagNo                          { get; set; }
         public string SealNo                         { get; set; }
-        public decimal Price                          { get; set; }
+        public decimal? Price                          { get; set; }
         public int Status                         { get; set; }
         public decimal ItemValue                      { get; set; }
         public string ItemDesc                       { get; set; }
