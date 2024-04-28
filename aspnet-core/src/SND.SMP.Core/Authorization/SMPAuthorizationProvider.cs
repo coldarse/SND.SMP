@@ -14,6 +14,16 @@ namespace SND.SMP.Authorization
             context.CreatePermission(PermissionNames.Pages_Tenants, L("Tenants"), multiTenancySides: MultiTenancySides.Host);
 
             /* Define your permissions here */
+            context.CreatePermission(PermissionNames.Pages_Refund, L("Refunds"));
+            context.CreatePermission(PermissionNames.Pages_Refund_Create, L("RefundsCreate"));
+            context.CreatePermission(PermissionNames.Pages_Refund_Edit, L("RefundsEdit"));
+            context.CreatePermission(PermissionNames.Pages_Refund_Delete, L("RefundsDelete"));
+
+            context.CreatePermission(PermissionNames.Pages_WeightAdjustment, L("WeightAdjustments"));
+            context.CreatePermission(PermissionNames.Pages_WeightAdjustment_Create, L("WeightAdjustmentsCreate"));
+            context.CreatePermission(PermissionNames.Pages_WeightAdjustment_Edit, L("WeightAdjustmentsEdit"));
+            context.CreatePermission(PermissionNames.Pages_WeightAdjustment_Delete, L("WeightAdjustmentsDelete"));
+
             context.CreatePermission(PermissionNames.Pages_ApplicationSetting, L("ApplicationSettings"));
             context.CreatePermission(PermissionNames.Pages_ApplicationSetting_Create, L("ApplicationSettingsCreate"));
             context.CreatePermission(PermissionNames.Pages_ApplicationSetting_Edit, L("ApplicationSettingsEdit"));

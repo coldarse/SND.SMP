@@ -75,6 +75,18 @@ export class SidebarMenuComponent extends AppComponentBase implements OnInit {
       ),
       /* Insert Menu Path */
             new MenuItem(
+                this.l('Refunds'),
+                '/app/refunds',
+                'far fa-circle',
+                'Pages.Refund'
+            ),
+            new MenuItem(
+                this.l('WeightAdjustments'),
+                '/app/weightadjustments',
+                'far fa-circle',
+                'Pages.WeightAdjustment'
+            ),
+            new MenuItem(
                 this.l('Application Settings'),
                 '/app/applicationsettings',
                 'fas fa-toolbox',

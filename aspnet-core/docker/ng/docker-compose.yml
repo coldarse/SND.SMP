@@ -2,15 +2,15 @@ version: '3'
 
 services:
 
-  # dispatch_console:
-  #   build: ./
-  #   image: dannychen98/dispatch_console:v1.0.0
-  #   environment:
-  #     ConnectionStrings__Default: "server=65.21.224.66;port=3306;database=SMPDb;uid=droot;pwd=snd@1234"
+  dispatch_console:
+    build: ./
+    image: dannychen98/dispatch_console:v1.0.1
+    environment:
+      ConnectionStrings__Default: "server=65.21.224.66;port=3306;database=SMPDb;uid=droot;pwd=snd@1234"
 
   abp_host:
     build: ./
-    image: dannychen98/smp_api:v1.0.0
+    image: dannychen98/smp_api:v1.0.1
     environment:
       ASPNETCORE_ENVIRONMENT: "Staging"
       ConnectionStrings__Default: "server=65.21.224.66;port=3306;database=SMPDb;uid=droot;pwd=snd@1234"
@@ -27,6 +27,6 @@ services:
 
   abp_ng:
     build: ./
-    image: dannychen98/smp_ms:v1.0.0
+    image: dannychen98/smp_ms:v1.0.1
     ports:
       - "4200:80"

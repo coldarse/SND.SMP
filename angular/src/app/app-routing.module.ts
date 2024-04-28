@@ -9,6 +9,8 @@ import { TenantsComponent } from "./tenants/tenants.component";
 import { RolesComponent } from "app/roles/roles.component";
 import { ChangePasswordComponent } from "./users/change-password/change-password.component";
 /* Insert Routing Import */
+import { RefundsComponent } from './refunds/refunds.component';
+import { WeightAdjustmentsComponent } from './weightadjustments/weightadjustments.component';
 import { ApplicationSettingsComponent } from "./applicationsettings/applicationsettings.component";
 import { ItemMinsComponent } from "./item-mins/item-mins.component";
 import { ItemsComponent } from "./items/items.component";
@@ -66,6 +68,8 @@ import { PostChecksComponent } from "./post-checks/post-checks.component";
             canActivate: [AppRouteGuard],
           },
           /* Insert Path */
+                    { path: 'refunds', data: { permission: 'Pages.Refund' }, component: RefundsComponent, canActivate: [AppRouteGuard] },
+                    { path: 'weightadjustments', data: { permission: 'Pages.WeightAdjustment' }, component: WeightAdjustmentsComponent, canActivate: [AppRouteGuard] },
           {
             path: "postchecks/:dispatchNo",
             data: { permission: "Pages.Users" },

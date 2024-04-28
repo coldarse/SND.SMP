@@ -10,6 +10,16 @@ namespace SND.SMP.Authorization
         public const string Pages_Roles = "Pages.Roles";
 
         /* Define your permissions here */
+        public const string Pages_Refund = "Pages.Refund";
+        public const string Pages_Refund_Create = "Pages.Refund.Create";
+        public const string Pages_Refund_Edit = "Pages.Refund.Edit";
+        public const string Pages_Refund_Delete = "Pages.Refund.Delete";
+
+        public const string Pages_WeightAdjustment = "Pages.WeightAdjustment";
+        public const string Pages_WeightAdjustment_Create = "Pages.WeightAdjustment.Create";
+        public const string Pages_WeightAdjustment_Edit = "Pages.WeightAdjustment.Edit";
+        public const string Pages_WeightAdjustment_Delete = "Pages.WeightAdjustment.Delete";
+
         public const string Pages_ApplicationSetting = "Pages.ApplicationSetting";
         public const string Pages_ApplicationSetting_Create = "Pages.ApplicationSetting.Create";
         public const string Pages_ApplicationSetting_Edit = "Pages.ApplicationSetting.Edit";

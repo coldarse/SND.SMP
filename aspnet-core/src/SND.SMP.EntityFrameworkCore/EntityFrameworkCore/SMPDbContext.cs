@@ -4,6 +4,8 @@ using SND.SMP.Authorization.Roles;
 using SND.SMP.Authorization.Users;
 using SND.SMP.MultiTenancy;
 /* Using Definition */
+using SND.SMP.Refunds;
+using SND.SMP.WeightAdjustments;
 using SND.SMP.ApplicationSettings;
 using SND.SMP.ItemMins;
 using SND.SMP.Items;
@@ -50,6 +52,8 @@ namespace SND.SMP.EntityFrameworkCore
         public DbSet<Item> Items { get; set; }
         public DbSet<ItemMin> ItemMins { get; set; }
         public DbSet<ApplicationSetting> ApplicationSettings { get; set; }
+        public DbSet<WeightAdjustment> WeightAdjustments { get; set; }
+        public DbSet<Refund> Refunds { get; set; }
         /* Define a DbSet for each entity of the application */
 
         public SMPDbContext(DbContextOptions<SMPDbContext> options)
@@ -62,6 +66,31 @@ namespace SND.SMP.EntityFrameworkCore
             base.OnModelCreating(builder);
 
             /* Define Tables */
+            builder.Entity<Refund>(b =>
+            {
+                b.ToTable(SMPConsts.DbTablePrefix + "Refunds");
+                b.Property(x => x.UserId).HasColumnName(nameof(Refund.UserId));
+                b.Property(x => x.ReferenceNo).HasColumnName(nameof(Refund.ReferenceNo)).HasMaxLength(128);
+                b.Property(x => x.Amount).HasColumnName(nameof(Refund.Amount)).HasPrecision(18, 2);
+                b.Property(x => x.Description).HasColumnName(nameof(Refund.Description)).HasMaxLength(512);
+                b.Property(x => x.DateTime).HasColumnName(nameof(Refund.DateTime));
+                b.Property(x => x.Weight).HasColumnName(nameof(Refund.Weight)).HasPrecision(18, 3);
+                b.HasKey(x => x.Id);
+            });
+
+            builder.Entity<WeightAdjustment>(b =>
+            {
+                b.ToTable(SMPConsts.DbTablePrefix + "WeightAdjustments");
+                b.Property(x => x.UserId).HasColumnName(nameof(WeightAdjustment.UserId));
+                b.Property(x => x.ReferenceNo).HasColumnName(nameof(WeightAdjustment.ReferenceNo)).HasMaxLength(128);
+                b.Property(x => x.Amount).HasColumnName(nameof(WeightAdjustment.Amount)).HasPrecision(18, 2);
+                b.Property(x => x.Description).HasColumnName(nameof(WeightAdjustment.Description)).HasMaxLength(512);
+                b.Property(x => x.DateTime).HasColumnName(nameof(WeightAdjustment.DateTime));
+                b.Property(x => x.Weight).HasColumnName(nameof(WeightAdjustment.Weight)).HasPrecision(18, 3);
+                b.Property(x => x.InvoiceId).HasColumnName(nameof(WeightAdjustment.InvoiceId));
+                b.HasKey(x => x.Id);
+            });
+
             builder.Entity<ApplicationSetting>(b =>
             {
                 b.ToTable(SMPConsts.DbTablePrefix + "ApplicationSettings");
