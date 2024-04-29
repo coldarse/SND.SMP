@@ -30,7 +30,9 @@ export class SidebarMenuComponent extends AppComponentBase implements OnInit {
     this.patchMenuItems(this.menuItems);
 
     const currentUrl =
-      this.router.url !== "/" || this.router.url != undefined ? this.router.url : this.homeRoute;
+      this.router.url !== "/" || this.router.url != undefined
+        ? this.router.url
+        : this.homeRoute;
     const primaryUrlSegmentGroup =
       this.router.parseUrl(currentUrl).root.children[PRIMARY_OUTLET];
     if (primaryUrlSegmentGroup) {
@@ -74,24 +76,24 @@ export class SidebarMenuComponent extends AppComponentBase implements OnInit {
         "Pages.Users"
       ),
       /* Insert Menu Path */
-            new MenuItem(
-                this.l('Refunds'),
-                '/app/refunds',
-                'far fa-circle',
-                'Pages.Refund'
-            ),
-            new MenuItem(
-                this.l('WeightAdjustments'),
-                '/app/weightadjustments',
-                'far fa-circle',
-                'Pages.WeightAdjustment'
-            ),
-            new MenuItem(
-                this.l('Application Settings'),
-                '/app/applicationsettings',
-                'fas fa-toolbox',
-                'Pages.ApplicationSetting'
-            ),
+      // new MenuItem(
+      //   this.l("Refunds"),
+      //   "/app/refunds",
+      //   "far fa-circle",
+      //   "Pages.Refund"
+      // ),
+      // new MenuItem(
+      //   this.l("WeightAdjustments"),
+      //   "/app/weightadjustments",
+      //   "far fa-circle",
+      //   "Pages.WeightAdjustment"
+      // ),
+      new MenuItem(
+        this.l("Application Settings"),
+        "/app/applicationsettings",
+        "fas fa-toolbox",
+        "Pages.ApplicationSetting"
+      ),
       // new MenuItem(
       //   this.l("ItemMins"),
       //   "/app/itemmins",
@@ -111,12 +113,12 @@ export class SidebarMenuComponent extends AppComponentBase implements OnInit {
         "fas fa-tasks",
         "Pages.DispatchValidation"
       ),
-      // new MenuItem(
-      //   this.l("Dispatches"),
-      //   "/app/dispatches",
-      //   "far fa-circle",
-      //   "Pages.Dispatch"
-      // ),
+      new MenuItem(
+        this.l("Dispatches"),
+        "/app/dispatches",
+        "far fa-circle",
+        "Pages.Dispatch"
+      ),
       new MenuItem(
         this.l("Queues"),
         "/app/queues",

@@ -225,11 +225,15 @@
                 <i class="fas fa-redo-alt"></i>
               </button>
             </div>
-            <div class="col-sm-4 col-12 text-center">
-              <p class="mb-0 my-2">
-                {{ "TotalRecordsCount" | localize : totalItems }}
-              </p>
-            </div>
+            @if (showPagination){
+              <div class="col-sm-4 col-12 text-center">
+                <p class="mb-0 my-2">
+                  {{ "TotalRecordsCount" | localize : totalItems }}
+                </p>
+              </div>
+            } @else {
+              <div class="col-sm-4 col-12 text-center"></div>
+            }
             @if (showPagination) {
             <div class="col-sm-4 col-12">
               <div class="float-sm-right m-auto">

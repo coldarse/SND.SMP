@@ -15,7 +15,7 @@
   <section class="content px-2">
     <div class="container-fluid">
       <div class="row">
-        <div [ngClass]="!isAdmin ? 'col-md-9' : 'col-md-12'">
+        <div [ngClass]="!isAdmin ? 'col-md-9' : 'col-md-5'">
           <app-customer-transactions [showHeader]="false">
           </app-customer-transactions>
         </div>
@@ -79,13 +79,26 @@
           </div>
         </div>
         }
-      </div>
-      <div class="row">
+        <div [ngClass]="!isAdmin ? 'col-md-9' : 'col-md-7'">
+          <app-dispatch-validations [showPagination]="false" [maxItems]="3">
+          </app-dispatch-validations>
+        </div>
         <div [ngClass]="!isAdmin ? 'col-md-9' : 'col-md-12'">
+          <app-dispatches> </app-dispatches>
+        </div>
+      </div>
+      <!-- <div class="row">
+        <div [ngClass]="!isAdmin ? 'col-md-9' : 'col-md-4'">
           <app-dispatch-validations [showPagination]="false" [maxItems]="3">
           </app-dispatch-validations>
         </div>
       </div>
+      <div class="row">
+        <div [ngClass]="!isAdmin ? 'col-md-9' : 'col-md-4'">
+          <app-customer-transactions [showHeader]="false">
+          </app-customer-transactions>
+        </div>
+      </div> -->
     </div>
   </section>
 </div>

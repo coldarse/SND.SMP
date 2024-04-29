@@ -24,10 +24,24 @@ using Microsoft.AspNetCore.Mvc;
 using OfficeOpenXml;
 using System.Data;
 using System.IO;
+using SND.SMP.WeightAdjustments;
+using SND.SMP.Refunds;
 
 namespace SND.SMP.Dispatches
 {
-    public class DispatchAppService(IRepository<Dispatch, int> repository, IRepository<Customer, long> customerRepository, IRepository<Bag, int> bagRepository, IRepository<Item, string> itemRepository, IRepository<CustomerPostal, long> customerPostalRepository, IRepository<Rate, int> rateRepository, IRepository<RateItem, long> rateItemRepository, IRepository<Wallet, string> walletRepository, IRepository<Dispatch, int> dispatchRepository) : AsyncCrudAppService<Dispatch, DispatchDto, int, PagedDispatchResultRequestDto>(repository)
+    public class DispatchAppService(
+        IRepository<Dispatch, int> repository,
+        IRepository<Customer, long> customerRepository,
+        IRepository<Bag, int> bagRepository,
+        IRepository<Item, string> itemRepository,
+        IRepository<CustomerPostal, long> customerPostalRepository,
+        IRepository<Rate, int> rateRepository,
+        IRepository<RateItem, long> rateItemRepository,
+        IRepository<Wallet, string> walletRepository,
+        IRepository<Dispatch, int> dispatchRepository,
+        IRepository<WeightAdjustment, int> weightAdjustmentRepository,
+        IRepository<Refund, int> refundRepository
+    ) : AsyncCrudAppService<Dispatch, DispatchDto, int, PagedDispatchResultRequestDto>(repository)
     {
 
         public readonly IRepository<Customer, long> _customerRepository = customerRepository;
@@ -38,73 +52,8 @@ namespace SND.SMP.Dispatches
         public readonly IRepository<RateItem, long> _rateItemRepository = rateItemRepository;
         public readonly IRepository<Wallet, string> _walletRepository = walletRepository;
         public readonly IRepository<Dispatch, int> _dispatchRepository = dispatchRepository;
-
-        protected override IQueryable<Dispatch> CreateFilteredQuery(PagedDispatchResultRequestDto input)
-        {
-            return Repository.GetAllIncluding()
-                .WhereIf(!input.Keyword.IsNullOrWhiteSpace(), x =>
-                    x.CustomerCode.Contains(input.Keyword) ||
-                    x.POBox.Contains(input.Keyword) ||
-                    x.PPI.Contains(input.Keyword) ||
-                    x.PostalCode.Contains(input.Keyword) ||
-                    x.ServiceCode.Contains(input.Keyword) ||
-                    x.ProductCode.Contains(input.Keyword) ||
-                    x.DispatchNo.Contains(input.Keyword) ||
-                    x.FlightTrucking.Contains(input.Keyword) ||
-                    x.BatchId.Contains(input.Keyword) ||
-                    x.CN38.Contains(input.Keyword) ||
-                    x.Remark.Contains(input.Keyword) ||
-                    x.AirlineCode.Contains(input.Keyword) ||
-                    x.FlightNo.Contains(input.Keyword) ||
-                    x.PortDeparture.Contains(input.Keyword) ||
-                    x.ExtDispatchNo.Contains(input.Keyword) ||
-                    x.AirportTranshipment.Contains(input.Keyword) ||
-                    x.OfficeDestination.Contains(input.Keyword) ||
-                    x.OfficeOrigin.Contains(input.Keyword) ||
-                    x.Stage1StatusDesc.Contains(input.Keyword) ||
-                    x.Stage2StatusDesc.Contains(input.Keyword) ||
-                    x.Stage3StatusDesc.Contains(input.Keyword) ||
-                    x.Stage4StatusDesc.Contains(input.Keyword) ||
-                    x.Stage5StatusDesc.Contains(input.Keyword) ||
-                    x.Stage6StatusDesc.Contains(input.Keyword) ||
-                    x.Stage7StatusDesc.Contains(input.Keyword) ||
-                    x.Stage8StatusDesc.Contains(input.Keyword) ||
-                    x.Stage9StatusDesc.Contains(input.Keyword) ||
-                    x.StatusAPI.Contains(input.Keyword) ||
-                    x.CountryOfLoading.Contains(input.Keyword) ||
-                    x.PostManifestMsg.Contains(input.Keyword) ||
-                    x.PostDeclarationMsg.Contains(input.Keyword) ||
-                    x.AirwayBLNo.Contains(input.Keyword) ||
-                    x.BRCN38RequestId.Contains(input.Keyword) ||
-                    x.CORateOptionId.Contains(input.Keyword) ||
-                    x.PaymentMode.Contains(input.Keyword) ||
-                    x.CurrencyId.Contains(input.Keyword));
-        }
-
-
-        public async Task<GetPostCheck> GetPostCheckAsync(string dispatchNo)
-        {
-            var dispatch = await Repository.FirstOrDefaultAsync(x => x.DispatchNo.Equals(dispatchNo)) ?? throw new UserFriendlyException("Dispatch Not Found.");
-
-            var customer = await _customerRepository.FirstOrDefaultAsync(x => x.Code.Equals(dispatch.CustomerCode)) ?? throw new UserFriendlyException("Customer Not Found.");
-
-            var bags = await _bagRepository.GetAllListAsync(x => x.DispatchId.Equals(dispatch.Id)) ?? throw new UserFriendlyException("No Bags Found.");
-
-            return new GetPostCheck()
-            {
-                CompanyName = customer.CompanyName ?? "",
-                CompanyCode = customer.Code ?? "",
-                DispatchNo = dispatchNo ?? "",
-                FlightTrucking = dispatch.FlightTrucking ?? "",
-                ETA = dispatch.ETAtoHKG ?? DateOnly.FromDateTime(DateTime.Now),
-                ATA = dispatch.ATA ?? DateTime.MinValue,
-                PreCheckNoOfBag = dispatch.NoofBag ?? 0,
-                PostCheckNoOfBag = dispatch.PostCheckTotalBags ?? 0,
-                PreCheckWeight = dispatch.TotalWeight ?? Convert.ToDecimal(0),
-                PostCheckWeight = dispatch.PostCheckTotalWeight ?? Convert.ToDecimal(0),
-                Bags = bags ?? []
-            };
-        }
+        public readonly IRepository<WeightAdjustment, int> _weightAdjustmentRepository = weightAdjustmentRepository;
+        public readonly IRepository<Refund, int> _refundRepository = refundRepository;
 
         private async Task<DataTable> ConvertToDatatable(Stream ms)
         {
@@ -167,16 +116,79 @@ namespace SND.SMP.Dispatches
             };
         }
 
+
+        protected override IQueryable<Dispatch> CreateFilteredQuery(PagedDispatchResultRequestDto input)
+        {
+            return Repository.GetAllIncluding()
+                .WhereIf(!input.Keyword.IsNullOrWhiteSpace(), x =>
+                    x.CustomerCode.Contains(input.Keyword) ||
+                    x.POBox.Contains(input.Keyword) ||
+                    x.PPI.Contains(input.Keyword) ||
+                    x.PostalCode.Contains(input.Keyword) ||
+                    x.ServiceCode.Contains(input.Keyword) ||
+                    x.ProductCode.Contains(input.Keyword) ||
+                    x.DispatchNo.Contains(input.Keyword) ||
+                    x.FlightTrucking.Contains(input.Keyword) ||
+                    x.BatchId.Contains(input.Keyword) ||
+                    x.CN38.Contains(input.Keyword) ||
+                    x.Remark.Contains(input.Keyword) ||
+                    x.AirlineCode.Contains(input.Keyword) ||
+                    x.FlightNo.Contains(input.Keyword) ||
+                    x.PortDeparture.Contains(input.Keyword) ||
+                    x.ExtDispatchNo.Contains(input.Keyword) ||
+                    x.AirportTranshipment.Contains(input.Keyword) ||
+                    x.OfficeDestination.Contains(input.Keyword) ||
+                    x.OfficeOrigin.Contains(input.Keyword) ||
+                    x.Stage1StatusDesc.Contains(input.Keyword) ||
+                    x.Stage2StatusDesc.Contains(input.Keyword) ||
+                    x.Stage3StatusDesc.Contains(input.Keyword) ||
+                    x.Stage4StatusDesc.Contains(input.Keyword) ||
+                    x.Stage5StatusDesc.Contains(input.Keyword) ||
+                    x.Stage6StatusDesc.Contains(input.Keyword) ||
+                    x.Stage7StatusDesc.Contains(input.Keyword) ||
+                    x.Stage8StatusDesc.Contains(input.Keyword) ||
+                    x.Stage9StatusDesc.Contains(input.Keyword) ||
+                    x.StatusAPI.Contains(input.Keyword) ||
+                    x.CountryOfLoading.Contains(input.Keyword) ||
+                    x.PostManifestMsg.Contains(input.Keyword) ||
+                    x.PostDeclarationMsg.Contains(input.Keyword) ||
+                    x.AirwayBLNo.Contains(input.Keyword) ||
+                    x.BRCN38RequestId.Contains(input.Keyword) ||
+                    x.CORateOptionId.Contains(input.Keyword) ||
+                    x.PaymentMode.Contains(input.Keyword) ||
+                    x.CurrencyId.Contains(input.Keyword));
+        }
+
+        public async Task<GetPostCheck> GetPostCheckAsync(string dispatchNo)
+        {
+            var dispatch = await Repository.FirstOrDefaultAsync(x => x.DispatchNo.Equals(dispatchNo)) ?? throw new UserFriendlyException("Dispatch Not Found.");
+
+            var customer = await _customerRepository.FirstOrDefaultAsync(x => x.Code.Equals(dispatch.CustomerCode)) ?? throw new UserFriendlyException("Customer Not Found.");
+
+            var bags = await _bagRepository.GetAllListAsync(x => x.DispatchId.Equals(dispatch.Id)) ?? throw new UserFriendlyException("No Bags Found.");
+
+            return new GetPostCheck()
+            {
+                CompanyName = customer.CompanyName ?? "",
+                CompanyCode = customer.Code ?? "",
+                DispatchNo = dispatchNo ?? "",
+                FlightTrucking = dispatch.FlightTrucking ?? "",
+                ETA = dispatch.ETAtoHKG ?? DateOnly.FromDateTime(DateTime.Now),
+                ATA = dispatch.ATA ?? DateTime.MinValue,
+                PreCheckNoOfBag = dispatch.NoofBag ?? 0,
+                PostCheckNoOfBag = dispatch.PostCheckTotalBags ?? 0,
+                PreCheckWeight = dispatch.TotalWeight ?? Convert.ToDecimal(0),
+                PostCheckWeight = dispatch.PostCheckTotalWeight ?? Convert.ToDecimal(0),
+                Bags = bags ?? []
+            };
+        }
+
         public async Task<bool> UndoPostCheck(string dispatchNo)
         {
             var dispatch = await _dispatchRepository.FirstOrDefaultAsync(x => x.DispatchNo.Equals(dispatchNo)) ?? throw new UserFriendlyException("No Dispatch Found");
-
             var customer = await _customerRepository.FirstOrDefaultAsync(x => x.Code.Equals(dispatch.CustomerCode)) ?? throw new UserFriendlyException("No Customer Found");
-
             var customerPostal = await _customerPostalRepository.FirstOrDefaultAsync(x => x.AccountNo.Equals(customer.Id) && x.Postal.Equals(dispatch.PostalCode)) ?? throw new UserFriendlyException("No Customer Postal Found with this Customer and Postal Code");
-
             var rate = await _rateRepository.FirstOrDefaultAsync(x => x.Id.Equals(customerPostal.Rate)) ?? throw new UserFriendlyException("No Rate Found");
-
             var rateItem = await _rateItemRepository.FirstOrDefaultAsync(x => x.Id.Equals(customerPostal.Rate) && x.ServiceCode.Equals(dispatch.ServiceCode));
 
             dispatch.Status = 1;
@@ -198,23 +210,24 @@ namespace SND.SMP.Dispatches
                 item.DateStage2 = DateTime.MinValue;
             }
 
-            var wa = db.WeightAdjustments
-                .Where(u => u.ReferenceNo == dispatch.DispatchNo)
-                .Where(u => u.Description.Contains("Under Declare"))
-                .Where(u => u.InvoiceID == null)
-                .FirstOrDefault();
+            var wa = await _weightAdjustmentRepository.FirstOrDefaultAsync(x =>
+                                         x.ReferenceNo.Equals(dispatch.DispatchNo) &&
+                                         x.Description.Contains("Under Declare") &&
+                                        !x.InvoiceId.Equals(null)
+                                ) ?? throw new UserFriendlyException("No Weight Adjustment Record Found");
 
-            if (wa is not null)
-            {
-                decimal refundAmount = wa.Amount.Equals(null) ? 0 : wa.Amount.Value;
+            decimal refundAmount = wa.Amount.Equals(null) ? 0 : wa.Amount;
 
-                var wallet = await _walletRepository.FirstOrDefaultAsync(x => x.Customer.Equals(customer.Code) && x.Currency.Equals(rateItem.CurrencyId));
-                wallet.Balance += refundAmount;
-                await _walletRepository.UpdateAsync(wallet);
-                await _walletRepository.GetDbContext().SaveChangesAsync();
+            wa.InvoiceId = 0;
+            wa.Description = $"Undid Post Check for Dispatch {dispatchNo}";
 
-                db.WeightAdjustments.Remove(wa);
-            }
+            await _weightAdjustmentRepository.UpdateAsync(wa);
+            await _weightAdjustmentRepository.GetDbContext().SaveChangesAsync();
+
+            var wallet = await _walletRepository.FirstOrDefaultAsync(x => x.Customer.Equals(customer.Code) && x.Currency.Equals(rateItem.CurrencyId));
+            wallet.Balance += refundAmount;
+            await _walletRepository.UpdateAsync(wallet);
+            await _walletRepository.GetDbContext().SaveChangesAsync();
 
             return true;
         }
@@ -276,12 +289,12 @@ namespace SND.SMP.Dispatches
                 if (missingBags is not null)
                 {
                     decimal totalRefund = 0;
-                    decimal? missingWeight = 0;
+                    decimal missingWeight = 0;
                     var itemsUnderCurrenctDispatch = await _itemRepository.GetAllListAsync(u => u.DispatchID.Equals(dispatchId));
 
                     foreach (var missingBag in missingBags)
                     {
-                        missingWeight = missingBag.WeightVariance;
+                        missingWeight = missingBag.WeightVariance.Value;
 
                         var missingItems = itemsUnderCurrenctDispatch.Where(x => x.BagNo.Equals(missingBag.BagNo)).ToList();
                         if (missingItems is not null)
@@ -295,15 +308,16 @@ namespace SND.SMP.Dispatches
 
                     if (totalRefund > 0)
                     {
-                        // db.Refund.Add(new Refund()
-                        // {
-                        //     Amount = totalRefund,
-                        //     DateTime = DateTime.UtcNow,
-                        //     Description = PTS.Services.Common.SystemHelper.PostCheck + " Over Declare",
-                        //     ReferenceNo = dispatch.DispatchNo,
-                        //     UserId = customer.UserId,
-                        //     Weight = missingWeight
-                        // });
+                        await _refundRepository.InsertAsync(new Refund()
+                        {
+                            Amount = totalRefund,
+                            DateTime = DateTime.UtcNow,
+                            Description = "Post Check Over Declare",
+                            ReferenceNo = dispatch.DispatchNo,
+                            UserId = 0,
+                            Weight = missingWeight
+                        });
+                        await _refundRepository.GetDbContext().SaveChangesAsync();
 
                         var wallet = await _walletRepository.FirstOrDefaultAsync(x => x.Customer.Equals(customer.Code) && x.Currency.Equals(rateItem.CurrencyId));
                         wallet.Balance += totalRefund;
@@ -355,15 +369,16 @@ namespace SND.SMP.Dispatches
 
                     if (totalSurchargePrice > 0)
                     {
-                        // db.WeightAdjustment.Add(new WeightAdjustment()
-                        // {
-                        //     Amount = totalSurchargePrice,
-                        //     DateTime = DateTime.UtcNow,
-                        //     Description = PTS.Services.Common.SystemHelper.PostCheck + " Under Declare",
-                        //     ReferenceNo = dispatch.DispatchNo,
-                        //     UserId = customer.UserId,
-                        //     Weight = totalSurchargeWeight
-                        // });
+                        await _weightAdjustmentRepository.InsertAsync(new WeightAdjustment()
+                        {
+                            Amount = totalSurchargePrice,
+                            DateTime = DateTime.UtcNow,
+                            Description = "Post Check Under Declare",
+                            ReferenceNo = dispatch.DispatchNo,
+                            UserId = 0,
+                            Weight = totalSurchargeWeight
+                        });
+                        await _weightAdjustmentRepository.GetDbContext().SaveChangesAsync();
 
                         var wallet = await _walletRepository.FirstOrDefaultAsync(x => x.Customer.Equals(customer.Code) && x.Currency.Equals(rateItem.CurrencyId));
                         wallet.Balance -= totalSurchargePrice;
@@ -374,15 +389,16 @@ namespace SND.SMP.Dispatches
 
                     if (totalRefundPrice < 0)
                     {
-                        // db.WeightAdjustment.Add(new WeightAdjustment()
-                        // {
-                        //     Amount = totalRefundPrice * (-1),
-                        //     DateTime = DateTime.UtcNow,
-                        //     Description = PTS.Services.Common.SystemHelper.PostCheck + " Over Declare",
-                        //     ReferenceNo = dispatch.DispatchNo,
-                        //     UserId = customer.UserId,
-                        //     Weight = totalRefundWeight
-                        // });
+                        await _weightAdjustmentRepository.InsertAsync(new WeightAdjustment()
+                        {
+                            Amount = totalRefundPrice * (-1),
+                            DateTime = DateTime.UtcNow,
+                            Description = "Post Check Over Declare",
+                            ReferenceNo = dispatch.DispatchNo,
+                            UserId = 0,
+                            Weight = totalRefundWeight
+                        });
+                        await _weightAdjustmentRepository.GetDbContext().SaveChangesAsync();
 
                         var wallet = await _walletRepository.FirstOrDefaultAsync(x => x.Customer.Equals(customer.Code) && x.Currency.Equals(rateItem.CurrencyId));
                         wallet.Balance -= totalRefundPrice;
@@ -474,15 +490,16 @@ namespace SND.SMP.Dispatches
 
             if (totalSurchargePrice > 0)
             {
-                // db.WeightAdjustment.Add(new WeightAdjustment()
-                // {
-                //     Amount = totalSurchargePrice,
-                //     DateTime = DateTime.UtcNow,
-                //     Description = PTS.Services.Common.SystemHelper.PostCheck + " Under Declare",
-                //     ReferenceNo = dispatch.DispatchNo,
-                //     UserId = customer.UserId,
-                //     Weight = totalSurchargeWeight
-                // });
+                await _weightAdjustmentRepository.InsertAsync(new WeightAdjustment()
+                {
+                    Amount = totalSurchargePrice,
+                    DateTime = DateTime.UtcNow,
+                    Description = "Post Check Under Declare",
+                    ReferenceNo = dispatch.DispatchNo,
+                    UserId = 0,
+                    Weight = totalSurchargeWeight
+                });
+                await _weightAdjustmentRepository.GetDbContext().SaveChangesAsync();
 
                 var wallet = await _walletRepository.FirstOrDefaultAsync(x => x.Customer.Equals(customer.Code) && x.Currency.Equals(rateItem.CurrencyId));
                 wallet.Balance -= totalSurchargePrice;
@@ -492,15 +509,16 @@ namespace SND.SMP.Dispatches
 
             if (totalRefundPrice < 0)
             {
-                // db.WeightAdjustment.Add(new WeightAdjustment()
-                // {
-                //     Amount = totalRefundPrice * (-1),
-                //     DateTime = DateTime.UtcNow,
-                //     Description = PTS.Services.Common.SystemHelper.PostCheck + " Over Declare",
-                //     ReferenceNo = dispatch.DispatchNo,
-                //     UserId = customer.UserId,
-                //     Weight = totalRefundWeight
-                // });
+                await _weightAdjustmentRepository.InsertAsync(new WeightAdjustment()
+                {
+                    Amount = totalRefundPrice * (-1),
+                    DateTime = DateTime.UtcNow,
+                    Description = "Post Check Over Declare",
+                    ReferenceNo = dispatch.DispatchNo,
+                    UserId = 0,
+                    Weight = totalRefundWeight
+                });
+                await _weightAdjustmentRepository.GetDbContext().SaveChangesAsync();
 
                 var wallet = await _walletRepository.FirstOrDefaultAsync(x => x.Customer.Equals(customer.Code) && x.Currency.Equals(rateItem.CurrencyId));
                 wallet.Balance -= totalRefundPrice;
@@ -584,12 +602,12 @@ namespace SND.SMP.Dispatches
             if (missingBags is not null)
             {
                 decimal totalRefund = 0;
-                decimal? missingWeight = 0;
+                decimal missingWeight = 0;
                 var itemsUnderCurrenctDispatch = await _itemRepository.GetAllListAsync(u => u.DispatchID.Equals(dispatch.Id));
 
                 foreach (var missingBag in missingBags)
                 {
-                    missingWeight = missingBag.WeightVariance;
+                    missingWeight = missingBag.WeightVariance.Value;
 
                     var missingItems = itemsUnderCurrenctDispatch.Where(x => x.BagNo.Equals(missingBag.BagNo)).ToList();
                     if (missingItems is not null)
@@ -603,15 +621,16 @@ namespace SND.SMP.Dispatches
 
                 if (totalRefund > 0)
                 {
-                    // db.Refund.Add(new Refund()
-                    // {
-                    //     Amount = totalRefund,
-                    //     DateTime = DateTime.UtcNow,
-                    //     Description = PTS.Services.Common.SystemHelper.PostCheck + " Over Declare",
-                    //     ReferenceNo = dispatch.DispatchNo,
-                    //     UserId = customer.UserId,
-                    //     Weight = missingWeight
-                    // });
+                    await _refundRepository.InsertAsync(new Refund()
+                    {
+                        Amount = totalRefund,
+                        DateTime = DateTime.UtcNow,
+                        Description = "Post Check Over Declare",
+                        ReferenceNo = dispatch.DispatchNo,
+                        UserId = 0,
+                        Weight = missingWeight
+                    });
+                    await _refundRepository.GetDbContext().SaveChangesAsync();
 
                     var wallet = await _walletRepository.FirstOrDefaultAsync(x => x.Customer.Equals(customer.Code) && x.Currency.Equals(rateItem.CurrencyId));
                     wallet.Balance += totalRefund;
@@ -662,15 +681,16 @@ namespace SND.SMP.Dispatches
 
                 if (totalSurchargePrice > 0)
                 {
-                    // db.WeightAdjustment.Add(new WeightAdjustment()
-                    // {
-                    //     Amount = totalSurchargePrice,
-                    //     DateTime = DateTime.UtcNow,
-                    //     Description = PTS.Services.Common.SystemHelper.PostCheck + " Under Declare",
-                    //     ReferenceNo = dispatch.DispatchNo,
-                    //     UserId = customer.UserId,
-                    //     Weight = totalSurchargeWeight
-                    // });
+                    await _weightAdjustmentRepository.InsertAsync(new WeightAdjustment()
+                    {
+                        Amount = totalSurchargePrice,
+                        DateTime = DateTime.UtcNow,
+                        Description = "Post Check Under Declare",
+                        ReferenceNo = dispatch.DispatchNo,
+                        UserId = 0,
+                        Weight = totalSurchargeWeight
+                    });
+                    await _weightAdjustmentRepository.GetDbContext().SaveChangesAsync();
 
                     var wallet = await _walletRepository.FirstOrDefaultAsync(x => x.Customer.Equals(customer.Code) && x.Currency.Equals(rateItem.CurrencyId));
                     wallet.Balance -= totalSurchargePrice;
@@ -681,15 +701,16 @@ namespace SND.SMP.Dispatches
 
                 if (totalRefundPrice < 0)
                 {
-                    // db.WeightAdjustment.Add(new WeightAdjustment()
-                    // {
-                    //     Amount = totalRefundPrice * (-1),
-                    //     DateTime = DateTime.UtcNow,
-                    //     Description = PTS.Services.Common.SystemHelper.PostCheck + " Over Declare",
-                    //     ReferenceNo = dispatch.DispatchNo,
-                    //     UserId = customer.UserId,
-                    //     Weight = totalRefundWeight
-                    // });
+                    await _weightAdjustmentRepository.InsertAsync(new WeightAdjustment()
+                    {
+                        Amount = totalRefundPrice * (-1),
+                        DateTime = DateTime.UtcNow,
+                        Description = "Post Check Over Declare",
+                        ReferenceNo = dispatch.DispatchNo,
+                        UserId = 0,
+                        Weight = totalRefundWeight
+                    });
+                    await _weightAdjustmentRepository.GetDbContext().SaveChangesAsync();
 
                     var wallet = await _walletRepository.FirstOrDefaultAsync(x => x.Customer.Equals(customer.Code) && x.Currency.Equals(rateItem.CurrencyId));
                     wallet.Balance -= totalRefundPrice;
