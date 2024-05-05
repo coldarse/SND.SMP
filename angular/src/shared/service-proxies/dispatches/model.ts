@@ -157,3 +157,20 @@ export interface GetPostCheck {
     postCheckWeight: number;
     bags: BagDto[];
 }
+
+export interface DispatchInfoDto {
+    customerName: string;
+    customerCode: string;
+    postalCode: string;
+    postalDesc: string;   
+    dispatchDate: string; 
+    dispatchNo: string;   
+    serviceCode: string;  
+    serviceDesc: string; 
+    productCode: string;  
+    productDesc: string;  
+    totalBags: number;     
+    totalWeight: number;   
+    totalCountry: number; 
+    status: string;       
+}

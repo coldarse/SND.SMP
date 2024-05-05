@@ -2,7 +2,7 @@ import { Component, Injector, Input } from '@angular/core';
 import { PagedListingComponentBase, PagedRequestDto, PagedResultDto } from '@shared/paged-listing-component-base';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { finalize } from 'rxjs/operators';
-import { DispatchDto } from '@shared/service-proxies/dispatches/model'
+import { DispatchDto, DispatchInfoDto } from '@shared/service-proxies/dispatches/model'
 import { DispatchService } from '@shared/service-proxies/dispatches/dispatch.service'
 import { CreateUpdateDispatchComponent } from '../dispatches/create-update-dispatch/create-update-dispatch.component'
 import { Router } from '@angular/router';
@@ -120,7 +120,7 @@ export class DispatchesComponent extends PagedListingComponentBase<DispatchDto> 
     request.maxResultCount = this.maxItems;
 
     this._dispatchService
-    .getAll(
+    .getDispatchInfoListPaged(
       request
     ).pipe(
       finalize(() => {
@@ -129,88 +129,23 @@ export class DispatchesComponent extends PagedListingComponentBase<DispatchDto> 
     )
     .subscribe((result: any) => {
       this.dispatches = [];
-        result.result.items.forEach((element: DispatchDto) => {
+        result.result.items.forEach((element: DispatchInfoDto) => {
 
           let tempDispatch = {
-            id: element.id,
-            customerCode                    : element.customerCode                    ,
-            pOBox                           : element.pOBox                           ,
-            pPI                             : element.pPI                             ,
-            postalCode                      : element.postalCode                      ,
-            serviceCode                     : element.serviceCode                     ,
-            productCode                     : element.productCode                     ,
-            dispatchDate                    : element.dispatchDate                    ,
-            dispatchNo                      : element.dispatchNo                      ,
-            eTAtoHKG                        : element.eTAtoHKG                        ,
-            flightTrucking                  : element.flightTrucking                  ,
-            batchId                         : element.batchId                         ,
-            isPayment                       : element.isPayment                       ,
-            noofBag                         : element.noofBag                         ,
-            itemCount                       : element.itemCount                       ,
-            totalWeight                     : element.totalWeight                     ,
-            totalPrice                      : element.totalPrice                      ,
-            status                          : element.status                          ,
-            isActive                        : element.isActive                        ,
-            cN38                            : element.cN38                            ,
-            transactionDateTime             : element.transactionDateTime             ,
-            aTA                             : element.aTA                             ,
-            postCheckTotalBags              : element.postCheckTotalBags              ,
-            postCheckTotalWeight            : element.postCheckTotalWeight            ,
-            airportHandling                 : element.airportHandling                 ,
-            remark                          : element.remark                          ,
-            weightGap                       : element.weightGap                       ,
-            weightAveraged                  : element.weightAveraged                  ,
-            dateSOAProcessCompleted         : element.dateSOAProcessCompleted         ,
-            sOAProcessCompletedByID         : element.sOAProcessCompletedByID         ,
-            totalWeightSOA                  : element.totalWeightSOA                  ,
-            totalAmountSOA                  : element.totalAmountSOA                  ,
-            performanceDaysDiff             : element.performanceDaysDiff             ,
-            datePerformanceDaysDiff         : element.datePerformanceDaysDiff         ,
-            airlineCode                     : element.airlineCode                     ,
-            flightNo                        : element.flightNo                        ,
-            portDeparture                   : element.portDeparture                   ,
-            extDispatchNo                   : element.extDispatchNo                   ,
-            dateFlight                      : element.dateFlight                      ,
-            airportTranshipment             : element.airportTranshipment             ,
-            officeDestination               : element.officeDestination               ,
-            officeOrigin                    : element.officeOrigin                    ,
-            stage1StatusDesc                : element.stage1StatusDesc                ,
-            stage2StatusDesc                : element.stage2StatusDesc                ,
-            stage3StatusDesc                : element.stage3StatusDesc                ,
-            stage4StatusDesc                : element.stage4StatusDesc                ,
-            stage5StatusDesc                : element.stage5StatusDesc                ,
-            stage6StatusDesc                : element.stage6StatusDesc                ,
-            stage7StatusDesc                : element.stage7StatusDesc                ,
-            stage8StatusDesc                : element.stage8StatusDesc                ,
-            stage9StatusDesc                : element.stage9StatusDesc                ,
-            dateStartedAPI                  : element.dateStartedAPI                  ,
-            dateEndedAPI                    : element.dateEndedAPI                    ,
-            statusAPI                       : element.statusAPI                       ,
-            countryOfLoading                : element.countryOfLoading                ,
-            dateFlightArrival               : element.dateFlightArrival               ,
-            postManifestSuccess             : element.postManifestSuccess             ,
-            postManifestMsg                 : element.postManifestMsg                 ,
-            postManifestDate                : element.postManifestDate                ,
-            postDeclarationSuccess          : element.postDeclarationSuccess          ,
-            postDeclarationMsg              : element.postDeclarationMsg              ,
-            postDeclarationDate             : element.postDeclarationDate             ,
-            airwayBLNo                      : element.airwayBLNo                      ,
-            airwayBLDate                    : element.airwayBLDate                    ,
-            dateLocalDelivery               : element.dateLocalDelivery               ,
-            dateCLStage1Submitted           : element.dateCLStage1Submitted           ,
-            dateCLStage2Submitted           : element.dateCLStage2Submitted           ,
-            dateCLStage3Submitted           : element.dateCLStage3Submitted           ,
-            dateCLStage4Submitted           : element.dateCLStage4Submitted           ,
-            dateCLStage5Submitted           : element.dateCLStage5Submitted           ,
-            dateCLStage6Submitted           : element.dateCLStage6Submitted           ,
-            bRCN38RequestId                 : element.bRCN38RequestId                 ,
-            dateArrival                     : element.dateArrival                     ,
-            dateAcceptanceScanning          : element.dateAcceptanceScanning          ,
-            seqNo                           : element.seqNo                           ,
-            cORateOptionId                  : element.cORateOptionId                  ,
-            paymentMode                     : element.paymentMode                     ,
-            currencyId                      : element.currencyId                      ,
-            importProgress                  : element.importProgress                  ,
+            customerName: element.customerName,
+            customerCode: element.customerCode,
+            postalCode: element.postalCode,
+            postalDesc: element.postalDesc,
+            dispatchDate: element.dispatchDate,
+            dispatchNo: element.dispatchNo, 
+            serviceCode: element.serviceCode,
+            serviceDesc: element.serviceDesc,
+            productCode: element.productCode,
+            productDesc: element.productDesc,  
+            totalBags: element.totalBags,   
+            totalWeight: element.totalWeight,  
+            totalCountry: element.totalCountry,
+            status: element.status,  
           }
 
           this.dispatches.push(tempDispatch);

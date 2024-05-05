@@ -26,6 +26,8 @@ using System.Data;
 using System.IO;
 using SND.SMP.WeightAdjustments;
 using SND.SMP.Refunds;
+using Abp.Application.Services.Dto;
+using SND.SMP.Postals;
 
 namespace SND.SMP.Dispatches
 {
@@ -40,7 +42,8 @@ namespace SND.SMP.Dispatches
         IRepository<Wallet, string> walletRepository,
         IRepository<Dispatch, int> dispatchRepository,
         IRepository<WeightAdjustment, int> weightAdjustmentRepository,
-        IRepository<Refund, int> refundRepository
+        IRepository<Refund, int> refundRepository,
+        IRepository<Postal, long> postalRepository
     ) : AsyncCrudAppService<Dispatch, DispatchDto, int, PagedDispatchResultRequestDto>(repository)
     {
 
@@ -54,6 +57,7 @@ namespace SND.SMP.Dispatches
         private readonly IRepository<Dispatch, int> _dispatchRepository = dispatchRepository;
         private readonly IRepository<WeightAdjustment, int> _weightAdjustmentRepository = weightAdjustmentRepository;
         private readonly IRepository<Refund, int> _refundRepository = refundRepository;
+        private readonly IRepository<Postal, long> _postalRepository = postalRepository;
 
         private async Task<DataTable> ConvertToDatatable(Stream ms)
         {
@@ -119,7 +123,7 @@ namespace SND.SMP.Dispatches
 
         protected override IQueryable<Dispatch> CreateFilteredQuery(PagedDispatchResultRequestDto input)
         {
-            return input.isAdmin ? 
+            return input.isAdmin ?
                 Repository.GetAllIncluding()
                     .WhereIf(!input.Keyword.IsNullOrWhiteSpace(), x =>
                         x.CustomerCode.Contains(input.Keyword) ||
@@ -157,7 +161,7 @@ namespace SND.SMP.Dispatches
                         x.BRCN38RequestId.Contains(input.Keyword) ||
                         x.CORateOptionId.Contains(input.Keyword) ||
                         x.PaymentMode.Contains(input.Keyword) ||
-                        x.CurrencyId.Contains(input.Keyword)) 
+                        x.CurrencyId.Contains(input.Keyword))
                 :
                 Repository.GetAllIncluding()
                     .WhereIf(!input.Keyword.IsNullOrWhiteSpace(), x =>
@@ -762,7 +766,86 @@ namespace SND.SMP.Dispatches
             }
             return true;
         }
-    
-        
+
+        public async Task<PagedResultDto<DispatchInfoDto>> GetDispatchInfoListPaged(PagedDispatchResultRequestDto input)
+        {
+            CheckGetAllPermission();
+
+            var query = CreateFilteredQuery(input);
+
+            var totalCount = await AsyncQueryableExecuter.CountAsync(query);
+
+            query = ApplySorting(query, input);
+            query = ApplyPaging(query, input);
+
+            var entities = await AsyncQueryableExecuter.ToListAsync(query);
+
+            List<DispatchInfoDto> result = [];
+
+            foreach (var entity in entities)
+            {
+                DispatchInfoDto dispatchInfo = new();
+
+                var customer = await _customerRepository.FirstOrDefaultAsync(x => x.Code.Equals(entity.CustomerCode));
+                dispatchInfo.CustomerName = customer.CompanyName;
+                dispatchInfo.CustomerCode = customer.Code;
+
+                var postal = await _postalRepository.FirstOrDefaultAsync(x =>
+                                                        x.PostalCode.Equals(entity.PostalCode) &&
+                                                        x.ServiceCode.Equals(entity.ServiceCode) &&
+                                                        x.ProductCode.Equals(entity.ProductCode)
+                                                    );
+
+                dispatchInfo.PostalCode = postal.PostalCode;
+                dispatchInfo.PostalDesc = postal.PostalDesc;
+
+                dispatchInfo.ServiceCode = postal.ServiceCode;
+                dispatchInfo.ServiceDesc = postal.ServiceDesc;
+
+                dispatchInfo.ProductCode = postal.ProductCode;
+                dispatchInfo.ProductDesc = postal.ProductDesc;
+
+                dispatchInfo.DispatchDate = entity.DispatchDate;
+                dispatchInfo.DispatchNo = entity.DispatchNo;
+
+                dispatchInfo.TotalBags = entity.NoofBag;
+                dispatchInfo.TotalWeight = entity.TotalWeight;
+
+                var bags = await _bagRepository.GetAllListAsync(x => x.DispatchId.Equals(entity.Id));
+                dispatchInfo.TotalCountry = bags.GroupBy(x => x.CountryCode).Count();
+
+                int status = (int)entity.Status;
+                switch (status)
+                {
+                    case 1:
+                        dispatchInfo.Status = "Upload Completed";
+                        break;
+                    case 2:
+                        dispatchInfo.Status = "Post Check";
+                        break;
+                    case 3:
+                        dispatchInfo.Status = "CN35 Completed";
+                        break;
+                    case 4:
+                        dispatchInfo.Status = "Leg 1 Completed";
+                        break;
+                    case 5:
+                        dispatchInfo.Status = "Leg 2 Completed";
+                        break;
+                    case 6:
+                        dispatchInfo.Status = "Arrived At Destination";
+                        break;
+                }
+
+                result.Add(dispatchInfo);
+
+            }
+
+
+            return new PagedResultDto<DispatchInfoDto>(
+                totalCount,
+                result
+            );
+        }
     }
 }

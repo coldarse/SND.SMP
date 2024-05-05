@@ -204,7 +204,7 @@ import { PostChecksComponent } from "./post-checks/post-checks.component";
     HttpClientModule,
     HttpClientJsonpModule,
     ModalModule.forChild(),
-    BsDropdownModule,
+    BsDropdownModule.forRoot(),
     CollapseModule,
     TabsModule,
     AppRoutingModule,
