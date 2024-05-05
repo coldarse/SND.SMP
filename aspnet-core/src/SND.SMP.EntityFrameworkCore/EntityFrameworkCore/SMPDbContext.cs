@@ -4,6 +4,7 @@ using SND.SMP.Authorization.Roles;
 using SND.SMP.Authorization.Users;
 using SND.SMP.MultiTenancy;
 /* Using Definition */
+using SND.SMP.IMPCS;
 using SND.SMP.Refunds;
 using SND.SMP.WeightAdjustments;
 using SND.SMP.ApplicationSettings;
@@ -54,6 +55,7 @@ namespace SND.SMP.EntityFrameworkCore
         public DbSet<ApplicationSetting> ApplicationSettings { get; set; }
         public DbSet<WeightAdjustment> WeightAdjustments { get; set; }
         public DbSet<Refund> Refunds { get; set; }
+        public DbSet<IMPC> IMPCS { get; set; }
         /* Define a DbSet for each entity of the application */
 
         public SMPDbContext(DbContextOptions<SMPDbContext> options)
@@ -66,6 +68,17 @@ namespace SND.SMP.EntityFrameworkCore
             base.OnModelCreating(builder);
 
             /* Define Tables */
+            builder.Entity<IMPC>(b =>
+            {
+                b.ToTable(SMPConsts.DbTablePrefix + "IMPCS");
+                b.Property(x => x.Type).HasColumnName(nameof(IMPC.Type)).HasMaxLength(100);
+                b.Property(x => x.CountryCode).HasColumnName(nameof(IMPC.CountryCode)).HasMaxLength(10);
+                b.Property(x => x.AirportCode).HasColumnName(nameof(IMPC.AirportCode)).HasMaxLength(20);
+                b.Property(x => x.IMPCCode).HasColumnName(nameof(IMPC.IMPCCode)).HasMaxLength(20);
+                b.Property(x => x.LogisticCode).HasColumnName(nameof(IMPC.LogisticCode)).HasMaxLength(20);
+                b.HasKey(x => x.Id);
+            });
+
             builder.Entity<Refund>(b =>
             {
                 b.ToTable(SMPConsts.DbTablePrefix + "Refunds");

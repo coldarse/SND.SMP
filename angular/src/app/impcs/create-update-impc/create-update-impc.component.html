@@ -1,0 +1,123 @@
+<form
+    class='form-horizontal'
+    autocomplete='off'
+    #createIMPCModal='ngForm'
+    (ngSubmit)='save()'
+>
+    <abp-modal-header
+        [title]='isCreate == true? ("Add IMPC" | localize) : ("Edit IMPC" | localize)'
+        (onCloseClick)='bsModalRef.hide()'
+    ></abp-modal-header>
+    <div class='modal-body'>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='type'>
+            {{ 'Type' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='text'
+                class='form-control'
+                name='type'
+                id='type'
+                required
+                [(ngModel)]='impc.type'
+                #typeModel='ngModel'
+                #typeEl
+            />
+            <abp-validation-summary
+                [control]='typeModel'
+                [controlEl]='typeEl'
+            ></abp-validation-summary>
+            </div>
+        </div>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='countryCode'>
+            {{ 'CountryCode' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='text'
+                class='form-control'
+                name='countryCode'
+                id='countryCode'
+                required
+                [(ngModel)]='impc.countryCode'
+                #countryCodeModel='ngModel'
+                #countryCodeEl
+            />
+            <abp-validation-summary
+                [control]='countryCodeModel'
+                [controlEl]='countryCodeEl'
+            ></abp-validation-summary>
+            </div>
+        </div>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='airportCode'>
+            {{ 'AirportCode' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='text'
+                class='form-control'
+                name='airportCode'
+                id='airportCode'
+                required
+                [(ngModel)]='impc.airportCode'
+                #airportCodeModel='ngModel'
+                #airportCodeEl
+            />
+            <abp-validation-summary
+                [control]='airportCodeModel'
+                [controlEl]='airportCodeEl'
+            ></abp-validation-summary>
+            </div>
+        </div>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='iMPCCode'>
+            {{ 'IMPCCode' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='text'
+                class='form-control'
+                name='iMPCCode'
+                id='iMPCCode'
+                required
+                [(ngModel)]='impc.iMPCCode'
+                #iMPCCodeModel='ngModel'
+                #iMPCCodeEl
+            />
+            <abp-validation-summary
+                [control]='iMPCCodeModel'
+                [controlEl]='iMPCCodeEl'
+            ></abp-validation-summary>
+            </div>
+        </div>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='logisticCode'>
+            {{ 'LogisticCode' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='text'
+                class='form-control'
+                name='logisticCode'
+                id='logisticCode'
+                required
+                [(ngModel)]='impc.logisticCode'
+                #logisticCodeModel='ngModel'
+                #logisticCodeEl
+            />
+            <abp-validation-summary
+                [control]='logisticCodeModel'
+                [controlEl]='logisticCodeEl'
+            ></abp-validation-summary>
+            </div>
+        </div>
+    </div>
+    <abp-modal-footer
+    [cancelDisabled]='saving'
+    [saveDisabled]='!createIMPCModal.form.valid || saving'
+    (onCancelClick)='bsModalRef.hide()'
+    ></abp-modal-footer>
+</form>

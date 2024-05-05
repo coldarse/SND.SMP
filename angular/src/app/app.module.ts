@@ -39,6 +39,10 @@ import { SidebarLogoComponent } from "./layout/sidebar-logo.component";
 import { SidebarUserPanelComponent } from "./layout/sidebar-user-panel.component";
 import { SidebarMenuComponent } from "./layout/sidebar-menu.component";
 /* Insert Import */
+import { IMPCSComponent } from './impcs/impcs.component';
+import { CreateUpdateIMPCComponent } from './impcs/create-update-impc/create-update-impc.component';
+import { IMPCService } from '@shared/service-proxies/impcs/impc.service';
+
 import { RefundsComponent } from './refunds/refunds.component';
 import { CreateUpdateRefundComponent } from './refunds/create-update-refund/create-update-refund.component';
 import { RefundService } from '@shared/service-proxies/refunds/refund.service';
@@ -154,6 +158,8 @@ import { PostChecksComponent } from "./post-checks/post-checks.component";
     SidebarUserPanelComponent,
     SidebarMenuComponent,
     /* Insert Component */
+        IMPCSComponent,
+        CreateUpdateIMPCComponent,
         RefundsComponent,
         CreateUpdateRefundComponent,
         WeightAdjustmentsComponent,
@@ -214,6 +220,7 @@ import { PostChecksComponent } from "./post-checks/post-checks.component";
   ],
   providers: [
     /* Insert Service */
+        IMPCService,
         RefundService,
         WeightAdjustmentService,
     ApplicationSettingService,

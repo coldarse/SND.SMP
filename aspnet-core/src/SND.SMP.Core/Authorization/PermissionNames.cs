@@ -10,6 +10,11 @@ namespace SND.SMP.Authorization
         public const string Pages_Roles = "Pages.Roles";
 
         /* Define your permissions here */
+        public const string Pages_IMPC = "Pages.IMPC";
+        public const string Pages_IMPC_Create = "Pages.IMPC.Create";
+        public const string Pages_IMPC_Edit = "Pages.IMPC.Edit";
+        public const string Pages_IMPC_Delete = "Pages.IMPC.Delete";
+
         public const string Pages_Refund = "Pages.Refund";
         public const string Pages_Refund_Create = "Pages.Refund.Create";
         public const string Pages_Refund_Edit = "Pages.Refund.Edit";
