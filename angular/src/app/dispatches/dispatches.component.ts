@@ -1,13 +1,17 @@
-import { Component, Injector } from '@angular/core';
+import { Component, Injector, Input } from '@angular/core';
 import { PagedListingComponentBase, PagedRequestDto, PagedResultDto } from '@shared/paged-listing-component-base';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { finalize } from 'rxjs/operators';
 import { DispatchDto } from '@shared/service-proxies/dispatches/model'
 import { DispatchService } from '@shared/service-proxies/dispatches/dispatch.service'
 import { CreateUpdateDispatchComponent } from '../dispatches/create-update-dispatch/create-update-dispatch.component'
+import { Router } from '@angular/router';
 
 class PagedDispatchesRequestDto extends PagedRequestDto{
-  keyword: string
+  keyword: string;
+  isAdmin: boolean;
+  customerCode: string;
+  sorting: string;
 }
 
 @Component({
@@ -20,8 +24,15 @@ export class DispatchesComponent extends PagedListingComponentBase<DispatchDto> 
   keyword = '';
   dispatches: any[] = [];
 
+  @Input() showPagination: boolean = true;
+  @Input() maxItems: number = 10;
+
+  isAdmin = true;
+  companyCode = "";
+
   constructor(
     injector: Injector,
+    private router: Router,
     private _dispatchService: DispatchService,
     private _modalService: BsModalService
   ){
@@ -87,12 +98,27 @@ export class DispatchesComponent extends PagedListingComponentBase<DispatchDto> 
     return this.permission.isGranted('Pages.Dispatch.' + action);
   }
 
+  rerouteToModule() {
+    this.router.navigate(["/app/dispatches"]);
+  }
+
   protected list(
     request: PagedDispatchesRequestDto,
     pageNumber: number,
     finishedCallback: Function
   ): void {
+    let admin = this.appSession
+      .getShownLoginName()
+      .replace(".\\", "")
+      .includes("admin");
+    this.isAdmin = admin;
+    this.companyCode = admin ? "" : this.appSession.getCompanyCode();
+
     request.keyword = this.keyword;
+    request.customerCode = this.companyCode;
+    request.isAdmin = this.isAdmin;
+    request.maxResultCount = this.maxItems;
+
     this._dispatchService
     .getAll(
       request
@@ -189,7 +215,7 @@ export class DispatchesComponent extends PagedListingComponentBase<DispatchDto> 
 
           this.dispatches.push(tempDispatch);
         });
-      this.showPaging(result.result, pageNumber);
+        if (this.showPagination) this.showPaging(result.result, pageNumber);
     });
   }
 }

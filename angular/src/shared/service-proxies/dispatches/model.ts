@@ -141,6 +141,7 @@ export interface PagedDispatchResultRequestDto extends PagedAndSortedResultReque
     cORateOptionId                  ?: string;
     paymentMode                     ?: string;
     currencyId                      ?: string;
+    isAdmin                         ?: boolean;
 }
 
 export interface GetPostCheck {

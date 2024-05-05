@@ -53,6 +53,170 @@
         </div>
         <div class="card-body">
           <div class="table-responsive">
+            @if (showPagination) {
+            <table
+              class="table table-striped table-bordered"
+            >
+              <thead class="bg-light">
+                <tr>
+                  <th>{{ "Customer                    " | localize }}</th>
+                  <th>{{ "Date Started                     " | localize }}</th>
+                  <th>{{ "Date Completed                   " | localize }}</th>
+                  <th>{{ "DispatchNo                      " | localize }}</th>
+                  <!-- <th>{{ 'FilePath                        ' | localize }}</th> -->
+                  <th>
+                    {{ "Sufficient Fund                      " | localize }}
+                  </th>
+                  <th>{{ "Valid                         " | localize }}</th>
+                  <!-- <th>{{ 'PostalCode                      ' | localize }}</th>
+                                <th>{{ 'ServiceCode                     ' | localize }}</th>
+                                <th>{{ 'ProductCode                     ' | localize }}</th> -->
+                  <th>{{ "Status                          " | localize }}</th>
+                  <th>{{ "Took In Secs                     " | localize }}</th>
+                  <th>{{ "Validation Progress              " | localize }}</th>
+                  <th>{{ "Error              " | localize }}</th>
+                  <th>{{ "Retry              " | localize }}</th>
+                  <!-- <th style='width: 310px;' *ngIf='isButtonVisible("Edit") && isButtonVisible("Delete")'>{{ 'Actions' | localize }}</th> -->
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  *ngFor="
+                    let dispatchvalidation of dispatchvalidations
+                      | paginate
+                        : {
+                            id: 'server',
+                            itemsPerPage: pageSize,
+                            currentPage: pageNumber,
+                            totalItems: totalItems
+                          }
+                  "
+                >
+                  <td>{{ dispatchvalidation.customerCode }}</td>
+                  <td>{{ dispatchvalidation.dateStarted | date : "short" }}</td>
+                  <td>
+                    {{ dispatchvalidation.dateCompleted | date : "short" }}
+                  </td>
+                  <td>
+                    <span
+                      class="badge badge-pill badge-warning"
+                      style="cursor: pointer"
+                      (click)="postCheck(dispatchvalidation.dispatchNo)"
+                      >{{ dispatchvalidation.dispatchNo }}</span
+                    >
+                  </td>
+                  <!-- <td>{{ dispatchvalidation.filePath                         }}</td> -->
+                  @if (dispatchvalidation.validationProgress == 100) {
+                  <td
+                    *ngIf="!dispatchvalidation.isFundLack"
+                    class="text-center"
+                    style="color: rgb(9, 145, 41)"
+                  >
+                    <i class="fas fa-check-circle"></i>
+                  </td>
+                  <td
+                    *ngIf="dispatchvalidation.isFundLack"
+                    class="text-center"
+                    style="color: rgb(212, 5, 5)"
+                  >
+                    <i class="fas fa-times-circle"></i>
+                  </td>
+                  } @else if (dispatchvalidation.validationProgress < 100) {
+                  <td class="text-center">-</td>
+                  }
+                  <td
+                    *ngIf="dispatchvalidation.isValid"
+                    class="text-center"
+                    style="color: rgb(9, 145, 41)"
+                  >
+                    <i class="fas fa-check-circle"></i>
+                  </td>
+                  <td
+                    *ngIf="!dispatchvalidation.isValid"
+                    class="text-center"
+                    style="color: rgb(212, 5, 5)"
+                  >
+                    <i class="fas fa-times-circle"></i>
+                  </td>
+                  <!-- <td>{{ dispatchvalidation.isFundLack                       }}</td>
+                                <td>{{ dispatchvalidation.isValid                          }}</td> -->
+                  <!-- <td>{{ dispatchvalidation.postalCode                       }}</td>
+                                <td>{{ dispatchvalidation.serviceCode                      }}</td>
+                                <td>{{ dispatchvalidation.productCode                      }}</td> -->
+                  <td>{{ dispatchvalidation.status }}</td>
+                  <td>{{ dispatchvalidation.tookInSec }}</td>
+                  <!-- <td>{{ dispatchvalidation.validationProgress }}</td> -->
+                  <td>
+                    <div class="progress">
+                      <div
+                        class="progress-bar progress-bar-striped"
+                        [class.bg-success]="
+                          dispatchvalidation.validationProgress == 100
+                        "
+                        [class.progress-bar-animated]="
+                          dispatchvalidation.validationProgress < 100
+                        "
+                        role="progressbar"
+                        aria-valuenow="dispatchvalidation.validationProgress"
+                        aria-valuemin="0"
+                        aria-valuemax="100"
+                        style="width: {{
+                          dispatchvalidation.validationProgress
+                        }}%"
+                      >
+                        {{ dispatchvalidation.validationProgress }}%
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <button
+                      class="btn btn-danger mx-auto"
+                      (click)="
+                        selectedErrorDetails(dispatchvalidation.dispatchNo)
+                      "
+                    >
+                      <i class="fa-solid fa-circle-info"></i>
+                      Details
+                    </button>
+                  </td>
+                  <td>
+                    <button
+                      class="btn btn-warning mx-auto"
+                      [disabled]="!dispatchvalidation.isFundLack"
+                      (click)="
+                        retryDispatchValidation(dispatchvalidation.filePath)
+                      "
+                    >
+                      <i class="fa-solid fa-rotate-right"></i>
+                      Retry
+                    </button>
+                  </td>
+                  <!-- <td
+                    *ngIf="isButtonVisible('Edit') || isButtonVisible('Delete')"
+                  >
+                    <button
+                      type="button"
+                      class="btn btn-sm bg-secondary"
+                      (click)="editDispatchValidation(dispatchvalidation)"
+                      *ngIf="isButtonVisible('Edit')"
+                    >
+                      <i class="fas fa-pencil-alt"></i>
+                      {{ "Edit" | localize }}
+                    </button>
+                    <button
+                      type="button"
+                      class="btn btn-sm bg-danger mx-2"
+                      (click)="delete(dispatchvalidation)"
+                      *ngIf="isButtonVisible('Delete')"
+                    >
+                      <i class="fas fa-trash"></i>
+                      {{ "Delete" | localize }}
+                    </button>
+                  </td> -->
+                </tr>
+              </tbody>
+            </table>
+            }@else {
             <table
               class="table table-striped table-bordered"
               [busy]="isTableLoading"
@@ -216,6 +380,7 @@
                 </tr>
               </tbody>
             </table>
+            }
           </div>
         </div>
         <div class="card-footer table-card-footer bg-light border-top">
@@ -226,15 +391,14 @@
               </button>
             </div>
             @if (showPagination){
-              <div class="col-sm-4 col-12 text-center">
-                <p class="mb-0 my-2">
-                  {{ "TotalRecordsCount" | localize : totalItems }}
-                </p>
-              </div>
+            <div class="col-sm-4 col-12 text-center">
+              <p class="mb-0 my-2">
+                {{ "TotalRecordsCount" | localize : totalItems }}
+              </p>
+            </div>
             } @else {
-              <div class="col-sm-4 col-12 text-center"></div>
-            }
-            @if (showPagination) {
+            <div class="col-sm-4 col-12 text-center"></div>
+            } @if (showPagination) {
             <div class="col-sm-4 col-12">
               <div class="float-sm-right m-auto">
                 <abp-pagination-controls

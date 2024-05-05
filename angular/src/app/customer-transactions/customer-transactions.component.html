@@ -144,20 +144,34 @@
                 <i class="fas fa-redo-alt"></i>
               </button>
             </div>
-            <div class="col-sm-4 col-12 text-center">
-              <p class="mb-0 my-2">
-                {{ "TotalRecordsCount" | localize : totalItems }}
-              </p>
-            </div>
-            <div class="col-sm-4 col-12">
-              <div class="float-sm-right m-auto">
-                <abp-pagination-controls
-                  id="server"
-                  (pageChange)="getDataPage($event)"
-                >
-                </abp-pagination-controls>
+            @if (showPagination){
+              <div class="col-sm-4 col-12 text-center">
+                <p class="mb-0 my-2">
+                  {{ "TotalRecordsCount" | localize : totalItems }}
+                </p>
               </div>
-            </div>
+              } @else {
+              <div class="col-sm-4 col-12 text-center"></div>
+              } @if (showPagination) {
+              <div class="col-sm-4 col-12">
+                <div class="float-sm-right m-auto">
+                  <abp-pagination-controls
+                    id="server"
+                    (pageChange)="getDataPage($event)"
+                  >
+                  </abp-pagination-controls>
+                </div>
+              </div>
+              } @else if (!showPagination) {
+              <div class="col-sm-4 col-12">
+                <div class="float-sm-right m-auto">
+                  <button class="btn btn-info" (click)="rerouteToModule()">
+                    <i class="far fa-file-alt"></i>
+                    Show More
+                  </button>
+                </div>
+              </div>
+              }
           </div>
         </div>
       </div>

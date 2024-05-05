@@ -9,6 +9,7 @@ import { finalize } from "rxjs/operators";
 import { CustomerTransactionDto } from "@shared/service-proxies/customer-transactions/model";
 import { CustomerTransactionService } from "@shared/service-proxies/customer-transactions/customer-transaction.service";
 import { CreateUpdateCustomerTransactionComponent } from "./create-update-customer-transaction/create-update-customer-transaction.component";
+import { Router } from "@angular/router";
 
 class PagedCustomerTransactionsRequestDto extends PagedRequestDto {
   keyword: string;
@@ -29,9 +30,12 @@ export class CustomerTransactionsComponent extends PagedListingComponentBase<Cus
   companyCode = "";
 
   @Input() showHeader: boolean = true;
+  @Input() showPagination: boolean = true;
+  @Input() maxItems: number = 10;
 
   constructor(
     injector: Injector,
+    private router: Router,
     private _customerTransactionService: CustomerTransactionService,
     private _modalService: BsModalService
   ) {
@@ -44,6 +48,10 @@ export class CustomerTransactionsComponent extends PagedListingComponentBase<Cus
 
   editCustomerTransaction(entity: CustomerTransactionDto) {
     this.showCreateOrEditCustomerTransactionDialog(entity);
+  }
+
+  rerouteToModule() {
+    this.router.navigate(["/app/customer-transactions"]);
   }
 
   private showCreateOrEditCustomerTransactionDialog(
@@ -114,6 +122,7 @@ export class CustomerTransactionsComponent extends PagedListingComponentBase<Cus
     request.keyword = this.keyword;
     request.isAdmin = this.isAdmin;
     request.customer = this.companyCode;
+    request.maxResultCount = this.maxItems;
 
     this._customerTransactionService
       .getAll(request)
@@ -139,7 +148,7 @@ export class CustomerTransactionsComponent extends PagedListingComponentBase<Cus
 
           this.customerTransactions.push(tempCustomerTransaction);
         });
-        this.showPaging(result.result, pageNumber);
+        if (this.showPagination) this.showPaging(result.result, pageNumber);
       });
   }
 }

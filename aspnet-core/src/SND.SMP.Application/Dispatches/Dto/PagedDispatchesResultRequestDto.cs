@@ -85,5 +85,6 @@ namespace SND.SMP.Dispatches
         public string PaymentMode                      { get; set; }
         public string CurrencyId                       { get; set; }
         public int? ImportProgress                   { get; set; }
+        public bool isAdmin { get; set; }
     }
 }

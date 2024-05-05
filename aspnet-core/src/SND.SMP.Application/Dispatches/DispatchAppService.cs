@@ -44,16 +44,16 @@ namespace SND.SMP.Dispatches
     ) : AsyncCrudAppService<Dispatch, DispatchDto, int, PagedDispatchResultRequestDto>(repository)
     {
 
-        public readonly IRepository<Customer, long> _customerRepository = customerRepository;
-        public readonly IRepository<Bag, int> _bagRepository = bagRepository;
-        public readonly IRepository<Item, string> _itemRepository = itemRepository;
-        public readonly IRepository<CustomerPostal, long> _customerPostalRepository = customerPostalRepository;
-        public readonly IRepository<Rate, int> _rateRepository = rateRepository;
-        public readonly IRepository<RateItem, long> _rateItemRepository = rateItemRepository;
-        public readonly IRepository<Wallet, string> _walletRepository = walletRepository;
-        public readonly IRepository<Dispatch, int> _dispatchRepository = dispatchRepository;
-        public readonly IRepository<WeightAdjustment, int> _weightAdjustmentRepository = weightAdjustmentRepository;
-        public readonly IRepository<Refund, int> _refundRepository = refundRepository;
+        private readonly IRepository<Customer, long> _customerRepository = customerRepository;
+        private readonly IRepository<Bag, int> _bagRepository = bagRepository;
+        private readonly IRepository<Item, string> _itemRepository = itemRepository;
+        private readonly IRepository<CustomerPostal, long> _customerPostalRepository = customerPostalRepository;
+        private readonly IRepository<Rate, int> _rateRepository = rateRepository;
+        private readonly IRepository<RateItem, long> _rateItemRepository = rateItemRepository;
+        private readonly IRepository<Wallet, string> _walletRepository = walletRepository;
+        private readonly IRepository<Dispatch, int> _dispatchRepository = dispatchRepository;
+        private readonly IRepository<WeightAdjustment, int> _weightAdjustmentRepository = weightAdjustmentRepository;
+        private readonly IRepository<Refund, int> _refundRepository = refundRepository;
 
         private async Task<DataTable> ConvertToDatatable(Stream ms)
         {
@@ -119,44 +119,86 @@ namespace SND.SMP.Dispatches
 
         protected override IQueryable<Dispatch> CreateFilteredQuery(PagedDispatchResultRequestDto input)
         {
-            return Repository.GetAllIncluding()
-                .WhereIf(!input.Keyword.IsNullOrWhiteSpace(), x =>
-                    x.CustomerCode.Contains(input.Keyword) ||
-                    x.POBox.Contains(input.Keyword) ||
-                    x.PPI.Contains(input.Keyword) ||
-                    x.PostalCode.Contains(input.Keyword) ||
-                    x.ServiceCode.Contains(input.Keyword) ||
-                    x.ProductCode.Contains(input.Keyword) ||
-                    x.DispatchNo.Contains(input.Keyword) ||
-                    x.FlightTrucking.Contains(input.Keyword) ||
-                    x.BatchId.Contains(input.Keyword) ||
-                    x.CN38.Contains(input.Keyword) ||
-                    x.Remark.Contains(input.Keyword) ||
-                    x.AirlineCode.Contains(input.Keyword) ||
-                    x.FlightNo.Contains(input.Keyword) ||
-                    x.PortDeparture.Contains(input.Keyword) ||
-                    x.ExtDispatchNo.Contains(input.Keyword) ||
-                    x.AirportTranshipment.Contains(input.Keyword) ||
-                    x.OfficeDestination.Contains(input.Keyword) ||
-                    x.OfficeOrigin.Contains(input.Keyword) ||
-                    x.Stage1StatusDesc.Contains(input.Keyword) ||
-                    x.Stage2StatusDesc.Contains(input.Keyword) ||
-                    x.Stage3StatusDesc.Contains(input.Keyword) ||
-                    x.Stage4StatusDesc.Contains(input.Keyword) ||
-                    x.Stage5StatusDesc.Contains(input.Keyword) ||
-                    x.Stage6StatusDesc.Contains(input.Keyword) ||
-                    x.Stage7StatusDesc.Contains(input.Keyword) ||
-                    x.Stage8StatusDesc.Contains(input.Keyword) ||
-                    x.Stage9StatusDesc.Contains(input.Keyword) ||
-                    x.StatusAPI.Contains(input.Keyword) ||
-                    x.CountryOfLoading.Contains(input.Keyword) ||
-                    x.PostManifestMsg.Contains(input.Keyword) ||
-                    x.PostDeclarationMsg.Contains(input.Keyword) ||
-                    x.AirwayBLNo.Contains(input.Keyword) ||
-                    x.BRCN38RequestId.Contains(input.Keyword) ||
-                    x.CORateOptionId.Contains(input.Keyword) ||
-                    x.PaymentMode.Contains(input.Keyword) ||
-                    x.CurrencyId.Contains(input.Keyword));
+            return input.isAdmin ? 
+                Repository.GetAllIncluding()
+                    .WhereIf(!input.Keyword.IsNullOrWhiteSpace(), x =>
+                        x.CustomerCode.Contains(input.Keyword) ||
+                        x.POBox.Contains(input.Keyword) ||
+                        x.PPI.Contains(input.Keyword) ||
+                        x.PostalCode.Contains(input.Keyword) ||
+                        x.ServiceCode.Contains(input.Keyword) ||
+                        x.ProductCode.Contains(input.Keyword) ||
+                        x.DispatchNo.Contains(input.Keyword) ||
+                        x.FlightTrucking.Contains(input.Keyword) ||
+                        x.BatchId.Contains(input.Keyword) ||
+                        x.CN38.Contains(input.Keyword) ||
+                        x.Remark.Contains(input.Keyword) ||
+                        x.AirlineCode.Contains(input.Keyword) ||
+                        x.FlightNo.Contains(input.Keyword) ||
+                        x.PortDeparture.Contains(input.Keyword) ||
+                        x.ExtDispatchNo.Contains(input.Keyword) ||
+                        x.AirportTranshipment.Contains(input.Keyword) ||
+                        x.OfficeDestination.Contains(input.Keyword) ||
+                        x.OfficeOrigin.Contains(input.Keyword) ||
+                        x.Stage1StatusDesc.Contains(input.Keyword) ||
+                        x.Stage2StatusDesc.Contains(input.Keyword) ||
+                        x.Stage3StatusDesc.Contains(input.Keyword) ||
+                        x.Stage4StatusDesc.Contains(input.Keyword) ||
+                        x.Stage5StatusDesc.Contains(input.Keyword) ||
+                        x.Stage6StatusDesc.Contains(input.Keyword) ||
+                        x.Stage7StatusDesc.Contains(input.Keyword) ||
+                        x.Stage8StatusDesc.Contains(input.Keyword) ||
+                        x.Stage9StatusDesc.Contains(input.Keyword) ||
+                        x.StatusAPI.Contains(input.Keyword) ||
+                        x.CountryOfLoading.Contains(input.Keyword) ||
+                        x.PostManifestMsg.Contains(input.Keyword) ||
+                        x.PostDeclarationMsg.Contains(input.Keyword) ||
+                        x.AirwayBLNo.Contains(input.Keyword) ||
+                        x.BRCN38RequestId.Contains(input.Keyword) ||
+                        x.CORateOptionId.Contains(input.Keyword) ||
+                        x.PaymentMode.Contains(input.Keyword) ||
+                        x.CurrencyId.Contains(input.Keyword)) 
+                :
+                Repository.GetAllIncluding()
+                    .WhereIf(!input.Keyword.IsNullOrWhiteSpace(), x =>
+                        x.CustomerCode.Contains(input.Keyword) ||
+                        x.POBox.Contains(input.Keyword) ||
+                        x.PPI.Contains(input.Keyword) ||
+                        x.PostalCode.Contains(input.Keyword) ||
+                        x.ServiceCode.Contains(input.Keyword) ||
+                        x.ProductCode.Contains(input.Keyword) ||
+                        x.DispatchNo.Contains(input.Keyword) ||
+                        x.FlightTrucking.Contains(input.Keyword) ||
+                        x.BatchId.Contains(input.Keyword) ||
+                        x.CN38.Contains(input.Keyword) ||
+                        x.Remark.Contains(input.Keyword) ||
+                        x.AirlineCode.Contains(input.Keyword) ||
+                        x.FlightNo.Contains(input.Keyword) ||
+                        x.PortDeparture.Contains(input.Keyword) ||
+                        x.ExtDispatchNo.Contains(input.Keyword) ||
+                        x.AirportTranshipment.Contains(input.Keyword) ||
+                        x.OfficeDestination.Contains(input.Keyword) ||
+                        x.OfficeOrigin.Contains(input.Keyword) ||
+                        x.Stage1StatusDesc.Contains(input.Keyword) ||
+                        x.Stage2StatusDesc.Contains(input.Keyword) ||
+                        x.Stage3StatusDesc.Contains(input.Keyword) ||
+                        x.Stage4StatusDesc.Contains(input.Keyword) ||
+                        x.Stage5StatusDesc.Contains(input.Keyword) ||
+                        x.Stage6StatusDesc.Contains(input.Keyword) ||
+                        x.Stage7StatusDesc.Contains(input.Keyword) ||
+                        x.Stage8StatusDesc.Contains(input.Keyword) ||
+                        x.Stage9StatusDesc.Contains(input.Keyword) ||
+                        x.StatusAPI.Contains(input.Keyword) ||
+                        x.CountryOfLoading.Contains(input.Keyword) ||
+                        x.PostManifestMsg.Contains(input.Keyword) ||
+                        x.PostDeclarationMsg.Contains(input.Keyword) ||
+                        x.AirwayBLNo.Contains(input.Keyword) ||
+                        x.BRCN38RequestId.Contains(input.Keyword) ||
+                        x.CORateOptionId.Contains(input.Keyword) ||
+                        x.PaymentMode.Contains(input.Keyword) ||
+                        x.CurrencyId.Contains(input.Keyword))
+                    .Where(x => x.CustomerCode.Equals(input.CustomerCode));
+
         }
 
         public async Task<GetPostCheck> GetPostCheckAsync(string dispatchNo)
@@ -720,5 +762,7 @@ namespace SND.SMP.Dispatches
             }
             return true;
         }
+    
+        
     }
 }
