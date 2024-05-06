@@ -110,7 +110,7 @@ export class IMPCSComponent extends PagedListingComponentBase<IMPCDto> {
             type: element.type,
             countryCode: element.countryCode,
             airportCode: element.airportCode,
-            iMPCCode: element.iMPCCode,
+            impcCode: element.impcCode,
             logisticCode: element.logisticCode,
           }
 

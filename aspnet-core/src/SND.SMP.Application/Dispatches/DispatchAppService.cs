@@ -28,10 +28,13 @@ using SND.SMP.WeightAdjustments;
 using SND.SMP.Refunds;
 using Abp.Application.Services.Dto;
 using SND.SMP.Postals;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using SND.SMP.IMPCS;
+using System.IO.Compression;
 
 namespace SND.SMP.Dispatches
 {
-    public class DispatchAppService(
+    public partial class DispatchAppService(
         IRepository<Dispatch, int> repository,
         IRepository<Customer, long> customerRepository,
         IRepository<Bag, int> bagRepository,
@@ -43,7 +46,8 @@ namespace SND.SMP.Dispatches
         IRepository<Dispatch, int> dispatchRepository,
         IRepository<WeightAdjustment, int> weightAdjustmentRepository,
         IRepository<Refund, int> refundRepository,
-        IRepository<Postal, long> postalRepository
+        IRepository<Postal, long> postalRepository,
+        IRepository<IMPC, int> impcRepository
     ) : AsyncCrudAppService<Dispatch, DispatchDto, int, PagedDispatchResultRequestDto>(repository)
     {
 
@@ -58,6 +62,7 @@ namespace SND.SMP.Dispatches
         private readonly IRepository<WeightAdjustment, int> _weightAdjustmentRepository = weightAdjustmentRepository;
         private readonly IRepository<Refund, int> _refundRepository = refundRepository;
         private readonly IRepository<Postal, long> _postalRepository = postalRepository;
+        private readonly IRepository<IMPC, int> _impcRepository = impcRepository;
 
         private async Task<DataTable> ConvertToDatatable(Stream ms)
         {
@@ -847,5 +852,367 @@ namespace SND.SMP.Dispatches
                 result
             );
         }
+
+        private byte[] CreateExcelFile(List<GQManifest> dataList)
+        {
+            using ExcelPackage package = new();
+            ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("Sheet 1");
+            for (int i = 0; i < dataList.Count; i++)
+            {
+                worksheet.Cells[i + 1, 1].Value = dataList[i];
+            }
+            return package.GetAsByteArray();
+        }
+
+        private void AddFileToZip(ZipArchive archive, string fileName, byte[] fileBytes)
+        {
+            ZipArchiveEntry entry = archive.CreateEntry(fileName, System.IO.Compression.CompressionLevel.Fastest);
+            using Stream entryStream = entry.Open();
+            entryStream.Write(fileBytes, 0, fileBytes.Length);
+        }
+
+        public async Task<byte[]> DownloadDispatchManifest(string dispatchNo)
+        {
+            DateTime dateNowInMYT = DateTime.UtcNow.AddHours(8);
+            int currentYear = dateNowInMYT.Year;
+            string yearLetter = dateNowInMYT.Year.ToString().Substring(3, 1);
+            string sessionID = dateNowInMYT.ToString("yyyyMMddhhmmss");
+
+            var dispatch = await _dispatchRepository.FirstOrDefaultAsync(x => x.DispatchNo.Equals(dispatchNo));
+
+            var bags = await _bagRepository.GetAllListAsync(x => x.DispatchId.Equals(dispatch.Id));
+
+            var countries = bags.GroupBy(x => x.CountryCode).Select(u => u.Key).OrderBy(u => u).ToList();
+
+            var GQCos = await _impcRepository.GetAllListAsync(x => x.Type.Equals("GQCos"));
+
+            var customerCode = dispatch.CustomerCode;
+            var productCode = dispatch.ProductCode;
+            var postalCode = dispatch.PostalCode;
+
+            var batchNo = dispatchNo.Substring(dispatchNo.Length - 3, 3);
+            var date = DateTime.Now.ToString("ddMMyy");
+
+            List<Dictionary<string, List<GQManifest>>> manifestList = [];
+
+            foreach (var country in countries)
+            {
+                var model = await GetGQManifest(dispatch.Id, country);
+
+                if (model.Any())
+                {
+                    var airportCode = "";
+
+                    var kgc = GQCos.FirstOrDefault(u => u.CountryCode.Equals(country));
+                    if (kgc != null)
+                    {
+                        airportCode = kgc.AirportCode;
+                    }
+
+                    if (postalCode.Equals("GQ02"))
+                    {
+                        manifestList.Add(new Dictionary<string, List<GQManifest>>() { { $"{airportCode}-{country}", model } });
+                    }
+                    else
+                    {
+                        manifestList.Add(new Dictionary<string, List<GQManifest>>() { { $"{airportCode}", model } });
+                    }
+                }
+            }
+            using MemoryStream zipStream = new();
+            var airports = manifestList.SelectMany(u => u.Keys).ToList().Distinct().ToList();
+            foreach (var airport in airports)
+            {
+                foreach (var manifest in manifestList)
+                {
+                    var dictItem = manifest.First();
+                    if (dictItem.Key.Equals(airport))
+                    {
+                        using ZipArchive archive = new(zipStream, ZipArchiveMode.Create, true);
+                        string fileName = $"{dictItem.Key}.xlsx"; // Generate unique file name
+                        byte[] excelBytes = CreateExcelFile(dictItem.Value);
+                        AddFileToZip(archive, fileName, excelBytes);
+                    }
+                }
+            }
+
+            return zipStream.ToArray();
+
+        }
+
+        private async Task<List<GQManifest>> GetGQManifest(int dispatchId, string countryCode = null)
+        {
+            List<GQManifest> gqManifest = [];
+            countryCode = countryCode.ToUpper().Trim();
+            string postalCode = "";
+
+            var dispatch = await _dispatchRepository.FirstOrDefaultAsync(x => x.Id.Equals(dispatchId));
+
+            postalCode = dispatch.PostalCode;
+
+            var items = await _itemRepository.GetAllListAsync(x => x.DispatchID.Equals(dispatchId));
+
+            if (!string.IsNullOrWhiteSpace(countryCode))
+                items = items.Where(x => x.CountryCode.Equals(countryCode)).ToList();
+
+            var bags = items.GroupBy(x => x.BagNo).Select(x => x.Key).ToList();
+
+            var bagWeightsInGram = items
+                .Where(u => u.Weight != null)
+                .GroupBy(u => u.BagNo)
+                .Select(u => new
+                {
+                    BagNo = u.Key,
+                    Weight = Math.Round(u.Sum(p => Convert.ToDecimal(p.Weight) * 1000), 0)
+                })
+                .ToList();
+
+            var bagTareWeightInGram = 110;
+
+            var currentDate = DateTime.Now.ToString("yyyy-MM-dd");
+
+            var random = new Random();
+
+            var listDeducted = await GetDeductTare(dispatchId, bagTareWeightInGram, true, 3, 1);
+
+            var listGQCos = await _impcRepository.GetAllListAsync(x => x.Type.Equals("GQCos"));
+
+            string impcToCode = "";
+            string logisticCode = "";
+
+            var kgc = listGQCos.FirstOrDefault(p => p.CountryCode.Equals(countryCode));
+            if (kgc != null)
+            {
+                impcToCode = kgc.IMPCCode;
+                logisticCode = kgc.LogisticCode;
+            }
+
+            foreach (var u in items)
+            {
+                var bagNo = bags.IndexOf(u.BagNo) + 1;
+
+                var itemWeightInGram = Math.Round(Convert.ToDecimal(u.Weight) * 1000, 0);
+                var bagWeightInGram = bagWeightsInGram.Where(p => p.BagNo == u.BagNo).Select(p => p.Weight).FirstOrDefault();
+                var itemWeightPortionInGram = Math.Round(itemWeightInGram / bagWeightInGram * 100 * bagTareWeightInGram / 100, 0);
+                var itemAfterWeight = itemWeightInGram - itemWeightPortionInGram;
+                var bagWeightAfterInGram = bagWeightInGram - bagTareWeightInGram;
+
+                itemAfterWeight = listDeducted.FirstOrDefault(p => p.TrackingNo.Equals(u.Id)).Weight;
+
+                var chineseProductName = "";
+
+                if (postalCode == "KG02")
+                {
+                    chineseProductName = u.TaxPayMethod;
+                }
+
+                var tel = string.IsNullOrWhiteSpace(u.TelNo) ? "87654321" : u.TelNo;
+
+                #region Tel - Select Randomly
+                var willSelectRandomly = false;
+
+                if (!willSelectRandomly)
+                {
+                    if (MyRegex().IsMatch(tel))
+                    {
+                        willSelectRandomly = true;
+                    }
+                }
+
+                if (!willSelectRandomly)
+                {
+                    //covers 0, 1, 2, 3, 9, 000000, 111111, 222222, 999999, 18475, 1256, 591
+                    var parseResult = long.TryParse(tel, out long outTel);
+
+                    if (parseResult)
+                    {
+                        var minLen = 6;
+
+                        if (outTel.ToString().Length < minLen)
+                        {
+                            willSelectRandomly = true;
+                        }
+                    }
+                }
+
+                if (!willSelectRandomly)
+                {
+                    //covers 123456, 234567, 345678
+                    bool isSeq = "0123456789".Contains(tel);
+                    if (isSeq)
+                    {
+                        willSelectRandomly = true;
+                    }
+                }
+                #endregion
+
+                var iossTax = u.TaxPayMethod;
+                iossTax = string.IsNullOrWhiteSpace(iossTax) ? u.IOSSTax : iossTax;
+
+                gqManifest.Add(new GQManifest
+                {
+                    Barcode = u.Id,
+                    Weight = itemAfterWeight,
+                    Attachments_Type = "Other",
+                    Sender_Fname = u.IdentityType,
+                    Sender_Lname = "",
+                    Sender_Address = u.AddressNo,
+                    Sender_City = u.PassportNo,
+                    Sender_Province = "Equatorial Guinea",
+                    Sender_Zip = "",
+                    Destination_Fname = u.RecpName,
+                    Destination_Lname = "",
+                    Destination_Address = u.Address,
+                    Destination_City = u.City,
+                    Destination_Province = u.State,
+                    Destination_Zip = u.Postcode,
+                    Destination_Phone = tel,
+                    Attachment_Description = u.ItemDesc,
+                    ChineseProductName = chineseProductName,
+                    Attachment_Quantity = u.Qty,
+                    Attachment_Weight = itemAfterWeight,
+                    Attachment_Price_USD = u.ItemValue is null ? 0 : u.ItemValue,
+                    Attachment_Hs_Code = u.HSCode,
+                    Attachment_Width = u.Width == null ? 0 : Convert.ToInt32(Math.Round(u.Width.Value, 0)),
+                    Attachment_Height = u.Height == null ? 0 : Convert.ToInt32(Math.Round(u.Height.Value, 0)),
+                    Attachment_Length = u.Length == null ? 0 : Convert.ToInt32(Math.Round(u.Length.Value, 0)),
+                    Bag_Number = bagNo,
+                    Impc_To_Code = impcToCode,
+                    Bag_Tare_Weight = bagTareWeightInGram,
+                    Bag_Weight = bagWeightInGram,
+                    Dispatch_Sent_Date = currentDate,
+                    Logistic_Code = logisticCode,
+                    IOSS = iossTax
+                });
+            }
+            return gqManifest;
+        }
+
+        private async Task<List<DeductTare>> GetDeductTare(int dispatchId, decimal deductAmount, bool usePostCheckWeight = true, decimal minWeight = 3, decimal deductFactor = 1)
+        {
+            List<DeductTare> result = [];
+
+            var dispatch = await _dispatchRepository.FirstOrDefaultAsync(u => u.Id.Equals(dispatchId));
+            if (dispatch != null)
+            {
+                var task_bags = await _bagRepository.GetAllListAsync(u => u.DispatchId.Equals(dispatchId));
+                var task_items = await _itemRepository.GetAllListAsync(u => u.DispatchID.Equals(dispatchId));
+
+                var bags = task_bags.Select(u => new { u.BagNo, u.WeightPre, u.WeightPost }).ToList();
+                var items = task_items.Select(u => new { u.Id, u.BagNo, u.Weight }).ToList();
+
+                #region Pre-populate result
+                result = items.Select(u => new DeductTare
+                {
+                    TrackingNo = u.Id,
+                    BagNo = u.BagNo,
+                    Weight = u.Weight.GetValueOrDefault() * 1000
+                }).ToList();
+                #endregion
+
+                foreach (var bag in bags)
+                {
+                    decimal weightBefore = bag.WeightPre.GetValueOrDefault() * 1000;
+                    decimal weightAfter = (bag.WeightPre.GetValueOrDefault() * 1000) - deductAmount;
+
+                    if (usePostCheckWeight)
+                    {
+                        weightBefore = bag.WeightPost.GetValueOrDefault() * 1000;
+                        weightAfter = (bag.WeightPost.GetValueOrDefault() * 1000) - deductAmount;
+                    }
+
+                    #region Set bag weight after
+                    _ = result.Where(u => u.BagNo == bag.BagNo).All(u => { u.BagWeightAfter = weightAfter; return true; });
+                    #endregion
+
+                    var bagItems = result.Where(u => u.BagNo.Equals(bag.BagNo));
+                    var bagItemsWeight = bagItems.Sum(u => u.Weight);
+
+                    var isEnough = false;
+                    decimal totalDeductionRequired = bagItemsWeight - weightAfter;
+                    decimal totalAdditionRequired = weightAfter - bagItemsWeight;
+
+                    if (totalDeductionRequired > 0)
+                    {
+                        decimal totalDeducted = 0m;
+
+                        do
+                        {
+                            decimal totalDeductedThisLoop = 0m;
+
+                            foreach (var item in bagItems)
+                            {
+                                if (item.Weight > minWeight)
+                                {
+                                    item.Weight -= deductFactor;
+
+                                    totalDeducted += deductFactor;
+                                    totalDeductedThisLoop += deductFactor;
+                                }
+
+                                if (totalDeducted >= totalDeductionRequired)
+                                {
+                                    isEnough = true;
+                                    break;
+                                }
+                            }
+
+                            if (totalDeductedThisLoop == 0)
+                            {
+                                isEnough = true;
+                            }
+                        }
+                        while (!isEnough);
+                    }
+                    else
+                    {
+                        decimal totalAdded = 0m;
+
+                        do
+                        {
+                            decimal totalAddedThisLoop = 0m;
+
+                            foreach (var item in bagItems)
+                            {
+                                if (item.Weight > minWeight)
+                                {
+                                    item.Weight += deductFactor;
+
+                                    totalAdded += deductFactor;
+                                    totalAddedThisLoop += deductFactor;
+                                }
+
+                                if (totalAdded >= totalAdditionRequired)
+                                {
+                                    isEnough = true;
+                                    break;
+                                }
+                            }
+
+                            if (totalAddedThisLoop == 0)
+                            {
+                                isEnough = true;
+                            }
+                        }
+                        while (!isEnough);
+                    }
+
+                    _ = result
+                            .GroupBy(u => new { u.BagNo, u.BagWeightAfter })
+                            .Where(u => u.Sum(p => p.Weight) != u.Key.BagWeightAfter)
+                            .All(u => { var s = u.Select(p => p.IsEnough).First(); s = false; return true; });
+                }
+            }
+
+            var g = result
+                        .GroupBy(u => new { u.BagNo, u.BagWeightAfter })
+                        .Select(u => new { u.Key.BagNo, u.Key.BagWeightAfter, Sum = u.Sum(p => p.Weight) })
+                        .ToList();
+
+            return result;
+        }
+
+        [System.Text.RegularExpressions.GeneratedRegex(@"[a-zA-Z]")]
+        private static partial System.Text.RegularExpressions.Regex MyRegex();
     }
 }

@@ -5,7 +5,7 @@ export interface IMPCDto extends EntityDto<number> {
     type: string;
     countryCode: string;
     airportCode: string;
-    iMPCCode: string;
+    impcCode: string;
     logisticCode: string;
 }
 
@@ -14,6 +14,6 @@ export interface PagedIMPCResultRequestDto extends PagedAndSortedResultRequestDt
     type?: string;
     countryCode?: string;
     airportCode?: string;
-    iMPCCode?: string;
+    impcCode?: string;
     logisticCode?: string;
 }
