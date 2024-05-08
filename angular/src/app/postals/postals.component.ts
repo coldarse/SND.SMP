@@ -5,6 +5,7 @@ import { finalize } from 'rxjs/operators';
 import { PostalDto } from '@shared/service-proxies/postals/model'
 import { PostalService } from '@shared/service-proxies/postals/postal.service'
 import { UploadPostalComponent } from './upload-postal/upload-postal.component';
+import { CreateUpdatePostalComponent } from './create-update-postal/create-update-postal.component';
 
 class PagedPostalsRequestDto extends PagedRequestDto{
   keyword: string
@@ -43,7 +44,40 @@ export class PostalsComponent extends PagedListingComponentBase<PostalDto> {
     });
   }
 
-  
+  createPostal(){
+    this.showCreateOrEditPostalDialog();
+  }
+
+  editPostal(entity: PostalDto){
+    this.showCreateOrEditPostalDialog(entity);
+  }
+
+  private showCreateOrEditPostalDialog(entity?: PostalDto){
+    let createOrEditPostalDialog: BsModalRef;
+    if(!entity){
+      createOrEditPostalDialog = this._modalService.show(
+        CreateUpdatePostalComponent,
+        {
+          class: 'modal-lg',
+        }
+      );
+    }
+    else{
+      createOrEditPostalDialog = this._modalService.show(
+        CreateUpdatePostalComponent,
+        {
+          class: 'modal-lg',
+          initialState: {
+            postal: entity
+          },
+        }
+      );
+    }
+
+    createOrEditPostalDialog.content.onSave.subscribe(() => {
+      this.refresh();
+    });
+  }
 
   clearFilters(): void {
     this.keyword = '';

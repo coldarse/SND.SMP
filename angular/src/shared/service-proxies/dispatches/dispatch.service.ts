@@ -184,4 +184,13 @@ export class DispatchService {
       .get(url_ + `&MaxResultCount=${count}`, this.options_)
       .pipe(retry(1), catchError(this.errorMessage.HandleErrorResponse));
   }
+
+  downloadManifest(dispatchNo: string){
+    return this.http
+      .post(
+        this.url + `/api/services/app/Dispatch/DownloadDispatchManifest?dispatchNo=${dispatchNo}`,
+        this.options_
+      )
+      .pipe(retry(1), catchError(this.errorMessage.HandleErrorResponse));
+  }
 }

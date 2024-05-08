@@ -5,6 +5,7 @@ import { finalize } from 'rxjs/operators';
 import { PostalCountryDto } from '@shared/service-proxies/postal-countries/model';
 import { PostalCountryService } from '@shared/service-proxies/postal-countries/postal-country.service';
 import { UploadPostalCountryComponent } from '../postal-countries/upload-postal-country/upload-postal-country.component';
+import { CreateUpdatePostalCountryComponent } from './create-update-postalcountry/create-update-postalcountry.component';
 
 class PagedPostalCountriesRequestDto extends PagedRequestDto{
   keyword: string
@@ -26,6 +27,41 @@ export class PostalCountriesComponent extends PagedListingComponentBase<PostalCo
     private _modalService: BsModalService
   ){
     super(injector);
+  }
+
+  createPostalCountry(){
+    this.showCreateOrEditPostalCountryDialog();
+  }
+
+  editPostalCountry(entity: PostalCountryDto){
+    this.showCreateOrEditPostalCountryDialog(entity);
+  }
+
+  private showCreateOrEditPostalCountryDialog(entity?: PostalCountryDto){
+    let createOrEditPostalCountryDialog: BsModalRef;
+    if(!entity){
+      createOrEditPostalCountryDialog = this._modalService.show(
+        CreateUpdatePostalCountryComponent,
+        {
+          class: 'modal-lg',
+        }
+      );
+    }
+    else{
+      createOrEditPostalCountryDialog = this._modalService.show(
+        CreateUpdatePostalCountryComponent,
+        {
+          class: 'modal-lg',
+          initialState: {
+            postalcountry: entity
+          },
+        }
+      );
+    }
+
+    createOrEditPostalCountryDialog.content.onSave.subscribe(() => {
+      this.refresh();
+    });
   }
 
   uploadPostalCountry() {

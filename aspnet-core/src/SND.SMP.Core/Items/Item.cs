@@ -9,10 +9,10 @@ namespace SND.SMP.Items
     public class Item : Entity<string>
     {
         public string ExtID { get; set; }
-        public int DispatchID { get; set; }
-        public int BagID { get; set; }
-        public DateOnly DispatchDate { get; set; }
-        public int Month { get; set; }
+        public int? DispatchID { get; set; }
+        public int? BagID { get; set; }
+        public DateOnly? DispatchDate { get; set; }
+        public int? Month { get; set; }
         public string PostalCode { get; set; }
         public string ServiceCode { get; set; }
         public string ProductCode { get; set; }
@@ -21,7 +21,7 @@ namespace SND.SMP.Items
         public string BagNo { get; set; }
         public string SealNo { get; set; }
         public decimal? Price { get; set; }
-        public int Status { get; set; }
+        public int? Status { get; set; }
         public decimal? ItemValue { get; set; }
         public string ItemDesc { get; set; }
         public string RecpName { get; set; }
@@ -38,21 +38,21 @@ namespace SND.SMP.Items
         public decimal? Width { get; set; }
         public decimal? Height { get; set; }
         public string HSCode { get; set; }
-        public int Qty { get; set; }
+        public int? Qty { get; set; }
         public string PassportNo { get; set; }
         public string TaxPayMethod { get; set; }
-        public DateTime DateStage1 { get; set; }
-        public DateTime DateStage2 { get; set; }
-        public DateTime DateStage3 { get; set; }
-        public DateTime DateStage4 { get; set; }
-        public DateTime DateStage5 { get; set; }
-        public DateTime DateStage6 { get; set; }
-        public DateTime DateStage7 { get; set; }
-        public DateTime DateStage8 { get; set; }
-        public DateTime DateStage9 { get; set; }
+        public DateTime? DateStage1 { get; set; }
+        public DateTime? DateStage2 { get; set; }
+        public DateTime? DateStage3 { get; set; }
+        public DateTime? DateStage4 { get; set; }
+        public DateTime? DateStage5 { get; set; }
+        public DateTime? DateStage6 { get; set; }
+        public DateTime? DateStage7 { get; set; }
+        public DateTime? DateStage8 { get; set; }
+        public DateTime? DateStage9 { get; set; }
         public string Stage6OMTStatusDesc { get; set; }
-        public DateTime Stage6OMTDepartureDate { get; set; }
-        public DateTime Stage6OMTArrivalDate { get; set; }
+        public DateTime? Stage6OMTDepartureDate { get; set; }
+        public DateTime? Stage6OMTArrivalDate { get; set; }
         public string Stage6OMTDestinationCity { get; set; }
         public string Stage6OMTDestinationCityCode { get; set; }
         public string Stage6OMTCountryCode { get; set; }
@@ -61,10 +61,10 @@ namespace SND.SMP.Items
         public string SenderName { get; set; }
         public string IOSSTax { get; set; }
         public string RefNo { get; set; }
-        public DateTime DateSuccessfulDelivery { get; set; }
-        public bool IsDelivered { get; set; }
-        public int DeliveredInDays { get; set; }
-        public bool IsExempted { get; set; }
+        public DateTime? DateSuccessfulDelivery { get; set; }
+        public bool? IsDelivered { get; set; }
+        public int? DeliveredInDays { get; set; }
+        public bool? IsExempted { get; set; }
         public string ExemptedRemark { get; set; }
         public string CLCuartel { get; set; }
         public string CLSector { get; set; }

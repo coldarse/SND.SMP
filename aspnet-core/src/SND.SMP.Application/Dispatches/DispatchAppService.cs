@@ -31,6 +31,9 @@ using SND.SMP.Postals;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using SND.SMP.IMPCS;
 using System.IO.Compression;
+using System.Net.Http;
+using System.Net;
+using System.Net.Http.Headers;
 
 namespace SND.SMP.Dispatches
 {
@@ -853,13 +856,47 @@ namespace SND.SMP.Dispatches
             );
         }
 
-        private byte[] CreateExcelFile(List<GQManifest> dataList)
+        private byte[] CreateGQExcelFile(List<GQManifest> dataList)
         {
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
             using ExcelPackage package = new();
             ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("Sheet 1");
-            for (int i = 0; i < dataList.Count; i++)
+            var properties = typeof(GQManifest).GetProperties();
+
+            for (int col = 0; col < properties.Length; col++)
             {
-                worksheet.Cells[i + 1, 1].Value = dataList[i];
+                worksheet.Cells[1, col + 1].Value = properties[col].Name;
+            }
+
+            for (int row = 0; row < dataList.Count; row++)
+            {
+                for (int col = 0; col < properties.Length; col++)
+                {
+                    worksheet.Cells[row + 2, col + 1].Value = properties[col].GetValue(dataList[row]);
+                }
+            }
+            return package.GetAsByteArray();
+        }
+
+        private byte[] CreateKGExcelFile(List<KGManifest> dataList)
+        {
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+            using ExcelPackage package = new();
+            ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("Sheet 1");
+
+            var properties = typeof(KGManifest).GetProperties();
+
+            for (int col = 0; col < properties.Length; col++)
+            {
+                worksheet.Cells[1, col + 1].Value = properties[col].Name;
+            }
+
+            for (int row = 0; row < dataList.Count; row++)
+            {
+                for (int col = 0; col < properties.Length; col++)
+                {
+                    worksheet.Cells[row + 2, col + 1].Value = properties[col].GetValue(dataList[row]);
+                }
             }
             return package.GetAsByteArray();
         }
@@ -871,8 +908,10 @@ namespace SND.SMP.Dispatches
             entryStream.Write(fileBytes, 0, fileBytes.Length);
         }
 
-        public async Task<byte[]> DownloadDispatchManifest(string dispatchNo)
+        public async Task<IActionResult> DownloadDispatchManifest(string dispatchNo)
         {
+            string code = dispatchNo[..2];
+
             DateTime dateNowInMYT = DateTime.UtcNow.AddHours(8);
             int currentYear = dateNowInMYT.Year;
             string yearLetter = dateNowInMYT.Year.ToString().Substring(3, 1);
@@ -884,7 +923,7 @@ namespace SND.SMP.Dispatches
 
             var countries = bags.GroupBy(x => x.CountryCode).Select(u => u.Key).OrderBy(u => u).ToList();
 
-            var GQCos = await _impcRepository.GetAllListAsync(x => x.Type.Equals("GQCos"));
+            var Cos = await _impcRepository.GetAllListAsync(x => x.Type.Equals($"{code}Cos"));
 
             var customerCode = dispatch.CustomerCode;
             var productCode = dispatch.ProductCode;
@@ -893,51 +932,257 @@ namespace SND.SMP.Dispatches
             var batchNo = dispatchNo.Substring(dispatchNo.Length - 3, 3);
             var date = DateTime.Now.ToString("ddMMyy");
 
-            List<Dictionary<string, List<GQManifest>>> manifestList = [];
-
-            foreach (var country in countries)
+            if (code == "KG")
             {
-                var model = await GetGQManifest(dispatch.Id, country);
+                List<Dictionary<string, List<KGManifest>>> manifestList = [];
 
-                if (model.Any())
+                foreach (var country in countries)
                 {
-                    var airportCode = "";
+                    var model = await GetKGManifest(dispatch.Id, country);
 
-                    var kgc = GQCos.FirstOrDefault(u => u.CountryCode.Equals(country));
-                    if (kgc != null)
+                    if (model.Count != 0)
                     {
-                        airportCode = kgc.AirportCode;
-                    }
+                        var airportCode = "";
 
-                    if (postalCode.Equals("GQ02"))
-                    {
-                        manifestList.Add(new Dictionary<string, List<GQManifest>>() { { $"{airportCode}-{country}", model } });
-                    }
-                    else
-                    {
-                        manifestList.Add(new Dictionary<string, List<GQManifest>>() { { $"{airportCode}", model } });
+                        var kgc = Cos.FirstOrDefault(u => u.CountryCode.Equals(country));
+                        if (kgc != null)
+                        {
+                            airportCode = kgc.AirportCode;
+                        }
+
+                        if (postalCode.Equals($"{code}02"))
+                        {
+                            manifestList.Add(new Dictionary<string, List<KGManifest>>() { { $"{airportCode}-{country}", model } });
+                        }
+                        else
+                        {
+                            manifestList.Add(new Dictionary<string, List<KGManifest>>() { { $"{airportCode}", model } });
+                        }
                     }
                 }
-            }
-            using MemoryStream zipStream = new();
-            var airports = manifestList.SelectMany(u => u.Keys).ToList().Distinct().ToList();
-            foreach (var airport in airports)
-            {
-                foreach (var manifest in manifestList)
+                using MemoryStream zipStream = new();
+                using ZipArchive archive = new(zipStream, ZipArchiveMode.Create, true);
+
+                var airports = manifestList.SelectMany(u => u.Keys).ToList().Distinct().ToList();
+                foreach (var airport in airports)
                 {
-                    var dictItem = manifest.First();
-                    if (dictItem.Key.Equals(airport))
+                    foreach (var manifest in manifestList)
                     {
-                        using ZipArchive archive = new(zipStream, ZipArchiveMode.Create, true);
-                        string fileName = $"{dictItem.Key}.xlsx"; // Generate unique file name
-                        byte[] excelBytes = CreateExcelFile(dictItem.Value);
-                        AddFileToZip(archive, fileName, excelBytes);
+                        var dictItem = manifest.First();
+                        if (dictItem.Key.Equals(airport))
+                        {
+                            string fileName = $"{dictItem.Key}.xlsx"; // Generate unique file name
+                            byte[] excelBytes = CreateKGExcelFile(dictItem.Value);
+                            AddFileToZip(archive, fileName, excelBytes);
+                        }
                     }
                 }
+
+                byte[] zipFileBytes = zipStream.ToArray();
+
+                return new FileContentResult(zipFileBytes, "application/zip")
+                {
+                    FileDownloadName = "manifest.zip"
+                };
             }
+            else if (code == "GQ")
+            {
+                List<Dictionary<string, List<GQManifest>>> manifestList = [];
 
-            return zipStream.ToArray();
+                foreach (var country in countries)
+                {
+                    var model = await GetGQManifest(dispatch.Id, country);
 
+                    if (model.Count != 0)
+                    {
+                        var airportCode = "";
+
+                        var kgc = Cos.FirstOrDefault(u => u.CountryCode.Equals(country));
+                        if (kgc != null)
+                        {
+                            airportCode = kgc.AirportCode;
+                        }
+
+                        if (postalCode.Equals($"{code}02"))
+                        {
+                            manifestList.Add(new Dictionary<string, List<GQManifest>>() { { $"{airportCode}-{country}", model } });
+                        }
+                        else
+                        {
+                            manifestList.Add(new Dictionary<string, List<GQManifest>>() { { $"{airportCode}", model } });
+                        }
+                    }
+                }
+                using MemoryStream zipStream = new();
+                using ZipArchive archive = new(zipStream, ZipArchiveMode.Create, true);
+
+                var airports = manifestList.SelectMany(u => u.Keys).ToList().Distinct().ToList();
+                foreach (var airport in airports)
+                {
+                    foreach (var manifest in manifestList)
+                    {
+                        var dictItem = manifest.First();
+                        if (dictItem.Key.Equals(airport))
+                        {
+                            string fileName = $"{dictItem.Key}.xlsx"; // Generate unique file name
+                            byte[] excelBytes = CreateGQExcelFile(dictItem.Value);
+                            AddFileToZip(archive, fileName, excelBytes);
+                        }
+                    }
+                }
+
+                byte[] zipFileBytes = zipStream.ToArray();
+
+                return new FileContentResult(zipFileBytes, "application/zip")
+                {
+                    FileDownloadName = "manifest.zip"
+                };
+            }
+            else
+            {
+                return new FileContentResult(null, "application/zip")
+                {
+                    FileDownloadName = "manifest.zip"
+                };
+            }
+        }
+
+        private async Task<List<KGManifest>> GetKGManifest(int dispatchId, string countryCode = null)
+        {
+            List<KGManifest> kgManifest = [];
+            countryCode = countryCode.ToUpper().Trim();
+            string postalCode = "";
+
+            var dispatch = await _dispatchRepository.FirstOrDefaultAsync(x => x.Id.Equals(dispatchId));
+
+            postalCode = dispatch.PostalCode;
+
+            var items = await _itemRepository.GetAllListAsync(x => x.DispatchID.Equals(dispatchId));
+
+            if (!string.IsNullOrWhiteSpace(countryCode))
+                items = items.Where(x => x.CountryCode.Equals(countryCode)).ToList();
+
+            var _bags = await _bagRepository.GetAllListAsync();
+            var bagWeightsInGram = _bags
+                .Where(u => u.DispatchId.Equals(dispatch.Id))
+                .Select(u => new
+                {
+                    BagNo = u.BagNo,
+                    Weight = u.WeightPost == null ? 0 : u.WeightPost.Value * 1000,
+                    PreCheckWeight = u.WeightPre == null ? 0 : u.WeightPre.Value * 1000
+                })
+                .ToList();
+
+            var bags = items.GroupBy(x => x.BagNo).Select(x => x.Key).ToList();
+
+            var tare = 110m;
+
+            var currentDate = DateTime.Now.ToString("yyyy-MM-dd");
+
+            var random = new Random();
+
+            var listDeductedTare = await GetDeductTare(dispatchId, tare, true, 3m, 1);
+
+            var listKGCos = await _impcRepository.GetAllListAsync(x => x.Type.Equals("KGCos"));
+
+            foreach (var u in items)
+            {
+                var bagNo = bags.IndexOf(u.BagNo) + 1;
+
+                var itemWeightInGram = Math.Round(Convert.ToDecimal(u.Weight) * 1000, 0);
+                var bagWeightInGram = u.PostalCode == "KG02" ?
+                                            bagWeightsInGram.FirstOrDefault(p => p.BagNo.Equals(u.BagNo)).PreCheckWeight :
+                                            bagWeightsInGram.FirstOrDefault(p => p.BagNo.Equals(u.BagNo)).Weight;
+
+                var itemAfterWeight = listDeductedTare.FirstOrDefault(p => p.TrackingNo.Equals(u.Id)).Weight;
+
+                var impcToCode = "";
+                var logisticCode = "";
+                var taxCode = "";
+                var chineseProductName = "";
+                var ioss = "";
+
+                var kgc = listKGCos.FirstOrDefault(p => p.CountryCode.Equals(countryCode));
+                if (kgc != null)
+                {
+                    impcToCode = kgc.IMPCCode;
+                    logisticCode = kgc.LogisticCode;
+                }
+
+                if (postalCode == "KG01")
+                {
+                    taxCode = u.Address2;
+                    chineseProductName = "";
+                    ioss = u.TaxPayMethod;
+                }
+
+                if (postalCode == "KG02")
+                {
+                    chineseProductName = u.TaxPayMethod;
+                }
+
+                #region Tel
+                var telDefault = "36193912";
+                var tel = u.TelNo;
+                tel = MyRegex().Replace(tel, "");
+                tel = string.IsNullOrWhiteSpace(tel) ? telDefault : tel;
+
+                var parseTel = double.TryParse(tel, out double telNo);
+                if (parseTel)
+                {
+                    if (telNo == 0)
+                    {
+                        tel = telDefault;
+                    }
+                }
+
+                int telMinLength = 8;
+                if (tel.Length < telMinLength)
+                {
+                    tel = tel.PadRight(telMinLength, '0');
+                }
+                #endregion
+
+                var poBoxNo = random.Next(300001, 350000);
+
+                kgManifest.Add(new KGManifest
+                {
+                    Barcode = u.Id,
+                    Weight = itemAfterWeight,
+                    Attachments_Type = "Other",
+                    Sender_Fname = $"PO Box {poBoxNo}",
+                    Sender_Lname = "",
+                    Sender_Address = u.AddressNo,
+                    Sender_City = "Bishkek",
+                    Sender_Province = "Kyrgyzstan",
+                    Sender_Zip = u.PassportNo,
+                    Destination_Fname = u.RecpName,
+                    Destination_Lname = "",
+                    Destination_Address = u.Address,
+                    Destination_City = u.City,
+                    Destination_Province = u.State,
+                    Destination_Zip = u.Postcode,
+                    Destination_Phone = tel,
+                    Attachment_Description = RemoveKGForbiddenKeywords(u.ItemDesc),
+                    ChineseProductName = chineseProductName,
+                    Attachment_Quantity = u.Qty,
+                    Attachment_Weight = itemAfterWeight,
+                    Attachment_Price_USD = u.ItemValue is null ? 0 : u.ItemValue,
+                    Attachment_Hs_Code = u.HSCode,
+                    Attachment_Width = u.Width == null ? 0 : Convert.ToInt32(Math.Round(u.Width.Value, 0)),
+                    Attachment_Height = u.Height == null ? 0 : Convert.ToInt32(Math.Round(u.Height.Value, 0)),
+                    Attachment_Length = u.Length == null ? 0 : Convert.ToInt32(Math.Round(u.Length.Value, 0)),
+                    Bag_Number = bagNo,
+                    Impc_To_Code = impcToCode,
+                    Bag_Tare_Weight = tare,
+                    Bag_Weight = bagWeightInGram,
+                    Dispatch_Sent_Date = u.DispatchDate.ToString(),
+                    Logistic_Code = logisticCode,
+                    IOSS = ioss,
+                    Tax_Code = taxCode
+                });
+            }
+            return kgManifest;
         }
 
         private async Task<List<GQManifest>> GetGQManifest(int dispatchId, string countryCode = null)
@@ -973,7 +1218,7 @@ namespace SND.SMP.Dispatches
 
             var random = new Random();
 
-            var listDeducted = await GetDeductTare(dispatchId, bagTareWeightInGram, true, 3, 1);
+            var listDeducted = await GetDeductTare(dispatchId, bagTareWeightInGram, true, 3m, 1);
 
             var listGQCos = await _impcRepository.GetAllListAsync(x => x.Type.Equals("GQCos"));
 
@@ -1214,5 +1459,22 @@ namespace SND.SMP.Dispatches
 
         [System.Text.RegularExpressions.GeneratedRegex(@"[a-zA-Z]")]
         private static partial System.Text.RegularExpressions.Regex MyRegex();
+
+        private string RemoveKGForbiddenKeywords(string description)
+        {
+            var result = description;
+
+            var listKeywords = new List<string> { "China", "Chinese" };
+
+            foreach (var keyword in listKeywords)
+            {
+                if (result.Contains(keyword.ToUpper().Trim(), StringComparison.CurrentCultureIgnoreCase))
+                {
+                    result = result.ToUpper().Replace(keyword.ToUpper().Trim(), "");
+                }
+            }
+
+            return result;
+        }
     }
 }

@@ -14,6 +14,14 @@
             <i class="fa fa-file-arrow-up"></i>
             {{ "Upload" | localize }}
           </a>
+          <a
+            href="javascript:;"
+            class="btn bg-blue ml-1"
+            (click)="createPostalCountry()"
+          >
+            <i class="fa fa-plus-square"></i>
+            {{ "Create" | localize }}
+          </a>
         </div>
       </div>
     </div>
@@ -21,32 +29,32 @@
   <section class="content px-2">
     <div class="container-fluid">
       <div class="card">
-        <!-- <div class='card-header'>
-                    <div class='row'>
-                        <div class='col-md-6'>&emsp;</div>
-                        <div class='col-md-6'>
-                            <div class='input-group'>
-                                <div class='input-group-prepend'>
-                                    <button
-                                            type='button'
-                                            class='btn bg-blue'
-                                            (click)='getDataPage(1)'
-                                    >
-                                        <i class='fas fa-search'></i>
-                                    </button>
-                                </div>
-                                <input
-                                        type='text'
-                                        class='form-control'
-                                        name='keyword'
-                                        [placeholder]='"SearchWithThreeDot" | localize'
-                                        [(ngModel)]='keyword'
-                                        (keyup.enter)='getDataPage(1)'
-                                />
-                            </div>
-                        </div>
-                    </div>
-                </div> -->
+        <div class="card-header">
+          <div class="row">
+            <div class="col-md-6">&emsp;</div>
+            <div class="col-md-6">
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <button
+                    type="button"
+                    class="btn bg-blue"
+                    (click)="getDataPage(1)"
+                  >
+                    <i class="fas fa-search"></i>
+                  </button>
+                </div>
+                <input
+                  type="text"
+                  class="form-control"
+                  name="keyword"
+                  [placeholder]="'SearchWithThreeDot' | localize"
+                  [(ngModel)]="keyword"
+                  (keyup.enter)="getDataPage(1)"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
         <div class="card-body">
           <div class="table-responsive">
             <table
@@ -57,7 +65,12 @@
                 <tr>
                   <th>{{ "PostalCode" | localize }}</th>
                   <th>{{ "CountryCode" | localize }}</th>
-                  <!-- <th style='width: 310px;' *ngIf='isButtonVisible("Edit") && isButtonVisible("Delete")'>{{ 'Actions' | localize }}</th> -->
+                  <th
+                    style="width: 310px"
+                    *ngIf="isButtonVisible('Edit') && isButtonVisible('Delete')"
+                  >
+                    {{ "Actions" | localize }}
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -75,26 +88,28 @@
                 >
                   <td>{{ postalcountry.postalCode }}</td>
                   <td>{{ postalcountry.countryCode }}</td>
-                  <!-- <td *ngIf='isButtonVisible("Edit") || isButtonVisible("Delete")'>
-                                    <button
-                                            type='button'
-                                            class='btn btn-sm bg-secondary'
-                                            (click)='editPostalCountry(postalcountry)'
-                                            *ngIf='isButtonVisible("Edit")'
-                                    >
-                                        <i class='fas fa-pencil-alt'></i>
-                                        {{ 'Edit' | localize }}
-                                    </button>
-                                    <button
-                                            type='button'
-                                            class='btn btn-sm bg-danger mx-2'
-                                            (click)='delete(postalcountry)'
-                                            *ngIf='isButtonVisible("Delete")'
-                                    >
-                                        <i class='fas fa-trash'></i>
-                                        {{ 'Delete' | localize }}
-                                    </button>
-                                </td> -->
+                  <td
+                    *ngIf="isButtonVisible('Edit') || isButtonVisible('Delete')"
+                  >
+                    <button
+                      type="button"
+                      class="btn btn-sm bg-secondary"
+                      (click)="editPostalCountry(postalcountry)"
+                      *ngIf="isButtonVisible('Edit')"
+                    >
+                      <i class="fas fa-pencil-alt"></i>
+                      {{ "Edit" | localize }}
+                    </button>
+                    <button
+                      type="button"
+                      class="btn btn-sm bg-danger mx-2"
+                      (click)="delete(postalcountry)"
+                      *ngIf="isButtonVisible('Delete')"
+                    >
+                      <i class="fas fa-trash"></i>
+                      {{ "Delete" | localize }}
+                    </button>
+                  </td>
                 </tr>
               </tbody>
             </table>

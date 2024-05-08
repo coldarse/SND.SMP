@@ -39,17 +39,17 @@ import { SidebarLogoComponent } from "./layout/sidebar-logo.component";
 import { SidebarUserPanelComponent } from "./layout/sidebar-user-panel.component";
 import { SidebarMenuComponent } from "./layout/sidebar-menu.component";
 /* Insert Import */
-import { IMPCSComponent } from './impcs/impcs.component';
-import { CreateUpdateIMPCComponent } from './impcs/create-update-impc/create-update-impc.component';
-import { IMPCService } from '@shared/service-proxies/impcs/impc.service';
+import { IMPCSComponent } from "./impcs/impcs.component";
+import { CreateUpdateIMPCComponent } from "./impcs/create-update-impc/create-update-impc.component";
+import { IMPCService } from "@shared/service-proxies/impcs/impc.service";
 
-import { RefundsComponent } from './refunds/refunds.component';
-import { CreateUpdateRefundComponent } from './refunds/create-update-refund/create-update-refund.component';
-import { RefundService } from '@shared/service-proxies/refunds/refund.service';
+import { RefundsComponent } from "./refunds/refunds.component";
+import { CreateUpdateRefundComponent } from "./refunds/create-update-refund/create-update-refund.component";
+import { RefundService } from "@shared/service-proxies/refunds/refund.service";
 
-import { WeightAdjustmentsComponent } from './weightadjustments/weightadjustments.component';
-import { CreateUpdateWeightAdjustmentComponent } from './weightadjustments/create-update-weightadjustment/create-update-weightadjustment.component';
-import { WeightAdjustmentService } from '@shared/service-proxies/weightadjustments/weightadjustment.service';
+import { WeightAdjustmentsComponent } from "./weightadjustments/weightadjustments.component";
+import { CreateUpdateWeightAdjustmentComponent } from "./weightadjustments/create-update-weightadjustment/create-update-weightadjustment.component";
+import { WeightAdjustmentService } from "@shared/service-proxies/weightadjustments/weightadjustment.service";
 
 import { ApplicationSettingsComponent } from "./applicationsettings/applicationsettings.component";
 import { CreateUpdateApplicationSettingComponent } from "./applicationsettings/create-update-applicationsetting/create-update-applicationsetting.component";
@@ -91,9 +91,11 @@ import { CustomerPostalsComponent } from "./customer-postals/customer-postals.co
 import { CreateUpdateCustomerPostalComponent } from "./customer-postals/create-update-customer-postal/create-update-customer-postal.component";
 import { CustomerPostalService } from "@shared/service-proxies/customer-postals/customer-postal.service";
 
+import { CreateUpdatePostalCountryComponent } from "./postal-countries/create-update-postalcountry/create-update-postalcountry.component"
 import { PostalCountriesComponent } from "./postal-countries/postal-countries.component";
 import { PostalCountryService } from "@shared/service-proxies/postal-countries/postal-country.service";
 
+import { CreateUpdatePostalComponent } from "./postals/create-update-postal/create-update-postal.component";
 import { PostalsComponent } from "./postals/postals.component";
 import { PostalService } from "@shared/service-proxies/postals/postal.service";
 
@@ -158,12 +160,12 @@ import { PostChecksComponent } from "./post-checks/post-checks.component";
     SidebarUserPanelComponent,
     SidebarMenuComponent,
     /* Insert Component */
-        IMPCSComponent,
-        CreateUpdateIMPCComponent,
-        RefundsComponent,
-        CreateUpdateRefundComponent,
-        WeightAdjustmentsComponent,
-        CreateUpdateWeightAdjustmentComponent,
+    IMPCSComponent,
+    CreateUpdateIMPCComponent,
+    RefundsComponent,
+    CreateUpdateRefundComponent,
+    WeightAdjustmentsComponent,
+    CreateUpdateWeightAdjustmentComponent,
     ApplicationSettingsComponent,
     CreateUpdateApplicationSettingComponent,
     ItemMinsComponent,
@@ -202,6 +204,8 @@ import { PostChecksComponent } from "./post-checks/post-checks.component";
     UploadRateWeightBreakComponent,
     DispatchValidationErrorComponent,
     PostChecksComponent,
+    CreateUpdatePostalComponent,
+    CreateUpdatePostalCountryComponent,
   ],
   imports: [
     CommonModule,
@@ -220,9 +224,9 @@ import { PostChecksComponent } from "./post-checks/post-checks.component";
   ],
   providers: [
     /* Insert Service */
-        IMPCService,
-        RefundService,
-        WeightAdjustmentService,
+    IMPCService,
+    RefundService,
+    WeightAdjustmentService,
     ApplicationSettingService,
     ItemMinService,
     ItemService,

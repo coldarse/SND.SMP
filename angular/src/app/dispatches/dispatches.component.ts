@@ -102,6 +102,12 @@ export class DispatchesComponent extends PagedListingComponentBase<DispatchDto> 
     this.router.navigate(["/app/dispatches"]);
   }
 
+  downloadManifest(dispatchNo: string){
+    this._dispatchService.downloadManifest(dispatchNo).subscribe(() => {
+      abp.notify.success(this.l('Successfully Downloaded'));
+    });
+  }
+
   protected list(
     request: PagedDispatchesRequestDto,
     pageNumber: number,

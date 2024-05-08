@@ -1,0 +1,164 @@
+<form
+    class='form-horizontal'
+    autocomplete='off'
+    #createPostalModal='ngForm'
+    (ngSubmit)='save()'
+>
+    <abp-modal-header
+        [title]='isCreate == true? ("Add Postal" | localize) : ("Edit Postal" | localize)'
+        (onCloseClick)='bsModalRef.hide()'
+    ></abp-modal-header>
+    <div class='modal-body'>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='postalCode'>
+            {{ 'PostalCode' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='text'
+                class='form-control'
+                name='postalCode'
+                id='postalCode'
+                required
+                [(ngModel)]='postal.postalCode'
+                #postalCodeModel='ngModel'
+                #postalCodeEl
+            />
+            <abp-validation-summary
+                [control]='postalCodeModel'
+                [controlEl]='postalCodeEl'
+            ></abp-validation-summary>
+            </div>
+        </div>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='postalDesc'>
+            {{ 'PostalDesc' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='text'
+                class='form-control'
+                name='postalDesc'
+                id='postalDesc'
+                required
+                [(ngModel)]='postal.postalDesc'
+                #postalDescModel='ngModel'
+                #postalDescEl
+            />
+            <abp-validation-summary
+                [control]='postalDescModel'
+                [controlEl]='postalDescEl'
+            ></abp-validation-summary>
+            </div>
+        </div>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='serviceCode'>
+            {{ 'ServiceCode' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='text'
+                class='form-control'
+                name='serviceCode'
+                id='serviceCode'
+                required
+                [(ngModel)]='postal.serviceCode'
+                #serviceCodeModel='ngModel'
+                #serviceCodeEl
+            />
+            <abp-validation-summary
+                [control]='serviceCodeModel'
+                [controlEl]='serviceCodeEl'
+            ></abp-validation-summary>
+            </div>
+        </div>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='serviceDesc'>
+            {{ 'ServiceDesc' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='text'
+                class='form-control'
+                name='serviceDesc'
+                id='serviceDesc'
+                required
+                [(ngModel)]='postal.serviceDesc'
+                #serviceDescModel='ngModel'
+                #serviceDescEl
+            />
+            <abp-validation-summary
+                [control]='serviceDescModel'
+                [controlEl]='serviceDescEl'
+            ></abp-validation-summary>
+            </div>
+        </div>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='productCode'>
+            {{ 'ProductCode' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='text'
+                class='form-control'
+                name='productCode'
+                id='productCode'
+                required
+                [(ngModel)]='postal.productCode'
+                #productCodeModel='ngModel'
+                #productCodeEl
+            />
+            <abp-validation-summary
+                [control]='productCodeModel'
+                [controlEl]='productCodeEl'
+            ></abp-validation-summary>
+            </div>
+        </div>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='productDesc'>
+            {{ 'ProductDesc' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='text'
+                class='form-control'
+                name='productDesc'
+                id='productDesc'
+                required
+                [(ngModel)]='postal.productDesc'
+                #productDescModel='ngModel'
+                #productDescEl
+            />
+            <abp-validation-summary
+                [control]='productDescModel'
+                [controlEl]='productDescEl'
+            ></abp-validation-summary>
+            </div>
+        </div>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='itemTopUpValue'>
+            {{ 'ItemTopUpValue' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                class='form-control'
+                name='itemTopUpValue'
+                id='itemTopUpValue'
+                required
+                [(ngModel)]='postal.itemTopUpValue'
+                #itemTopUpValueModel='ngModel'
+                #itemTopUpValueEl
+            />
+            <abp-validation-summary
+                [control]='itemTopUpValueModel'
+                [controlEl]='itemTopUpValueEl'
+            ></abp-validation-summary>
+            </div>
+        </div>
+    </div>
+    <abp-modal-footer
+    [cancelDisabled]='saving'
+    [saveDisabled]='!createPostalModal.form.valid || saving'
+    (onCancelClick)='bsModalRef.hide()'
+    ></abp-modal-footer>
+</form>

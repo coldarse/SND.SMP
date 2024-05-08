@@ -100,6 +100,13 @@
                     *ngIf="isButtonVisible('Edit') || isButtonVisible('Delete')"
                   >
                     <button
+                      class="btn btn-sm bg-info"
+                      type="button"
+                      (click)="downloadManifest(dispatch.dispatchNo)"
+                    >
+                      Download Manifest
+                    </button>
+                    <button
                       type="button"
                       class="btn btn-sm bg-secondary"
                       (click)="editDispatch(dispatch)"
