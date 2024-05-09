@@ -5,11 +5,12 @@ import {
   HttpHeaders,
   HttpParams,
 } from "@angular/common/http";
-import { catchError, retry, throwError } from "rxjs";
+import { Observable, catchError, map, retry, throwError } from "rxjs";
 import {
   PagedDispatchResultRequestDto,
   DispatchDto,
   GetPostCheck,
+  Manifest,
 } from "./model";
 import { AppConsts } from "@shared/AppConsts";
 import { ErrorMessage } from "../error-handling";
@@ -185,12 +186,33 @@ export class DispatchService {
       .pipe(retry(1), catchError(this.errorMessage.HandleErrorResponse));
   }
 
-  downloadManifest(dispatchNo: string){
+  downloadManifest(dispatchNo: string): Observable<Manifest>{
     return this.http
-      .post(
+      .get(
         this.url + `/api/services/app/Dispatch/DownloadDispatchManifest?dispatchNo=${dispatchNo}`,
-        this.options_
+        { responseType: 'blob', observe: 'response' }
       )
-      .pipe(retry(1), catchError(this.errorMessage.HandleErrorResponse));
+      .pipe(
+        map(response => {
+          const contentDispositionHeader = response.headers.get('Content-Disposition');
+          const filename = this.getFilenameFromContentDisposition(contentDispositionHeader);
+          
+          return { blob: response.body, filename };
+        }),
+        retry(1), 
+        catchError(this.errorMessage.HandleErrorResponse)
+      );
+  }
+
+  private getFilenameFromContentDisposition(contentDisposition: string): string {
+    if (!contentDisposition) {
+      return '';
+    }
+    const filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+    const matches = filenameRegex.exec(contentDisposition);
+    if (!matches || !matches[1]) {
+      return '';
+    }
+    return matches[1].replace(/['"]/g, '');
   }
 }

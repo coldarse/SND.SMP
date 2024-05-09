@@ -903,11 +903,13 @@ namespace SND.SMP.Dispatches
 
         private void AddFileToZip(ZipArchive archive, string fileName, byte[] fileBytes)
         {
-            ZipArchiveEntry entry = archive.CreateEntry(fileName, System.IO.Compression.CompressionLevel.Fastest);
-            using Stream entryStream = entry.Open();
-            entryStream.Write(fileBytes, 0, fileBytes.Length);
+            ZipArchiveEntry entry = archive.CreateEntry(fileName, System.IO.Compression.CompressionLevel.Optimal);
+            using var fileStream = new MemoryStream(fileBytes);
+            using var entryStream = entry.Open();
+            fileStream.CopyTo(entryStream);
         }
 
+        [HttpGet]
         public async Task<IActionResult> DownloadDispatchManifest(string dispatchNo)
         {
             string code = dispatchNo[..2];
@@ -960,30 +962,33 @@ namespace SND.SMP.Dispatches
                         }
                     }
                 }
-                using MemoryStream zipStream = new();
-                using ZipArchive archive = new(zipStream, ZipArchiveMode.Create, true);
 
-                var airports = manifestList.SelectMany(u => u.Keys).ToList().Distinct().ToList();
-                foreach (var airport in airports)
+                using (MemoryStream zipStream = new())
                 {
-                    foreach (var manifest in manifestList)
+                    using (ZipArchive archive = new(zipStream, ZipArchiveMode.Create, true))
                     {
-                        var dictItem = manifest.First();
-                        if (dictItem.Key.Equals(airport))
+                        var airports = manifestList.SelectMany(u => u.Keys).ToList().Distinct().ToList();
+                        foreach (var airport in airports)
                         {
-                            string fileName = $"{dictItem.Key}.xlsx"; // Generate unique file name
-                            byte[] excelBytes = CreateKGExcelFile(dictItem.Value);
-                            AddFileToZip(archive, fileName, excelBytes);
+                            using (var entryStream = new MemoryStream())
+                            {
+                                using (var entry = archive.CreateEntry($"{dispatch.CustomerCode}-{dispatch.ProductCode}-{date}-{batchNo}-{airport}-Manifest.xlsx", System.IO.Compression.CompressionLevel.Optimal).Open())
+                                {
+                                    byte[] excelBytes = CreateKGExcelFile(manifestList.First(item => item.ContainsKey(airport)).First().Value);
+                                    entryStream.Write(excelBytes, 0, excelBytes.Length);
+                                    entryStream.Position = 0;
+                                    entryStream.CopyTo(entry);
+                                }
+                            }
                         }
                     }
+
+                    byte[] zipFileBytes = zipStream.ToArray();
+                    return new FileContentResult(zipFileBytes, "application/zip")
+                    {
+                        FileDownloadName = $"{code}Manifest_{sessionID}.zip"
+                    };
                 }
-
-                byte[] zipFileBytes = zipStream.ToArray();
-
-                return new FileContentResult(zipFileBytes, "application/zip")
-                {
-                    FileDownloadName = "manifest.zip"
-                };
             }
             else if (code == "GQ")
             {
@@ -1013,36 +1018,38 @@ namespace SND.SMP.Dispatches
                         }
                     }
                 }
-                using MemoryStream zipStream = new();
-                using ZipArchive archive = new(zipStream, ZipArchiveMode.Create, true);
-
-                var airports = manifestList.SelectMany(u => u.Keys).ToList().Distinct().ToList();
-                foreach (var airport in airports)
+                using (MemoryStream zipStream = new())
                 {
-                    foreach (var manifest in manifestList)
+                    using (ZipArchive archive = new(zipStream, ZipArchiveMode.Create, true))
                     {
-                        var dictItem = manifest.First();
-                        if (dictItem.Key.Equals(airport))
+                        var airports = manifestList.SelectMany(u => u.Keys).ToList().Distinct().ToList();
+                        foreach (var airport in airports)
                         {
-                            string fileName = $"{dictItem.Key}.xlsx"; // Generate unique file name
-                            byte[] excelBytes = CreateGQExcelFile(dictItem.Value);
-                            AddFileToZip(archive, fileName, excelBytes);
+                            using (var entryStream = new MemoryStream())
+                            {
+                                using (var entry = archive.CreateEntry($"{dispatch.CustomerCode}-{dispatch.ProductCode}-{date}-{batchNo}-{airport}-Manifest.xlsx", System.IO.Compression.CompressionLevel.Optimal).Open())
+                                {
+                                    byte[] excelBytes = CreateGQExcelFile(manifestList.First(item => item.ContainsKey(airport)).First().Value);
+                                    entryStream.Write(excelBytes, 0, excelBytes.Length);
+                                    entryStream.Position = 0;
+                                    entryStream.CopyTo(entry);
+                                }
+                            }
                         }
                     }
+
+                    byte[] zipFileBytes = zipStream.ToArray();
+                    return new FileContentResult(zipFileBytes, "application/zip")
+                    {
+                        FileDownloadName = $"{code}Manifest_{sessionID}.zip"
+                    };
                 }
-
-                byte[] zipFileBytes = zipStream.ToArray();
-
-                return new FileContentResult(zipFileBytes, "application/zip")
-                {
-                    FileDownloadName = "manifest.zip"
-                };
             }
             else
             {
                 return new FileContentResult(null, "application/zip")
                 {
-                    FileDownloadName = "manifest.zip"
+                    FileDownloadName = $"{code}Manifest_{sessionID}.zip"
                 };
             }
         }

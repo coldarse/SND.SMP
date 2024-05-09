@@ -76,12 +76,12 @@ export class SidebarMenuComponent extends AppComponentBase implements OnInit {
         "Pages.Users"
       ),
       /* Insert Menu Path */
-            new MenuItem(
-                this.l('IMPCS'),
-                '/app/impcs',
-                'far fa-circle',
-                'Pages.IMPC'
-            ),
+      new MenuItem(
+        this.l("IMPCS"),
+        "/app/impcs",
+        "fas fa-barcode",
+        "Pages.IMPC"
+      ),
       // new MenuItem(
       //   this.l("Refunds"),
       //   "/app/refunds",
@@ -122,7 +122,7 @@ export class SidebarMenuComponent extends AppComponentBase implements OnInit {
       new MenuItem(
         this.l("Dispatches"),
         "/app/dispatches",
-        "far fa-circle",
+        "fas fa-boxes-packing",
         "Pages.Dispatch"
       ),
       new MenuItem(

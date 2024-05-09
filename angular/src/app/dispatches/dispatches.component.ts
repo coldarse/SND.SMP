@@ -1,13 +1,21 @@
-import { Component, Injector, Input } from '@angular/core';
-import { PagedListingComponentBase, PagedRequestDto, PagedResultDto } from '@shared/paged-listing-component-base';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
-import { finalize } from 'rxjs/operators';
-import { DispatchDto, DispatchInfoDto } from '@shared/service-proxies/dispatches/model'
-import { DispatchService } from '@shared/service-proxies/dispatches/dispatch.service'
-import { CreateUpdateDispatchComponent } from '../dispatches/create-update-dispatch/create-update-dispatch.component'
-import { Router } from '@angular/router';
+import { Component, Injector, Input } from "@angular/core";
+import {
+  PagedListingComponentBase,
+  PagedRequestDto,
+  PagedResultDto,
+} from "@shared/paged-listing-component-base";
+import { BsModalRef, BsModalService } from "ngx-bootstrap/modal";
+import { finalize } from "rxjs/operators";
+import {
+  DispatchDto,
+  DispatchInfoDto,
+  Manifest,
+} from "@shared/service-proxies/dispatches/model";
+import { DispatchService } from "@shared/service-proxies/dispatches/dispatch.service";
+import { CreateUpdateDispatchComponent } from "../dispatches/create-update-dispatch/create-update-dispatch.component";
+import { Router } from "@angular/router";
 
-class PagedDispatchesRequestDto extends PagedRequestDto{
+class PagedDispatchesRequestDto extends PagedRequestDto {
   keyword: string;
   isAdmin: boolean;
   customerCode: string;
@@ -15,19 +23,19 @@ class PagedDispatchesRequestDto extends PagedRequestDto{
 }
 
 @Component({
-  selector: 'app-dispatches',
-  templateUrl: './dispatches.component.html',
-  styleUrls: ['./dispatches.component.css']
+  selector: "app-dispatches",
+  templateUrl: "./dispatches.component.html",
+  styleUrls: ["./dispatches.component.css"],
 })
 export class DispatchesComponent extends PagedListingComponentBase<DispatchDto> {
-
-  keyword = '';
+  keyword = "";
   dispatches: any[] = [];
 
   @Input() showPagination: boolean = true;
   @Input() maxItems: number = 10;
 
   isAdmin = true;
+  isDownloadingManifest = false;
   companyCode = "";
 
   constructor(
@@ -35,35 +43,34 @@ export class DispatchesComponent extends PagedListingComponentBase<DispatchDto> 
     private router: Router,
     private _dispatchService: DispatchService,
     private _modalService: BsModalService
-  ){
+  ) {
     super(injector);
   }
 
-  createDispatch(){
+  createDispatch() {
     this.showCreateOrEditDispatchDialog();
   }
 
-  editDispatch(entity: DispatchDto){
+  editDispatch(entity: DispatchDto) {
     this.showCreateOrEditDispatchDialog(entity);
   }
 
-  private showCreateOrEditDispatchDialog(entity?: DispatchDto){
+  private showCreateOrEditDispatchDialog(entity?: DispatchDto) {
     let createOrEditDispatchDialog: BsModalRef;
-    if(!entity){
+    if (!entity) {
       createOrEditDispatchDialog = this._modalService.show(
         CreateUpdateDispatchComponent,
         {
-          class: 'modal-lg',
+          class: "modal-lg",
         }
       );
-    }
-    else{
+    } else {
       createOrEditDispatchDialog = this._modalService.show(
         CreateUpdateDispatchComponent,
         {
-          class: 'modal-lg',
+          class: "modal-lg",
           initialState: {
-            dispatch: entity
+            dispatch: entity,
           },
         }
       );
@@ -75,36 +82,60 @@ export class DispatchesComponent extends PagedListingComponentBase<DispatchDto> 
   }
 
   clearFilters(): void {
-    this.keyword = '';
+    this.keyword = "";
     this.getDataPage(1);
   }
 
-  protected delete(entity: DispatchDto): void{
-    abp.message.confirm(
-      '',
-      undefined,
-      (result: boolean) => {
-        if (result) {
-          this._dispatchService.delete(entity.id).subscribe(() => {
-            abp.notify.success(this.l('SuccessfullyDeleted'));
-            this.refresh();
-          });
-        }
+  protected delete(entity: DispatchDto): void {
+    abp.message.confirm("", undefined, (result: boolean) => {
+      if (result) {
+        this._dispatchService.delete(entity.id).subscribe(() => {
+          abp.notify.success(this.l("SuccessfullyDeleted"));
+          this.refresh();
+        });
       }
-    );
+    });
   }
 
   isButtonVisible(action: string): boolean {
-    return this.permission.isGranted('Pages.Dispatch.' + action);
+    return this.permission.isGranted("Pages.Dispatch." + action);
   }
 
   rerouteToModule() {
     this.router.navigate(["/app/dispatches"]);
   }
 
-  downloadManifest(dispatchNo: string){
-    this._dispatchService.downloadManifest(dispatchNo).subscribe(() => {
-      abp.notify.success(this.l('Successfully Downloaded'));
+  downloadManifest(dispatchNo: string) {
+    this.isDownloadingManifest = true;
+    this._dispatchService
+      .downloadManifest(dispatchNo)
+      .pipe(
+        finalize(() => {
+          this.isDownloadingManifest = false;
+        })
+      )
+      .subscribe((data: Manifest) => {
+        const blob = new Blob([data.blob], { type: "application/zip" });
+        const url = window.URL.createObjectURL(blob);
+
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = data.filename;
+        a.click();
+
+        // Clean up
+        window.URL.revokeObjectURL(url);
+        abp.notify.success(this.l("Successfully Downloaded"));
+      });
+  }
+
+  postCheck(dispatchNo: string) {
+    this.router.navigate(["/app/postchecks", dispatchNo]);
+  }
+
+  undoPostCheck(dispatchNo: string) {
+    this._dispatchService.undoPostCheck(dispatchNo).subscribe(() => {
+      abp.notify.success(this.l("Successfully Undo Postcheck"));
     });
   }
 
@@ -126,37 +157,35 @@ export class DispatchesComponent extends PagedListingComponentBase<DispatchDto> 
     request.maxResultCount = this.maxItems;
 
     this._dispatchService
-    .getDispatchInfoListPaged(
-      request
-    ).pipe(
-      finalize(() => {
-        finishedCallback();
-      })
-    )
-    .subscribe((result: any) => {
-      this.dispatches = [];
+      .getDispatchInfoListPaged(request)
+      .pipe(
+        finalize(() => {
+          finishedCallback();
+        })
+      )
+      .subscribe((result: any) => {
+        this.dispatches = [];
         result.result.items.forEach((element: DispatchInfoDto) => {
-
           let tempDispatch = {
             customerName: element.customerName,
             customerCode: element.customerCode,
             postalCode: element.postalCode,
             postalDesc: element.postalDesc,
             dispatchDate: element.dispatchDate,
-            dispatchNo: element.dispatchNo, 
+            dispatchNo: element.dispatchNo,
             serviceCode: element.serviceCode,
             serviceDesc: element.serviceDesc,
             productCode: element.productCode,
-            productDesc: element.productDesc,  
-            totalBags: element.totalBags,   
-            totalWeight: element.totalWeight,  
+            productDesc: element.productDesc,
+            totalBags: element.totalBags,
+            totalWeight: element.totalWeight,
             totalCountry: element.totalCountry,
-            status: element.status,  
-          }
+            status: element.status,
+          };
 
           this.dispatches.push(tempDispatch);
         });
         if (this.showPagination) this.showPaging(result.result, pageNumber);
-    });
+      });
   }
 }

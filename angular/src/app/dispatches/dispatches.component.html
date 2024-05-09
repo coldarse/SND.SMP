@@ -48,7 +48,7 @@
           </div>
         </div>
         <div class="card-body">
-          <div class="table-responsive">
+          <!-- <div class="table-responsive"> -->
             <table
               class="table table-striped table-bordered"
               [busy]="isTableLoading"
@@ -69,7 +69,7 @@
                     style="width: 310px"
                     *ngIf="isButtonVisible('Edit') && isButtonVisible('Delete')"
                   >
-                    {{ "Actions" | localize }}
+                    <!-- {{ "Actions" | localize }} -->
                   </th>
                 </tr>
               </thead>
@@ -99,36 +99,59 @@
                   <td
                     *ngIf="isButtonVisible('Edit') || isButtonVisible('Delete')"
                   >
-                    <button
-                      class="btn btn-sm bg-info"
-                      type="button"
-                      (click)="downloadManifest(dispatch.dispatchNo)"
-                    >
-                      Download Manifest
-                    </button>
-                    <button
-                      type="button"
-                      class="btn btn-sm bg-secondary"
-                      (click)="editDispatch(dispatch)"
-                      *ngIf="isButtonVisible('Edit')"
-                    >
-                      <i class="fas fa-pencil-alt"></i>
-                      {{ "Edit" | localize }}
-                    </button>
-                    <button
-                      type="button"
-                      class="btn btn-sm bg-danger mx-2"
-                      (click)="delete(dispatch)"
-                      *ngIf="isButtonVisible('Delete')"
-                    >
-                      <i class="fas fa-trash"></i>
-                      {{ "Delete" | localize }}
-                    </button>
+                    <div class="dropdown">
+                      <button
+                        class="btn btn-secondary dropdown-toggle"
+                        type="button"
+                        id="dropdownMenu2"
+                        data-bs-toggle="dropdown"
+                        aria-haspopup="true"
+                        aria-expanded="false"
+                      >
+                        Actions
+                      </button>
+                      <div
+                        class="dropdown-menu"
+                        aria-labelledby="dropdownMenu2"
+                      >
+                        <button
+                          class="bg-info dropdown-item"
+                          type="button"
+                          (click)="downloadManifest(dispatch.dispatchNo)"
+                          [disabled]="isDownloadingManifest"
+                        >
+                          @if (!isDownloadingManifest) {
+                            Download Manifest
+                          }
+                          @else {
+                            <div class="spinner-border spinner-border-sm" role="status">
+                              <span class="sr-only">Loading...</span>
+                            </div>
+                            Downloading
+                          }
+                        </button>
+                        <button
+                          type="button"
+                          class="bg-warning dropdown-item"
+                          (click)="postCheck(dispatch.dispatchNo)"
+                        >
+                          Post Check
+                        </button>
+                        <button
+                          type="button"
+                          class="bg-danger dropdown-item"
+                          (click)="undoPostCheck(dispatch.dispatchNo)"
+                          *ngIf="isButtonVisible('Delete')"
+                        >
+                          Undo Post Check
+                        </button>
+                      </div>
+                    </div>
                   </td>
                 </tr>
               </tbody>
             </table>
-          </div>
+          <!-- </div> -->
         </div>
         <div class="card-footer table-card-footer bg-light border-top">
           <div class="row">
