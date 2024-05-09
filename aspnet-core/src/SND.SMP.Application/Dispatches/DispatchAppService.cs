@@ -856,6 +856,27 @@ namespace SND.SMP.Dispatches
             );
         }
 
+        private byte[] CreateSLExcelFile(List<SLManifest> dataList)
+        {
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+            using ExcelPackage package = new();
+            ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("Sheet 1");
+            var properties = typeof(SLManifest).GetProperties();
+
+            for (int col = 0; col < properties.Length; col++)
+            {
+                worksheet.Cells[1, col + 1].Value = properties[col].Name;
+            }
+
+            for (int row = 0; row < dataList.Count; row++)
+            {
+                for (int col = 0; col < properties.Length; col++)
+                {
+                    worksheet.Cells[row + 2, col + 1].Value = properties[col].GetValue(dataList[row]);
+                }
+            }
+            return package.GetAsByteArray();
+        }
         private byte[] CreateGQExcelFile(List<GQManifest> dataList)
         {
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
@@ -877,7 +898,6 @@ namespace SND.SMP.Dispatches
             }
             return package.GetAsByteArray();
         }
-
         private byte[] CreateKGExcelFile(List<KGManifest> dataList)
         {
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
@@ -1047,10 +1067,30 @@ namespace SND.SMP.Dispatches
             }
             else
             {
-                return new FileContentResult(null, "application/zip")
+                var model = await GetSLManifest(dispatch.Id);
+
+                using (MemoryStream zipStream = new())
                 {
-                    FileDownloadName = $"{code}Manifest_{sessionID}.zip"
-                };
+                    using (ZipArchive archive = new(zipStream, ZipArchiveMode.Create, true))
+                    {
+                        using (var entryStream = new MemoryStream())
+                        {
+                            using (var entry = archive.CreateEntry($"{dispatch.CustomerCode}-{dispatch.ProductCode}-{date}-{batchNo}-LAX-Manifest.xlsx", System.IO.Compression.CompressionLevel.Optimal).Open())
+                            {
+                                byte[] excelBytes = CreateSLExcelFile(model);
+                                entryStream.Write(excelBytes, 0, excelBytes.Length);
+                                entryStream.Position = 0;
+                                entryStream.CopyTo(entry);
+                            }
+                        }
+                    }
+
+                    byte[] zipFileBytes = zipStream.ToArray();
+                    return new FileContentResult(zipFileBytes, "application/zip")
+                    {
+                        FileDownloadName = $"{code}Manifest_{sessionID}.zip"
+                    };
+                }
             }
         }
 
@@ -1340,6 +1380,254 @@ namespace SND.SMP.Dispatches
             return gqManifest;
         }
 
+        private async Task<List<SLManifest>> GetSLManifest(int dispatchId)
+        {
+            List<SLManifest> slManifest = [];
+
+            string postalCode = "";
+
+            var dispatch = await _dispatchRepository.FirstOrDefaultAsync(x => x.Id.Equals(dispatchId));
+
+            postalCode = dispatch.PostalCode;
+
+            var items = await _itemRepository.GetAllListAsync(x => x.DispatchID.Equals(dispatchId));
+
+            var bags = items.GroupBy(x => x.BagNo).Select(x => x.Key).ToList();
+
+            var bagWeightsInGram = items
+                .Where(u => u.Weight != null)
+                .GroupBy(u => u.BagNo)
+                .Select(u => new
+                {
+                    BagNo = u.Key,
+                    Weight = Math.Round(u.Sum(p => Convert.ToDecimal(p.Weight) * 1000), 0)
+                })
+                .ToList();
+
+            var bagTareWeightInGram = 110;
+
+            var currentDate = DateTime.Now.ToString("yyyy-MM-dd");
+
+            var random = new Random();
+
+            Dictionary<string, decimal> listDeduct = [];
+
+            var totalDeducted = 0m;
+            var maxAttempt = 30;
+            var attempt = 0;
+            var itemMinWeightInGram = 3m;
+            var isMaxAttemptReached = false;
+            var lastBagUnable = "";
+
+            foreach (var b in bags)
+            {
+                attempt = 0;
+                totalDeducted = 0;
+
+                var bagItems = items.Where(p => p.BagNo.Equals(b)).ToList();
+                var bagWeightInGram = bagItems.Sum(p => p.Weight);
+
+                do
+                {
+                    if (attempt > maxAttempt)
+                    {
+                        isMaxAttemptReached = true;
+                        lastBagUnable = b;
+                        break;
+                    }
+
+                    attempt += 1;
+
+                    foreach (var u in bagItems)
+                    {
+                        if (totalDeducted < bagTareWeightInGram)
+                        {
+                            if (attempt == 1)
+                            {
+                                u.Weight = Math.Round(u.Weight.GetValueOrDefault() * 1000m, 2);
+                            }
+
+                            var itemWeightInGram = u.Weight;
+
+                            if (itemWeightInGram >= itemMinWeightInGram)
+                            {
+                                var deducted = 0m;
+
+                                if (itemWeightInGram - 1m >= itemMinWeightInGram)
+                                {
+                                    deducted = 1m;
+                                }
+
+                                if (deducted > 0m)
+                                {
+                                    totalDeducted += deducted;
+                                    u.Weight -= deducted;
+
+                                    if (!listDeduct.TryAdd(u.Id, deducted))
+                                    {
+                                        listDeduct[u.Id] += deducted;
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+                }
+                while ((totalDeducted < bagTareWeightInGram) && !isMaxAttemptReached);
+            }
+
+            if (isMaxAttemptReached)
+            {
+                throw new UserFriendlyException($"Not sufficient to deduct {bagTareWeightInGram.ToString()}g for bag {lastBagUnable} after {maxAttempt} attempts");
+            }
+
+            foreach (var u in items)
+            {
+                var bagNo = bags.IndexOf(u.BagNo) + 1;
+
+                var itemWeightInGram = Math.Round(Convert.ToDecimal(u.Weight) * 1000, 0);
+                var bagWeightInGram = bagWeightsInGram.Where(p => p.BagNo == u.BagNo).Select(p => p.Weight).FirstOrDefault();
+                var itemWeightPortionInGram = Math.Round(itemWeightInGram / bagWeightInGram * 100 * bagTareWeightInGram / 100, 0);
+                var itemAfterWeight = itemWeightInGram - itemWeightPortionInGram;
+                var bagWeightAfterInGram = bagWeightInGram - bagTareWeightInGram;
+
+                itemAfterWeight = itemWeightInGram - (listDeduct.TryGetValue(u.Id, out decimal value) ? value : 0m);
+
+                var chineseProductName = "";
+
+                if (postalCode == "KG02")
+                {
+                    chineseProductName = u.TaxPayMethod;
+                }
+
+                var tel = u.TelNo;
+                tel = string.IsNullOrWhiteSpace(tel) ? "87654321" : tel;
+
+                #region Tel - Select Randomly
+                if (true)
+                {
+                    var willSelectRandomly = false;
+
+                    if (string.IsNullOrWhiteSpace(tel))
+                    {
+                        willSelectRandomly = true;
+                    }
+
+                    if (!willSelectRandomly)
+                    {
+                        if (MyRegex().IsMatch(tel))
+                        {
+                            willSelectRandomly = true;
+                        }
+                    }
+
+                    if (!willSelectRandomly)
+                    {
+                        //covers 0, 1, 2, 3, 9, 000000, 111111, 222222, 999999, 18475, 1256, 591
+                        var parseResult = long.TryParse(tel, out long outTel);
+
+                        if (parseResult)
+                        {
+                            var minLen = 6;
+
+                            if (outTel.ToString().Length < minLen)
+                            {
+                                willSelectRandomly = true;
+                            }
+                        }
+                    }
+
+                    if (!willSelectRandomly)
+                    {
+                        //covers 123456, 234567, 345678
+                        bool isSeq = "0123456789".Contains(tel);
+                        if (isSeq)
+                        {
+                            willSelectRandomly = true;
+                        }
+                    }
+
+                }
+                #endregion
+
+                var senderAddresses = new List<SenderAddress>()
+                {
+                    new() {
+                        Name = $"PO Box { random.Next(150000, 199999).ToString() }",
+                        Address = "17 Lumley Beach Rd, Freetown, Sierra Leone",
+                        City = "Freetown"
+                    },
+                    new() {
+                        Name = $"PO Box { random.Next(150000, 199999).ToString() }",
+                        Address = "14B Signal Hill Rd, Freetown, Sierra Leone",
+                        City = "Freetown"
+                    },
+                    new() {
+                        Name = $"PO Box { random.Next(150000, 199999).ToString() }",
+                        Address = "3 Becklyn Drive, Freetown, Sierra Leone",
+                        City = "Freetown"
+                    },
+                    new() {
+                        Name = $"PO Box { random.Next(150000, 199999).ToString() }",
+                        Address = "117 main regent road, regent, Freetown, Sierra Leone",
+                        City = "Freetown"
+                    },
+                    new() {
+                        Name = $"PO Box { random.Next(150000, 199999).ToString() }",
+                        Address = "103, Bo-Kenema Highway, Bo Sierra Leone",
+                        City = "Freetown"
+                    },
+                    new() {
+                        Name = $"PO Box { random.Next(150000, 199999).ToString() }",
+                        Address = "A41 Resettlement, Koidu, Sierra Leone",
+                        City = "Freetown"
+                    }
+                };
+
+                var ri = random.Next(0, senderAddresses.Count - 1);
+
+                slManifest.Add(new SLManifest
+                {
+                    Barcode = u.Id,
+                    Weight = itemAfterWeight,
+                    Attachments_Type = "Other",
+                    Sender_Fname = senderAddresses[ri].Name,
+                    Sender_Lname = "",
+                    Sender_Address = senderAddresses[ri].Address,
+                    Sender_City = senderAddresses[ri].City,
+                    Sender_Province = "Sierra Leone",
+                    Sender_Zip = "",
+                    Destination_Fname = u.RecpName,
+                    Destination_Lname = "",
+                    Destination_Address = u.Address,
+                    Destination_City = u.City,
+                    Destination_Province = u.State,
+                    Destination_Zip = u.Postcode,
+                    Destination_Phone = tel,
+                    Attachment_Description = u.ItemDesc,
+                    ChineseProductName = chineseProductName,
+                    Attachment_Quantity = u.Qty,
+                    Attachment_Weight = itemAfterWeight,
+                    Attachment_Price_USD = u.ItemValue is null ? 0 : u.ItemValue,
+                    Attachment_Hs_Code = u.HSCode,
+                    Attachment_Width = u.Width == null ? 0 : Convert.ToInt32(Math.Round(u.Width.Value, 0)),
+                    Attachment_Height = u.Height == null ? 0 : Convert.ToInt32(Math.Round(u.Height.Value, 0)),
+                    Attachment_Length = u.Length == null ? 0 : Convert.ToInt32(Math.Round(u.Length.Value, 0)),
+                    Bag_Number = bagNo,
+                    Impc_To_Code = "JPKWSA",
+                    Bag_Tare_Weight = bagTareWeightInGram,
+                    Bag_Weight = bagWeightInGram,
+                    Dispatch_Sent_Date = currentDate,
+                    Logistic_Code = "KEPBKLGT001285",
+                    IOSS = ""
+                });
+            }
+            return slManifest;
+        }
+
         private async Task<List<DeductTare>> GetDeductTare(int dispatchId, decimal deductAmount, bool usePostCheckWeight = true, decimal minWeight = 3, decimal deductFactor = 1)
         {
             List<DeductTare> result = [];
@@ -1483,5 +1771,6 @@ namespace SND.SMP.Dispatches
 
             return result;
         }
+
     }
 }

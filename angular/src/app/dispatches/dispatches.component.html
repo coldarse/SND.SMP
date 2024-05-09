@@ -119,6 +119,7 @@
                           type="button"
                           (click)="downloadManifest(dispatch.dispatchNo)"
                           [disabled]="isDownloadingManifest"
+                          *ngIf="dispatch.dispatchNo.slice(0, 2) == 'KG' || dispatch.dispatchNo.slice(0, 2) == 'GQ' || dispatch.dispatchNo.slice(0, 2) == 'SL'"
                         >
                           @if (!isDownloadingManifest) {
                             Download Manifest
