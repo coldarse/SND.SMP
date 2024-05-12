@@ -5,7 +5,7 @@ COPY . .
 # This is a workaround to avoid updating appconfig.production.json file.
 # If you prefer to updating appconfig.production.json file instead of appconfig.container.json please delete this line.
 RUN mv ./src/assets/appconfig.container.json ./src/assets/appconfig.production.json
-RUN yarn install
+# RUN yarn install
 RUN yarn run ng build --configuration production --base-href=http://65.21.224.66:4200
 # stage 2
 FROM nginx
