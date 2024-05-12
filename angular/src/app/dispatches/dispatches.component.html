@@ -122,7 +122,7 @@
                           *ngIf="dispatch.dispatchNo.slice(0, 2) == 'KG' || dispatch.dispatchNo.slice(0, 2) == 'GQ' || dispatch.dispatchNo.slice(0, 2) == 'SL'"
                         >
                           @if (!isDownloadingManifest) {
-                            Download Manifest
+                            Download {{ dispatch.dispatchNo.slice(0, 2) }} Pre-Alert
                           }
                           @else {
                             <div class="spinner-border spinner-border-sm" role="status">
