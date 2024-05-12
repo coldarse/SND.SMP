@@ -153,6 +153,7 @@ export class PostChecksComponent extends AppComponentBase implements OnInit {
   UploadPostCheck() {
     const form = new FormData();
     form.append("file", this.fileUpload);
+    form.append("dispatchNo", this.dispatchNo);
 
     this._dispatchService.uploadPostCheck(form).subscribe(
       (result: any) => {

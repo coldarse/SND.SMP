@@ -267,21 +267,27 @@ namespace SND.SMP.Dispatches
             var wa = await _weightAdjustmentRepository.FirstOrDefaultAsync(x =>
                                          x.ReferenceNo.Equals(dispatch.DispatchNo) &&
                                          x.Description.Contains("Under Declare") &&
-                                        !x.InvoiceId.Equals(null)
-                                ) ?? throw new UserFriendlyException("No Weight Adjustment Record Found");
+                                        !x.InvoiceId.Equals(0)
+                                );
 
-            decimal refundAmount = wa.Amount.Equals(null) ? 0 : wa.Amount;
+            if (wa is not null)
+            {
+                decimal refundAmount = wa.Amount.Equals(null) ? 0 : wa.Amount;
 
-            wa.InvoiceId = 0;
-            wa.Description = $"Undid Post Check for Dispatch {dispatchNo}";
+                wa.InvoiceId = 0;
+                wa.Description = $"Undid Post Check for Dispatch {dispatchNo}";
 
-            await _weightAdjustmentRepository.UpdateAsync(wa);
-            await _weightAdjustmentRepository.GetDbContext().SaveChangesAsync();
+                await _weightAdjustmentRepository.UpdateAsync(wa);
+                await _weightAdjustmentRepository.GetDbContext().SaveChangesAsync();
 
-            var wallet = await _walletRepository.FirstOrDefaultAsync(x => x.Customer.Equals(customer.Code) && x.Currency.Equals(rateItem.CurrencyId));
-            wallet.Balance += refundAmount;
-            await _walletRepository.UpdateAsync(wallet);
-            await _walletRepository.GetDbContext().SaveChangesAsync();
+                var wallet = await _walletRepository.FirstOrDefaultAsync(x => x.Customer.Equals(customer.Code) && x.Currency.Equals(rateItem.CurrencyId));
+                wallet.Balance += refundAmount;
+                await _walletRepository.UpdateAsync(wallet);
+                await _walletRepository.GetDbContext().SaveChangesAsync();
+
+                await _weightAdjustmentRepository.DeleteAsync(wa);
+                await _weightAdjustmentRepository.GetDbContext().SaveChangesAsync();
+            }
 
             return true;
         }
@@ -340,7 +346,7 @@ namespace SND.SMP.Dispatches
                                                     x.DispatchId.Equals(dispatchId) &&
                                                     x.WeightPost.Equals(0));
 
-                if (missingBags is not null)
+                if (missingBags.Count > 0)
                 {
                     decimal totalRefund = 0;
                     decimal missingWeight = 0;
@@ -394,7 +400,7 @@ namespace SND.SMP.Dispatches
 
                 string rateCardName = rate.CardName;
 
-                if (waBags is null)
+                if (waBags is not null)
                 {
                     var dispatchItems = await _itemRepository.GetAllListAsync(x => x.DispatchID.Equals(dispatchId));
 
@@ -629,12 +635,6 @@ namespace SND.SMP.Dispatches
 
             foreach (Bag bag in bags)
             {
-                var dipatchBag = dispatchBags.FirstOrDefault(x => x.BagNo.Equals(bag.BagNo)) ?? throw new UserFriendlyException("Bag not found");
-                decimal bagPrecheckWeight = dipatchBag.WeightPre == null ? 0 : dipatchBag.WeightPre.Value;
-
-                bag.WeightVariance = bag.WeightPost >= bagPrecheckWeight ? (bag.WeightPost.Value - bagPrecheckWeight) : 0;
-                bag.WeightPost = bag.WeightPost.Value >= bagPrecheckWeight ? bag.WeightPost.Value : bagPrecheckWeight;
-
                 var listItems = dispatchItems.Where(x => x.BagNo.Equals(bag.BagNo)).ToList();
 
                 foreach (var bagItem in listItems)
@@ -645,7 +645,13 @@ namespace SND.SMP.Dispatches
                     await _itemRepository.GetDbContext().SaveChangesAsync();
                 }
 
-                await _bagRepository.UpdateAsync(bag);
+                var dipatchBag = dispatchBags.FirstOrDefault(x => x.BagNo.Equals(bag.BagNo)) ?? throw new UserFriendlyException("Bag not found");
+                decimal bagPrecheckWeight = dipatchBag.WeightPre == null ? 0 : dipatchBag.WeightPre.Value;
+
+                dipatchBag.WeightVariance = bag.WeightPost >= bagPrecheckWeight ? (bag.WeightPost.Value - bagPrecheckWeight) : 0;
+                dipatchBag.WeightPost = bag.WeightPost.Value >= bagPrecheckWeight ? bag.WeightPost.Value : bagPrecheckWeight;
+
+                await _bagRepository.UpdateAsync(dipatchBag);
                 await _bagRepository.GetDbContext().SaveChangesAsync();
             }
 
@@ -653,7 +659,7 @@ namespace SND.SMP.Dispatches
                                                     x.DispatchId.Equals(dispatch.Id) &&
                                                     x.WeightPost.Equals(0));
 
-            if (missingBags is not null)
+            if (missingBags.Count > 0)
             {
                 decimal totalRefund = 0;
                 decimal missingWeight = 0;
@@ -706,7 +712,7 @@ namespace SND.SMP.Dispatches
 
             string rateCardName = rate.CardName;
 
-            if (waBags is null)
+            if (waBags.Count > 0)
             {
                 dispatchItems = await _itemRepository.GetAllListAsync(x => x.DispatchID.Equals(dispatch.Id));
 
