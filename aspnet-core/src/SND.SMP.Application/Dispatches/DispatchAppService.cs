@@ -960,7 +960,7 @@ namespace SND.SMP.Dispatches
 
                 foreach (var country in countries)
                 {
-                    var model = await GetKGManifest(dispatch.Id, country);
+                    var model = await GetKGManifest(dispatch.Id, dispatch, country);
 
                     if (model.Count != 0)
                     {
@@ -1016,7 +1016,7 @@ namespace SND.SMP.Dispatches
 
                 foreach (var country in countries)
                 {
-                    var model = await GetGQManifest(dispatch.Id, country);
+                    var model = await GetGQManifest(dispatch.Id, dispatch, country);
 
                     if (model.Count != 0)
                     {
@@ -1067,7 +1067,7 @@ namespace SND.SMP.Dispatches
             }
             else
             {
-                var model = await GetSLManifest(dispatch.Id);
+                var model = await GetSLManifest(dispatch.Id, dispatch);
 
                 using (MemoryStream zipStream = new())
                 {
@@ -1094,13 +1094,11 @@ namespace SND.SMP.Dispatches
             }
         }
 
-        private async Task<List<KGManifest>> GetKGManifest(int dispatchId, string countryCode = null)
+        private async Task<List<KGManifest>> GetKGManifest(int dispatchId, Dispatch dispatch, string countryCode = null)
         {
             List<KGManifest> kgManifest = [];
             countryCode = countryCode.ToUpper().Trim();
             string postalCode = "";
-
-            var dispatch = await _dispatchRepository.FirstOrDefaultAsync(x => x.Id.Equals(dispatchId));
 
             postalCode = dispatch.PostalCode;
 
@@ -1232,13 +1230,11 @@ namespace SND.SMP.Dispatches
             return kgManifest;
         }
 
-        private async Task<List<GQManifest>> GetGQManifest(int dispatchId, string countryCode = null)
+        private async Task<List<GQManifest>> GetGQManifest(int dispatchId, Dispatch dispatch, string countryCode = null)
         {
             List<GQManifest> gqManifest = [];
             countryCode = countryCode.ToUpper().Trim();
             string postalCode = "";
-
-            var dispatch = await _dispatchRepository.FirstOrDefaultAsync(x => x.Id.Equals(dispatchId));
 
             postalCode = dispatch.PostalCode;
 
@@ -1380,13 +1376,11 @@ namespace SND.SMP.Dispatches
             return gqManifest;
         }
 
-        private async Task<List<SLManifest>> GetSLManifest(int dispatchId)
+        private async Task<List<SLManifest>> GetSLManifest(int dispatchId, Dispatch dispatch)
         {
             List<SLManifest> slManifest = [];
 
             string postalCode = "";
-
-            var dispatch = await _dispatchRepository.FirstOrDefaultAsync(x => x.Id.Equals(dispatchId));
 
             postalCode = dispatch.PostalCode;
 
