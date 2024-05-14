@@ -1202,7 +1202,7 @@ namespace SND.SMP.Dispatches
                         {
                             using (var entryStream = new MemoryStream())
                             {
-                                using (var entry = archive.CreateEntry($"{dispatch.CustomerCode}-{dispatch.ProductCode}-{date}-{batchNo}-{airport}-Manifest.xlsx", System.IO.Compression.CompressionLevel.Optimal).Open())
+                                using (var entry = archive.CreateEntry($"XY-{dispatch.ProductCode}-{date}-{batchNo}-{airport}-Manifest.xlsx", System.IO.Compression.CompressionLevel.Optimal).Open())
                                 {
                                     byte[] excelBytes = CreateKGExcelFile(manifestList.First(item => item.ContainsKey(airport)).First().Value);
                                     entryStream.Write(excelBytes, 0, excelBytes.Length);
@@ -1257,7 +1257,7 @@ namespace SND.SMP.Dispatches
                         {
                             using (var entryStream = new MemoryStream())
                             {
-                                using (var entry = archive.CreateEntry($"{dispatch.CustomerCode}-{dispatch.ProductCode}-{date}-{batchNo}-{airport}-Manifest.xlsx", System.IO.Compression.CompressionLevel.Optimal).Open())
+                                using (var entry = archive.CreateEntry($"XY-{dispatch.ProductCode}-{date}-{batchNo}-{airport}-Manifest.xlsx", System.IO.Compression.CompressionLevel.Optimal).Open())
                                 {
                                     byte[] excelBytes = CreateGQExcelFile(manifestList.First(item => item.ContainsKey(airport)).First().Value);
                                     entryStream.Write(excelBytes, 0, excelBytes.Length);
@@ -1285,7 +1285,7 @@ namespace SND.SMP.Dispatches
                     {
                         using (var entryStream = new MemoryStream())
                         {
-                            using (var entry = archive.CreateEntry($"{dispatch.CustomerCode}-{dispatch.ProductCode}-{date}-{batchNo}-LAX-Manifest.xlsx", System.IO.Compression.CompressionLevel.Optimal).Open())
+                            using (var entry = archive.CreateEntry($"XY-{dispatch.ProductCode}-{date}-{batchNo}-LAX-Manifest.xlsx", System.IO.Compression.CompressionLevel.Optimal).Open())
                             {
                                 byte[] excelBytes = CreateSLExcelFile(model);
                                 entryStream.Write(excelBytes, 0, excelBytes.Length);

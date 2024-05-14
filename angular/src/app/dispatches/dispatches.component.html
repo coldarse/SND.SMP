@@ -89,7 +89,7 @@
                 <td>{{ dispatch.serviceDesc }}</td>
                 <td>{{ dispatch.productDesc }}</td>
                 <td>{{ dispatch.totalBags }}</td>
-                <td>{{ dispatch.totalWeight }}</td>
+                <td>{{ dispatch.totalWeight | number : "1.3-3"  }}</td>
                 <td>{{ dispatch.totalCountry }}</td>
                 <td>{{ dispatch.status }}</td>
                 <td
@@ -118,7 +118,8 @@
                           dispatch.dispatchNo.slice(0, 2) == 'SL'
                         "
                       >
-                        @if (!isDownloadingManifest) { Download Manifest } @else
+                        @if (!isDownloadingManifest) { Download
+                        {{ dispatch.dispatchNo.slice(0, 2) }} Pre-Alert } @else
                         {
                         <div
                           class="spinner-border spinner-border-sm"
@@ -135,14 +136,15 @@
                       >
                         Post Check
                       </button>
-                      <button
+                      @if (dispatch.status == 'Post Check') {
+                        <button
                         type="button"
                         class="bg-danger dropdown-item"
                         (click)="undoPostCheck(dispatch.dispatchNo)"
-                        *ngIf="isButtonVisible('Delete')"
                       >
                         Undo Post Check
                       </button>
+                      }
                     </div>
                   </div>
                 </td>
