@@ -3,13 +3,9 @@
     <div class="container-fluid">
       <div class="row">
         <div class="col-6">
+          @if (showHeader) {
           <h1>{{ "Dispatches" | localize }}</h1>
-        </div>
-        <div class="col-6 text-right" *ngIf="isButtonVisible('Create')">
-          <!-- <a href="javascript:;" class="btn bg-blue" (click)="createDispatch()">
-            <i class="fa fa-plus-square"></i>
-            {{ "Create" | localize }}
-          </a> -->
+          }
         </div>
       </div>
     </div>
@@ -49,109 +45,110 @@
         </div>
         <div class="card-body">
           <!-- <div class="table-responsive"> -->
-            <table
-              class="table table-striped table-bordered"
-              [busy]="isTableLoading"
-            >
-              <thead class="bg-light">
-                <tr>
-                  <th>{{ "Customer" | localize }}</th>
-                  <th>{{ "Postal" | localize }}</th>
-                  <th>{{ "Date" | localize }}</th>
-                  <th>{{ "Dispatch No" | localize }}</th>
-                  <th>{{ "Service" | localize }}</th>
-                  <th>{{ "Product" | localize }}</th>
-                  <th>{{ "Total Bags" | localize }}</th>
-                  <th>{{ "Total Weight" | localize }}</th>
-                  <th>{{ "Total Countries" | localize }}</th>
-                  <th>{{ "Status" | localize }}</th>
-                  <th
-                    style="width: 310px"
-                    *ngIf="isButtonVisible('Edit') && isButtonVisible('Delete')"
-                  >
-                    <!-- {{ "Actions" | localize }} -->
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr
-                  *ngFor="
-                    let dispatch of dispatches
-                      | paginate
-                        : {
-                            id: 'server',
-                            itemsPerPage: pageSize,
-                            currentPage: pageNumber,
-                            totalItems: totalItems
-                          }
-                  "
+          <table
+            class="table table-striped table-bordered"
+            [busy]="isTableLoading"
+          >
+            <thead class="bg-light">
+              <tr>
+                <th>{{ "Customer" | localize }}</th>
+                <th>{{ "Postal" | localize }}</th>
+                <th>{{ "Date" | localize }}</th>
+                <th>{{ "Dispatch No" | localize }}</th>
+                <th>{{ "Service" | localize }}</th>
+                <th>{{ "Product" | localize }}</th>
+                <th>{{ "Total Bags" | localize }}</th>
+                <th>{{ "Total Weight" | localize }}</th>
+                <th>{{ "Total Countries" | localize }}</th>
+                <th>{{ "Status" | localize }}</th>
+                <th
+                  style="width: 310px"
+                  *ngIf="isButtonVisible('Edit') && isButtonVisible('Delete')"
                 >
-                  <td>{{ dispatch.customerName }}</td>
-                  <td>{{ dispatch.postalDesc }}</td>
-                  <td>{{ dispatch.dispatchDate }}</td>
-                  <td>{{ dispatch.dispatchNo }}</td>
-                  <td>{{ dispatch.serviceDesc }}</td>
-                  <td>{{ dispatch.productDesc }}</td>
-                  <td>{{ dispatch.totalBags }}</td>
-                  <td>{{ dispatch.totalWeight }}</td>
-                  <td>{{ dispatch.totalCountry }}</td>
-                  <td>{{ dispatch.status }}</td>
-                  <td
-                    *ngIf="isButtonVisible('Edit') || isButtonVisible('Delete')"
-                  >
-                    <div class="dropdown">
+                  <!-- {{ "Actions" | localize }} -->
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                *ngFor="
+                  let dispatch of dispatches
+                    | paginate
+                      : {
+                          id: 'server',
+                          itemsPerPage: pageSize,
+                          currentPage: pageNumber,
+                          totalItems: totalItems
+                        }
+                "
+              >
+                <td>{{ dispatch.customerName }}</td>
+                <td>{{ dispatch.postalDesc }}</td>
+                <td>{{ dispatch.dispatchDate }}</td>
+                <td>{{ dispatch.dispatchNo }}</td>
+                <td>{{ dispatch.serviceDesc }}</td>
+                <td>{{ dispatch.productDesc }}</td>
+                <td>{{ dispatch.totalBags }}</td>
+                <td>{{ dispatch.totalWeight }}</td>
+                <td>{{ dispatch.totalCountry }}</td>
+                <td>{{ dispatch.status }}</td>
+                <td
+                  *ngIf="isButtonVisible('Edit') || isButtonVisible('Delete')"
+                >
+                  <div class="dropdown">
+                    <button
+                      class="btn btn-secondary dropdown-toggle"
+                      type="button"
+                      id="dropdownMenu2"
+                      data-bs-toggle="dropdown"
+                      aria-haspopup="true"
+                      aria-expanded="false"
+                    >
+                      Actions
+                    </button>
+                    <div class="dropdown-menu" aria-labelledby="dropdownMenu2">
                       <button
-                        class="btn btn-secondary dropdown-toggle"
+                        class="bg-info dropdown-item"
                         type="button"
-                        id="dropdownMenu2"
-                        data-bs-toggle="dropdown"
-                        aria-haspopup="true"
-                        aria-expanded="false"
+                        (click)="downloadManifest(dispatch.dispatchNo)"
+                        [disabled]="isDownloadingManifest"
+                        *ngIf="
+                          dispatch.dispatchNo.slice(0, 2) == 'KG' ||
+                          dispatch.dispatchNo.slice(0, 2) == 'GQ' ||
+                          dispatch.dispatchNo.slice(0, 2) == 'SL'
+                        "
                       >
-                        Actions
+                        @if (!isDownloadingManifest) { Download Manifest } @else
+                        {
+                        <div
+                          class="spinner-border spinner-border-sm"
+                          role="status"
+                        >
+                          <span class="sr-only">Loading...</span>
+                        </div>
+                        Downloading }
                       </button>
-                      <div
-                        class="dropdown-menu"
-                        aria-labelledby="dropdownMenu2"
+                      <button
+                        type="button"
+                        class="bg-warning dropdown-item"
+                        (click)="postCheck(dispatch.dispatchNo)"
                       >
-                        <button
-                          class="bg-info dropdown-item"
-                          type="button"
-                          (click)="downloadManifest(dispatch.dispatchNo)"
-                          [disabled]="isDownloadingManifest"
-                          *ngIf="dispatch.dispatchNo.slice(0, 2) == 'KG' || dispatch.dispatchNo.slice(0, 2) == 'GQ' || dispatch.dispatchNo.slice(0, 2) == 'SL'"
-                        >
-                          @if (!isDownloadingManifest) {
-                            Download Manifest
-                          }
-                          @else {
-                            <div class="spinner-border spinner-border-sm" role="status">
-                              <span class="sr-only">Loading...</span>
-                            </div>
-                            Downloading
-                          }
-                        </button>
-                        <button
-                          type="button"
-                          class="bg-warning dropdown-item"
-                          (click)="postCheck(dispatch.dispatchNo)"
-                        >
-                          Post Check
-                        </button>
-                        <button
-                          type="button"
-                          class="bg-danger dropdown-item"
-                          (click)="undoPostCheck(dispatch.dispatchNo)"
-                          *ngIf="isButtonVisible('Delete')"
-                        >
-                          Undo Post Check
-                        </button>
-                      </div>
+                        Post Check
+                      </button>
+                      <button
+                        type="button"
+                        class="bg-danger dropdown-item"
+                        (click)="undoPostCheck(dispatch.dispatchNo)"
+                        *ngIf="isButtonVisible('Delete')"
+                      >
+                        Undo Post Check
+                      </button>
                     </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
           <!-- </div> -->
         </div>
         <div class="card-footer table-card-footer bg-light border-top">

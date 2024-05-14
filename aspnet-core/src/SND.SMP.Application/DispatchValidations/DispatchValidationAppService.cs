@@ -46,6 +46,13 @@ namespace SND.SMP.DispatchValidations
                     .Where(x => x.CustomerCode.Equals(input.CustomerCode));
         }
 
+        public async Task<List<DispatchValidation>> GetDashboardDispatchValidation(bool isAdmin, int top, string customer = null)
+        {
+            var validations = isAdmin ? await Repository.GetAllListAsync() : await Repository.GetAllListAsync(x => x.CustomerCode.Equals(customer));
+
+            return [.. validations.OrderByDescending(x => x.ValidationProgress).Take(top)];
+        }
+
         private IQueryable<DispatchValidation> ApplySorting(IQueryable<DispatchValidation> query, PagedDispatchValidationResultRequestDto input)
         {
             //Try to sort query if available
@@ -92,7 +99,7 @@ namespace SND.SMP.DispatchValidations
 
             query = ApplySorting(query, input);
             query = ApplyPaging(query, input);
-            
+
 
             var entities = await AsyncQueryableExecuter.ToListAsync(query);
 

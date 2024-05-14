@@ -25,7 +25,7 @@ namespace SND.SMP.CustomerTransactions
                         x.TransactionType.Contains(input.Keyword) ||
                         x.ReferenceNo.Contains(input.Keyword) ||
                         x.Description.Contains(input.Keyword))
-                : 
+                :
                 Repository.GetAllIncluding()
                     .WhereIf(!input.Keyword.IsNullOrWhiteSpace(), x =>
                         x.Wallet.Contains(input.Keyword) ||
@@ -40,6 +40,13 @@ namespace SND.SMP.CustomerTransactions
         public async Task<List<CustomerTransaction>> GetCustomerTransactions()
         {
             return await Repository.GetAllListAsync();
+        }
+
+        public async Task<List<CustomerTransaction>> GetDashboardTransaction(bool isAdmin, int top, string customer = null)
+        {
+            var transactions = isAdmin ? await Repository.GetAllListAsync() : await Repository.GetAllListAsync(x => x.Customer.Equals(customer));
+
+            return [.. transactions.OrderByDescending(x => x.TransactionDate).Take(top)];
         }
     }
 }

@@ -1,0 +1,142 @@
+<div class="row row-cols-1 row-cols-md-3 g-4">
+  <div class="col" style="cursor: pointer;" (click)="selectItem('1')">
+    <div class="card h-100">
+      <div class="card-body">
+        <h5 class="card-title badge" [ngClass]="selected == '1' ? 'badge-primary' : 'badge-dark'">
+          <strong>Fund Monitoring</strong>
+        </h5>
+        <br />
+        <br />
+        <div class="row" *ngFor="let transaction of transactions">
+          <div class="col-sm-2">
+            <h6>{{ transaction.customer }}</h6>
+          </div>
+          <div class="col-sm-4">
+            <h6>{{ transaction.description }}</h6>
+          </div>
+          @if (transaction.amount > 0) {
+          <div class="col-sm-6 text-success text-right">
+            <i class="fas fa-plus-square"></i>
+            {{ transaction.amount | number : "1.2-2" }}
+          </div>
+          } @else {
+          <div class="col-sm-6 text-danger text-right">
+            <i class="fas fa-minus-square"></i>
+            {{
+              +transaction.amount.toString().replace("-", "") | number : "1.2-2"
+            }}
+          </div>
+          }
+          <div class="col-sm-12 mb-3">
+            <span class="badge badge-pill badge-info ml-1">{{
+              transaction.paymentMode
+            }}</span>
+            <span class="badge badge-pill badge-info ml-1">{{
+              transaction.transactionType
+            }}</span>
+            <span class="badge badge-pill badge-info ml-1">{{
+              transaction.currency
+            }}</span>
+          </div>
+          <hr>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col" style="cursor: pointer;" (click)="selectItem('2')">
+    <div class="card h-100">
+      <div class="card-body">
+        <h5 class="card-title badge" [ngClass]="selected == '2' ? 'badge-primary' : 'badge-dark'">
+          <strong>Dispatch Validation</strong>
+        </h5>
+        <br />
+        <br />
+        <div class="row" *ngFor="let validation of validations">
+          <div class="col-sm-2">
+            <h6>{{ validation.customerCode }}</h6>
+          </div>
+          <div class="col-sm-4">
+            <h6>{{ validation.dispatchNo }}</h6>
+          </div>
+          <div class="col-sm-6">
+            <div class="progress">
+              <div
+                class="progress-bar progress-bar-striped"
+                [class.bg-success]="validation.validationProgress == 100"
+                [class.progress-bar-animated]="
+                  validation.validationProgress < 100
+                "
+                role="progressbar"
+                aria-valuenow="dispatchvalidation.validationProgress"
+                aria-valuemin="0"
+                aria-valuemax="100"
+                style="width: {{ validation.validationProgress }}%"
+              >
+                {{ validation.validationProgress }}%
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-12 mb-3">
+            @if (validation.isFundLack) {
+              <span class="badge badge-pill badge-danger ml-1">Insufficient Fund</span>
+            }
+            @else if (!validation.isFundLack) {
+              <span class="badge badge-pill badge-success ml-1">Sufficient Fund</span>
+            }
+            @if (validation.isValid) {
+              <span class="badge badge-pill badge-success ml-1">Valid</span>
+            }
+            @else if (!validation.isValid) {
+              <span class="badge badge-pill badge-danger ml-1">Invalid</span>
+            }
+            <span class="badge badge-pill badge-info ml-1">
+              {{ validation.tookInSec }}s <i class="fas fa-stopwatch"></i>
+            </span>
+          </div>
+          <hr>
+        </div>
+      </div>
+    </div>
+  </div>
+  @if (isAdmin) {
+  <div class="col" style="cursor: pointer;" (click)="selectItem('3')">
+    <div class="card h-100">
+      <div class="card-body">
+        <h5 class="card-title badge" [ngClass]="selected == '3' ? 'badge-primary' : 'badge-dark'">
+          <strong>Dispatches</strong>
+        </h5>
+        <br />
+        <br />
+        <div class="row" *ngFor="let dispatch of dispatches">
+          <div class="col-sm-6">
+            <h6>{{ dispatch.customerName }}</h6>
+          </div>
+          <div class="col-sm-6 text-right">
+            <span class="badge badge-pill badge-light">
+              {{dispatch.totalBags}} <i class="fas fa-briefcase"></i>
+            </span>
+            <span class="badge badge-pill badge-light">
+              {{dispatch.totalWeight}} <i class="fas fa-weight-hanging"></i>
+            </span>
+            <span class="badge badge-pill badge-light">
+              {{dispatch.totalCountry}} <i class="fas fa-globe-asia"></i>
+            </span>
+          </div>
+          <div class="col-sm-12 mb-3">
+            <span class="badge badge-pill badge-info ml-1">{{
+              dispatch.postalDesc
+            }}</span>
+            <span class="badge badge-pill badge-info ml-1">{{
+              dispatch.serviceDesc
+            }}</span>
+            <span class="badge badge-pill badge-info ml-1">{{
+              dispatch.productDesc
+            }}</span>
+          </div>
+          <hr>
+        </div>
+      </div>
+    </div>
+  </div>
+  }
+</div>

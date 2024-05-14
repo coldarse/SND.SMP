@@ -204,6 +204,18 @@ export class DispatchService {
       );
   }
 
+  //Get Dashboard Dispatch
+  getDashboardDispatchInfo(isAdmin: boolean, top: number, customer: string) {
+    return this.http
+    .get(
+      isAdmin ? 
+        this.url + `/api/services/app/Dispatch/GetDashboardDispatchInfo?isAdmin=${isAdmin}&top=${top}` :
+        this.url + `/api/services/app/Dispatch/GetDashboardDispatchInfo?isAdmin=${isAdmin}&top=${top}&customerCode=${customer}`,
+      this.options_
+    )
+    .pipe(retry(1), catchError(this.errorMessage.HandleErrorResponse));
+  }
+
   private getFilenameFromContentDisposition(contentDisposition: string): string {
     if (!contentDisposition) {
       return '';
@@ -215,4 +227,6 @@ export class DispatchService {
     }
     return matches[1].replace(/['"]/g, '');
   }
+
+  
 }

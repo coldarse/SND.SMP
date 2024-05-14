@@ -139,4 +139,16 @@ export class DispatchValidationService {
       .get(url_ + `&MaxResultCount=${count}`, this.options_)
       .pipe(retry(1), catchError(this.errorMessage.HandleErrorResponse));
   }
+
+  //Get Dashboard Validation
+  getDashboardDispatchValidation(isAdmin: boolean, top: number, customer: string) {
+    return this.http
+    .get(
+      isAdmin ? 
+        this.url + `/api/services/app/DispatchValidation/GetDashboardDispatchValidation?isAdmin=${isAdmin}&top=${top}` :
+        this.url + `/api/services/app/DispatchValidation/GetDashboardDispatchValidation?isAdmin=${isAdmin}&top=${top}&customer=${customer}`,
+      this.options_
+    )
+    .pipe(retry(1), catchError(this.errorMessage.HandleErrorResponse));
+  }
 }

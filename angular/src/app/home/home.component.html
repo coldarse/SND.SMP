@@ -7,45 +7,61 @@
             <b>{{ "Welcome" | localize }}, {{ showLoginName }}</b>
           </h1>
           <br />
-          <h1 class="ml-3">Fund Monitoring</h1>
+          <h1 class="ml-3">Home Page</h1>
         </div>
       </div>
     </div>
   </section>
   <section class="content px-2">
     <div class="container-fluid">
+      <!-- <div class="row">
+        <app-cards
+          [isAdmin]="isAdmin"
+          [Customer]="companyCode"
+        ></app-cards>
+      </div> -->
       <div class="row">
         <!-- For Admin -->
-        <div
-          [ngClass]="!isAdmin ? 'col-md-9' : 'col-md-12'"
-          style="max-height: 80%; overflow: auto"
-        >
-          <div class="row">
-            <div class="col-md-12">
-              <app-customer-transactions
-                [showPagination]="false"
-                [showHeader]="false"
-                [maxItems]="3"
-              >
-              </app-customer-transactions>
+        <div [ngClass]="!isAdmin ? 'col-md-9' : 'col-md-12'">
+          <app-cards [isAdmin]="isAdmin" [Customer]="companyCode" (selected_dashboard_item)="showSelectedTable($event)"></app-cards>
+
+          @if (showTable == '1') {
+            <div class="row">
+              <div class="col-md-12">
+                <app-customer-transactions
+                  [showPagination]="false"
+                  [showHeader]="false"
+                  [maxItems]="3"
+                >
+                </app-customer-transactions>
+              </div>
             </div>
-          </div>
-          <div class="row">
-            <div class="col-md-12">
-              <app-dispatch-validations [showPagination]="false" [maxItems]="3">
-              </app-dispatch-validations>
-            </div>
-          </div>
-          @if (isAdmin) {
-          <div class="row">
-            <div class="col-md-12">
-              <app-dispatches
-                [showPagination]="false"
-                [maxItems]="3"
-              ></app-dispatches>
-            </div>
-          </div>
           }
+
+          @if (showTable == '2') {
+            <div class="row">
+              <div class="col-md-12">
+                <app-dispatch-validations 
+                  [showPagination]="false" 
+                  [showHeader]="false"
+                  [maxItems]="3">
+                </app-dispatch-validations>
+              </div>
+            </div>
+          }
+
+          @if (showTable == '3') {
+            <div class="row">
+              <div class="col-md-12">
+                <app-dispatches
+                  [showPagination]="false"
+                  [showHeader]="false"
+                  [maxItems]="3"
+                ></app-dispatches>
+              </div>
+            </div>
+          }
+          
         </div>
         <!-- Show Wallet -->
         @if (!isAdmin) {

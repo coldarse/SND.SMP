@@ -4,6 +4,8 @@ using Microsoft.EntityFrameworkCore;
 using Pomelo.EntityFrameworkCore.MySql.Scaffolding.Internal;
 using SND.SMP.ApplicationSettings;
 using SND.SMP.Chibis;
+using SND.SMP.CustomerTransactions;
+using SND.SMP.EWalletTypes;
 using SND.SMP.Wallets;
 
 namespace SND.SMP.DispatchConsole.EF;
@@ -58,6 +60,10 @@ public partial class db : DbContext
     public virtual DbSet<Chibi> Chibis { get; set; }
 
     public virtual DbSet<ApplicationSetting> ApplicationSettings { get; set; }
+
+    public virtual DbSet<EWalletType> EWalletTypes { get; set; }
+
+    public virtual DbSet<CustomerTransaction> CustomerTransactions { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         => optionsBuilder.UseMySql("server=65.21.224.66;port=3306;database=SMPDb;uid=droot;pwd=snd@1234", Microsoft.EntityFrameworkCore.ServerVersion.Parse("8.0.30-mysql"));

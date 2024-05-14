@@ -130,6 +130,8 @@ import { TopUpWalletComponent } from "./wallets/topup-wallet/topup-wallet.compon
 
 import { PostChecksComponent } from "./post-checks/post-checks.component";
 
+import { CardsComponent } from "./cards/cards.component";
+
 @NgModule({
   declarations: [
     AppComponent,
@@ -221,6 +223,7 @@ import { PostChecksComponent } from "./post-checks/post-checks.component";
     ServiceProxyModule,
     SharedModule,
     NgxPaginationModule,
+    CardsComponent,
   ],
   providers: [
     /* Insert Service */

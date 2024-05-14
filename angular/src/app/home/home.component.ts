@@ -1,4 +1,4 @@
-import { Component, Injector, OnInit } from "@angular/core";
+import { Component, Injector, OnChanges, OnInit } from "@angular/core";
 import { appModuleAnimation } from "@shared/animations/routerTransition";
 import { PagedListingComponentBase } from "@shared/paged-listing-component-base";
 
@@ -25,6 +25,7 @@ export class HomeComponent
   type1 = { eWalletType: 1 };
   type2 = { eWalletType: 2 };
 
+  showTable = '1';
 
   constructor(injector: Injector, private _walletService: WalletService) {
     super(injector);
@@ -62,5 +63,9 @@ export class HomeComponent
 
   filterType(type: number) {
     return this.wallets.filter((w) => w.eWalletType === type);
+  }
+
+  showSelectedTable(value: string){
+    this.showTable = value;
   }
 }

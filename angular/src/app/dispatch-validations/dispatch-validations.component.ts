@@ -37,6 +37,7 @@ export class DispatchValidationsComponent
   dispatchvalidations: any[] = [];
   errorValidations: DispatchValidateDto[] = [];
 
+  @Input() showHeader: boolean = true;
   @Input() showPagination: boolean = true;
   @Input() maxItems: number = 10;
 

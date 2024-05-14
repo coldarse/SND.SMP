@@ -121,4 +121,16 @@ export class CustomerTransactionService {
       )
       .pipe(retry(1), catchError(this.errorMessage.HandleErrorResponse));
   }
+
+  //Get Dashboard Transaction
+  getDashboardTransaction(isAdmin: boolean, top: number, customer: string) {
+    return this.http
+    .get(
+      isAdmin ? 
+        this.url + `/api/services/app/CustomerTransaction/GetDashboardTransaction?isAdmin=${isAdmin}&top=${top}` :
+        this.url + `/api/services/app/CustomerTransaction/GetDashboardTransaction?isAdmin=${isAdmin}&top=${top}&customer=${customer}`,
+      this.options_
+    )
+    .pipe(retry(1), catchError(this.errorMessage.HandleErrorResponse));
+  }
 }

@@ -1,21 +1,15 @@
 <div [@routerTransition]>
-  @if (showHeader) {
   <section class="content-header">
     <div class="container-fluid">
       <div class="row">
         <div class="col-6">
+          @if (showHeader) {
           <h1>{{ "Customer Transactions" | localize }}</h1>
-        </div>
-        <div class="col-6 text-right" *ngIf="isButtonVisible('Create')">
-          <!-- <a href='javascript:;' class='btn bg-blue' (click)='createCustomerTransaction()'>
-                          <i class='fa fa-plus-square'></i>
-                          {{ 'Create' | localize }}
-                      </a> -->
+          }
         </div>
       </div>
     </div>
   </section>
-  }
   <section class="content px-2">
     <div class="container-fluid">
       <div class="card">

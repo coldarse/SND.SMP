@@ -31,6 +31,7 @@ export class DispatchesComponent extends PagedListingComponentBase<DispatchDto> 
   keyword = "";
   dispatches: any[] = [];
 
+  @Input() showHeader: boolean = true;
   @Input() showPagination: boolean = true;
   @Input() maxItems: number = 10;
 

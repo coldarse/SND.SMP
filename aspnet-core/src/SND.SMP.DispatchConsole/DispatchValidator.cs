@@ -12,6 +12,7 @@ using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using System.Net.Http.Headers;
 using SND.SMP.Chibis;
+using SND.SMP.CustomerTransactions;
 
 namespace SND.SMP.DispatchConsole
 {
@@ -336,6 +337,26 @@ namespace SND.SMP.DispatchConsole
                 {
                     wallet.Balance -= totalPrice;
                     await db.SaveChangesAsync();
+
+                    DateTime DateTimeUTC = DateTime.UtcNow;
+                    TimeZoneInfo cstZone = TimeZoneInfo.FindSystemTimeZoneById("Singapore Standard Time");
+                    DateTime cstDateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTimeUTC, cstZone);
+
+                    var eWallet = await db.EWalletTypes.FirstOrDefaultAsync(x => x.Id.Equals(wallet.EWalletType));
+
+                    await db.CustomerTransactions.AddAsync(new CustomerTransaction()
+                    {
+                        Wallet = wallet.Id,
+                        Customer = wallet.Customer,
+                        PaymentMode = eWallet.Type,
+                        Currency = currency.Abbr,
+                        TransactionType = "Pre-Alert",
+                        Amount = -totalPrice,
+                        ReferenceNo = "",
+                        Description = "Pre-Alert",
+                        TransactionDate = cstDateTime
+                    });
+
                 }
                 #endregion
 

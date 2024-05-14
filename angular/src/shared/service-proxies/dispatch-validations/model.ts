@@ -36,3 +36,4 @@ export interface DispatchValidateDto {
     itemIds: string[];
     message: string;
 }
+
