@@ -21,13 +21,20 @@ using OfficeOpenXml;
 using SND.SMP.ApplicationSettings;
 using System.Collections.Generic;
 using Abp.UI;
+using SND.SMP.DispatchValidations;
 
 namespace SND.SMP.Chibis
 {
-    public class ChibiAppService(IRepository<Chibi, long> repository, IRepository<Queue, long> queueRepository, IRepository<ApplicationSetting, int> applicationSettingRepository) : AsyncCrudAppService<Chibi, ChibiDto, long, PagedChibiResultRequestDto>(repository)
+    public class ChibiAppService(
+        IRepository<Chibi, long> repository,
+        IRepository<Queue, long> queueRepository,
+        IRepository<ApplicationSetting, int> applicationSettingRepository,
+        IRepository<DispatchValidation, string> dispatchValidationRepository
+    ) : AsyncCrudAppService<Chibi, ChibiDto, long, PagedChibiResultRequestDto>(repository)
     {
         private readonly IRepository<Queue, long> _queueRepository = queueRepository;
         private readonly IRepository<ApplicationSetting, int> _applicationSettingRepository = applicationSettingRepository;
+        private readonly IRepository<DispatchValidation, string> _dispatchValidationRepository = dispatchValidationRepository;
 
         protected override IQueryable<Chibi> CreateFilteredQuery(PagedChibiResultRequestDto input)
         {
@@ -40,81 +47,18 @@ namespace SND.SMP.Chibis
                     x.GeneratedName.Contains(input.Keyword));
         }
 
-        //----- For Testing Purposes!!! -----//
-        public async Task<bool> Trial()
+        private async Task<string> GetFileStreamAsString(string url)
         {
-            var file = await GetFile("d7514df1-50d0-4b65-88fb-ca48607d5012");
-
-            DataSet dataSet = new();
-            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-
             using var httpClient = new HttpClient();
-            try
+            using var response = await httpClient.GetAsync(url);
+            if (response.IsSuccessStatusCode)
             {
-                using var response = await httpClient.GetAsync(file.file.url);
-                if (response.IsSuccessStatusCode)
-                {
-                    using var contentStream = await response.Content.ReadAsStreamAsync();
-                    using var package = new ExcelPackage(contentStream);
-                    var worksheets = package.Workbook.Worksheets;
-
-                    foreach (ExcelWorksheet ws in worksheets)
-                    {
-                        DataTable dataTable = new();
-                        dataTable = ws.Cells[1, 1, ws.Dimension.End.Row, ws.Dimension.End.Column].ToDataTable(c =>
-                        {
-                            c.FirstRowIsColumnNames = false;
-                        });
-                        dataTable.TableName = ws.Name;
-                        dataSet.Tables.Add(dataTable);
-                    }
-
-                    var tables = dataSet.Tables;
-
-                    return true;
-                }
-                else
-                {
-                    Console.WriteLine($"Failed to download file. Status code: {response.StatusCode}");
-                    return false;
-                }
+                string contentString = await response.Content.ReadAsStringAsync();
+                return contentString;
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error downloading file: {ex.Message}");
-                return false;
-            }
+            return null;
         }
-        public async Task<DispatchProfileDto> Trial2()
-        {
-            var file = await GetFile("6665c8f8-5964-455b-8d9e-b30109432e62");
 
-            DataSet dataSet = new();
-            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-
-            using var httpClient = new HttpClient();
-            try
-            {
-                using var response = await httpClient.GetAsync(file.file.url);
-                if (response.IsSuccessStatusCode)
-                {
-                    string contentString = await response.Content.ReadAsStringAsync();
-                    var _dispatchProfile = Newtonsoft.Json.JsonConvert.DeserializeObject<DispatchProfileDto>(contentString);
-
-                    return _dispatchProfile;
-                }
-                else
-                {
-                    Console.WriteLine($"Failed to download file. Status code: {response.StatusCode}");
-                    return new DispatchProfileDto();
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error downloading file: {ex.Message}");
-                return new DispatchProfileDto();
-            }
-        }
         public class DispatchProfileDto
         {
             public string DispatchNo { get; set; } = "";
@@ -155,8 +99,8 @@ namespace SND.SMP.Chibis
 
         public async Task<GetFileDto> GetFile(string uuid)
         {
-            var chibiKey = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("ChibiKey"));    
-            var chibiURL = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("ChibiURL"));    
+            var chibiKey = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("ChibiKey"));
+            var chibiURL = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("ChibiURL"));
             var client = new HttpClient();
             client.DefaultRequestHeaders.Clear();
             client.DefaultRequestHeaders.Add("x-api-key", chibiKey.Value);
@@ -199,10 +143,57 @@ namespace SND.SMP.Chibis
         }
 
         [Consumes("multipart/form-data")]
+        public async Task<bool> PreCheckRetryUpload([FromForm] PreCheckRetryDto uploadRetryPreCheck)
+        {
+            if (uploadRetryPreCheck.UploadFile != null)
+            {
+                var dispatchFile = await Repository.FirstOrDefaultAsync(x => x.URL.Equals(uploadRetryPreCheck.path));
+
+                var dispatchFilePair = await Repository.GetAllListAsync(x => x.OriginalName.Equals(dispatchFile.OriginalName));
+                var jsonDispatchFile = dispatchFilePair.FirstOrDefault(x => x.URL.Contains("json"));
+                var fileProfile = jsonDispatchFile.URL;
+                var fileString = await GetFileStreamAsString(fileProfile);
+
+                string uuidFileName = Guid.NewGuid().ToString();
+                uploadRetryPreCheck.UploadFile.json = fileString;
+                uploadRetryPreCheck.UploadFile.fileName = uuidFileName + ".xlsx";
+                uploadRetryPreCheck.UploadFile.fileType = "xlsx";
+                var xlsxFile = await UploadFile(uploadRetryPreCheck.UploadFile);
+
+                uploadRetryPreCheck.UploadFile.fileName = uuidFileName + ".xlsx.profile.json";
+                uploadRetryPreCheck.UploadFile.fileType = "json";
+                await UploadFile(uploadRetryPreCheck.UploadFile, xlsxFile.originalName);
+
+                var queue = await _queueRepository.FirstOrDefaultAsync(x => (x.FilePath == uploadRetryPreCheck.path) && (x.EventType == "Validate Dispatch"));
+
+                queue.Status = "New";
+                queue.TookInSec = 0;
+                queue.FilePath = xlsxFile.url;
+
+                await _queueRepository.UpdateAsync(queue);
+                await _queueRepository.GetDbContext().SaveChangesAsync();
+
+                return true;
+            }
+            else
+            {
+                var queue = await _queueRepository.FirstOrDefaultAsync(x => (x.FilePath == uploadRetryPreCheck.path) && (x.EventType == "Validate Dispatch"));
+
+                queue.Status = "New";
+                queue.TookInSec = 0;
+
+                await _queueRepository.UpdateAsync(queue);
+                await _queueRepository.GetDbContext().SaveChangesAsync();
+
+                return true;
+            }
+        }
+
+        [Consumes("multipart/form-data")]
         public async Task<ChibiUpload> UploadFile([FromForm] ChibiUploadDto uploadFile, string originalName = null)
         {
-            var chibiKey = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("ChibiKey"));    
-            var chibiURL = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("ChibiURL"));   
+            var chibiKey = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("ChibiKey"));
+            var chibiURL = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("ChibiURL"));
             var client = new HttpClient();
             client.DefaultRequestHeaders.Clear();
             client.DefaultRequestHeaders.Add("x-api-key", chibiKey.Value);

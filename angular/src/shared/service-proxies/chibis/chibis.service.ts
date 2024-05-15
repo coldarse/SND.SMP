@@ -33,10 +33,26 @@ export class ChibiService {
     //     return throwError(() => new Error(error.error.message));
     // }
 
-    //Upload Excel for RateItem
+    //Upload Excel for Pre Check
     uploadPreCheckFile(body: any){
         return this.http.post(
             this.url + '/api/services/app/Chibi/PreCheckUpload',
+            body,
+            {
+                headers: new HttpHeaders({
+                    "Accept": "text/plain"
+                })
+            }
+        ).pipe(
+            retry(1),
+            catchError(this.errorMessage.HandleErrorResponse),
+        )
+    }
+
+    //Upload Excel for Pre Check Retry
+    uploadRetryPreCheckFile(body: any){
+        return this.http.post(
+            this.url + '/api/services/app/Chibi/PreCheckRetryUpload',
             body,
             {
                 headers: new HttpHeaders({

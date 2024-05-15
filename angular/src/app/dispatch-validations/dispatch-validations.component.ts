@@ -16,6 +16,7 @@ import { Router } from "@angular/router";
 import { ChibiService } from "@shared/service-proxies/chibis/chibis.service";
 import { DispatchValidationErrorComponent } from "./dipatch-validation-error/dispatch-validation-error.component";
 import { QueueService } from "@shared/service-proxies/queues/queue.service";
+import { UploadRetryComponent } from "./upload-retry/upload-retry.component";
 
 class PagedDispatchValidationsRequestDto extends PagedRequestDto {
   keyword: string;
@@ -154,12 +155,20 @@ export class DispatchValidationsComponent
   }
 
   retryDispatchValidation(filepath: string) {
-    this._queueService
-      .getDispatchValidationUpdateStatusByFilePath(filepath)
-      .subscribe((result: any) => {
-        if (result.result) this.notify.info(this.l("SavedSuccessfully"));
-        else this.notify.error("Failed to Retry");
-      });
+    let uploadRetryDialog: BsModalRef;
+    uploadRetryDialog = this._modalService.show(
+      UploadRetryComponent,
+      {
+        class: "modal-lg",
+        initialState: {
+          filepath: filepath,
+        },
+      }
+    );
+
+    uploadRetryDialog.content.onSave.subscribe(() => {
+      this.refresh();
+    });
   }
 
   postCheck(dispatchNo: string) {

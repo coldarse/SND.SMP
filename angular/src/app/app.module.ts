@@ -71,6 +71,7 @@ import { DispatchValidationsComponent } from "./dispatch-validations/dispatch-va
 import { CreateUpdateDispatchValidationComponent } from "./dispatch-validations/create-update-dispatch-validation/create-update-dispatch-validation.component";
 import { DispatchValidationErrorComponent } from "./dispatch-validations/dipatch-validation-error/dispatch-validation-error.component";
 import { DispatchValidationService } from "@shared/service-proxies/dispatch-validations/dispatch-validation.service";
+import { UploadRetryComponent } from "./dispatch-validations/upload-retry/upload-retry.component";
 
 import { DispatchesComponent } from "./dispatches/dispatches.component";
 import { CreateUpdateDispatchComponent } from "./dispatches/create-update-dispatch/create-update-dispatch.component";
@@ -208,6 +209,7 @@ import { CardsComponent } from "./cards/cards.component";
     PostChecksComponent,
     CreateUpdatePostalComponent,
     CreateUpdatePostalCountryComponent,
+    UploadRetryComponent,
   ],
   imports: [
     CommonModule,

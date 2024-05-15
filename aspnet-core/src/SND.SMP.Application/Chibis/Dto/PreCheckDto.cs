@@ -1,5 +1,12 @@
 using SND.SMP.Chibis.Dto;
 
+
+public class PreCheckRetryDto
+{
+    public ChibiUploadDto? UploadFile { get; set; }
+    public string path { get; set; }
+}
+
 public class PreCheckDto
 {
     public ChibiUploadDto UploadFile { get; set; }

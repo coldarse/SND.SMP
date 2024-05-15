@@ -177,7 +177,7 @@
                   <td>
                     <button
                       class="btn btn-warning mx-auto"
-                      [disabled]="dispatchvalidation.isFundLack"
+                      [disabled]="dispatchvalidation.isValid"
                       (click)="
                         retryDispatchValidation(dispatchvalidation.filePath)
                       "
@@ -334,7 +334,7 @@
                   <td>
                     <button
                       class="btn btn-danger mx-auto"
-                      [disabled]="dispatchvalidation.isValid"
+                      [disabled]="!dispatchvalidation.isValid"
                       (click)="
                         selectedErrorDetails(dispatchvalidation.dispatchNo)
                       "
@@ -346,7 +346,7 @@
                   <td>
                     <button
                       class="btn btn-warning mx-auto"
-                      [disabled]="!dispatchvalidation.isFundLack"
+                      [disabled]="dispatchvalidation.isValid"
                       (click)="
                         retryDispatchValidation(dispatchvalidation.filePath)
                       "

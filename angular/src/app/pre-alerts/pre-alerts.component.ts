@@ -173,7 +173,6 @@ export class PreAlertComponent extends AppComponentBase implements OnInit {
 
 
       this.router.navigate(['/app/home']);
-      // this.ngOnInit();
     });
   }
 }
