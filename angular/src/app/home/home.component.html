@@ -23,78 +23,72 @@
       <div class="row">
         <!-- For Admin -->
         <div [ngClass]="!isAdmin ? 'col-md-9' : 'col-md-12'">
-          <app-cards [isAdmin]="isAdmin" [Customer]="companyCode" (selected_dashboard_item)="showSelectedTable($event)"></app-cards>
+          <app-cards
+            [isAdmin]="isAdmin"
+            [Customer]="companyCode"
+            (selected_dashboard_item)="showSelectedTable($event)"
+          ></app-cards>
 
           @if (showTable == '1') {
-            <div class="row">
-              <div class="col-md-12">
-                <app-customer-transactions
-                  [showPagination]="false"
-                  [showHeader]="false"
-                  [maxItems]="3"
-                >
-                </app-customer-transactions>
-              </div>
+          <div class="row">
+            <div class="col-md-12">
+              <app-customer-transactions
+                [showPagination]="false"
+                [showHeader]="false"
+                [maxItems]="3"
+              >
+              </app-customer-transactions>
             </div>
-          }
-
-          @if (showTable == '2') {
-            <div class="row">
-              <div class="col-md-12">
-                <app-dispatch-validations 
-                  [showPagination]="false" 
-                  [showHeader]="false"
-                  [maxItems]="3">
-                </app-dispatch-validations>
-              </div>
+          </div>
+          } @if (showTable == '2') {
+          <div class="row">
+            <div class="col-md-12">
+              <app-dispatch-validations
+                [showPagination]="false"
+                [showHeader]="false"
+                [maxItems]="3"
+              >
+              </app-dispatch-validations>
             </div>
-          }
-
-          @if (showTable == '3') {
-            <div class="row">
-              <div class="col-md-12">
-                <app-dispatches
-                  [showPagination]="false"
-                  [showHeader]="false"
-                  [maxItems]="3"
-                ></app-dispatches>
-              </div>
+          </div>
+          } @if (showTable == '3') {
+          <div class="row">
+            <div class="col-md-12">
+              <app-dispatches
+                [showPagination]="false"
+                [showHeader]="false"
+                [maxItems]="3"
+              ></app-dispatches>
             </div>
+          </div>
           }
-          
         </div>
         <!-- Show Wallet -->
         @if (!isAdmin) {
         <div class="col-md-3">
           <div class="card">
-            <div class="card-header">
-              <h2 class="mt-2"><strong>Prepaid</strong></h2>
-            </div>
             <div class="card-body">
-              <div
-                class="currency_wallet"
-                style="
-                  display: flex;
-                  align-items: center;
-                  justify-content: left;
-                "
-                *ngFor="let wallet of filterType(2)"
-              >
-                <div class="currency">
-                  <h5 class="mt-2 ml-2">
+              <h5 class="card-title badge badge-dark">
+                <strong>Wallets</strong>
+              </h5>
+              <!-- <h6 class="badge badge-light"></h6> -->
+              <br />
+              <br />
+              <div class="row" *ngFor="let wallet of filterType(1)">
+                <div class="currency col-3 text-left">
+                  <h6 class="mt-2 ml-2">
                     {{ wallet.currency }}
-                  </h5>
+                  </h6>
                 </div>
-                <div class="amount">
-                  <h5 class="mt-2 ml-2">
+                <div class="amount col-9 text-left">
+                  <h6 class="mt-2 ml-2">
                     {{ wallet.balance | number : "1.2-2" }}
-                  </h5>
+                  </h6>
                 </div>
-                <hr />
               </div>
             </div>
           </div>
-          <div class="card">
+          <!-- <div class="card">
             <div class="card-header">
               <h2 class="mt-2"><strong>Credit Term</strong></h2>
             </div>
@@ -121,7 +115,7 @@
                 <hr />
               </div>
             </div>
-          </div>
+          </div> -->
         </div>
         }
       </div>
