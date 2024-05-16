@@ -9,7 +9,7 @@ import { finalize } from "rxjs/operators";
 import {
   DispatchDto,
   DispatchInfoDto,
-  Manifest,
+  Zip,
 } from "@shared/service-proxies/dispatches/model";
 import { DispatchService } from "@shared/service-proxies/dispatches/dispatch.service";
 import { CreateUpdateDispatchComponent } from "../dispatches/create-update-dispatch/create-update-dispatch.component";
@@ -37,6 +37,7 @@ export class DispatchesComponent extends PagedListingComponentBase<DispatchDto> 
 
   isAdmin = true;
   isDownloadingManifest = false;
+  isDownloadingBag = false;
   companyCode = "";
 
   constructor(
@@ -115,7 +116,31 @@ export class DispatchesComponent extends PagedListingComponentBase<DispatchDto> 
           this.isDownloadingManifest = false;
         })
       )
-      .subscribe((data: Manifest) => {
+      .subscribe((data: Zip) => {
+        const blob = new Blob([data.blob], { type: "application/zip" });
+        const url = window.URL.createObjectURL(blob);
+
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = data.filename;
+        a.click();
+
+        // Clean up
+        window.URL.revokeObjectURL(url);
+        abp.notify.success(this.l("Successfully Downloaded"));
+      });
+  }
+
+  downloadBag(dispatchNo: string) {
+    this.isDownloadingBag = true;
+    this._dispatchService
+      .downloadBag(dispatchNo)
+      .pipe(
+        finalize(() => {
+          this.isDownloadingBag = false;
+        })
+      )
+      .subscribe((data: Zip) => {
         const blob = new Blob([data.blob], { type: "application/zip" });
         const url = window.URL.createObjectURL(blob);
 

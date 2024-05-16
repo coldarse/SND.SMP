@@ -175,7 +175,7 @@ export interface DispatchInfoDto {
   status: string;
 }
 
-export interface Manifest {
+export interface Zip {
   blob: Blob;
   filename: string;
 }

@@ -10,7 +10,7 @@ import {
   PagedDispatchResultRequestDto,
   DispatchDto,
   GetPostCheck,
-  Manifest,
+  Zip,
 } from "./model";
 import { AppConsts } from "@shared/AppConsts";
 import { ErrorMessage } from "../error-handling";
@@ -186,7 +186,7 @@ export class DispatchService {
       .pipe(retry(1), catchError(this.errorMessage.HandleErrorResponse));
   }
 
-  downloadManifest(dispatchNo: string): Observable<Manifest>{
+  downloadManifest(dispatchNo: string): Observable<Zip>{
     return this.http
       .get(
         this.url + `/api/services/app/Dispatch/DownloadDispatchManifest?dispatchNo=${dispatchNo}`,
@@ -202,6 +202,24 @@ export class DispatchService {
         retry(1), 
         catchError(this.errorMessage.HandleErrorResponse)
       );
+  }
+
+  downloadBag(dispatchNo: string): Observable<Zip>{
+    return this.http
+    .get(
+      this.url + `/api/services/app/Dispatch/DownloadDispatchBag?dispatchNo=${dispatchNo}`,
+      { responseType: 'blob', observe: 'response' }
+    )
+    .pipe(
+      map(response => {
+        const contentDispositionHeader = response.headers.get('Content-Disposition');
+        const filename = this.getFilenameFromContentDisposition(contentDispositionHeader);
+        
+        return { blob: response.body, filename };
+      }),
+      retry(1), 
+      catchError(this.errorMessage.HandleErrorResponse)
+    );
   }
 
   //Get Dashboard Dispatch
