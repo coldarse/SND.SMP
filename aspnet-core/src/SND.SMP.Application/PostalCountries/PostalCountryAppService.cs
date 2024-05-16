@@ -14,6 +14,7 @@ using OfficeOpenXml;
 using Abp.EntityFrameworkCore.Repositories;
 using Microsoft.EntityFrameworkCore;
 using System.IO;
+using Abp.UI;
 
 namespace SND.SMP.PostalCountries
 {
@@ -60,6 +61,17 @@ namespace SND.SMP.PostalCountries
             }
 
             return dataTable;
+        }
+
+        public override async Task<PostalCountryDto> CreateAsync(PostalCountryDto input)
+        {
+            CheckCreatePermission();
+
+            var postalCountry = await Repository.FirstOrDefaultAsync(x => x.CountryCode.Equals(input.CountryCode));
+
+            if (postalCountry is not null) throw new UserFriendlyException("Postal Country Exists");
+
+            return await base.CreateAsync(input);
         }
 
         [Consumes("multipart/form-data")]

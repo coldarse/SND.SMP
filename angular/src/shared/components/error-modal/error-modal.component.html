@@ -1,13 +1,31 @@
 <!-- error-modal.component.html -->
 <section>
-  <div class='modal-body'>
+  <div class="modal-body">
     <div class="row">
-      <p class="mx-auto">{{ errorMessage }}</p>
+      <p class="mx-auto test-center">{{ errorMessage }}</p>
     </div>
+    @if (!yesno) {
     <div class="row">
       <button class="btn btn-primary mx-auto" (click)="bsModalRef.hide()">
         Close
       </button>
     </div>
+    } @if (yesno) {
+    <div class="row">
+      <div class="col-4"></div>
+      <div class="col-4 text-center">
+        <button
+          class="btn btn-outline-primary mr-1"
+          (click)="bsModalRef.hide()"
+        >
+          No
+        </button>
+        <button class="btn btn-primary" (click)="clickYes()">
+          Yes
+        </button>
+      </div>
+      <div class="col-4"></div>
+    </div>
+    }
   </div>
 </section>

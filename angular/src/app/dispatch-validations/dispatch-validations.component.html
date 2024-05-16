@@ -334,7 +334,7 @@
                   <td>
                     <button
                       class="btn btn-danger mx-auto"
-                      [disabled]="!dispatchvalidation.isValid"
+                      [disabled]="dispatchvalidation.isValid"
                       (click)="
                         selectedErrorDetails(dispatchvalidation.dispatchNo)
                       "

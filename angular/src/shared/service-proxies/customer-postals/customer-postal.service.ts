@@ -115,6 +115,16 @@ export class CustomerPostalService {
       .pipe(retry(1), catchError(this.errorMessage.HandleErrorResponse));
   }
 
+  //Is Currency Wallet Exists 
+  isCurrencyWalletExist(rate: number, accNo: number){
+    return this.http
+    .post(
+      this.url + `/api/services/app/CustomerPostal/IsCurrencyWalletExist?rate=${rate}&accNo=${accNo}`,
+      this.options_
+    )
+    .pipe(retry(1), catchError(this.errorMessage.HandleErrorResponse));
+  }
+
   // Get Full Customer Postal Details
   getFullDetailedCustomerPostal(body: PagedCustomerPostalResultRequestDto) {
     let url_ =

@@ -15,6 +15,10 @@ using System.Linq.Dynamic.Core;
 using Abp.UI;
 using SND.SMP.Postals;
 using System.Drawing;
+using SND.SMP.RateItems;
+using SND.SMP.Wallets;
+using SND.SMP.Currencies;
+using SND.SMP.EWalletTypes;
 
 namespace SND.SMP.CustomerPostals
 {
@@ -23,13 +27,21 @@ namespace SND.SMP.CustomerPostals
         IRepository<Rate, int> rateRepository,
         IRepository<Customer, long> customerRepository,
         IRepository<Postal, long> postalRepository,
-        IRepository<CustomerPostal, long> customerPostalRepository
+        IRepository<CustomerPostal, long> customerPostalRepository,
+        IRepository<RateItem, long> rateItemRepository,
+        IRepository<Wallet, string> walletRepository,
+        IRepository<Currency, long> currencyRepository,
+        IRepository<EWalletType, long> eWalletTypeRepository
         ) : AsyncCrudAppService<CustomerPostal, DetailedCustomerPostalDto, long, PagedCustomerPostalResultRequestDto>(repository)
     {
         private readonly IRepository<Rate, int> _rateRepository = rateRepository;
         private readonly IRepository<Customer, long> _customerRepository = customerRepository;
         private readonly IRepository<Postal, long> _postalRepository = postalRepository;
         private readonly IRepository<CustomerPostal, long> _customerPostalRepository = customerPostalRepository;
+        private readonly IRepository<RateItem, long> _rateItemRepository = rateItemRepository;
+        private readonly IRepository<Wallet, string> _walletRepository = walletRepository;
+        private readonly IRepository<Currency, long> _currencyRepository = currencyRepository;
+        private readonly IRepository<EWalletType, long> _eWalletTypeRepository = eWalletTypeRepository;
 
         protected override IQueryable<CustomerPostal> CreateFilteredQuery(PagedCustomerPostalResultRequestDto input)
         {
@@ -117,14 +129,84 @@ namespace SND.SMP.CustomerPostals
             );
         }
 
+        public async Task<CreateWalletDto> IsCurrencyWalletExist(int rate, int accNo)
+        {
+            var rateItem = await _rateItemRepository.FirstOrDefaultAsync(x => x.Id.Equals(rate));
+
+            var customer = await _customerRepository.FirstOrDefaultAsync(x => x.Id.Equals(accNo));
+
+            var currency = await _currencyRepository.FirstOrDefaultAsync(x => x.Id.Equals(rateItem.CurrencyId));
+
+            var wallet = await _walletRepository.FirstOrDefaultAsync(x =>
+                x.Customer.Equals(customer.Code) &&
+                x.Currency.Equals(rateItem.CurrencyId)
+            );
+
+            if (wallet is not null)
+                return new CreateWalletDto() { Exists = true };
+
+            return new CreateWalletDto()
+            {
+                Exists = false,
+                Create = false,
+                Customer = customer.Code,
+                EWalletType = 1,
+                Currency = rateItem.CurrencyId,
+                CurrencyDesc = currency.Abbr,
+                Balance = Convert.ToDecimal(0),
+            };
+        }
+
+        private async Task<string> GetEWalletTypeAbbr(long id)
+        {
+            var ewallettype = await _eWalletTypeRepository.FirstOrDefaultAsync(x => x.Id.Equals(id));
+            string abbr = "";
+            switch (ewallettype.Type)
+            {
+                case "Prepaid":
+                    abbr = "PP";
+                    break;
+                case "Credit Term":
+                    abbr = "CT";
+                    break;
+            }
+            return abbr;
+        }
+
+        private async Task<string> GetCurrencyAbbr(long id)
+        {
+            var currency = await _currencyRepository.FirstOrDefaultAsync(x => x.Id.Equals(id));
+            return currency.Abbr;
+        }
 
         public override async Task<DetailedCustomerPostalDto> CreateAsync(DetailedCustomerPostalDto input)
         {
             CheckCreatePermission();
 
-            var exists = await Repository.FirstOrDefaultAsync(x => x.Postal.Equals(input.Postal) && x.Rate.Equals(input.Rate) && x.AccountNo.Equals(input.AccountNo));
+            var exists = await Repository.FirstOrDefaultAsync(x =>
+                // x.Postal.Equals(input.Postal) && 
+                x.Rate.Equals(input.Rate) &&
+                x.AccountNo.Equals(input.AccountNo)
+            );
 
-            if (exists is not null) throw new UserFriendlyException("Already Exisits");
+            if (exists is not null) throw new UserFriendlyException("Rate for this Customer Postal already exists");
+
+            if (input.CreateWallet.Create == true)
+            {
+                var walletName = 
+                    input.CreateWallet.Customer + 
+                    await GetEWalletTypeAbbr((long)input.CreateWallet.EWalletType) + 
+                    await GetCurrencyAbbr((long)input.CreateWallet.Currency);
+
+                await _walletRepository.InsertAsync(new Wallet()
+                {
+                    Customer = input.CreateWallet.Customer,
+                    EWalletType = (long)input.CreateWallet.EWalletType,
+                    Currency = (long)input.CreateWallet.Currency,
+                    Balance = (decimal)input.CreateWallet.Balance,
+                    Id = walletName
+                });
+            }
 
             CustomerPostal entity = new()
             {

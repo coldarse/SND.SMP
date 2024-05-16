@@ -18,10 +18,18 @@ export class ErrorModalComponent extends AppComponentBase {
   
   title: string = "";
   errorMessage: string = "";
+  object: any = {};
 
-  @Output() onCloseClick = new EventEmitter<number>;
+  yesno: boolean = false;
+
+  @Output() yesClick = new EventEmitter<any>;
 
   constructor(injector: Injector, public bsModalRef: BsModalRef,) {
     super(injector);
+  }
+
+  clickYes(){
+    this.yesClick.emit();
+    this.bsModalRef.hide();
   }
 }

@@ -20,4 +20,15 @@ export interface DetailedCustomerPostalDto extends EntityDto<number>  {
     rateCard: string;
     accountNo: number;
     code: string;
+    createWallet: CreateWalletDto;
+}
+
+export interface CreateWalletDto {
+    exists: boolean;
+    create?: boolean;
+    customer?: string;
+    ewalletType?: number;
+    currency?: number;
+    currencyDesc?: string;
+    balance?: number;
 }

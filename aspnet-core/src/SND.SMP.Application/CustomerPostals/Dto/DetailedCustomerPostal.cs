@@ -7,4 +7,5 @@ public class DetailedCustomerPostalDto : EntityDto<long>
     public string RateCard { get; set; }
     public long AccountNo { get; set; }
     public string Code { get; set; }
+    public CreateWalletDto CreateWallet { get; set; }
 }

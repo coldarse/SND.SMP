@@ -71,6 +71,9 @@ export class CustomerPostalsComponent extends PagedListingComponentBase<Customer
             accountNo: this.selectedCustomer.id,
             postal: undefined,
             rate: undefined,
+            rateCard: undefined,
+            code: undefined,
+            createWallet: undefined
           },
           postalItems: this.postalItems,
           rateItems: this.rateItems,
