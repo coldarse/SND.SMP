@@ -186,37 +186,37 @@ export class DispatchService {
       .pipe(retry(1), catchError(this.errorMessage.HandleErrorResponse));
   }
 
-  downloadManifest(dispatchNo: string): Observable<Zip>{
+  downloadManifest(dispatchNo: string){
     return this.http
       .get(
         this.url + `/api/services/app/Dispatch/DownloadDispatchManifest?dispatchNo=${dispatchNo}`,
         { responseType: 'blob', observe: 'response' }
       )
       .pipe(
-        map(response => {
-          const contentDispositionHeader = response.headers.get('Content-Disposition');
-          const filename = this.getFilenameFromContentDisposition(contentDispositionHeader);
+        // map(response => {
+        //   const contentDispositionHeader = response.headers.get('Content-Disposition');
+        //   const filename = this.getFilenameFromContentDisposition(contentDispositionHeader);
           
-          return { blob: response.body, filename };
-        }),
+        //   return { blob: response.body, filename };
+        // }),
         retry(1), 
         catchError(this.errorMessage.HandleErrorResponse)
       );
   }
 
-  downloadBag(dispatchNo: string): Observable<Zip>{
+  downloadBag(dispatchNo: string){
     return this.http
     .get(
       this.url + `/api/services/app/Dispatch/DownloadDispatchBag?dispatchNo=${dispatchNo}`,
       { responseType: 'blob', observe: 'response' }
     )
     .pipe(
-      map(response => {
-        const contentDispositionHeader = response.headers.get('Content-Disposition');
-        const filename = this.getFilenameFromContentDisposition(contentDispositionHeader);
+      // map(response => {
+      //   const contentDispositionHeader = response.headers.get('Content-Disposition');
+      //   const filename = this.getFilenameFromContentDisposition(contentDispositionHeader);
         
-        return { blob: response.body, filename };
-      }),
+      //   return { blob: response.body, filename };
+      // }),
       retry(1), 
       catchError(this.errorMessage.HandleErrorResponse)
     );

@@ -14,6 +14,7 @@ import {
 import { DispatchService } from "@shared/service-proxies/dispatches/dispatch.service";
 import { CreateUpdateDispatchComponent } from "../dispatches/create-update-dispatch/create-update-dispatch.component";
 import { Router } from "@angular/router";
+import { HttpResponse } from "@angular/common/http";
 
 class PagedDispatchesRequestDto extends PagedRequestDto {
   keyword: string;
@@ -116,19 +117,40 @@ export class DispatchesComponent extends PagedListingComponentBase<DispatchDto> 
           this.isDownloadingManifest = false;
         })
       )
-      .subscribe((data: Zip) => {
-        const blob = new Blob([data.blob], { type: "application/zip" });
-        const url = window.URL.createObjectURL(blob);
+      .subscribe(
+        (res: HttpResponse<Blob>) => {
+          var contentDisposition = res.headers.get("content-disposition");
+          var filename = contentDisposition
+            .split(";")[1]
+            .split("filename")[1]
+            .split("=")[1]
+            .trim();
+          console.log(filename);
+          const blob = new Blob([res.body], { type: "application/zip" });
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = filename;
+          a.click();
 
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = data.filename;
-        a.click();
+          // Clean up
+          window.URL.revokeObjectURL(url);
+          abp.notify.success(this.l("Successfully Downloaded"));
+        },
+        // (data: any) => {
+        //   const blob = new Blob([data.blob], { type: "application/zip" });
+        //   const url = window.URL.createObjectURL(blob);
+        //   console.log(data);
+        //   const a = document.createElement("a");
+        //   a.href = url;
+        //   a.download = data.filename;
+        //   a.click();
 
-        // Clean up
-        window.URL.revokeObjectURL(url);
-        abp.notify.success(this.l("Successfully Downloaded"));
-      });
+        //   // Clean up
+        //   window.URL.revokeObjectURL(url);
+        //   abp.notify.success(this.l("Successfully Downloaded"));
+        // }
+      );
   }
 
   downloadBag(dispatchNo: string) {
@@ -140,19 +162,40 @@ export class DispatchesComponent extends PagedListingComponentBase<DispatchDto> 
           this.isDownloadingBag = false;
         })
       )
-      .subscribe((data: Zip) => {
-        const blob = new Blob([data.blob], { type: "application/zip" });
-        const url = window.URL.createObjectURL(blob);
+      .subscribe(
+        (res: HttpResponse<Blob>) => {
+          var contentDisposition = res.headers.get("content-disposition");
+          var filename = contentDisposition
+            .split(";")[1]
+            .split("filename")[1]
+            .split("=")[1]
+            .trim();
+          console.log(filename);
+          const blob = new Blob([res.body], { type: "application/zip" });
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = filename;
+          a.click();
 
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = data.filename;
-        a.click();
+          // Clean up
+          window.URL.revokeObjectURL(url);
+          abp.notify.success(this.l("Successfully Downloaded"));
+        },
+        // (data: any) => {
+        //   const blob = new Blob([data.blob], { type: "application/zip" });
+        //   const url = window.URL.createObjectURL(blob);
+        //   console.log(data);
+        //   const a = document.createElement("a");
+        //   a.href = url;
+        //   a.download = data.filename;
+        //   a.click();
 
-        // Clean up
-        window.URL.revokeObjectURL(url);
-        abp.notify.success(this.l("Successfully Downloaded"));
-      });
+        //   // Clean up
+        //   window.URL.revokeObjectURL(url);
+        //   abp.notify.success(this.l("Successfully Downloaded"));
+        // }
+      );
   }
 
   postCheck(dispatchNo: string) {

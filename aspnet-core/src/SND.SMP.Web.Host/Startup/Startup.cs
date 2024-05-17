@@ -17,6 +17,7 @@ using Abp.AspNetCore.SignalR.Hubs;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using System.IO;
+using Microsoft.Net.Http.Headers;
 
 namespace SND.SMP.Web.Host.Startup
 {
@@ -63,6 +64,7 @@ namespace SND.SMP.Web.Host.Startup
                         .AllowAnyHeader()
                         .AllowAnyMethod()
                         .AllowCredentials()
+                        .WithExposedHeaders(HeaderNames.ContentDisposition)
                 )
             );
 
