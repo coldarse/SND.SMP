@@ -14,6 +14,11 @@ namespace SND.SMP.Authorization
             context.CreatePermission(PermissionNames.Pages_Tenants, L("Tenants"), multiTenancySides: MultiTenancySides.Host);
 
             /* Define your permissions here */
+            context.CreatePermission(PermissionNames.Pages_ItemTrackingApplication, L("ItemTrackingApplications"));
+            context.CreatePermission(PermissionNames.Pages_ItemTrackingApplication_Create, L("ItemTrackingApplicationsCreate"));
+            context.CreatePermission(PermissionNames.Pages_ItemTrackingApplication_Edit, L("ItemTrackingApplicationsEdit"));
+            context.CreatePermission(PermissionNames.Pages_ItemTrackingApplication_Delete, L("ItemTrackingApplicationsDelete"));
+
             context.CreatePermission(PermissionNames.Pages_IMPC, L("IMPCS"));
             context.CreatePermission(PermissionNames.Pages_IMPC_Create, L("IMPCSCreate"));
             context.CreatePermission(PermissionNames.Pages_IMPC_Edit, L("IMPCSEdit"));

@@ -39,6 +39,10 @@ import { SidebarLogoComponent } from "./layout/sidebar-logo.component";
 import { SidebarUserPanelComponent } from "./layout/sidebar-user-panel.component";
 import { SidebarMenuComponent } from "./layout/sidebar-menu.component";
 /* Insert Import */
+import { ItemTrackingApplicationsComponent } from './itemtrackingapplications/itemtrackingapplications.component';
+import { CreateUpdateItemTrackingApplicationComponent } from './itemtrackingapplications/create-update-itemtrackingapplication/create-update-itemtrackingapplication.component';
+import { ItemTrackingApplicationService } from '@shared/service-proxies/itemtrackingapplications/itemtrackingapplication.service';
+
 import { IMPCSComponent } from "./impcs/impcs.component";
 import { CreateUpdateIMPCComponent } from "./impcs/create-update-impc/create-update-impc.component";
 import { IMPCService } from "@shared/service-proxies/impcs/impc.service";
@@ -163,6 +167,8 @@ import { CardsComponent } from "./cards/cards.component";
     SidebarUserPanelComponent,
     SidebarMenuComponent,
     /* Insert Component */
+        ItemTrackingApplicationsComponent,
+        CreateUpdateItemTrackingApplicationComponent,
     IMPCSComponent,
     CreateUpdateIMPCComponent,
     RefundsComponent,
@@ -229,6 +235,7 @@ import { CardsComponent } from "./cards/cards.component";
   ],
   providers: [
     /* Insert Service */
+        ItemTrackingApplicationService,
     IMPCService,
     RefundService,
     WeightAdjustmentService,

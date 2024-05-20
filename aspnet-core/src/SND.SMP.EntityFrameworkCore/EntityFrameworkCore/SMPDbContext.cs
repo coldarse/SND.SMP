@@ -4,6 +4,7 @@ using SND.SMP.Authorization.Roles;
 using SND.SMP.Authorization.Users;
 using SND.SMP.MultiTenancy;
 /* Using Definition */
+using SND.SMP.ItemTrackingApplications;
 using SND.SMP.IMPCS;
 using SND.SMP.Refunds;
 using SND.SMP.WeightAdjustments;
@@ -56,6 +57,7 @@ namespace SND.SMP.EntityFrameworkCore
         public DbSet<WeightAdjustment> WeightAdjustments { get; set; }
         public DbSet<Refund> Refunds { get; set; }
         public DbSet<IMPC> IMPCS { get; set; }
+        public DbSet<ItemTrackingApplication> ItemTrackingApplications { get; set; }
         /* Define a DbSet for each entity of the application */
 
         public SMPDbContext(DbContextOptions<SMPDbContext> options)
@@ -68,6 +70,21 @@ namespace SND.SMP.EntityFrameworkCore
             base.OnModelCreating(builder);
 
             /* Define Tables */
+            builder.Entity<ItemTrackingApplication>(b =>
+            {
+                b.ToTable(SMPConsts.DbTablePrefix + "ItemTrackingApplications");
+                b.Property(x => x.CustomerId).HasColumnName(nameof(ItemTrackingApplication.CustomerId));
+                b.Property(x => x.CustomerCode).HasColumnName(nameof(ItemTrackingApplication.CustomerCode)).HasMaxLength(255);
+                b.Property(x => x.PostalCode).HasColumnName(nameof(ItemTrackingApplication.PostalCode)).HasMaxLength(2);
+                b.Property(x => x.PostalDesc).HasColumnName(nameof(ItemTrackingApplication.PostalDesc)).HasMaxLength(255);
+                b.Property(x => x.Total).HasColumnName(nameof(ItemTrackingApplication.Total));
+                b.Property(x => x.ProductCode).HasColumnName(nameof(ItemTrackingApplication.ProductCode)).HasMaxLength(12);
+                b.Property(x => x.ProductDesc).HasColumnName(nameof(ItemTrackingApplication.ProductDesc)).HasMaxLength(255);
+                b.Property(x => x.Status).HasColumnName(nameof(ItemTrackingApplication.Status)).HasMaxLength(128);
+                b.Property(x => x.DateCreated).HasColumnName(nameof(ItemTrackingApplication.DateCreated));
+                b.HasKey(x => x.Id);
+            });
+
             builder.Entity<IMPC>(b =>
             {
                 b.ToTable(SMPConsts.DbTablePrefix + "IMPCS");
