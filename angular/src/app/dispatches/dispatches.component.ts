@@ -137,19 +137,6 @@ export class DispatchesComponent extends PagedListingComponentBase<DispatchDto> 
           window.URL.revokeObjectURL(url);
           abp.notify.success(this.l("Successfully Downloaded"));
         },
-        // (data: any) => {
-        //   const blob = new Blob([data.blob], { type: "application/zip" });
-        //   const url = window.URL.createObjectURL(blob);
-        //   console.log(data);
-        //   const a = document.createElement("a");
-        //   a.href = url;
-        //   a.download = data.filename;
-        //   a.click();
-
-        //   // Clean up
-        //   window.URL.revokeObjectURL(url);
-        //   abp.notify.success(this.l("Successfully Downloaded"));
-        // }
       );
   }
 
@@ -182,19 +169,6 @@ export class DispatchesComponent extends PagedListingComponentBase<DispatchDto> 
           window.URL.revokeObjectURL(url);
           abp.notify.success(this.l("Successfully Downloaded"));
         },
-        // (data: any) => {
-        //   const blob = new Blob([data.blob], { type: "application/zip" });
-        //   const url = window.URL.createObjectURL(blob);
-        //   console.log(data);
-        //   const a = document.createElement("a");
-        //   a.href = url;
-        //   a.download = data.filename;
-        //   a.click();
-
-        //   // Clean up
-        //   window.URL.revokeObjectURL(url);
-        //   abp.notify.success(this.l("Successfully Downloaded"));
-        // }
       );
   }
 

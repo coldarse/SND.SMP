@@ -193,12 +193,6 @@ export class DispatchService {
         { responseType: 'blob', observe: 'response' }
       )
       .pipe(
-        // map(response => {
-        //   const contentDispositionHeader = response.headers.get('Content-Disposition');
-        //   const filename = this.getFilenameFromContentDisposition(contentDispositionHeader);
-          
-        //   return { blob: response.body, filename };
-        // }),
         retry(1), 
         catchError(this.errorMessage.HandleErrorResponse)
       );
@@ -211,12 +205,6 @@ export class DispatchService {
       { responseType: 'blob', observe: 'response' }
     )
     .pipe(
-      // map(response => {
-      //   const contentDispositionHeader = response.headers.get('Content-Disposition');
-      //   const filename = this.getFilenameFromContentDisposition(contentDispositionHeader);
-        
-      //   return { blob: response.body, filename };
-      // }),
       retry(1), 
       catchError(this.errorMessage.HandleErrorResponse)
     );

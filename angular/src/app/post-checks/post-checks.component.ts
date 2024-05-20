@@ -81,6 +81,22 @@ export class PostChecksComponent extends AppComponentBase implements OnInit {
     let bag = this.postchecks.bags.find((x) => x.id === index.id);
     bag.weightPost = +event.target.value;
     bag.weightVariance = +(bag.weightPre - bag.weightPost).toFixed(3);
+    
+    let totalBagsPostChecked = 0;
+    let totalWeightPostChecked = 0;
+
+    this.postchecks.bags.forEach((element) => {
+      if(
+        element.weightPost != null && 
+        element.weightPost != 0
+      ){
+        totalBagsPostChecked += 1;
+        totalWeightPostChecked += +element.weightPost;
+      }
+    });
+
+    this.postchecks.postCheckWeight = totalWeightPostChecked;
+    this.postchecks.postCheckNoOfBag = totalBagsPostChecked;
   }
 
   backToHome() {
