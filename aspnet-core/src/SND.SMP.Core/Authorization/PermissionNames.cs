@@ -10,6 +10,11 @@ namespace SND.SMP.Authorization
         public const string Pages_Roles = "Pages.Roles";
 
         /* Define your permissions here */
+        public const string Pages_ItemTrackingApplication = "Pages.ItemTrackingApplication";
+        public const string Pages_ItemTrackingApplication_Create = "Pages.ItemTrackingApplication.Create";
+        public const string Pages_ItemTrackingApplication_Edit = "Pages.ItemTrackingApplication.Edit";
+        public const string Pages_ItemTrackingApplication_Delete = "Pages.ItemTrackingApplication.Delete";
+
         public const string Pages_IMPC = "Pages.IMPC";
         public const string Pages_IMPC_Create = "Pages.IMPC.Create";
         public const string Pages_IMPC_Edit = "Pages.IMPC.Edit";
