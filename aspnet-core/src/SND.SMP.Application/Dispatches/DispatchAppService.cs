@@ -1002,7 +1002,7 @@ namespace SND.SMP.Dispatches
             {
                 var bagNo = bags[i].Key;
 
-                slBag.Add(new SLBags
+                slBag.Add(new SLBag
                 {
                     RunningNo = i,
                     BagNo = bagNo.ToString(),
