@@ -10,6 +10,16 @@ namespace SND.SMP.Authorization
         public const string Pages_Roles = "Pages.Roles";
 
         /* Define your permissions here */
+        public const string Pages_ItemIdRunningNo = "Pages.ItemIdRunningNo";
+        public const string Pages_ItemIdRunningNo_Create = "Pages.ItemIdRunningNo.Create";
+        public const string Pages_ItemIdRunningNo_Edit = "Pages.ItemIdRunningNo.Edit";
+        public const string Pages_ItemIdRunningNo_Delete = "Pages.ItemIdRunningNo.Delete";
+
+        public const string Pages_ItemTrackingReview = "Pages.ItemTrackingReview";
+        public const string Pages_ItemTrackingReview_Create = "Pages.ItemTrackingReview.Create";
+        public const string Pages_ItemTrackingReview_Edit = "Pages.ItemTrackingReview.Edit";
+        public const string Pages_ItemTrackingReview_Delete = "Pages.ItemTrackingReview.Delete";
+
         public const string Pages_ItemTrackingApplication = "Pages.ItemTrackingApplication";
         public const string Pages_ItemTrackingApplication_Create = "Pages.ItemTrackingApplication.Create";
         public const string Pages_ItemTrackingApplication_Edit = "Pages.ItemTrackingApplication.Edit";

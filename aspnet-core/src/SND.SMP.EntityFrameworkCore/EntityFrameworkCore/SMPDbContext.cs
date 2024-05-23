@@ -4,6 +4,8 @@ using SND.SMP.Authorization.Roles;
 using SND.SMP.Authorization.Users;
 using SND.SMP.MultiTenancy;
 /* Using Definition */
+using SND.SMP.ItemIdRunningNos;
+using SND.SMP.ItemTrackingReviews;
 using SND.SMP.ItemTrackingApplications;
 using SND.SMP.IMPCS;
 using SND.SMP.Refunds;
@@ -58,6 +60,8 @@ namespace SND.SMP.EntityFrameworkCore
         public DbSet<Refund> Refunds { get; set; }
         public DbSet<IMPC> IMPCS { get; set; }
         public DbSet<ItemTrackingApplication> ItemTrackingApplications { get; set; }
+        public DbSet<ItemTrackingReview> ItemTrackingReviews { get; set; }
+        public DbSet<ItemIdRunningNo> ItemIdRunningNos { get; set; }
         /* Define a DbSet for each entity of the application */
 
         public SMPDbContext(DbContextOptions<SMPDbContext> options)
@@ -70,6 +74,35 @@ namespace SND.SMP.EntityFrameworkCore
             base.OnModelCreating(builder);
 
             /* Define Tables */
+            builder.Entity<ItemIdRunningNo>(b =>
+            {
+                b.ToTable(SMPConsts.DbTablePrefix + "ItemIdRunningNos");
+                b.Property(x => x.Prefix).HasColumnName(nameof(ItemIdRunningNo.Prefix)).HasMaxLength(2);
+                b.Property(x => x.PrefixNo).HasColumnName(nameof(ItemIdRunningNo.PrefixNo)).HasMaxLength(4);
+                b.Property(x => x.Suffix).HasColumnName(nameof(ItemIdRunningNo.Suffix)).HasMaxLength(2);
+                b.Property(x => x.RunningNo).HasColumnName(nameof(ItemIdRunningNo.RunningNo));
+                b.HasKey(x => x.Id);
+            });
+
+            builder.Entity<ItemTrackingReview>(b =>
+            {
+                b.ToTable(SMPConsts.DbTablePrefix + "ItemTrackingReviews");
+                b.Property(x => x.ApplicationId).HasColumnName(nameof(ItemTrackingReview.ApplicationId));
+                b.Property(x => x.CustomerId).HasColumnName(nameof(ItemTrackingReview.CustomerId));
+                b.Property(x => x.CustomerCode).HasColumnName(nameof(ItemTrackingReview.CustomerCode)).HasMaxLength(255);
+                b.Property(x => x.Total).HasColumnName(nameof(ItemTrackingReview.Total));
+                b.Property(x => x.PostalCode).HasColumnName(nameof(ItemTrackingReview.PostalCode)).HasMaxLength(2);
+                b.Property(x => x.PostalDesc).HasColumnName(nameof(ItemTrackingReview.PostalDesc)).HasMaxLength(255);
+                b.Property(x => x.DateCreated).HasColumnName(nameof(ItemTrackingReview.DateCreated));
+                b.Property(x => x.Status).HasColumnName(nameof(ItemTrackingReview.Status)).HasMaxLength(128);
+                b.Property(x => x.TotalGiven).HasColumnName(nameof(ItemTrackingReview.TotalGiven));
+                b.Property(x => x.Prefix).HasColumnName(nameof(ItemTrackingReview.Prefix)).HasMaxLength(2);
+                b.Property(x => x.PrefixNo).HasColumnName(nameof(ItemTrackingReview.PrefixNo)).HasMaxLength(4);
+                b.Property(x => x.Suffix).HasColumnName(nameof(ItemTrackingReview.Suffix)).HasMaxLength(2);
+                b.Property(x => x.ProductCode).HasColumnName(nameof(ItemTrackingReview.ProductCode)).HasMaxLength(12);
+                b.HasKey(x => x.Id);
+            });
+
             builder.Entity<ItemTrackingApplication>(b =>
             {
                 b.ToTable(SMPConsts.DbTablePrefix + "ItemTrackingApplications");

@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SND.SMP.EntityFrameworkCore;
 
@@ -10,9 +11,11 @@ using SND.SMP.EntityFrameworkCore;
 namespace SND.SMP.Migrations
 {
     [DbContext(typeof(SMPDbContext))]
-    partial class SMPDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240523130637_AddedItemTrackingReview")]
+    partial class AddedItemTrackingReview
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -2290,36 +2293,6 @@ namespace SND.SMP.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("IMPCS", (string)null);
-                });
-
-            modelBuilder.Entity("SND.SMP.ItemIdRunningNos.ItemIdRunningNo", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("Prefix")
-                        .HasMaxLength(2)
-                        .HasColumnType("varchar(2)")
-                        .HasColumnName("Prefix");
-
-                    b.Property<string>("PrefixNo")
-                        .HasMaxLength(4)
-                        .HasColumnType("varchar(4)")
-                        .HasColumnName("PrefixNo");
-
-                    b.Property<int>("RunningNo")
-                        .HasColumnType("int")
-                        .HasColumnName("RunningNo");
-
-                    b.Property<string>("Suffix")
-                        .HasMaxLength(2)
-                        .HasColumnType("varchar(2)")
-                        .HasColumnName("Suffix");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("ItemIdRunningNos", (string)null);
                 });
 
             modelBuilder.Entity("SND.SMP.ItemMins.ItemMin", b =>
