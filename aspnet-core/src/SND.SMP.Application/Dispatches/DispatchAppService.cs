@@ -895,7 +895,7 @@ namespace SND.SMP.Dispatches
                     BagNo = bagNo.ToString(),
                     Destination = destination,
                     Qty = bags[i].Count(),
-                    Weight = bagList.FirstOrDefault(p => p.BagNo.Equals(bags[i].Key)).Weight * 1000,
+                    Weight = bagList.FirstOrDefault(p => p.BagNo.Equals(bags[i].Key)).Weight,
                     DispatchDate = dispatchDate
                 });
             }
@@ -955,7 +955,7 @@ namespace SND.SMP.Dispatches
                     BagNo = bagNo.ToString(),
                     Destination = destination,
                     Qty = bags[i].Count(),
-                    Weight = bagList.FirstOrDefault(p => p.BagNo.Equals(bags[i].Key)).Weight * 1000,
+                    Weight = bagList.FirstOrDefault(p => p.BagNo.Equals(bags[i].Key)).Weight,
                     DispatchDate = dispatchDate
                 });
             }
@@ -1002,13 +1002,13 @@ namespace SND.SMP.Dispatches
             {
                 var bagNo = bags[i].Key;
 
-                slBag.Add(new SLBag
+                slBag.Add(new SLBags
                 {
                     RunningNo = i,
                     BagNo = bagNo.ToString(),
                     Destination = "NRT",
                     Qty = bags[i].Count(),
-                    Weight = bagList.FirstOrDefault(p => p.BagNo.Equals(bags[i].Key)).Weight * 1000,
+                    Weight = bagList.FirstOrDefault(p => p.BagNo.Equals(bags[i].Key)).Weight,
                     DispatchDate = dispatchDate
                 });
             }
