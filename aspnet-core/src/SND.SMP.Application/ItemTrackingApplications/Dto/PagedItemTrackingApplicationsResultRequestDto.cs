@@ -16,5 +16,6 @@ namespace SND.SMP.ItemTrackingApplications
         public string ProductDesc { get; set; }
         public string Status { get; set; }
         public DateTime? DateCreated { get; set; }
+        public string Range { get; set; }
     }
 }

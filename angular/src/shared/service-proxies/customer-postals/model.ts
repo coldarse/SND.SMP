@@ -32,3 +32,10 @@ export interface CreateWalletDto {
     currencyDesc?: string;
     balance?: number;
 }
+
+export interface GroupedCustomerPostal {
+    customerId: number;
+    customerCode: string;
+    customerName: string;
+    customerPostal: CustomerPostalDto[]
+}

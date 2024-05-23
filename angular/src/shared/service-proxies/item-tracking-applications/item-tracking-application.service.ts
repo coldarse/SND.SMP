@@ -102,4 +102,15 @@ export class ItemTrackingApplicationService {
             catchError(this.handleError),
         )
     }
+
+    //CreateTrackingApplication
+    createTrackingApplication(CustomerCode: string, CustomerId: number, Total: number, ProductCode: string, ProductDesc: string, PostalCode: string){
+        return this.http.post(
+            this.url + `/api/services/app/ItemTrackingApplication/CreateTrackingApplication?CustomerCode=${CustomerCode}&CustomerId=${CustomerId}&Total=${Total}&ProductCode=${ProductCode}&ProductDesc=${ProductDesc}&PostalCode=${PostalCode}`,
+            this.options_
+        ).pipe(
+            retry(1),
+            catchError(this.handleError),
+        )
+    }
 }

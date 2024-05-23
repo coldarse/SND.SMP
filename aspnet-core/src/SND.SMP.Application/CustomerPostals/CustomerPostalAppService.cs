@@ -19,6 +19,7 @@ using SND.SMP.RateItems;
 using SND.SMP.Wallets;
 using SND.SMP.Currencies;
 using SND.SMP.EWalletTypes;
+using SND.SMP.PostalCountries;
 
 namespace SND.SMP.CustomerPostals
 {
@@ -31,7 +32,8 @@ namespace SND.SMP.CustomerPostals
         IRepository<RateItem, long> rateItemRepository,
         IRepository<Wallet, string> walletRepository,
         IRepository<Currency, long> currencyRepository,
-        IRepository<EWalletType, long> eWalletTypeRepository
+        IRepository<EWalletType, long> eWalletTypeRepository,
+        IRepository<PostalCountry, long> postalCountryRepository
         ) : AsyncCrudAppService<CustomerPostal, DetailedCustomerPostalDto, long, PagedCustomerPostalResultRequestDto>(repository)
     {
         private readonly IRepository<Rate, int> _rateRepository = rateRepository;
@@ -42,6 +44,7 @@ namespace SND.SMP.CustomerPostals
         private readonly IRepository<Wallet, string> _walletRepository = walletRepository;
         private readonly IRepository<Currency, long> _currencyRepository = currencyRepository;
         private readonly IRepository<EWalletType, long> _eWalletTypeRepository = eWalletTypeRepository;
+        private readonly IRepository<PostalCountry, long> _postalCountryRepository = postalCountryRepository;
 
         protected override IQueryable<CustomerPostal> CreateFilteredQuery(PagedCustomerPostalResultRequestDto input)
         {
@@ -193,9 +196,9 @@ namespace SND.SMP.CustomerPostals
 
             if (input.CreateWallet.Create == true)
             {
-                var walletName = 
-                    input.CreateWallet.Customer + 
-                    await GetEWalletTypeAbbr((long)input.CreateWallet.EWalletType) + 
+                var walletName =
+                    input.CreateWallet.Customer +
+                    await GetEWalletTypeAbbr((long)input.CreateWallet.EWalletType) +
                     await GetCurrencyAbbr((long)input.CreateWallet.Currency);
 
                 await _walletRepository.InsertAsync(new Wallet()
@@ -300,6 +303,23 @@ namespace SND.SMP.CustomerPostals
             return query;
         }
 
+        public async Task<List<GroupedCustomerPostal>> GetGroupedCustomerPostal()
+        {
+            var customerPostals = await _customerPostalRepository.GetAllListAsync();
 
+            var customers = await _customerRepository.GetAllListAsync();
+
+            var grouped = customerPostals
+                                .GroupBy(g => g.AccountNo)
+                                .Select(u => new GroupedCustomerPostal()
+                                {
+                                    CustomerId = customers.FirstOrDefault(x => x.Id.Equals(u.Key)).Id,
+                                    CustomerCode = customers.FirstOrDefault(x => x.Id.Equals(u.Key)).Code,
+                                    CustomerName = customers.FirstOrDefault(x => x.Id.Equals(u.Key)).CompanyName,
+                                    CustomerPostal = [.. u]
+                                });
+
+            return [.. grouped];
+        }
     }
 }

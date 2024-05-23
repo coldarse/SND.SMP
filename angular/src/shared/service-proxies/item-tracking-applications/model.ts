@@ -11,6 +11,7 @@ export interface ItemTrackingApplicationDto extends EntityDto<number> {
     productDesc: string;
     status: string;
     dateCreated: string;
+    range: string;
 }
 
 export interface PagedItemTrackingApplicationResultRequestDto extends PagedAndSortedResultRequestDto {
@@ -22,4 +23,5 @@ export interface PagedItemTrackingApplicationResultRequestDto extends PagedAndSo
     productDesc?: string;
     status?: string;
     dateCreated?: string;
+    range?: string;
 }

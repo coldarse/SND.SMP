@@ -1,0 +1,84 @@
+<form
+  class="form-horizontal"
+  autocomplete="off"
+  #createItemTrackingApplicationModal="ngForm"
+  (ngSubmit)="save()"
+  *ngIf="isLoaded"
+>
+  <abp-modal-header
+    [title]="'Item ID Tracking Application' | localize"
+    (onCloseClick)="bsModalRef.hide()"
+  ></abp-modal-header>
+  <div class="modal-body">
+    <div class="form-group row required">
+      <label class="col-md-3 col-form-label" for="customerId">
+        {{ "Customer" | localize }}
+      </label>
+      <div class="col-md-9">
+        <select
+          name="postal"
+          id="postal"
+          class="form-control"
+          (change)="selectedCustomerPostal($event)"
+        >
+          <option value="">Select Postal</option>
+          @for (customerPostal of groupedCustomerPostal; track $index) {
+          <optgroup label="{{ customerPostal.customerName }}">
+            @for (postal of customerPostal.customerPostal; track $index){
+            <option value="{{ postal.postal }}+{{ customerPostal.customerId }}">
+              {{ postal.postal.slice(0, 2) }} ({{ customerPostal.customerCode }})
+            </option>
+            }
+          </optgroup>
+          }
+        </select>
+      </div>
+    </div>
+    <div class="form-group row required">
+      <label class="col-md-3 col-form-label" for="total">
+        {{ "Total Tracking Numbers" | localize }}
+      </label>
+      <div class="col-md-9">
+        <input
+          type="number"
+          class="form-control"
+          name="total"
+          id="total"
+          required
+          [(ngModel)]="total"
+          #totalModel="ngModel"
+          #totalEl
+        />
+        <abp-validation-summary
+          [control]="totalModel"
+          [controlEl]="totalEl"
+        ></abp-validation-summary>
+      </div>
+    </div>
+    <div class="form-group row required">
+      <label class="col-md-3 col-form-label" for="product">
+        {{ "Product" | localize }}
+      </label>
+      <div class="col-md-9">
+        <select
+          name="product"
+          id="product"
+          class="form-control"
+          (change)="selectedProduct($event)"
+        >
+          <option value="">Select Product</option>
+          @for (product of productDDL; track $index){
+          <option value="{{ product.productCode }}">
+            {{ product.productDesc }}
+          </option>
+          }
+        </select>
+      </div>
+    </div>
+  </div>
+  <abp-modal-footer
+    [cancelDisabled]="saving"
+    [saveDisabled]="!createItemTrackingApplicationModal.form.valid || saving"
+    (onCancelClick)="bsModalRef.hide()"
+  ></abp-modal-footer>
+</form>

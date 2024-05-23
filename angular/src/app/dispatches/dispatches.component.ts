@@ -15,6 +15,7 @@ import { DispatchService } from "@shared/service-proxies/dispatches/dispatch.ser
 import { CreateUpdateDispatchComponent } from "../dispatches/create-update-dispatch/create-update-dispatch.component";
 import { Router } from "@angular/router";
 import { HttpResponse } from "@angular/common/http";
+import { PrePostCheckWeightComponent } from "./pre-post-check-weight/pre-post-check-weight.component";
 
 class PagedDispatchesRequestDto extends PagedRequestDto {
   keyword: string;
@@ -108,17 +109,25 @@ export class DispatchesComponent extends PagedListingComponentBase<DispatchDto> 
     this.router.navigate(["/app/dispatches"]);
   }
 
-  downloadManifest(dispatchNo: string) {
-    this.isDownloadingManifest = true;
-    this._dispatchService
-      .downloadManifest(dispatchNo)
-      .pipe(
-        finalize(() => {
-          this.isDownloadingManifest = false;
-        })
-      )
-      .subscribe(
-        (res: HttpResponse<Blob>) => {
+  downloadManifest(dispatchNo: string, status: string) {
+    let dmModal: BsModalRef;
+    dmModal = this._modalService.show(PrePostCheckWeightComponent, {
+      class: "modal-lg",
+      initialState: {
+        donePostCheck: status == "Post Check",
+      },
+    });
+
+    dmModal.content.isPreCheckWeight.subscribe((isPreCheckWeight: boolean) => {
+      this.isDownloadingManifest = true;
+      this._dispatchService
+        .downloadManifest(dispatchNo, isPreCheckWeight)
+        .pipe(
+          finalize(() => {
+            this.isDownloadingManifest = false;
+          })
+        )
+        .subscribe((res: HttpResponse<Blob>) => {
           var contentDisposition = res.headers.get("content-disposition");
           var filename = contentDisposition
             .split(";")[1]
@@ -136,21 +145,29 @@ export class DispatchesComponent extends PagedListingComponentBase<DispatchDto> 
           // Clean up
           window.URL.revokeObjectURL(url);
           abp.notify.success(this.l("Successfully Downloaded"));
-        },
-      );
+        });
+    });
   }
 
-  downloadBag(dispatchNo: string) {
-    this.isDownloadingBag = true;
-    this._dispatchService
-      .downloadBag(dispatchNo)
-      .pipe(
-        finalize(() => {
-          this.isDownloadingBag = false;
-        })
-      )
-      .subscribe(
-        (res: HttpResponse<Blob>) => {
+  downloadBag(dispatchNo: string, status: string) {
+    let dbModal: BsModalRef;
+    dbModal = this._modalService.show(PrePostCheckWeightComponent, {
+      class: "modal-lg",
+      initialState: {
+        donePostCheck: status == "Post Check",
+      },
+    });
+
+    dbModal.content.isPreCheckWeight.subscribe((isPreCheckWeight: boolean) => {
+      this.isDownloadingBag = true;
+      this._dispatchService
+        .downloadBag(dispatchNo, isPreCheckWeight)
+        .pipe(
+          finalize(() => {
+            this.isDownloadingBag = false;
+          })
+        )
+        .subscribe((res: HttpResponse<Blob>) => {
           var contentDisposition = res.headers.get("content-disposition");
           var filename = contentDisposition
             .split(";")[1]
@@ -168,8 +185,8 @@ export class DispatchesComponent extends PagedListingComponentBase<DispatchDto> 
           // Clean up
           window.URL.revokeObjectURL(url);
           abp.notify.success(this.l("Successfully Downloaded"));
-        },
-      );
+        });
+    });
   }
 
   postCheck(dispatchNo: string) {
@@ -179,6 +196,7 @@ export class DispatchesComponent extends PagedListingComponentBase<DispatchDto> 
   undoPostCheck(dispatchNo: string) {
     this._dispatchService.undoPostCheck(dispatchNo).subscribe(() => {
       abp.notify.success(this.l("Successfully Undo Postcheck"));
+      this.getDataPage(1);
     });
   }
 

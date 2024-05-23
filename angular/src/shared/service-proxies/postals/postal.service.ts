@@ -131,6 +131,17 @@ export class PostalService {
         )
     }
 
+    // Get Product Drop Down List
+    getProductDDL(){
+        return this.http.get(
+            this.url + '/api/services/app/Postal/GetProductDDL',
+            this.options_
+        ).pipe(
+            retry(1),
+            catchError(this.errorMessage.HandleErrorResponse),
+        )
+    }
+
     //Get Services By Postal
     getServicesByPostal(postalCode: string) {
         return this.http.get(

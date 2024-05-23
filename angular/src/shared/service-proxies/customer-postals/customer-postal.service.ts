@@ -152,4 +152,15 @@ export class CustomerPostalService {
       .get(url_ + `&MaxResultCount=${count}`, this.options_)
       .pipe(retry(1), catchError(this.errorMessage.HandleErrorResponse));
   }
+
+  //Get Grouped Customer Postals 
+  getGroupedCustomerPostal() {
+    return this.http
+      .get(
+        this.url +
+          `/api/services/app/CustomerPostal/GetGroupedCustomerPostal`,
+        this.options_
+      )
+      .pipe(retry(1), catchError(this.errorMessage.HandleErrorResponse));
+  }
 }

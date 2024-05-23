@@ -186,10 +186,10 @@ export class DispatchService {
       .pipe(retry(1), catchError(this.errorMessage.HandleErrorResponse));
   }
 
-  downloadManifest(dispatchNo: string){
+  downloadManifest(dispatchNo: string, isPreCheckWeight: boolean){
     return this.http
       .get(
-        this.url + `/api/services/app/Dispatch/DownloadDispatchManifest?dispatchNo=${dispatchNo}`,
+        this.url + `/api/services/app/Dispatch/DownloadDispatchManifest?dispatchNo=${dispatchNo}&isPreCheckWeight=${isPreCheckWeight}`,
         { responseType: 'blob', observe: 'response' }
       )
       .pipe(
@@ -198,10 +198,10 @@ export class DispatchService {
       );
   }
 
-  downloadBag(dispatchNo: string){
+  downloadBag(dispatchNo: string, isPreCheckWeight: boolean){
     return this.http
     .get(
-      this.url + `/api/services/app/Dispatch/DownloadDispatchBag?dispatchNo=${dispatchNo}`,
+      this.url + `/api/services/app/Dispatch/DownloadDispatchBag?dispatchNo=${dispatchNo}&isPreCheckWeight=${isPreCheckWeight}`,
       { responseType: 'blob', observe: 'response' }
     )
     .pipe(

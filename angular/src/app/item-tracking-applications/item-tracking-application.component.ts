@@ -2,18 +2,19 @@ import { Component, Injector } from '@angular/core';
 import { PagedListingComponentBase, PagedRequestDto, PagedResultDto } from '@shared/paged-listing-component-base';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { finalize } from 'rxjs/operators';
-import { ItemTrackingApplicationDto } from '@shared/service-proxies/itemtrackingapplications/model'
-import { ItemTrackingApplicationService } from '@shared/service-proxies/itemtrackingapplications/itemtrackingapplication.service'
-import { CreateUpdateItemTrackingApplicationComponent } from '../itemtrackingapplications/create-update-itemtrackingapplication/create-update-itemtrackingapplication.component'
+import { ItemTrackingApplicationDto } from '@shared/service-proxies/item-tracking-applications/model'
+import { ItemTrackingApplicationService } from '@shared/service-proxies/item-tracking-applications/item-tracking-application.service'
+import { CreateUpdateItemTrackingApplicationComponent } from '../item-tracking-applications/create-update-item-tracking-application/create-update-item-tracking-application.component';
+import { CreateItemTrackingApplicationComponent } from './create-item-tracking-application/create-item-tracking-application.component';
 
 class PagedItemTrackingApplicationsRequestDto extends PagedRequestDto{
   keyword: string
 }
 
 @Component({
-  selector: 'app-itemtrackingapplications',
-  templateUrl: './itemtrackingapplications.component.html',
-  styleUrls: ['./itemtrackingapplications.component.css']
+  selector: 'app-item-tracking-application',
+  templateUrl: './item-tracking-application.component.html',
+  styleUrls: ['./item-tracking-application.component.css']
 })
 export class ItemTrackingApplicationsComponent extends PagedListingComponentBase<ItemTrackingApplicationDto> {
 
@@ -29,11 +30,26 @@ export class ItemTrackingApplicationsComponent extends PagedListingComponentBase
   }
 
   createItemTrackingApplication(){
-    this.showCreateOrEditItemTrackingApplicationDialog();
+    // this.showCreateOrEditItemTrackingApplicationDialog();
+    this.showCreateItemTrackingApplicationDialog();
   }
 
   editItemTrackingApplication(entity: ItemTrackingApplicationDto){
     this.showCreateOrEditItemTrackingApplicationDialog(entity);
+  }
+
+  private showCreateItemTrackingApplicationDialog(){
+    let createItemTrackingApplicationDialog: BsModalRef;
+    createItemTrackingApplicationDialog = this._modalService.show(
+      CreateItemTrackingApplicationComponent,
+      {
+        class: 'modal-lg',
+      }
+    );
+
+    createItemTrackingApplicationDialog.content.onSave.subscribe(() => {
+      this.refresh();
+    });
   }
 
   private showCreateOrEditItemTrackingApplicationDialog(entity?: ItemTrackingApplicationDto){

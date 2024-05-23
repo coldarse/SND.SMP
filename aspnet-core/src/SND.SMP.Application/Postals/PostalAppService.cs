@@ -84,6 +84,23 @@ namespace SND.SMP.Postals
             return productDDLs;
         }
 
+        public async Task<List<ProductDDL>> GetProductDDL()
+        {
+            var postals = await Repository.GetAllListAsync();
+            postals = postals.DistinctBy(x => x.ProductCode).ToList();
+
+            List<ProductDDL> productDDLs = [];
+            foreach (Postal postal in postals.ToList())
+            {
+                productDDLs.Add(new ProductDDL()
+                {
+                    ProductCode = postal.ProductCode,
+                    ProductDesc = postal.ProductDesc
+                });
+            }
+            return productDDLs;
+        }
+
         private async Task<DataTable> ConvertToDatatable(Stream ms)
         {
             DataTable dataTable = new();
@@ -184,7 +201,6 @@ namespace SND.SMP.Postals
 
             return postals;
         }
-
 
     }
 }

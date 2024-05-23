@@ -1,0 +1,25 @@
+<abp-modal-header
+  [title]="'Weight Selection' | localize"
+  (onCloseClick)="bsModalRef.hide()"
+></abp-modal-header>
+<div class="modal-body">
+  <div class="form-group row">
+    <div class="col-3"></div>
+    <div class="col-3 text-center">
+      <button class="btn btn-info" (click)="onSelect(true)">
+        Pre-Check <br />
+        Weight
+      </button>
+    </div>
+    <div class="col-3 text-center">
+      <button
+        class="btn btn-info"
+        [disabled]="!donePostCheck"
+        (click)="onSelect(false)"
+      >
+        Post-Check <br />Weight
+      </button>
+    </div>
+    <div class="col-3"></div>
+  </div>
+</div>

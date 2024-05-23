@@ -82,6 +82,7 @@ namespace SND.SMP.EntityFrameworkCore
                 b.Property(x => x.ProductDesc).HasColumnName(nameof(ItemTrackingApplication.ProductDesc)).HasMaxLength(255);
                 b.Property(x => x.Status).HasColumnName(nameof(ItemTrackingApplication.Status)).HasMaxLength(128);
                 b.Property(x => x.DateCreated).HasColumnName(nameof(ItemTrackingApplication.DateCreated));
+                b.Property(x => x.Range).HasColumnName(nameof(ItemTrackingApplication.Range)).HasMaxLength(255);
                 b.HasKey(x => x.Id);
             });
 

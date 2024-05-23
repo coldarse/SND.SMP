@@ -39,9 +39,9 @@ import { SidebarLogoComponent } from "./layout/sidebar-logo.component";
 import { SidebarUserPanelComponent } from "./layout/sidebar-user-panel.component";
 import { SidebarMenuComponent } from "./layout/sidebar-menu.component";
 /* Insert Import */
-import { ItemTrackingApplicationsComponent } from './itemtrackingapplications/itemtrackingapplications.component';
-import { CreateUpdateItemTrackingApplicationComponent } from './itemtrackingapplications/create-update-itemtrackingapplication/create-update-itemtrackingapplication.component';
-import { ItemTrackingApplicationService } from '@shared/service-proxies/itemtrackingapplications/itemtrackingapplication.service';
+import { ItemTrackingApplicationsComponent } from './item-tracking-applications/item-tracking-application.component';
+import { CreateUpdateItemTrackingApplicationComponent } from './item-tracking-applications/create-update-item-tracking-application/create-update-item-tracking-application.component';
+import { ItemTrackingApplicationService } from '@shared/service-proxies/item-tracking-applications/item-tracking-application.service';
 
 import { IMPCSComponent } from "./impcs/impcs.component";
 import { CreateUpdateIMPCComponent } from "./impcs/create-update-impc/create-update-impc.component";
@@ -134,8 +134,9 @@ import { UploadPostalCountryComponent } from "./postal-countries/upload-postal-c
 import { TopUpWalletComponent } from "./wallets/topup-wallet/topup-wallet.component";
 
 import { PostChecksComponent } from "./post-checks/post-checks.component";
-
+import { PrePostCheckWeightComponent } from "./dispatches/pre-post-check-weight/pre-post-check-weight.component";
 import { CardsComponent } from "./cards/cards.component";
+import { CreateItemTrackingApplicationComponent } from "./item-tracking-applications/create-item-tracking-application/create-item-tracking-application.component";
 
 @NgModule({
   declarations: [
@@ -167,8 +168,8 @@ import { CardsComponent } from "./cards/cards.component";
     SidebarUserPanelComponent,
     SidebarMenuComponent,
     /* Insert Component */
-        ItemTrackingApplicationsComponent,
-        CreateUpdateItemTrackingApplicationComponent,
+    ItemTrackingApplicationsComponent,
+    CreateUpdateItemTrackingApplicationComponent,
     IMPCSComponent,
     CreateUpdateIMPCComponent,
     RefundsComponent,
@@ -216,6 +217,8 @@ import { CardsComponent } from "./cards/cards.component";
     CreateUpdatePostalComponent,
     CreateUpdatePostalCountryComponent,
     UploadRetryComponent,
+    PrePostCheckWeightComponent,
+    CreateItemTrackingApplicationComponent,
   ],
   imports: [
     CommonModule,

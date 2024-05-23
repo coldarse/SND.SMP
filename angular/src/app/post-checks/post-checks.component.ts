@@ -8,6 +8,7 @@ import { BsModalRef, BsModalService } from "ngx-bootstrap/modal";
 import { ErrorModalComponent } from "@shared/components/error-modal/error-modal.component";
 import * as XLSX from "xlsx";
 import { AppComponentBase } from "@shared/app-component-base";
+import { finalize } from "rxjs";
 
 @Component({
   selector: "app-post-checks",
@@ -45,6 +46,8 @@ export class PostChecksComponent extends AppComponentBase implements OnInit {
 
   postchecks: GetPostCheck = undefined;
 
+  isLoading = false;
+
   ngOnInit(): void {
     this.postchecks = undefined;
     this.sub = this._Activatedroute.paramMap.subscribe((params) => {
@@ -81,15 +84,12 @@ export class PostChecksComponent extends AppComponentBase implements OnInit {
     let bag = this.postchecks.bags.find((x) => x.id === index.id);
     bag.weightPost = +event.target.value;
     bag.weightVariance = +(bag.weightPre - bag.weightPost).toFixed(3);
-    
+
     let totalBagsPostChecked = 0;
     let totalWeightPostChecked = 0;
 
     this.postchecks.bags.forEach((element) => {
-      if(
-        element.weightPost != null && 
-        element.weightPost != 0
-      ){
+      if (element.weightPost != null && element.weightPost != 0) {
         totalBagsPostChecked += 1;
         totalWeightPostChecked += +element.weightPost;
       }
@@ -127,8 +127,10 @@ export class PostChecksComponent extends AppComponentBase implements OnInit {
   SubmitPostCheck() {
     this._dispatchService.savePostCheck(this.postchecks).subscribe(
       (result: any) => {
-        if (result.result) this.notify.info(this.l("Post Check Completed"));
-        else this.notify.error(this.l("Error Post Check"));
+        if (result.result) {
+          this.notify.info(this.l("Post Check Completed"));
+          this.ngOnInit();
+        } else this.notify.error(this.l("Error Post Check"));
       },
       (error: HttpErrorResponse) => {
         //Handle error
@@ -145,12 +147,20 @@ export class PostChecksComponent extends AppComponentBase implements OnInit {
   }
 
   BypassPostCheck() {
+    this.isLoading = true;
     this._dispatchService
       .bypassPostCheck(this.dispatchNo, this.bypassValue)
+      .pipe(
+        finalize(() => {
+          this.isLoading = false;
+        })
+      )
       .subscribe(
         (result: any) => {
-          if (result.result) this.notify.info(this.l("ByPassed Post Check"));
-          else this.notify.error(this.l("Failed to ByPass Post Check"));
+          if (result.result) {
+            this.notify.info(this.l("ByPassed Post Check"));
+            this.ngOnInit();
+          } else this.notify.error(this.l("Failed to ByPass Post Check"));
         },
         (error: HttpErrorResponse) => {
           //Handle error
@@ -173,8 +183,10 @@ export class PostChecksComponent extends AppComponentBase implements OnInit {
 
     this._dispatchService.uploadPostCheck(form).subscribe(
       (result: any) => {
-        if (result.result) this.notify.info(this.l("UploadedSuccessfully"));
-        else this.notify.error(this.l("UploadFailed"));
+        if (result.result) {
+          this.notify.info(this.l("UploadedSuccessfully"));
+          this.ngOnInit();
+        } else this.notify.error(this.l("UploadFailed"));
       },
       (error: HttpErrorResponse) => {
         //Handle error

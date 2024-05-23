@@ -110,7 +110,7 @@
                       <button
                         class="bg-info dropdown-item"
                         type="button"
-                        (click)="downloadManifest(dispatch.dispatchNo)"
+                        (click)="downloadManifest(dispatch.dispatchNo, dispatch.status)"
                         [disabled]="isDownloadingManifest"
                         *ngIf="
                           dispatch.dispatchNo.slice(0, 2) == 'KG' ||
@@ -133,7 +133,7 @@
                       <button
                         class="bg-info dropdown-item"
                         type="button"
-                        (click)="downloadBag(dispatch.dispatchNo)"
+                        (click)="downloadBag(dispatch.dispatchNo, dispatch.status)"
                         [disabled]="isDownloadingBag"
                         *ngIf="
                           dispatch.dispatchNo.slice(0, 2) == 'KG' ||

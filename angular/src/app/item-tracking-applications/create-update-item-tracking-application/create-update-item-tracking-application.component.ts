@@ -1,13 +1,13 @@
 import { Component, EventEmitter, Injector, OnInit, Output } from '@angular/core';
 import { AppComponentBase } from '../../../shared/app-component-base';
-import { ItemTrackingApplicationDto } from '../../../shared/service-proxies/itemtrackingapplications/model';
-import { ItemTrackingApplicationService } from '../../../shared/service-proxies/itemtrackingapplications/itemtrackingapplication.service';
+import { ItemTrackingApplicationDto } from '../../../shared/service-proxies/item-tracking-applications/model';
+import { ItemTrackingApplicationService } from '../../../shared/service-proxies/item-tracking-applications/item-tracking-application.service';
 import { BsModalRef } from 'ngx-bootstrap/modal';
 
 @Component({
-  selector: 'app-create-update-itemtrackingapplication',
-  templateUrl: './create-update-itemtrackingapplication.component.html',
-  styleUrls: ['./create-update-itemtrackingapplication.component.css']
+  selector: 'app-create-update-item-tracking-application',
+  templateUrl: './create-update-item-tracking-application.component.html',
+  styleUrls: ['./create-update-item-tracking-application.component.css']
 })
 export class CreateUpdateItemTrackingApplicationComponent extends AppComponentBase
  implements OnInit {
