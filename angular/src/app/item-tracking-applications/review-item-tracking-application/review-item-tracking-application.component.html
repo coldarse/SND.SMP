@@ -49,7 +49,7 @@
       <label><strong>Date of Application</strong></label>
     </div>
     <div class="col-6">
-      <label>{{ application.dateCreated | date: "short"}}</label>
+      <label>{{ application.dateCreated | date : "short" }}</label>
     </div>
     <div class="col-1"></div>
   </div>
@@ -59,7 +59,20 @@
       <label><strong>Status</strong></label>
     </div>
     <div class="col-6">
-      <label>{{ application.status }}</label>
+      <h5>
+        @if(application.status == "Pending"){
+            <span class="badge badge-pill badge-warning">{{ application.status }}</span>
+        }
+        @else if (application.status == "Approved") {
+            <span class="badge badge-pill badge-success">{{ application.status }}</span>
+        }
+        @else if (application.status == "Approved & Generated") {
+            <span class="badge badge-pill badge-success">{{ application.status }}</span>
+        }
+        @else if (application.status == "Declined") {
+            <span class="badge badge-pill badge-danger">{{ application.status }}</span>
+        }
+      </h5>
     </div>
     <div class="col-1"></div>
   </div>
@@ -95,60 +108,89 @@
     <div class="col-1"></div>
   </div>
   <hr> -->
-  <div class="row">
-    <div class="col-1"></div>
-    <div class="col-4">
-      <label><strong>Issue Tracking Numbers</strong></label>
-    </div>
-    <div class="col-6">
-      <div class="row">
-        <input
-          type="text"
-          class="col-2"
-          [(ngModel)]="prefix"
-          placeholder="RS"
-          maxlength="2"
-        />
-        <input
-          type="text"
-          class="col-3"
-          [(ngModel)]="prefixNo"
-          placeholder="05"
-          maxlength="4"
-        />
-        <input
-          type="text"
-          class="col-5"
-          [disabled]="true"
-          placeholder="Leave Blank"
-        />
-        <input
-          type="text"
-          class="col-2"
-          [(ngModel)]="application.postalCode"
-          maxlength="2"
-        />
+  @if (application.status == "Pending") {
+    <div class="row">
+      <div class="col-1"></div>
+      <div class="col-4">
+        <label><strong>Issue Tracking Numbers</strong></label>
       </div>
+      <div class="col-6">
+        <div class="row">
+          <input
+            type="text"
+            class="col-2"
+            [(ngModel)]="prefix"
+            placeholder="RS"
+            maxlength="2"
+            oninput="let p=this.selectionStart;this.value=this.value.toUpperCase();this.setSelectionRange(p, p);"
+          />
+          <input
+            type="number"
+            class="col-3"
+            [(ngModel)]="prefixNo"
+            placeholder="05"
+            maxlength="4"
+          />
+          <input
+            type="text"
+            class="col-5"
+            [disabled]="true"
+            placeholder="Leave Blank"
+          />
+          <input
+            type="text"
+            class="col-2"
+            [(ngModel)]="suffix"
+            maxlength="2"
+            oninput="let y=this.selectionStart;this.value=this.value.toUpperCase();this.setSelectionRange(y, y);"
+          />
+        </div>
+      </div>
+      <div class="col-1"></div>
     </div>
-    <div class="col-1"></div>
-  </div>
-  <br />
-  <div class="row">
-    <div class="col-2"></div>
-    <div class="col-4 text-center">
-      <button class="btn btn-danger" (click)="decline()">
-        Decline Application
-      </button>
+    <br />
+    <div class="row">
+      <div class="col-1"></div>
+      <div class="col-4">
+        <label><strong>Remark/Reason</strong></label>
+      </div>
+      <div class="col-6">
+        <div class="row">
+          <textarea [(ngModel)]="remark" style="width: 100%"></textarea>
+        </div>
+      </div>
+      <div class="col-1"></div>
     </div>
-    <div class="col-4 text-center">
-      <button
-        class="btn btn-primary"
-        (click)="approve()"
-        [disabled]="invalid()"
-      >
-        Approve &amp; Issue
-      </button>
+    <br />
+    <div class="row">
+      <div class="col-2"></div>
+      <div class="col-4 text-center">
+        <button class="btn btn-danger" (click)="decline()">
+          Decline Application
+        </button>
+      </div>
+      <div class="col-4 text-center">
+        <button
+          class="btn btn-primary"
+          (click)="approve()"
+          [disabled]="invalid()"
+        >
+          Approve &amp; Issue
+        </button>
+      </div>
+      <div class="col-2"></div>
     </div>
-    <div class="col-2"></div>
-  </div>
+  }
+  @else {
+    <div class="row">
+      <div class="col-4"></div>
+      <div class="col-4 text-center">
+        <button class="btn btn-danger" (click)="undo()">
+          Undo Review
+        </button>
+      </div>
+      <div class="col-4"></div>
+    </div>
+  }
+  
 </div>

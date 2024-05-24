@@ -15,6 +15,7 @@ export interface ItemTrackingReviewDto extends EntityDto<number> {
     prefix: string;
     prefixNo: string;
     suffix: string;
+    remark: string;
 }
 
 export interface PagedItemTrackingReviewResultRequestDto extends PagedAndSortedResultRequestDto {
@@ -28,4 +29,5 @@ export interface PagedItemTrackingReviewResultRequestDto extends PagedAndSortedR
     prefix?: string;
     prefixNo?: string;
     suffix?: string;
+    remark?: string;
 }

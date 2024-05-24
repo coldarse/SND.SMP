@@ -103,5 +103,15 @@ export class ItemTrackingReviewService {
         )
     }
 
+    undoReview(applicationId: number){
+        return this.http.post(
+            this.url + `/api/services/app/ItemTrackingReview/UndoReview?applicationId=${applicationId}`,
+            this.options_
+        ).pipe(
+            retry(1),
+            catchError(this.handleError),
+        )
+    }
+
   
 }

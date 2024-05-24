@@ -50,7 +50,8 @@ namespace SND.SMP.ItemTrackingApplications
                 PostalDesc = postal.PostalDesc,
                 DateCreated = DateTime.Now,
                 Status = "Pending",
-                Range = ""
+                Range = "",
+                Path = ""
             });
 
             return true;
