@@ -4,6 +4,7 @@ using SND.SMP.Authorization.Roles;
 using SND.SMP.Authorization.Users;
 using SND.SMP.MultiTenancy;
 /* Using Definition */
+using SND.SMP.ItemTrackings;
 using SND.SMP.ItemIdRunningNos;
 using SND.SMP.ItemTrackingReviews;
 using SND.SMP.ItemTrackingApplications;
@@ -62,6 +63,7 @@ namespace SND.SMP.EntityFrameworkCore
         public DbSet<ItemTrackingApplication> ItemTrackingApplications { get; set; }
         public DbSet<ItemTrackingReview> ItemTrackingReviews { get; set; }
         public DbSet<ItemIdRunningNo> ItemIdRunningNos { get; set; }
+        public DbSet<ItemTracking> ItemTrackings { get; set; }
         /* Define a DbSet for each entity of the application */
 
         public SMPDbContext(DbContextOptions<SMPDbContext> options)
@@ -74,6 +76,22 @@ namespace SND.SMP.EntityFrameworkCore
             base.OnModelCreating(builder);
 
             /* Define Tables */
+            builder.Entity<ItemTracking>(b =>
+            {
+                b.ToTable(SMPConsts.DbTablePrefix + "ItemTrackings");
+                b.Property(x => x.TrackingNo).HasColumnName(nameof(ItemTracking.TrackingNo)).HasMaxLength(128);
+                b.Property(x => x.ApplicationId).HasColumnName(nameof(ItemTracking.ApplicationId));
+                b.Property(x => x.ReviewId).HasColumnName(nameof(ItemTracking.ReviewId));
+                b.Property(x => x.CustomerId).HasColumnName(nameof(ItemTracking.CustomerId));
+                b.Property(x => x.CustomerCode).HasColumnName(nameof(ItemTracking.CustomerCode)).HasMaxLength(128);
+                b.Property(x => x.DateCreated).HasColumnName(nameof(ItemTracking.DateCreated));
+                b.Property(x => x.DateUsed).HasColumnName(nameof(ItemTracking.DateUsed));
+                b.Property(x => x.DispatchId).HasColumnName(nameof(ItemTracking.DispatchId));
+                b.Property(x => x.DispatchNo).HasColumnName(nameof(ItemTracking.DispatchNo)).HasMaxLength(128);
+                b.Property(x => x.ProductCode).HasColumnName(nameof(ItemTracking.ProductCode)).HasMaxLength(128);
+                b.HasKey(x => x.Id);
+            });
+
             builder.Entity<ItemIdRunningNo>(b =>
             {
                 b.ToTable(SMPConsts.DbTablePrefix + "ItemIdRunningNos");
