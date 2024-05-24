@@ -1,0 +1,154 @@
+<abp-modal-header
+  [title]="'Application Detail' | localize"
+  (onCloseClick)="bsModalRef.hide()"
+></abp-modal-header>
+<div class="modal-body">
+  <div class="row">
+    <div class="col-1"></div>
+    <div class="col-4">
+      <label><strong>Customer</strong></label>
+    </div>
+    <div class="col-6">
+      <label>{{ application.customerCode }}</label>
+    </div>
+    <div class="col-1"></div>
+  </div>
+  <div class="row">
+    <div class="col-1"></div>
+    <div class="col-4">
+      <label><strong>Postal</strong></label>
+    </div>
+    <div class="col-6">
+      <label>{{ application.postalCode }}</label>
+    </div>
+    <div class="col-1"></div>
+  </div>
+  <div class="row">
+    <div class="col-1"></div>
+    <div class="col-4">
+      <label><strong>Product</strong></label>
+    </div>
+    <div class="col-6">
+      <label>{{ application.productCode }}</label>
+    </div>
+    <div class="col-1"></div>
+  </div>
+  <div class="row">
+    <div class="col-1"></div>
+    <div class="col-4">
+      <label><strong>Total Requested</strong></label>
+    </div>
+    <div class="col-6">
+      <label>{{ application.total }}</label>
+    </div>
+    <div class="col-1"></div>
+  </div>
+  <div class="row">
+    <div class="col-1"></div>
+    <div class="col-4">
+      <label><strong>Date of Application</strong></label>
+    </div>
+    <div class="col-6">
+      <label>{{ application.dateCreated | date: "short"}}</label>
+    </div>
+    <div class="col-1"></div>
+  </div>
+  <div class="row">
+    <div class="col-1"></div>
+    <div class="col-4">
+      <label><strong>Status</strong></label>
+    </div>
+    <div class="col-6">
+      <label>{{ application.status }}</label>
+    </div>
+    <div class="col-1"></div>
+  </div>
+  <hr />
+  <!-- <div class="row">
+    <div class="col-1"></div>
+    <div class="col-4">
+      <label><strong>Issued</strong></label>
+    </div>
+    <div class="col-6">
+      <label>{{ application.status }}</label>
+    </div>
+    <div class="col-1"></div>
+  </div>
+  <div class="row">
+    <div class="col-1"></div>
+    <div class="col-4">
+      <label><strong>Status</strong></label>
+    </div>
+    <div class="col-6">
+      <label>{{ application.status }}</label>
+    </div>
+    <div class="col-1"></div>
+  </div>
+  <div class="row">
+    <div class="col-1"></div>
+    <div class="col-4">
+      <label><strong>Status</strong></label>
+    </div>
+    <div class="col-6">
+      <label>{{ application.status }}</label>
+    </div>
+    <div class="col-1"></div>
+  </div>
+  <hr> -->
+  <div class="row">
+    <div class="col-1"></div>
+    <div class="col-4">
+      <label><strong>Issue Tracking Numbers</strong></label>
+    </div>
+    <div class="col-6">
+      <div class="row">
+        <input
+          type="text"
+          class="col-2"
+          [(ngModel)]="prefix"
+          placeholder="RS"
+          maxlength="2"
+        />
+        <input
+          type="text"
+          class="col-3"
+          [(ngModel)]="prefixNo"
+          placeholder="05"
+          maxlength="4"
+        />
+        <input
+          type="text"
+          class="col-5"
+          [disabled]="true"
+          placeholder="Leave Blank"
+        />
+        <input
+          type="text"
+          class="col-2"
+          [(ngModel)]="application.postalCode"
+          maxlength="2"
+        />
+      </div>
+    </div>
+    <div class="col-1"></div>
+  </div>
+  <br />
+  <div class="row">
+    <div class="col-2"></div>
+    <div class="col-4 text-center">
+      <button class="btn btn-danger" (click)="decline()">
+        Decline Application
+      </button>
+    </div>
+    <div class="col-4 text-center">
+      <button
+        class="btn btn-primary"
+        (click)="approve()"
+        [disabled]="invalid()"
+      >
+        Approve &amp; Issue
+      </button>
+    </div>
+    <div class="col-2"></div>
+  </div>
+</div>

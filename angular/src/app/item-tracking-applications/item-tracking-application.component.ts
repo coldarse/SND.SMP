@@ -6,6 +6,7 @@ import { ItemTrackingApplicationDto } from '@shared/service-proxies/item-trackin
 import { ItemTrackingApplicationService } from '@shared/service-proxies/item-tracking-applications/item-tracking-application.service'
 import { CreateUpdateItemTrackingApplicationComponent } from '../item-tracking-applications/create-update-item-tracking-application/create-update-item-tracking-application.component';
 import { CreateItemTrackingApplicationComponent } from './create-item-tracking-application/create-item-tracking-application.component';
+import { ReviewItemTrackingApplicationComponent } from './review-item-tracking-application/review-item-tracking-application.component';
 
 class PagedItemTrackingApplicationsRequestDto extends PagedRequestDto{
   keyword: string
@@ -35,7 +36,8 @@ export class ItemTrackingApplicationsComponent extends PagedListingComponentBase
   }
 
   editItemTrackingApplication(entity: ItemTrackingApplicationDto){
-    this.showCreateOrEditItemTrackingApplicationDialog(entity);
+    // this.showCreateOrEditItemTrackingApplicationDialog(entity);
+    this.showReviewItemTrackingApplicationDialog(entity);
   }
 
   private showCreateItemTrackingApplicationDialog(){
@@ -48,6 +50,23 @@ export class ItemTrackingApplicationsComponent extends PagedListingComponentBase
     );
 
     createItemTrackingApplicationDialog.content.onSave.subscribe(() => {
+      this.refresh();
+    });
+  }
+
+  private showReviewItemTrackingApplicationDialog(entity: ItemTrackingApplicationDto){
+    let reviewItemTrackingApplicationDialog: BsModalRef;
+    reviewItemTrackingApplicationDialog = this._modalService.show(
+      ReviewItemTrackingApplicationComponent,
+      {
+        class: 'modal-lg',
+        initialState: {
+          application: entity
+        },
+      }
+    );
+
+    reviewItemTrackingApplicationDialog.content.onSave.subscribe(() => {
       this.refresh();
     });
   }

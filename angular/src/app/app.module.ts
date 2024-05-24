@@ -39,9 +39,10 @@ import { SidebarLogoComponent } from "./layout/sidebar-logo.component";
 import { SidebarUserPanelComponent } from "./layout/sidebar-user-panel.component";
 import { SidebarMenuComponent } from "./layout/sidebar-menu.component";
 /* Insert Import */
-import { ItemTrackingApplicationsComponent } from './item-tracking-applications/item-tracking-application.component';
-import { CreateUpdateItemTrackingApplicationComponent } from './item-tracking-applications/create-update-item-tracking-application/create-update-item-tracking-application.component';
-import { ItemTrackingApplicationService } from '@shared/service-proxies/item-tracking-applications/item-tracking-application.service';
+import { ItemTrackingReviewService } from "@shared/service-proxies/item-tracking-reviews/item-tracking-review.service";
+import { ItemTrackingApplicationsComponent } from "./item-tracking-applications/item-tracking-application.component";
+import { CreateUpdateItemTrackingApplicationComponent } from "./item-tracking-applications/create-update-item-tracking-application/create-update-item-tracking-application.component";
+import { ItemTrackingApplicationService } from "@shared/service-proxies/item-tracking-applications/item-tracking-application.service";
 
 import { IMPCSComponent } from "./impcs/impcs.component";
 import { CreateUpdateIMPCComponent } from "./impcs/create-update-impc/create-update-impc.component";
@@ -96,7 +97,7 @@ import { CustomerPostalsComponent } from "./customer-postals/customer-postals.co
 import { CreateUpdateCustomerPostalComponent } from "./customer-postals/create-update-customer-postal/create-update-customer-postal.component";
 import { CustomerPostalService } from "@shared/service-proxies/customer-postals/customer-postal.service";
 
-import { CreateUpdatePostalCountryComponent } from "./postal-countries/create-update-postalcountry/create-update-postalcountry.component"
+import { CreateUpdatePostalCountryComponent } from "./postal-countries/create-update-postalcountry/create-update-postalcountry.component";
 import { PostalCountriesComponent } from "./postal-countries/postal-countries.component";
 import { PostalCountryService } from "@shared/service-proxies/postal-countries/postal-country.service";
 
@@ -137,6 +138,7 @@ import { PostChecksComponent } from "./post-checks/post-checks.component";
 import { PrePostCheckWeightComponent } from "./dispatches/pre-post-check-weight/pre-post-check-weight.component";
 import { CardsComponent } from "./cards/cards.component";
 import { CreateItemTrackingApplicationComponent } from "./item-tracking-applications/create-item-tracking-application/create-item-tracking-application.component";
+import { ReviewItemTrackingApplicationComponent } from "./item-tracking-applications/review-item-tracking-application/review-item-tracking-application.component";
 
 @NgModule({
   declarations: [
@@ -219,6 +221,7 @@ import { CreateItemTrackingApplicationComponent } from "./item-tracking-applicat
     UploadRetryComponent,
     PrePostCheckWeightComponent,
     CreateItemTrackingApplicationComponent,
+    ReviewItemTrackingApplicationComponent,
   ],
   imports: [
     CommonModule,
@@ -238,7 +241,8 @@ import { CreateItemTrackingApplicationComponent } from "./item-tracking-applicat
   ],
   providers: [
     /* Insert Service */
-        ItemTrackingApplicationService,
+    ItemTrackingReviewService,
+    ItemTrackingApplicationService,
     IMPCService,
     RefundService,
     WeightAdjustmentService,
