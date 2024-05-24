@@ -100,6 +100,7 @@ namespace SND.SMP.EntityFrameworkCore
                 b.Property(x => x.PrefixNo).HasColumnName(nameof(ItemTrackingReview.PrefixNo)).HasMaxLength(4);
                 b.Property(x => x.Suffix).HasColumnName(nameof(ItemTrackingReview.Suffix)).HasMaxLength(2);
                 b.Property(x => x.ProductCode).HasColumnName(nameof(ItemTrackingReview.ProductCode)).HasMaxLength(12);
+                b.Property(x => x.Remark).HasColumnName(nameof(ItemTrackingReview.Remark)).HasMaxLength(255);
                 b.HasKey(x => x.Id);
             });
 
@@ -116,6 +117,7 @@ namespace SND.SMP.EntityFrameworkCore
                 b.Property(x => x.Status).HasColumnName(nameof(ItemTrackingApplication.Status)).HasMaxLength(128);
                 b.Property(x => x.DateCreated).HasColumnName(nameof(ItemTrackingApplication.DateCreated));
                 b.Property(x => x.Range).HasColumnName(nameof(ItemTrackingApplication.Range)).HasMaxLength(255);
+                b.Property(x => x.Path).HasColumnName(nameof(ItemTrackingApplication.Path)).HasMaxLength(255);
                 b.HasKey(x => x.Id);
             });
 

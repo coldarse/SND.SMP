@@ -21,5 +21,6 @@ namespace SND.SMP.ItemTrackingReviews
         public string PrefixNo { get; set; }
         public string Suffix { get; set; }
         public string ProductCode { get; set; }
+        public string Remark { get; set; }
     }
 }
