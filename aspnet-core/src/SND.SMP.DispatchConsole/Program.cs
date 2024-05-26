@@ -16,6 +16,7 @@ public class Program
 
         builder.Services.AddHostedService<WorkerDispatchImport>();
         builder.Services.AddHostedService<WorkerDispatchValidate>();
+        builder.Services.AddHostedService<WorkerItemTrackingGenerate>();
         //builder.Services.AddHostedService<WorkerRateWeightBreak>();
         //builder.Services.AddHostedService<WorkerTracking>();
 

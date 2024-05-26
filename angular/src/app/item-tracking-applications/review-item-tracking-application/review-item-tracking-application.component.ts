@@ -10,7 +10,7 @@ import { ItemTrackingApplicationService } from "@shared/service-proxies/item-tra
 import { BsModalRef } from "ngx-bootstrap/modal";
 import { ItemTrackingReviewService } from "@shared/service-proxies/item-tracking-reviews/item-tracking-review.service";
 import { ItemTrackingApplicationDto } from "@shared/service-proxies/item-tracking-applications/model";
-import { ItemTrackingReviewDto } from "@shared/service-proxies/item-tracking-reviews/model";
+import { ItemTrackingReviewDto, ReviewAmount } from "@shared/service-proxies/item-tracking-reviews/model";
 
 @Component({
   selector: "app-review-item-tracking-application",
@@ -30,10 +30,15 @@ export class ReviewItemTrackingApplicationComponent
 
   application: ItemTrackingApplicationDto;
 
+  amount : ReviewAmount;
+
   @Output() onSave = new EventEmitter<any>();
 
   ngOnInit(): void {
     this.suffix = this.application.postalCode;
+    this._itemtrackingreviewService.getReviewAmount(this.application.id).subscribe((data: any) => {
+      this.amount = data.result;
+    });
   }
 
   constructor(
@@ -132,6 +137,7 @@ export class ReviewItemTrackingApplicationComponent
   invalid() {
     if (this.prefix.length == 0) return true;
     if (this.prefixNo.length == 0) return true;
+    if (this.prefixNo.length < 2) return true;
     if (this.suffix.length == 0) return true;
     return false;
   }

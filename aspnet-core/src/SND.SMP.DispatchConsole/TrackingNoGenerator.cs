@@ -1,0 +1,342 @@
+using SND.SMP.DispatchConsole.EF;
+using static SND.SMP.Shared.EnumConst;
+using OfficeOpenXml;
+using System.Net.Http.Headers;
+using System.Text.Json;
+using SND.SMP.Chibis;
+using System.Data;
+
+namespace SND.SMP.DispatchConsole
+{
+    public class TrackingNoGenerator
+    {
+        private int ApplicationId { get; set; }
+        private string Prefix { get; set; }
+        private int PrefixNo { get; set; }
+        private string Suffix { get; set; }
+        private int RunningNo { get; set; }
+        private int AmountRequested { get; set; }
+        private int AmountGiven { get; set; }
+
+        private readonly string _chibiAPIKey;
+        private readonly string _chibiURL;
+
+
+        public TrackingNoGenerator(string chibiAPIKey, string chibiURL)
+        {
+            _chibiAPIKey = chibiAPIKey;
+            _chibiURL = chibiURL;
+        }
+
+        public async Task DiscoverAndGenerate()
+        {
+            using db db = new();
+            var hasGenerating = db.ItemTrackingApplications
+                    .Where(x => x.Status == GenerateConst.Status_Generating)
+                    .Any();
+
+            if (hasGenerating) return;
+
+            var application = db.ItemTrackingApplications
+                    .Where(x => x.Status == GenerateConst.Status_Approved)
+                    .OrderBy(x => x.DateCreated)
+                    .FirstOrDefault();
+
+            if (application is not null)
+            {
+                ApplicationId = application.Id;
+
+                application.Status = GenerateConst.Status_Generating;
+
+                await db.SaveChangesAsync();
+            }
+
+            var review = db.ItemTrackingReviews.FirstOrDefault(x => x.ApplicationId.Equals(ApplicationId));
+
+            if (review is not null)
+            {
+                Prefix          = review.Prefix;
+                PrefixNo        = Convert.ToInt32(review.PrefixNo);
+                Suffix          = review.Suffix;
+                AmountRequested = review.Total;
+
+                var runningNos = db.ItemIdRunningNos
+                        .Where(x => x.Prefix.Equals(Prefix))
+                        .Where(x => x.PrefixNo.Equals(PrefixNo))
+                        .Where(x => x.Suffix.Equals(Suffix))
+                        .FirstOrDefault();
+
+                if (runningNos is null) RunningNo = runningNos.RunningNo + 1;
+                else
+                {
+                    RunningNo = 0;
+                    await db.ItemIdRunningNos.AddAsync(new ItemIdRunningNos.ItemIdRunningNo
+                    {
+                        Prefix = Prefix,
+                        PrefixNo = PrefixNo.ToString(),
+                        Suffix = Suffix,
+                        RunningNo = 0,
+                    });
+
+                    await db.SaveChangesAsync();
+                }
+
+                int startingNo = RunningNo;
+                int endingNo = startingNo + AmountRequested;
+                int maxSerialNo = 99999999;
+
+                if (endingNo > maxSerialNo)
+                {
+                    int over = endingNo - maxSerialNo;
+                    AmountGiven = maxSerialNo - startingNo;
+                    review.Remark = $"The amount requested is over by {over}. Only able to generate {AmountGiven} Tracking Ids.";
+                    review.TotalGiven = AmountGiven;
+                    endingNo = maxSerialNo;
+                }
+                else
+                {
+                    AmountGiven = AmountRequested;
+                    review.TotalGiven = AmountGiven;
+                }
+
+                List<string> trackingIds = [];
+
+                for (var i = 0; i < AmountGiven; i++)
+                {
+                    int padLeft = 6;
+                    if (PrefixNo.ToString().Length == 3) padLeft = 5;
+                    if (PrefixNo.ToString().Length == 4) padLeft = 4;
+
+                    string serialNo = PrefixNo + Convert.ToString(startingNo + i).PadLeft(padLeft, '0');
+
+                    bool add = true;
+
+                    int checkDigit = GenerateCheckDigit(serialNo);
+
+                    string trackingId = string.Format("{0}{1}{2}{3}", Prefix, serialNo, checkDigit.ToString(), Suffix);
+
+                    var checkExistenceEnabled = false;
+                    if (checkExistenceEnabled)
+                    {
+                        if (AmountRequested == 1)
+                        {
+                            var existed = await IsTrackingNumberExist(trackingId, Prefix, PrefixNo.ToString(), Suffix);
+                            if (existed)
+                            {
+                                serialNo = PrefixNo + Convert.ToString(startingNo + i + 1).PadLeft(padLeft, '0');
+                                checkDigit = GenerateCheckDigit(serialNo);
+                                trackingId = string.Format("{0}{1}{2}{3}", Prefix, serialNo, checkDigit.ToString(), Suffix);
+
+                                existed = await IsTrackingNumberExist(trackingId, Prefix, PrefixNo.ToString(), Suffix);
+
+                                if (existed)
+                                {
+                                    add = false;
+                                    review.Remark = "Tracking Id already Exists.";
+                                    review.Status = GenerateConst.Status_Declined;
+                                }
+                            }
+                        }
+                    }
+
+                    if (add) trackingIds.Add(trackingId);
+                }
+
+                if (trackingIds.Count == 0)
+                {
+                    review.Status = GenerateConst.Status_Declined;
+
+                    application.Path = "";
+                    application.Status = GenerateConst.Status_Completed;
+                }
+                else
+                {
+                    byte[] buffer = CreateTrackingIdExcelFile(trackingIds, review.DateCreated.ToShortDateString());
+
+                    Stream stream = new MemoryStream(buffer);
+
+                    string fileName = string.Format("{0}_{1}_{2}_{3}", Prefix, PrefixNo, Suffix, AmountGiven);
+
+                    ChibiUpload uploadExcel = await InsertExcelFileToChibi(stream, fileName);
+
+                    application.Path = uploadExcel.url;
+                    application.Status = GenerateConst.Status_Completed;
+                }
+
+                runningNos.RunningNo = endingNo;
+
+                await db.SaveChangesAsync();
+            }
+        }
+
+
+        private static byte[] CreateTrackingIdExcelFile(List<string> trackingIds, string dateCreated)
+        {
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+            using ExcelPackage package = new();
+            ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("Sheet 1");
+
+            string[] headers = ["TrackingNo", "DateCreated", "DateUsed", "DispatchNo"];
+
+            for (int col = 0; col < headers.Length; col++)
+            {
+                worksheet.Cells[1, col + 1].Value = headers[col];
+            }
+
+            int recordIndex = 2;
+
+            foreach (var trackingId in trackingIds)
+            {
+                worksheet.Cells[recordIndex, 1].Value = trackingId;
+                worksheet.Cells[recordIndex, 2].Value = dateCreated;
+                recordIndex++;
+            }
+
+            return package.GetAsByteArray();
+        }
+
+        public async Task<ChibiUpload> InsertExcelFileToChibi(Stream excel, string fileName, string originalName = null)
+        {
+            var client = new HttpClient();
+            client.DefaultRequestHeaders.Clear();
+            client.DefaultRequestHeaders.Add("x-api-key", _chibiAPIKey);
+            var formData = new MultipartFormDataContent();
+
+            var xlsxContent = new StreamContent(excel);
+            xlsxContent.Headers.ContentType = MediaTypeHeaderValue.Parse("multipart/form-data");
+            formData.Add(xlsxContent, "file", fileName);
+
+            var request = new HttpRequestMessage
+            {
+                Method = HttpMethod.Post,
+                RequestUri = new Uri(_chibiURL + "upload"),
+                Content = formData,
+            };
+
+            using var response = await client.SendAsync(request);
+
+            response.EnsureSuccessStatusCode();
+            var body = await response.Content.ReadAsStringAsync();
+            var result = JsonSerializer.Deserialize<ChibiUpload>(body);
+
+            if (result != null)
+            {
+                result.originalName = fileName.Replace(".xlsx", "") + $"_{result.name}";
+                //Insert to DB
+                Chibi entity = new()
+                {
+                    FileName = result.name == null ? "" : DateTime.Now.ToString("yyyyMMdd") + "_" + result.name,
+                    UUID = result.uuid ?? "",
+                    URL = result.url ?? "",
+                    OriginalName = originalName is null ? result.originalName : originalName,
+                    GeneratedName = result.name ?? ""
+                };
+                using db db = new();
+                await db.Chibis.AddAsync(entity);
+                await db.SaveChangesAsync();
+            }
+
+            return result;
+        }
+
+        public static async Task<bool> IsTrackingNumberExist(string trackingNo, string Prefix, string PrefixNo, string Suffix)
+        {
+            using db db = new();
+
+            var review = db.ItemTrackingReviews
+                .Where(x => x.Prefix == Prefix)
+                .Where(x => x.PrefixNo == PrefixNo)
+                .Where(x => x.Suffix == Suffix)
+                .FirstOrDefault();
+
+            if (review == null) return false;
+
+            var application = db.ItemTrackingApplications.FirstOrDefault(x => x.Id == review.ApplicationId);
+
+            Stream excelFile = await FileServer.GetFileStream(application.Path);
+
+            DataTable dataTable = ConvertToDatatable(excelFile);
+
+            if (dataTable.Rows.Count == 0) return false;
+
+            foreach (DataRow dr in dataTable.Rows)
+            {
+                if (dr.ItemArray[0].ToString() == trackingNo) return true;
+            }
+
+            return false;
+        }
+
+        private static DataTable ConvertToDatatable(Stream ms)
+        {
+            DataTable dataTable = new();
+
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
+            using (var package = new ExcelPackage(ms))
+            {
+                ExcelWorksheet worksheet = package.Workbook.Worksheets[0];
+
+                // Assuming the first row is the header
+                for (int i = 1; i <= worksheet.Dimension.End.Column; i++)
+                {
+                    string columnName = worksheet.Cells[1, i].Value?.ToString();
+                    if (!string.IsNullOrEmpty(columnName))
+                    {
+                        dataTable.Columns.Add(columnName);
+                    }
+                }
+
+                // Populate DataTable with data from Excel
+                for (int row = 2; row <= worksheet.Dimension.End.Row; row++)
+                {
+                    DataRow dataRow = dataTable.NewRow();
+                    for (int col = 1; col <= worksheet.Dimension.End.Column; col++)
+                    {
+                        dataRow[col - 1] = worksheet.Cells[row, col].Value;
+                    }
+                    dataTable.Rows.Add(dataRow);
+                }
+            }
+
+            return dataTable;
+        }
+
+        private static bool IsCheckDigitValid(string trackingNo)
+        {
+            bool valid;
+
+            string serialNo = trackingNo.Substring(2, 8);
+            int checkDigit = Convert.ToInt32(trackingNo.Substring(10, 1));
+
+            valid = GenerateCheckDigit(serialNo) == checkDigit;
+
+            return valid;
+        }
+
+        private static int GenerateCheckDigit(string serialNo)
+        {
+            int[] multiplier = [8, 6, 4, 2, 3, 5, 9, 7];
+
+            char[] charArr = serialNo.ToCharArray();
+            int checkDigit;
+            int sum = 0;
+
+            for (int i = 0; i < charArr.Length; i++)
+            {
+                int x = int.Parse(charArr[i].ToString());
+                int m = multiplier[i];
+
+                sum += x * m;
+            }
+
+            int remainder = sum % 11;
+
+            if (remainder == 0) checkDigit = 5;
+            else if (remainder == 1) checkDigit = 0;
+            else checkDigit = 11 - remainder;
+
+            return checkDigit;
+        }
+    }
+}

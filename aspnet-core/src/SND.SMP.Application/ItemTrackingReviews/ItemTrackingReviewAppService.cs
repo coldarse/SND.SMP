@@ -11,12 +11,18 @@ using System.Threading.Tasks;
 using SND.SMP.ItemTrackingReviews.Dto;
 using SND.SMP.ItemTrackingApplications;
 using Abp.EntityFrameworkCore.Repositories;
+using SND.SMP.ItemTrackings;
 
 namespace SND.SMP.ItemTrackingReviews
 {
-    public class ItemTrackingReviewAppService(IRepository<ItemTrackingReview, int> repository, IRepository<ItemTrackingApplication, int> itemTrackingApplicationRepository) : AsyncCrudAppService<ItemTrackingReview, ItemTrackingReviewDto, int, PagedItemTrackingReviewResultRequestDto>(repository)
+    public class ItemTrackingReviewAppService(
+        IRepository<ItemTrackingReview, int> repository, 
+        IRepository<ItemTrackingApplication, int> itemTrackingApplicationRepository,
+        IRepository<ItemTracking, int> itemTrackingRepository
+    ) : AsyncCrudAppService<ItemTrackingReview, ItemTrackingReviewDto, int, PagedItemTrackingReviewResultRequestDto>(repository)
     {
         private readonly IRepository<ItemTrackingApplication, int> _itemTrackingApplicationRepository = itemTrackingApplicationRepository;
+        private readonly IRepository<ItemTracking, int> _itemTrackingRepository = itemTrackingRepository;
 
         protected override IQueryable<ItemTrackingReview> CreateFilteredQuery(PagedItemTrackingReviewResultRequestDto input)
         {
@@ -59,6 +65,19 @@ namespace SND.SMP.ItemTrackingReviews
             await Repository.DeleteAsync(review);
 
             return true;
+        }
+
+        public async Task<ReviewAmount> GetReviewAmount(int applicationId)
+        {
+            var review = await Repository.FirstOrDefaultAsync(x => x.ApplicationId.Equals(applicationId));
+
+            var tracking = await _itemTrackingRepository.GetAllListAsync(x => x.ApplicationId.Equals(applicationId));
+
+            return new ReviewAmount(){
+                Issued = review is null ? "0" : review.TotalGiven.ToString(),
+                Remaining = review is null ? "0" : (review.TotalGiven - tracking.Count).ToString(),
+                Uploaded = tracking.Count.ToString(),
+            };
         }
     }
 }

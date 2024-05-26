@@ -60,6 +60,14 @@ namespace SND.SMP.Shared
             public const string STATUS_RUNNING = "Running";
             public const string STATUS_FINISH = "Finish";
         }
+
+        public class GenerateConst
+        {
+            public const string Status_Generating = "Generating";
+            public const string Status_Approved = "Approved";
+            public const string Status_Declined = "Declined";
+            public const string Status_Completed = "Approved & Generated";
+        }
 	}
 }
 

@@ -31,3 +31,9 @@ export interface PagedItemTrackingReviewResultRequestDto extends PagedAndSortedR
     suffix?: string;
     remark?: string;
 }
+
+export interface ReviewAmount {
+    issued: string;
+    remaining: string;
+    uploaded: string;
+}

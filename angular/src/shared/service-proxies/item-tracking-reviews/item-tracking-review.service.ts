@@ -113,5 +113,15 @@ export class ItemTrackingReviewService {
         )
     }
 
+    getReviewAmount(applicationId: number){
+        return this.http.get(
+            this.url + `/api/services/app/ItemTrackingReview/GetReviewAmount?applicationId=${applicationId}`,
+            this.options_
+        ).pipe(
+            retry(1),
+            catchError(this.handleError),
+        )
+    }
+
   
 }
