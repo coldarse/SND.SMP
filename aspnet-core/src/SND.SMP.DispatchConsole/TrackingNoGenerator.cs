@@ -147,7 +147,7 @@ namespace SND.SMP.DispatchConsole
                     review.Status = GenerateConst.Status_Declined;
 
                     application.Path = "";
-                    application.Status = GenerateConst.Status_Completed;
+                    application.Status = GenerateConst.Status_Declined;
                 }
                 else
                 {
