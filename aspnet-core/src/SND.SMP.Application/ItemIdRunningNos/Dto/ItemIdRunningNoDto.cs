@@ -8,6 +8,7 @@ namespace SND.SMP.ItemIdRunningNos.Dto
     [AutoMap(typeof(ItemIdRunningNo))]
     public class ItemIdRunningNoDto : EntityDto<long>
     {
+        public string Customer { get; set; }
         public string Prefix { get; set; }
         public string PrefixNo { get; set; }
         public string Suffix { get; set; }

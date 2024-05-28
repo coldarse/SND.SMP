@@ -11,8 +11,9 @@ namespace SND.SMP.DispatchConsole
     public class TrackingNoGenerator
     {
         private int ApplicationId { get; set; }
+        private string Customer { get; set; }
         private string Prefix { get; set; }
-        private int PrefixNo { get; set; }
+        private string PrefixNo { get; set; }
         private string Suffix { get; set; }
         private int RunningNo { get; set; }
         private int AmountRequested { get; set; }
@@ -55,23 +56,28 @@ namespace SND.SMP.DispatchConsole
 
             if (review is not null)
             {
-                Prefix          = review.Prefix;
-                PrefixNo        = Convert.ToInt32(review.PrefixNo);
-                Suffix          = review.Suffix;
+
+                DateTime startTime = DateTime.Now;
+                Customer = review.CustomerCode;
+                Prefix = review.Prefix;
+                PrefixNo = review.PrefixNo;
+                Suffix = review.Suffix;
                 AmountRequested = review.Total;
 
                 var runningNos = db.ItemIdRunningNos
+                        .Where(x => x.Customer.Equals(Customer))
                         .Where(x => x.Prefix.Equals(Prefix))
                         .Where(x => x.PrefixNo.Equals(PrefixNo))
                         .Where(x => x.Suffix.Equals(Suffix))
                         .FirstOrDefault();
 
-                if (runningNos is null) RunningNo = runningNos.RunningNo + 1;
+                if (runningNos is not null) RunningNo = runningNos.RunningNo + 1;
                 else
                 {
                     RunningNo = 0;
                     await db.ItemIdRunningNos.AddAsync(new ItemIdRunningNos.ItemIdRunningNo
                     {
+                        Customer = Customer,
                         Prefix = Prefix,
                         PrefixNo = PrefixNo.ToString(),
                         Suffix = Suffix,
@@ -79,11 +85,18 @@ namespace SND.SMP.DispatchConsole
                     });
 
                     await db.SaveChangesAsync();
+
+                    runningNos = db.ItemIdRunningNos
+                        .Where(x => x.Customer.Equals(Customer))
+                        .Where(x => x.Prefix.Equals(Prefix))
+                        .Where(x => x.PrefixNo.Equals(PrefixNo))
+                        .Where(x => x.Suffix.Equals(Suffix))
+                        .FirstOrDefault();
                 }
 
                 int startingNo = RunningNo;
                 int endingNo = startingNo + AmountRequested;
-                int maxSerialNo = 99999999;
+                int maxSerialNo = 999999;
 
                 if (endingNo > maxSerialNo)
                 {
@@ -147,6 +160,7 @@ namespace SND.SMP.DispatchConsole
                     review.Status = GenerateConst.Status_Declined;
 
                     application.Path = "";
+                    application.Range = "";
                     application.Status = GenerateConst.Status_Declined;
                 }
                 else
@@ -155,17 +169,22 @@ namespace SND.SMP.DispatchConsole
 
                     Stream stream = new MemoryStream(buffer);
 
-                    string fileName = string.Format("{0}_{1}_{2}_{3}", Prefix, PrefixNo, Suffix, AmountGiven);
+                    string fileName = string.Format("{0}_{1}_{2}_{3}_{4}.xlsx", Prefix, PrefixNo, Suffix, AmountGiven, Customer);
 
                     ChibiUpload uploadExcel = await InsertExcelFileToChibi(stream, fileName);
 
                     application.Path = uploadExcel.url;
+                    application.Range = string.Format("{0} - {1}", trackingIds[0].ToString(), trackingIds[^1].ToString());
                     application.Status = GenerateConst.Status_Completed;
                 }
 
                 runningNos.RunningNo = endingNo;
 
+                DateTime endTime = DateTime.Now;
+                application.TookInSec = (endTime - startTime).Seconds;
+
                 await db.SaveChangesAsync();
+
             }
         }
 

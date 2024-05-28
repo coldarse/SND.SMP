@@ -19,5 +19,6 @@ namespace SND.SMP.ItemTrackingApplications
         public DateTime DateCreated { get; set; }
         public string Range { get; set; }
         public string Path { get; set; }
+        public int TookInSec { get; set; }
     }
 }

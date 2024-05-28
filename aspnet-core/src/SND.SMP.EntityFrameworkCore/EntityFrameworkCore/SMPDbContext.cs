@@ -99,6 +99,7 @@ namespace SND.SMP.EntityFrameworkCore
                 b.Property(x => x.PrefixNo).HasColumnName(nameof(ItemIdRunningNo.PrefixNo)).HasMaxLength(4);
                 b.Property(x => x.Suffix).HasColumnName(nameof(ItemIdRunningNo.Suffix)).HasMaxLength(2);
                 b.Property(x => x.RunningNo).HasColumnName(nameof(ItemIdRunningNo.RunningNo));
+                b.Property(x => x.Customer).HasColumnName(nameof(ItemIdRunningNo.Customer)).HasMaxLength(128);
                 b.HasKey(x => x.Id);
             });
 
@@ -136,6 +137,7 @@ namespace SND.SMP.EntityFrameworkCore
                 b.Property(x => x.DateCreated).HasColumnName(nameof(ItemTrackingApplication.DateCreated));
                 b.Property(x => x.Range).HasColumnName(nameof(ItemTrackingApplication.Range)).HasMaxLength(255);
                 b.Property(x => x.Path).HasColumnName(nameof(ItemTrackingApplication.Path)).HasMaxLength(255);
+                b.Property(x => x.TookInSec).HasColumnName(nameof(ItemTrackingApplication.TookInSec));
                 b.HasKey(x => x.Id);
             });
 

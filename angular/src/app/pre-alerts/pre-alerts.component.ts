@@ -5,6 +5,7 @@ import { ChibiService } from "@shared/service-proxies/chibis/chibis.service";
 import { CustomerPostalService } from "@shared/service-proxies/customer-postals/customer-postal.service";
 import { CustomerService } from "@shared/service-proxies/customers/customer.service";
 import { PostalService } from "@shared/service-proxies/postals/postal.service";
+import * as XLSX from "xlsx";
 
 @Component({
   selector: "app-pre-alerts",
@@ -174,5 +175,46 @@ export class PreAlertComponent extends AppComponentBase implements OnInit {
 
       this.router.navigate(['/app/home']);
     });
+  }
+
+  downloadTemplate(){
+    let preCheckHeaders: string[] = [
+      "Postal",
+      "Dispatch Date",
+      "Service",
+      "Product Code",
+      "Bag No",
+      "Country",
+      "Weight",
+      "Tracking Number",
+      "Seal Number",
+      "Dispatch Name",
+      "Item Value",
+      "Item Desc",
+      "Recp Name",
+      "Tel No",
+      "Email",
+      "Address",
+      "Postcode",
+      "City",
+      "Address Line 2",
+      "Address No",
+      "Identity No",
+      "Identity Type",
+      "State",
+      "Length",
+      "Width",
+      "Height",
+      "Tax Payment Method",
+      "HS Code",
+      "Qty"
+    ];
+    
+    let preCheckTemplate: string[][] = [preCheckHeaders, []];
+
+    var wb = XLSX.utils.book_new();
+    var ws = XLSX.utils.aoa_to_sheet(preCheckTemplate);
+    XLSX.utils.book_append_sheet(wb, ws, "Sheet 1");
+    XLSX.writeFile(wb, `PreCheckUpload.xlsx`);
   }
 }

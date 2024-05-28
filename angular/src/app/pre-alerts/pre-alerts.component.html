@@ -17,10 +17,11 @@
             <div class="card-header">
               <div class="row">
                 <div class="col-md-6">
-                  <h4>STEP 1: DECLARE NEW PRE-CHECK</h4>
+                  <h4 class="mt-2">
+                    <strong> Step 1: Declare New Pre-Check </strong>
+                  </h4>
                 </div>
               </div>
-              <div class="row mt-3"></div>
             </div>
             <div class="card-body">
               <div class="row">
@@ -198,15 +199,21 @@
             </div>
           </div>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-8">
           <div class="card">
             <div class="card-header">
               <div class="row">
                 <div class="col-md-6">
-                  <h4>STEP 2: UPLOAD EXCEL FILE (.XLSX)</h4>
+                  <h4 class="mt-2">
+                    <strong> Step 2: Upload Excel File (.xlsx) </strong>
+                  </h4>
+                </div>
+                <div class="col-md-6 text-right">
+                  <button class="btn btn-info" (click)="downloadTemplate()">
+                    Download Template
+                  </button>
                 </div>
               </div>
-              <div class="row mt-3"></div>
             </div>
             <div class="card-body">
               <section class="upload_file">

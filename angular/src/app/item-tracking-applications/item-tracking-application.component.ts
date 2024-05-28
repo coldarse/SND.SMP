@@ -31,12 +31,10 @@ export class ItemTrackingApplicationsComponent extends PagedListingComponentBase
   }
 
   createItemTrackingApplication(){
-    // this.showCreateOrEditItemTrackingApplicationDialog();
     this.showCreateItemTrackingApplicationDialog();
   }
 
   editItemTrackingApplication(entity: ItemTrackingApplicationDto){
-    // this.showCreateOrEditItemTrackingApplicationDialog(entity);
     this.showReviewItemTrackingApplicationDialog(entity);
   }
 
@@ -151,6 +149,7 @@ export class ItemTrackingApplicationsComponent extends PagedListingComponentBase
             productDesc: element.productDesc,
             status: element.status,
             dateCreated: element.dateCreated,
+            range: element.range,
           }
 
           this.itemtrackingapplications.push(tempItemTrackingApplication);

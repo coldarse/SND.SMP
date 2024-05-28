@@ -8,6 +8,7 @@ namespace SND.SMP.ItemIdRunningNos
 
     public class ItemIdRunningNo : Entity<long>
     {
+        public string Customer { get; set; }
         public string Prefix { get; set; }
         public string PrefixNo { get; set; }
         public string Suffix { get; set; }

@@ -40,16 +40,16 @@
               </div>
               <div class="row">
                 <div class="col-md-12 text-right">
-                  <button class="btn btn-danger" (click)="BypassPostCheck()" [disabled]="isLoading">
-                    @if (!isLoading) {
-                      Bypass Post Check } @else{
-                      <div
-                        class="spinner-border spinner-border-sm"
-                        role="status"
-                      >
-                        <span class="sr-only">Loading...</span>
-                      </div>
-                      Bypassing }
+                  <button
+                    class="btn btn-danger"
+                    (click)="BypassPostCheck()"
+                    [disabled]="isLoading"
+                  >
+                    @if (!isLoading) { Bypass Post Check } @else{
+                    <div class="spinner-border spinner-border-sm" role="status">
+                      <span class="sr-only">Loading...</span>
+                    </div>
+                    Bypassing }
                   </button>
                 </div>
               </div>
@@ -66,7 +66,9 @@
                   </h4>
                 </div>
                 <div class="col-md-6 text-right">
-                  <button class="btn btn-info" (click)="downloadTemplate()">Download Template</button>
+                  <button class="btn btn-info" (click)="downloadTemplate()">
+                    Download Template
+                  </button>
                 </div>
               </div>
             </div>
@@ -89,7 +91,13 @@
               </div>
               <div class="row">
                 <div class="col-md-12 text-right">
-                  <button class="btn btn-primary" [disabled]="fileUpload == undefined" (click)="UploadPostCheck()">Upload</button>
+                  <button
+                    class="btn btn-primary"
+                    [disabled]="fileUpload == undefined"
+                    (click)="UploadPostCheck()"
+                  >
+                    Upload
+                  </button>
                 </div>
               </div>
             </div>
@@ -110,7 +118,10 @@
                   <button
                     class="btn btn-primary"
                     (click)="SubmitPostCheck()"
-                    [disabled]="postchecks == undefined || postchecks.companyName == undefined"
+                    [disabled]="
+                      postchecks == undefined ||
+                      postchecks.companyName == undefined
+                    "
                   >
                     Save Changes
                   </button>
@@ -129,9 +140,12 @@
             </div>
             }@else if (postchecks.companyName == undefined) {
             <div class="text-center mt-3 mb-3">
-              <button class="btn btn-info" (click)="backToHome()">Back To Home</button>
+              <button class="btn btn-info" (click)="backToHome()">
+                Back To Home
+              </button>
             </div>
-            }@else if (postchecks.companyName != '' && postchecks.companyName != undefined) {
+            }@else if (postchecks.companyName != '' && postchecks.companyName !=
+            undefined) {
             <div class="card-body">
               <div class="row">
                 <div class="col-md-6">
@@ -358,7 +372,11 @@
                         />
                       </td>
                       <td>
-                        {{ bag.weightVariance == null ? bag.weightPre : bag.weightVariance }}
+                        {{
+                          bag.weightVariance == null
+                            ? bag.weightPre
+                            : bag.weightVariance
+                        }}
                       </td>
                     </tr>
                   </tbody>

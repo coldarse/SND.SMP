@@ -130,11 +130,12 @@
           oninput="let p=this.selectionStart;this.value=this.value.toUpperCase();this.setSelectionRange(p, p);"
         />
         <input
-          type="number"
+          type="text"
           class="col-3"
           [(ngModel)]="prefixNo"
           placeholder="05"
-          maxlength="4"
+          [maxlength]="prefixNoMaxLength"
+          onkeypress="return (event.charCode !=8 && event.charCode ==0 || (event.charCode >= 48 && event.charCode <= 57))"
         />
         <input
           type="text"
