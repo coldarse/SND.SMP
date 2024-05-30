@@ -22,6 +22,9 @@ using SND.SMP.ApplicationSettings;
 using System.Collections.Generic;
 using Abp.UI;
 using SND.SMP.DispatchValidations;
+using Microsoft.Extensions.Caching.Memory;
+using System.ComponentModel;
+using SND.SMP.Shared;
 
 namespace SND.SMP.Chibis
 {
@@ -29,13 +32,14 @@ namespace SND.SMP.Chibis
         IRepository<Chibi, long> repository,
         IRepository<Queue, long> queueRepository,
         IRepository<ApplicationSetting, int> applicationSettingRepository,
-        IRepository<DispatchValidation, string> dispatchValidationRepository
+        IRepository<DispatchValidation, string> dispatchValidationRepository,
+        IMemoryCache memoryCache
     ) : AsyncCrudAppService<Chibi, ChibiDto, long, PagedChibiResultRequestDto>(repository)
     {
         private readonly IRepository<Queue, long> _queueRepository = queueRepository;
         private readonly IRepository<ApplicationSetting, int> _applicationSettingRepository = applicationSettingRepository;
         private readonly IRepository<DispatchValidation, string> _dispatchValidationRepository = dispatchValidationRepository;
-
+        private readonly IMemoryCache _memoryCache = memoryCache;
         protected override IQueryable<Chibi> CreateFilteredQuery(PagedChibiResultRequestDto input)
         {
             return Repository.GetAllIncluding()
@@ -58,20 +62,6 @@ namespace SND.SMP.Chibis
             }
             return null;
         }
-
-        public class DispatchProfileDto
-        {
-            public string DispatchNo { get; set; } = "";
-            public string AccNo { get; set; } = "";
-            public string PostalCode { get; set; } = "";
-            public string ServiceCode { get; set; } = "";
-            public string ProductCode { get; set; } = "";
-            public DateOnly DateDispatch { get; set; }
-            public string RateOptionId { get; set; } = "";
-            public string PaymentMode { get; set; }
-            public bool IsValid { get; set; }
-        }
-
 
         public async Task<List<DispatchValidateDto>> GetDispatchValidationError(string dispatchNo)
         {
@@ -117,6 +107,222 @@ namespace SND.SMP.Chibis
             return JsonSerializer.Deserialize<GetFileDto>(body);
         }
 
+        private async Task<Dictionary<string, Album>> PrepareAlbums()
+        {
+            Dictionary<string, Album> albumsDict = [];
+
+            var albums = await GetAlbumsAsync();
+
+            foreach (var album in albums)
+            {
+                var temp_album = await GetAlbumAsync(album.uuid);
+                album.files = temp_album.files.Count == 0 ? [] : temp_album.files;
+                albumsDict.TryAdd(album.name, album);
+            }
+
+            _memoryCache.Remove(EnumConst.GlobalConst.Albums);
+            _memoryCache.Set(EnumConst.GlobalConst.Albums, albumsDict);
+
+            return albumsDict;
+        }
+
+        private async Task<List<Album>> GetDictAlbums()
+        {
+            _memoryCache.TryGetValue(EnumConst.GlobalConst.Albums, out Dictionary<string, Album> albumsDict);
+
+            if (albumsDict is null || albumsDict.Count == 0) albumsDict = await PrepareAlbums();
+
+            return [.. albumsDict.Values];
+        }
+
+        private async Task<bool> CreateInsertPostalAlbum(string postalCode, string file_uuid)
+        {
+            var album = await CreateAlbumAsync("Postal_" + postalCode);
+            var addFileToAlbum = await AddFileToAlbum(album.album.uuid, file_uuid);
+            return true;
+        }
+
+        private async Task<bool> CreateInsertServiceAlbum(string serviceCode, string file_uuid)
+        {
+            var album = await CreateAlbumAsync("Service_" + serviceCode);
+            var addFileToAlbum = await AddFileToAlbum(album.album.uuid, file_uuid);
+            return true;
+        }
+
+        private async Task<bool> CreateInsertProductAlbum(string productCode, string file_uuid)
+        {
+            var album = await CreateAlbumAsync("Product_" + productCode);
+            var addFileToAlbum = await AddFileToAlbum(album.album.uuid, file_uuid);
+            return true;
+        }
+
+        private async Task<bool> InsertFileToAlbum(string file_uuid, bool isError, string postalCode = null, string serviceCode = null, string productCode = null)
+        {
+            List<Album> albums = await GetDictAlbums();
+            if (isError)
+            {
+                if (albums.Count == 0)
+                {
+                    var album = await CreateAlbumAsync("ErrorDetails");
+                    await AddFileToAlbum(album.album.uuid, file_uuid);
+                }
+                else
+                {
+                    var error_album = albums.FirstOrDefault(a => a.name == "ErrorDetails");
+                    if (error_album == null)
+                    {
+                        var album = await CreateAlbumAsync("ErrorDetails");
+                        await AddFileToAlbum(album.album.uuid, file_uuid);
+                    }
+                    else await AddFileToAlbum(error_album.uuid, file_uuid);
+                }
+            }
+            else
+            {
+                if (albums.Count == 0)
+                {
+                    if (postalCode != null) await CreateInsertPostalAlbum(postalCode[..2], file_uuid);
+                    if (serviceCode != null) await CreateInsertServiceAlbum(serviceCode, file_uuid);
+                    if (productCode != null) await CreateInsertProductAlbum(productCode, file_uuid);
+                }
+                else
+                {
+                    if (postalCode != null)
+                    {
+                        var postal_album = albums.FirstOrDefault(a => a.name == "Postal_" + postalCode[..2]);
+                        if (postal_album == null) await CreateInsertPostalAlbum(postalCode[..2], file_uuid);
+                        else await AddFileToAlbum(postal_album.uuid, file_uuid);
+                    }
+                    if (serviceCode != null)
+                    {
+                        var service_album = albums.FirstOrDefault(a => a.name == "Service_" + serviceCode);
+                        if (service_album == null) await CreateInsertServiceAlbum(serviceCode, file_uuid);
+                        else await AddFileToAlbum(service_album.uuid, file_uuid);
+                    }
+                    if (productCode != null)
+                    {
+                        var product_album = albums.FirstOrDefault(a => a.name == "Product_" + productCode);
+                        if (product_album == null) await CreateInsertPostalAlbum(productCode, file_uuid);
+                        else await AddFileToAlbum(product_album.uuid, file_uuid);
+                    }
+                }
+            }
+            return true;
+        }
+
+        private async Task<GetAlbumDto> GetAlbumAsync(string uuid)
+        {
+            var chibiKey = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("ChibiKey"));
+            var chibiURL = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("ChibiURL"));
+            var client = new HttpClient();
+            client.DefaultRequestHeaders.Clear();
+            client.DefaultRequestHeaders.Add("x-api-key", chibiKey.Value);
+
+            var request = new HttpRequestMessage
+            {
+                Method = HttpMethod.Get,
+                RequestUri = new Uri(chibiURL.Value + "album/" + uuid),
+            };
+
+            using var response = await client.SendAsync(request);
+
+            response.EnsureSuccessStatusCode();
+            var body = await response.Content.ReadAsStringAsync();
+            var result = JsonSerializer.Deserialize<GetAlbumDto>(body);
+
+            return result;
+        }
+
+        private async Task<List<Album>> GetAlbumsAsync()
+        {
+            var chibiKey = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("ChibiKey"));
+            var chibiURL = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("ChibiURL"));
+            var client = new HttpClient();
+            client.DefaultRequestHeaders.Clear();
+            client.DefaultRequestHeaders.Add("x-api-key", chibiKey.Value);
+
+            var request = new HttpRequestMessage
+            {
+                Method = HttpMethod.Get,
+                RequestUri = new Uri(chibiURL.Value + "albums"),
+            };
+
+            using var response = await client.SendAsync(request);
+
+            response.EnsureSuccessStatusCode();
+            var body = await response.Content.ReadAsStringAsync();
+            var result = JsonSerializer.Deserialize<AlbumDto>(body);
+
+            return result.albums;
+        }
+
+        private async Task<CreateAlbumDto> CreateAlbumAsync(string name)
+        {
+            var chibiKey = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("ChibiKey"));
+            var chibiURL = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("ChibiURL"));
+            var client = new HttpClient();
+            client.DefaultRequestHeaders.Clear();
+            client.DefaultRequestHeaders.Add("x-api-key", chibiKey.Value);
+
+            var request = new HttpRequestMessage
+            {
+                Method = HttpMethod.Post,
+                RequestUri = new Uri(chibiURL.Value + "album/create"),
+                Content = new StringContent("{'name': '" + name + "'}"),
+            };
+
+            using var response = await client.SendAsync(request);
+
+            response.EnsureSuccessStatusCode();
+            var body = await response.Content.ReadAsStringAsync();
+            var result = JsonSerializer.Deserialize<CreateAlbumDto>(body);
+
+            return result;
+        }
+
+        private async Task DeleteAlbumAsync(string uuid)
+        {
+            var chibiKey = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("ChibiKey"));
+            var chibiURL = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("ChibiURL"));
+            var client = new HttpClient();
+            client.DefaultRequestHeaders.Clear();
+            client.DefaultRequestHeaders.Add("x-api-key", chibiKey.Value);
+
+            var request = new HttpRequestMessage
+            {
+                Method = HttpMethod.Delete,
+                RequestUri = new Uri(chibiURL.Value + "album/" + uuid),
+            };
+
+            using var response = await client.SendAsync(request);
+
+            response.EnsureSuccessStatusCode();
+        }
+
+        private async Task<bool> AddFileToAlbum(string album_uuid, string file_uuid)
+        {
+            var chibiKey = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("ChibiKey"));
+            var chibiURL = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("ChibiURL"));
+            var client = new HttpClient();
+            client.DefaultRequestHeaders.Clear();
+            client.DefaultRequestHeaders.Add("x-api-key", chibiKey.Value);
+
+            var request = new HttpRequestMessage
+            {
+                Method = HttpMethod.Post,
+                RequestUri = new Uri(chibiURL.Value + $"file/{file_uuid}/album/{album_uuid}"),
+            };
+
+            using var response = await client.SendAsync(request);
+
+            if (response.IsSuccessStatusCode)
+            {
+                await PrepareAlbums();
+                return true;
+            };
+
+            return false;
+        }
 
         [Consumes("multipart/form-data")]
         public async Task<bool> PreCheckUpload([FromForm] PreCheckDto uploadPreCheck)
@@ -129,7 +335,10 @@ namespace SND.SMP.Chibis
 
             uploadPreCheck.UploadFile.fileName = uuidFileName + ".xlsx.profile.json";
             uploadPreCheck.UploadFile.fileType = "json";
-            await UploadFile(uploadPreCheck.UploadFile, xlsxFile.originalName);
+            var jsonFile = await UploadFile(uploadPreCheck.UploadFile, xlsxFile.originalName);
+
+            await InsertFileToAlbum(xlsxFile.uuid, false, uploadPreCheck.Details.PostalCode, uploadPreCheck.Details.ServiceCode, uploadPreCheck.Details.ProductCode);
+            await InsertFileToAlbum(jsonFile.uuid, false, uploadPreCheck.Details.PostalCode, uploadPreCheck.Details.ServiceCode, uploadPreCheck.Details.ProductCode);
 
             await _queueRepository.InsertAsync(new Queue()
             {
@@ -167,7 +376,12 @@ namespace SND.SMP.Chibis
 
                 uploadRetryPreCheck.UploadFile.fileName = uuidFileName + ".xlsx.profile.json";
                 uploadRetryPreCheck.UploadFile.fileType = "json";
-                await UploadFile(uploadRetryPreCheck.UploadFile, xlsxFile.originalName);
+                var jsonFile = await UploadFile(uploadRetryPreCheck.UploadFile, xlsxFile.originalName);
+
+                var deserializedFileString = Newtonsoft.Json.JsonConvert.DeserializeObject<PreCheckDetails>(fileString);
+
+                await InsertFileToAlbum(xlsxFile.uuid, false, deserializedFileString.PostalCode, deserializedFileString.ServiceCode, deserializedFileString.ProductCode);
+                await InsertFileToAlbum(jsonFile.uuid, false, deserializedFileString.PostalCode, deserializedFileString.ServiceCode, deserializedFileString.ProductCode);
 
                 var queue = await _queueRepository.FirstOrDefaultAsync(x => (x.FilePath == uploadRetryPreCheck.path) && (x.EventType == "Validate Dispatch"));
 
@@ -258,9 +472,13 @@ namespace SND.SMP.Chibis
 
                 await Repository.InsertAsync(entity);
                 await Repository.GetDbContext().SaveChangesAsync();
+
+
             }
 
             return result;
         }
+
+
     }
 }

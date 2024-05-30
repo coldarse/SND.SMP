@@ -171,14 +171,14 @@ namespace SND.SMP.DispatchConsole
 
                     string fileName = string.Format("{0}_{1}_{2}_{3}_{4}.xlsx", Prefix, PrefixNo, Suffix, AmountGiven, Customer);
 
-                    ChibiUpload uploadExcel = await InsertExcelFileToChibi(stream, fileName);
+                    ChibiUpload uploadExcel = await InsertExcelFileToChibi(stream, fileName, review.PostalCode, review.ProductCode);
 
                     application.Path = uploadExcel.url;
                     application.Range = string.Format("{0} - {1}", trackingIds[0].ToString(), trackingIds[^1].ToString());
                     application.Status = GenerateConst.Status_Completed;
                 }
 
-                runningNos.RunningNo = endingNo;
+                runningNos.RunningNo = endingNo; 
 
                 DateTime endTime = DateTime.Now;
                 application.TookInSec = (endTime - startTime).Seconds;
@@ -214,7 +214,7 @@ namespace SND.SMP.DispatchConsole
             return package.GetAsByteArray();
         }
 
-        public async Task<ChibiUpload> InsertExcelFileToChibi(Stream excel, string fileName, string originalName = null)
+        public async Task<ChibiUpload> InsertExcelFileToChibi(Stream excel, string fileName, string originalName = null, string postalCode = null, string productCode = null)
         {
             var client = new HttpClient();
             client.DefaultRequestHeaders.Clear();
@@ -250,9 +250,11 @@ namespace SND.SMP.DispatchConsole
                     OriginalName = originalName is null ? result.originalName : originalName,
                     GeneratedName = result.name ?? ""
                 };
-                using db db = new();
-                await db.Chibis.AddAsync(entity);
-                await db.SaveChangesAsync();
+                using db dbconn = new();
+                await dbconn.Chibis.AddAsync(entity);
+                await dbconn.SaveChangesAsync();
+
+                await FileServer.InsertFileToAlbum(result.uuid, true, dbconn, postalCode, null, productCode);
             }
 
             return result;

@@ -99,7 +99,7 @@ namespace SND.SMP.DispatchConsole
 
                         db.Dispatchvalidations
                             .RemoveRange(db.Dispatchvalidations
-                                .Where(u => u.DispatchNo == DispatchProfile.DispatchNo));
+                            .Where(u => u.DispatchNo == DispatchProfile.DispatchNo));
 
                         await db.Dispatchvalidations.AddAsync(new EF.Dispatchvalidation
                         {
@@ -268,12 +268,12 @@ namespace SND.SMP.DispatchConsole
                                 listCountryCodes.Clear();
                                 listParticulars.Clear();
                             }
-                            else
-                            {
-                                //Single validation
-                                //Parallel.Invoke(new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount },
-                                //    () => Id_HasInvalidCheckDigit(ref validationResult_id_HasInvalidCheckDigit, itemId));
-                            }
+                            // else
+                            // {
+                            //     Single validation
+                            //     Parallel.Invoke(new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount },
+                            //        () => Id_HasInvalidCheckDigit(ref validationResult_id_HasInvalidCheckDigit, itemId));
+                            // }
                         }
 
                         rowTouched++;
@@ -362,259 +362,134 @@ namespace SND.SMP.DispatchConsole
 
                 #region Dispatch Validation
 
-                bool writeToJSON = true;
-                //----- Write to File to FileServer -----//
-                if (true)
+                //----- Write Error Details -----//
+                Parallel.Invoke(async () =>
                 {
-                    Parallel.Invoke(async () =>
+                    var dateValidationEnd = DateTime.Now;
+                    var tookInSec = Math.Round(dateValidationEnd.Subtract(dateValidationStart).TotalSeconds, 0);
+                    var filePath = "";
+                    #region Validation Result JSON
+
+                    if (!string.IsNullOrWhiteSpace(validationResult_dispatch_IsDuplicate.Message))
                     {
-                        var dateValidationEnd = DateTime.Now;
-                        var tookInSec = Math.Round(dateValidationEnd.Subtract(dateValidationStart).TotalSeconds, 0);
-                        var filePath = "";
-                        if (writeToJSON)
+                        isValid = false;
+                        validations.Add(validationResult_dispatch_IsDuplicate);
+                    }
+
+                    if (validationResult_dispatch_IsParticularsNotTally.ItemIds.Count != 0 || !string.IsNullOrWhiteSpace(validationResult_dispatch_IsParticularsNotTally.Message))
+                    {
+                        isValid = false;
+                        validations.Add(validationResult_dispatch_IsParticularsNotTally);
+                    }
+
+                    if (validationResult_id_IsDuplicate.ItemIds.Count != 0 || !string.IsNullOrWhiteSpace(validationResult_id_IsDuplicate.Message))
+                    {
+                        isValid = false;
+                        validations.Add(validationResult_id_IsDuplicate);
+                    }
+
+                    if (validationResult_id_HasInvalidLength.ItemIds.Count != 0 || !string.IsNullOrWhiteSpace(validationResult_id_HasInvalidLength.Message))
+                    {
+                        isValid = false;
+                        validations.Add(validationResult_id_HasInvalidLength);
+                    }
+
+                    if (validationResult_id_HasInvalidPrefixSuffix.ItemIds.Count != 0 || !string.IsNullOrWhiteSpace(validationResult_id_HasInvalidPrefixSuffix.Message))
+                    {
+                        isValid = false;
+                        validations.Add(validationResult_id_HasInvalidPrefixSuffix);
+                    }
+
+                    if (validationResult_id_HasInvalidCheckDigit.ItemIds.Count != 0 || !string.IsNullOrWhiteSpace(validationResult_id_HasInvalidCheckDigit.Message))
+                    {
+                        isValid = false;
+                        validations.Add(validationResult_id_HasInvalidCheckDigit);
+                    }
+
+                    if (validationResult_country_HasInvalidCountry.ItemIds.Count != 0 || !string.IsNullOrWhiteSpace(validationResult_country_HasInvalidCountry.Message))
+                    {
+                        isValid = false;
+                        validations.Add(validationResult_country_HasInvalidCountry);
+                    }
+
+                    if (validationResult_wallet_InsufficientBalance.ItemIds.Count != 0 || !string.IsNullOrWhiteSpace(validationResult_wallet_InsufficientBalance.Message))
+                    {
+                        isValid = false;
+                        validations.Add(validationResult_wallet_InsufficientBalance);
+                    }
+
+                    if (!isValid)
+                    {
+                        string validationJSON = JsonConvert.SerializeObject(validations);
+
+                        using var dbconn = new db();
+                        var ChibiKey = await dbconn.ApplicationSettings.FirstOrDefaultAsync(x => x.Name.Equals("ChibiKey"));
+                        var ChibiURL = await dbconn.ApplicationSettings.FirstOrDefaultAsync(x => x.Name.Equals("ChibiURL"));
+                        var client = new HttpClient();
+                        client.DefaultRequestHeaders.Clear();
+                        client.DefaultRequestHeaders.Add("x-api-key", ChibiKey.Value);
+                        var formData = new MultipartFormDataContent();
+
+                        var jsonContent = new StringContent(validationJSON);
+                        jsonContent.Headers.ContentType = MediaTypeHeaderValue.Parse("multipart/form-data");
+                        formData.Add(jsonContent, "file", DispatchProfile.DispatchNo + ".json");
+
+                        var request = new HttpRequestMessage
                         {
-                            #region Validation Result JSON
+                            Method = HttpMethod.Post,
+                            RequestUri = new Uri(ChibiURL.Value + "upload"),
+                            Content = formData,
+                        };
 
-                            if (!string.IsNullOrWhiteSpace(validationResult_dispatch_IsDuplicate.Message))
-                            {
-                                isValid = false;
-                                validations.Add(validationResult_dispatch_IsDuplicate);
-                            }
+                        using var response = await client.SendAsync(request);
 
-                            if (validationResult_dispatch_IsParticularsNotTally.ItemIds.Count != 0 || !string.IsNullOrWhiteSpace(validationResult_dispatch_IsParticularsNotTally.Message))
-                            {
-                                isValid = false;
-                                validations.Add(validationResult_dispatch_IsParticularsNotTally);
-                            }
+                        response.EnsureSuccessStatusCode();
+                        var body = await response.Content.ReadAsStringAsync();
+                        var result = System.Text.Json.JsonSerializer.Deserialize<ChibiUpload>(body);
+                        filePath = result.url;
 
-                            if (validationResult_id_IsDuplicate.ItemIds.Count != 0 || !string.IsNullOrWhiteSpace(validationResult_id_IsDuplicate.Message))
-                            {
-                                isValid = false;
-                                validations.Add(validationResult_id_IsDuplicate);
-                            }
-
-                            if (validationResult_id_HasInvalidLength.ItemIds.Count != 0 || !string.IsNullOrWhiteSpace(validationResult_id_HasInvalidLength.Message))
-                            {
-                                isValid = false;
-                                validations.Add(validationResult_id_HasInvalidLength);
-                            }
-
-                            if (validationResult_id_HasInvalidPrefixSuffix.ItemIds.Count != 0 || !string.IsNullOrWhiteSpace(validationResult_id_HasInvalidPrefixSuffix.Message))
-                            {
-                                isValid = false;
-                                validations.Add(validationResult_id_HasInvalidPrefixSuffix);
-                            }
-
-                            if (validationResult_id_HasInvalidCheckDigit.ItemIds.Count != 0 || !string.IsNullOrWhiteSpace(validationResult_id_HasInvalidCheckDigit.Message))
-                            {
-                                isValid = false;
-                                validations.Add(validationResult_id_HasInvalidCheckDigit);
-                            }
-
-                            if (validationResult_country_HasInvalidCountry.ItemIds.Count != 0 || !string.IsNullOrWhiteSpace(validationResult_country_HasInvalidCountry.Message))
-                            {
-                                isValid = false;
-                                validations.Add(validationResult_country_HasInvalidCountry);
-                            }
-
-                            if (validationResult_wallet_InsufficientBalance.ItemIds.Count != 0 || !string.IsNullOrWhiteSpace(validationResult_wallet_InsufficientBalance.Message))
-                            {
-                                isValid = false;
-                                validations.Add(validationResult_wallet_InsufficientBalance);
-                            }
-
-                            if (!isValid)
-                            {
-                                string validationJSON = JsonConvert.SerializeObject(validations);
-
-                                using var dbconn = new db();
-                                var ChibiKey = await dbconn.ApplicationSettings.FirstOrDefaultAsync(x => x.Name.Equals("ChibiKey"));
-                                var ChibiURL = await dbconn.ApplicationSettings.FirstOrDefaultAsync(x => x.Name.Equals("ChibiURL"));
-                                var client = new HttpClient();
-                                client.DefaultRequestHeaders.Clear();
-                                client.DefaultRequestHeaders.Add("x-api-key", ChibiKey.Value);
-                                var formData = new MultipartFormDataContent();
-
-                                var jsonContent = new StringContent(validationJSON);
-                                jsonContent.Headers.ContentType = MediaTypeHeaderValue.Parse("multipart/form-data");
-                                formData.Add(jsonContent, "file", DispatchProfile.DispatchNo + ".json");
-
-                                var request = new HttpRequestMessage
-                                {
-                                    Method = HttpMethod.Post,
-                                    RequestUri = new Uri(ChibiURL.Value + "upload"),
-                                    Content = formData,
-                                };
-
-                                using var response = await client.SendAsync(request);
-
-                                response.EnsureSuccessStatusCode();
-                                var body = await response.Content.ReadAsStringAsync();
-                                var result = System.Text.Json.JsonSerializer.Deserialize<ChibiUpload>(body);
-                                filePath = result.url;
-
-                                if (result != null)
-                                {
-                                    result.originalName = DispatchProfile.DispatchNo;
-                                    //Insert to DB
-                                    Chibi entity = new()
-                                    {
-                                        FileName = result.name == null ? "" : DateTime.Now.ToString("yyyyMMdd") + "_" + result.name,
-                                        UUID = result.uuid ?? "",
-                                        URL = result.url ?? "",
-                                        OriginalName = result.originalName,
-                                        GeneratedName = result.name ?? ""
-                                    };
-
-                                    await dbconn.Chibis.AddAsync(entity);
-                                    await dbconn.SaveChangesAsync();
-                                }
-                            }
-
-
-                            #endregion
-                        }
-                        else
+                        if (result != null)
                         {
-                            #region Validation Result File
-
-                            filePath = Path.Combine(DirPath, $"_{DispatchProfile.DispatchNo}");
-                            var fi = new FileInfo(filePath);
-                            if (!fi.Directory.Exists)
+                            result.originalName = DispatchProfile.DispatchNo;
+                            //Insert to DB
+                            Chibi entity = new()
                             {
-                                fi.Directory.Create();
-                            }
-                            if (fi.Exists)
-                            {
-                                fi.Delete();
-                            }
+                                FileName = result.name == null ? "" : DateTime.Now.ToString("yyyyMMdd") + "_" + result.name,
+                                UUID = result.uuid ?? "",
+                                URL = result.url ?? "",
+                                OriginalName = result.originalName,
+                                GeneratedName = result.name ?? ""
+                            };
 
-                            using (var sw = fi.CreateText())
-                            {
-                                if (!string.IsNullOrWhiteSpace(validationResult_dispatch_IsDuplicate.Message))
-                                {
-                                    isValid = false;
+                            await dbconn.Chibis.AddAsync(entity);
+                            await dbconn.SaveChangesAsync();
 
-                                    await sw.WriteLineAsync($"{validationResult_dispatch_IsDuplicate.Category}:");
-                                    await sw.WriteLineAsync(validationResult_dispatch_IsDuplicate.Message);
-                                    await sw.WriteLineAsync();
-                                }
-
-                                if (validationResult_id_IsDuplicate.ItemIds.Count != 0 || !string.IsNullOrWhiteSpace(validationResult_id_IsDuplicate.Message))
-                                {
-                                    isValid = false;
-
-                                    await sw.WriteLineAsync($"{validationResult_id_IsDuplicate.Category}:");
-                                    foreach (var line in validationResult_id_IsDuplicate.ItemIds)
-                                    {
-                                        await sw.WriteLineAsync($"{line}");
-                                    }
-                                    await sw.WriteLineAsync(validationResult_id_IsDuplicate.Message);
-                                    await sw.WriteLineAsync();
-                                }
-
-                                if (validationResult_id_HasInvalidLength.ItemIds.Count != 0 || !string.IsNullOrWhiteSpace(validationResult_id_HasInvalidLength.Message))
-                                {
-                                    isValid = false;
-
-                                    await sw.WriteLineAsync($"{validationResult_id_HasInvalidLength.Category}:");
-                                    foreach (var line in validationResult_id_HasInvalidLength.ItemIds)
-                                    {
-                                        await sw.WriteLineAsync($"{line}");
-                                    }
-                                    await sw.WriteLineAsync(validationResult_id_HasInvalidLength.Message);
-                                    await sw.WriteLineAsync();
-                                }
-
-                                if (validationResult_id_HasInvalidPrefixSuffix.ItemIds.Count != 0 || !string.IsNullOrWhiteSpace(validationResult_id_HasInvalidPrefixSuffix.Message))
-                                {
-                                    isValid = false;
-
-                                    await sw.WriteLineAsync($"{validationResult_id_HasInvalidPrefixSuffix.Category}:");
-                                    foreach (var line in validationResult_id_HasInvalidPrefixSuffix.ItemIds)
-                                    {
-                                        await sw.WriteLineAsync($"{line}");
-                                    }
-                                    await sw.WriteLineAsync(validationResult_id_HasInvalidPrefixSuffix.Message);
-                                    await sw.WriteLineAsync();
-                                }
-
-                                if (validationResult_id_HasInvalidCheckDigit.ItemIds.Count != 0 || !string.IsNullOrWhiteSpace(validationResult_id_HasInvalidCheckDigit.Message))
-                                {
-                                    isValid = false;
-
-                                    await sw.WriteLineAsync($"{validationResult_id_HasInvalidCheckDigit.Category}:");
-                                    foreach (var line in validationResult_id_HasInvalidCheckDigit.ItemIds)
-                                    {
-                                        await sw.WriteLineAsync($"{line}");
-                                    }
-                                    await sw.WriteLineAsync(validationResult_id_HasInvalidCheckDigit.Message);
-                                    await sw.WriteLineAsync();
-                                }
-
-                                if (validationResult_country_HasInvalidCountry.ItemIds.Count != 0 || !string.IsNullOrWhiteSpace(validationResult_country_HasInvalidCountry.Message))
-                                {
-                                    isValid = false;
-
-                                    await sw.WriteLineAsync($"{validationResult_country_HasInvalidCountry.Category}:");
-                                    foreach (var line in validationResult_country_HasInvalidCountry.ItemIds)
-                                    {
-                                        await sw.WriteLineAsync($"{line}");
-                                    }
-                                    await sw.WriteLineAsync(validationResult_country_HasInvalidCountry.Message);
-                                    await sw.WriteLineAsync();
-                                }
-
-                                if (validationResult_dispatch_IsParticularsNotTally.ItemIds.Count != 0 || !string.IsNullOrWhiteSpace(validationResult_dispatch_IsParticularsNotTally.Message))
-                                {
-                                    isValid = false;
-
-                                    await sw.WriteLineAsync($"{validationResult_dispatch_IsParticularsNotTally.Category}:");
-                                    foreach (var line in validationResult_dispatch_IsParticularsNotTally.ItemIds)
-                                    {
-                                        await sw.WriteLineAsync($"{line}");
-                                    }
-                                    await sw.WriteLineAsync(validationResult_dispatch_IsParticularsNotTally.Message);
-                                    await sw.WriteLineAsync();
-                                }
-
-                                if (validationResult_wallet_InsufficientBalance.ItemIds.Count != 0 || !string.IsNullOrWhiteSpace(validationResult_wallet_InsufficientBalance.Message))
-                                {
-                                    isValid = false;
-
-                                    await sw.WriteLineAsync($"{validationResult_wallet_InsufficientBalance.Category}:");
-                                    await sw.WriteLineAsync(validationResult_wallet_InsufficientBalance.Message);
-                                    await sw.WriteLineAsync();
-                                }
-                            }
-
-                            if (isValid)
-                            {
-                                fi.Delete();
-                            }
-                            #endregion
-
+                            await FileServer.InsertFileToAlbum(result.uuid, true, dbconn);
                         }
+                    }
 
-                        using db db = new();
-                        var dispatchValidation = db.Dispatchvalidations
-                                                    .Where(u => u.DispatchNo == DispatchProfile.DispatchNo)
-                                                    .FirstOrDefault();
 
-                        if (dispatchValidation is not null)
-                        {
-                            dispatchValidation.TookInSec = tookInSec;
-                            dispatchValidation.IsValid = isValid ? 1u : 0u;
-                            dispatchValidation.FilePath = FilePath;
-                            dispatchValidation.DateCompleted = dateValidationEnd;
-                            dispatchValidation.Status = DispatchValidationEnumConst.STATUS_FINISH;
-                            dispatchValidation.ValidationProgress = 100;
-                            dispatchValidation.IsFundLack = isFundLack ? 1u : 0u;
-                        }
+                    #endregion
 
-                        await db.SaveChangesAsync();
-                    });
-                }
+
+                    using db db = new();
+                    var dispatchValidation = db.Dispatchvalidations
+                                                .Where(u => u.DispatchNo == DispatchProfile.DispatchNo)
+                                                .FirstOrDefault();
+
+                    if (dispatchValidation is not null)
+                    {
+                        dispatchValidation.TookInSec = tookInSec;
+                        dispatchValidation.IsValid = isValid ? 1u : 0u;
+                        dispatchValidation.FilePath = FilePath;
+                        dispatchValidation.DateCompleted = dateValidationEnd;
+                        dispatchValidation.Status = DispatchValidationEnumConst.STATUS_FINISH;
+                        dispatchValidation.ValidationProgress = 100;
+                        dispatchValidation.IsFundLack = isFundLack ? 1u : 0u;
+                    }
+
+                    await db.SaveChangesAsync();
+                });
                 #endregion
 
                 var queueTask = db.Queues.Find(QueueId);
@@ -838,13 +713,13 @@ namespace SND.SMP.DispatchConsole
         {
             var result = false;
 
-            var list = model.Where(u => 
-                                        u.DispatchNo != DispatchProfile.DispatchNo || 
-                                        u.PostalCode != DispatchProfile.PostalCode || 
-                                        u.ServiceCode != DispatchProfile.ServiceCode || 
+            var list = model.Where(u =>
+                                        u.DispatchNo != DispatchProfile.DispatchNo ||
+                                        u.PostalCode != DispatchProfile.PostalCode ||
+                                        u.ServiceCode != DispatchProfile.ServiceCode ||
                                         u.ProductCode != DispatchProfile.ProductCode
                                   ).Select(u => u.Id + " (" + u.DispatchNo + " / " + u.PostalCode + " / " + u.ServiceCode + " / " + u.ProductCode + ")").ToList();
-                                  
+
             validationResult.ItemIds.AddRange(list);
 
             result = list.Count != 0;

@@ -68,6 +68,11 @@ namespace SND.SMP.Shared
             public const string Status_Declined = "Declined";
             public const string Status_Completed = "Approved & Generated";
         }
+
+        public class GlobalConst
+        {
+            public const string Albums = "Albums";
+        }
 	}
 }
 
