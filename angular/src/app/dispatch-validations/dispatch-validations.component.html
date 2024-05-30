@@ -179,7 +179,7 @@
                       class="btn btn-warning mx-auto"
                       [disabled]="dispatchvalidation.isValid"
                       (click)="
-                        retryDispatchValidation(dispatchvalidation.filePath)
+                        retryDispatchValidation(dispatchvalidation.filePath, dispatchvalidation.dispatchNo)
                       "
                     >
                       <i class="fa-solid fa-rotate-right"></i>
@@ -348,7 +348,7 @@
                       class="btn btn-warning mx-auto"
                       [disabled]="dispatchvalidation.isValid"
                       (click)="
-                        retryDispatchValidation(dispatchvalidation.filePath)
+                        retryDispatchValidation(dispatchvalidation.filePath, dispatchvalidation.dispatchNo)
                       "
                     >
                       <i class="fa-solid fa-rotate-right"></i>

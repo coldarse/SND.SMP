@@ -60,32 +60,10 @@ export class ReviewItemTrackingApplicationComponent
     super(injector);
   }
 
-  save(): void {
-    this.saving = true;
-
-    let review: ItemTrackingReviewDto;
-    review.applicationId = this.application.id;
-    review.customerId = this.application.customerId;
-    review.customerCode = this.application.customerCode;
-    review.postalCode = this.application.postalCode;
-    review.postalDesc = this.application.postalDesc;
-    review.total = this.application.total;
-    review.totalGiven = 0;
-    review.productCode = this.application.productCode;
-    review.status = "Approved";
-    review.dateCreated = this.application.dateCreated;
-    review.prefix = this.prefix;
-    review.prefixNo = this.prefixNo;
-    review.suffix = this.suffix;
-
-    this._itemtrackingreviewService.create(review).subscribe(() => {
-      this.notify.info(this.l("SavedSuccessfully"));
-      this.bsModalRef.hide();
-      this.onSave.emit();
-    });
-  }
 
   decline() {
+    this.saving = true;
+
     let review: ItemTrackingReviewDto = {
       applicationId: this.application.id,
       customerId: this.application.customerId,
@@ -103,14 +81,21 @@ export class ReviewItemTrackingApplicationComponent
       remark: this.remark,
     };
 
-    this._itemtrackingreviewService.create(review).subscribe(() => {
-      this.notify.info(this.l("SavedSuccessfully"));
-      this.onSave.emit();
-      this.bsModalRef.hide();
-    });
+    this._itemtrackingreviewService.create(review).subscribe(
+      () => {
+        this.notify.info(this.l("SavedSuccessfully"));
+        this.bsModalRef.hide();
+        this.onSave.emit();
+      },
+      () => {
+        this.saving = false;
+      }
+    );
   }
 
   approve() {
+    this.saving = true;
+
     let review: ItemTrackingReviewDto = {
       applicationId: this.application.id,
       customerId: this.application.customerId,
@@ -128,22 +113,34 @@ export class ReviewItemTrackingApplicationComponent
       remark: this.remark,
     };
 
-    this._itemtrackingreviewService.create(review).subscribe(() => {
-      this.notify.info(this.l("SavedSuccessfully"));
-      this.onSave.emit();
-      this.bsModalRef.hide();
-    });
+    this._itemtrackingreviewService.create(review).subscribe(
+      () => {
+        this.notify.info(this.l("SavedSuccessfully"));
+        this.bsModalRef.hide();
+        this.onSave.emit();
+      },
+      () => {
+        this.saving = false;
+      }
+    );
   }
 
 
   undo() {
+    this.saving = true;
+
     this._itemtrackingreviewService
       .undoReview(this.application.id)
-      .subscribe(() => {
-        this.notify.info(this.l("SavedSuccessfully"));
-        this.onSave.emit();
-        this.bsModalRef.hide();
-      });
+      .subscribe(
+        () => {
+          this.notify.info(this.l("SavedSuccessfully"));
+          this.bsModalRef.hide();
+          this.onSave.emit();
+        },
+        () => {
+          this.saving = false;
+        }
+      );
   }
 
   invalid() {

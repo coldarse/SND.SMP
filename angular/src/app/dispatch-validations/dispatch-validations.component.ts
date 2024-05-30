@@ -154,7 +154,7 @@ export class DispatchValidationsComponent
     });
   }
 
-  retryDispatchValidation(filepath: string) {
+  retryDispatchValidation(filepath: string, dispatchNo: string) {
     let uploadRetryDialog: BsModalRef;
     uploadRetryDialog = this._modalService.show(
       UploadRetryComponent,
@@ -162,6 +162,7 @@ export class DispatchValidationsComponent
         class: "modal-lg",
         initialState: {
           filepath: filepath,
+          dispatchNo: dispatchNo,
         },
       }
     );

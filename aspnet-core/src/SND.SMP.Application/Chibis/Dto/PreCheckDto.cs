@@ -5,6 +5,7 @@ public class PreCheckRetryDto
 {
     public ChibiUploadDto? UploadFile { get; set; }
     public string path { get; set; }
+    public string dispatchNo { get; set; }
 }
 
 public class PreCheckDto

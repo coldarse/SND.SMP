@@ -154,6 +154,11 @@ namespace SND.SMP.Chibis
                 var fileProfile = jsonDispatchFile.URL;
                 var fileString = await GetFileStreamAsString(fileProfile);
 
+                foreach (var pair in dispatchFilePair)
+                {
+                    await Repository.DeleteAsync(pair);
+                }
+
                 string uuidFileName = Guid.NewGuid().ToString();
                 uploadRetryPreCheck.UploadFile.json = fileString;
                 uploadRetryPreCheck.UploadFile.fileName = uuidFileName + ".xlsx";
@@ -173,6 +178,12 @@ namespace SND.SMP.Chibis
                 await _queueRepository.UpdateAsync(queue);
                 await _queueRepository.GetDbContext().SaveChangesAsync();
 
+                if (uploadRetryPreCheck.dispatchNo is not null)
+                {
+                    var errorDetailsForDispatch = await Repository.GetAllListAsync(x => x.OriginalName.Equals(uploadRetryPreCheck.dispatchNo));
+                    foreach (var error in errorDetailsForDispatch) await Repository.DeleteAsync(error);
+                }
+
                 return true;
             }
             else
@@ -184,6 +195,12 @@ namespace SND.SMP.Chibis
 
                 await _queueRepository.UpdateAsync(queue);
                 await _queueRepository.GetDbContext().SaveChangesAsync();
+
+                if (uploadRetryPreCheck.dispatchNo is not null)
+                {
+                    var errorDetailsForDispatch = await Repository.GetAllListAsync(x => x.OriginalName.Equals(uploadRetryPreCheck.dispatchNo));
+                    foreach (var error in errorDetailsForDispatch) await Repository.DeleteAsync(error);
+                }
 
                 return true;
             }

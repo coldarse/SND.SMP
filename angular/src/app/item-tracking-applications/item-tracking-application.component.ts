@@ -67,6 +67,7 @@ export class ItemTrackingApplicationsComponent extends PagedListingComponentBase
     reviewItemTrackingApplicationDialog.content.onSave.subscribe(() => {
       this.refresh();
     });
+    
   }
 
   private showCreateOrEditItemTrackingApplicationDialog(entity?: ItemTrackingApplicationDto){

@@ -12,17 +12,22 @@ using SND.SMP.ItemTrackingReviews.Dto;
 using SND.SMP.ItemTrackingApplications;
 using Abp.EntityFrameworkCore.Repositories;
 using SND.SMP.ItemTrackings;
+using SND.SMP.ItemIdRunningNos;
 
 namespace SND.SMP.ItemTrackingReviews
 {
     public class ItemTrackingReviewAppService(
         IRepository<ItemTrackingReview, int> repository, 
         IRepository<ItemTrackingApplication, int> itemTrackingApplicationRepository,
-        IRepository<ItemTracking, int> itemTrackingRepository
+        IRepository<ItemTracking, int> itemTrackingRepository,
+        IRepository<ItemIdRunningNo, long> itemIdRunningNoRepository,
+        IRepository<ItemTrackingReview, int> itemTrackingReviewRepository
     ) : AsyncCrudAppService<ItemTrackingReview, ItemTrackingReviewDto, int, PagedItemTrackingReviewResultRequestDto>(repository)
     {
         private readonly IRepository<ItemTrackingApplication, int> _itemTrackingApplicationRepository = itemTrackingApplicationRepository;
         private readonly IRepository<ItemTracking, int> _itemTrackingRepository = itemTrackingRepository;
+        private readonly IRepository<ItemIdRunningNo, long> _itemIdRunningNoRepository = itemIdRunningNoRepository;
+        private readonly IRepository<ItemTrackingReview, int> _itemTrackingReviewRepository = itemTrackingReviewRepository;
 
         protected override IQueryable<ItemTrackingReview> CreateFilteredQuery(PagedItemTrackingReviewResultRequestDto input)
         {
@@ -58,10 +63,25 @@ namespace SND.SMP.ItemTrackingReviews
         public async Task<bool> UndoReview(int applicationId)
         {
             var application = await _itemTrackingApplicationRepository.FirstOrDefaultAsync(x => x.Id.Equals(applicationId));
+
             application.Status = "Pending";
+            application.TookInSec = 0;
+            application.Range = "";
+
             await _itemTrackingApplicationRepository.UpdateAsync(application);
 
-            var review = await Repository.FirstOrDefaultAsync(x => x.ApplicationId.Equals(applicationId));
+            var review = await _itemTrackingReviewRepository.FirstOrDefaultAsync(x => x.ApplicationId.Equals(applicationId));
+            var runningNo = await _itemIdRunningNoRepository.FirstOrDefaultAsync(x => 
+                                                                                    x.Customer.Equals(review.CustomerCode) &&
+                                                                                    x.Prefix.Equals(review.Prefix) &&
+                                                                                    x.PrefixNo.Equals(review.PrefixNo) &&
+                                                                                    x.Suffix.Equals(review.Suffix)
+                                                                                );
+
+            runningNo.RunningNo = 0;
+
+            await _itemIdRunningNoRepository.UpdateAsync(runningNo);
+            
             await Repository.DeleteAsync(review);
 
             return true;

@@ -838,7 +838,13 @@ namespace SND.SMP.DispatchConsole
         {
             var result = false;
 
-            var list = model.Where(u => u.DispatchNo != DispatchProfile.DispatchNo || u.PostalCode != DispatchProfile.PostalCode || u.ServiceCode != DispatchProfile.ServiceCode || u.ProductCode != DispatchProfile.ProductCode).Select(u => u.Id + " (" + u.DispatchNo + " / " + u.PostalCode + " / " + u.ServiceCode + " / " + u.ProductCode + ")").ToList();
+            var list = model.Where(u => 
+                                        u.DispatchNo != DispatchProfile.DispatchNo || 
+                                        u.PostalCode != DispatchProfile.PostalCode || 
+                                        u.ServiceCode != DispatchProfile.ServiceCode || 
+                                        u.ProductCode != DispatchProfile.ProductCode
+                                  ).Select(u => u.Id + " (" + u.DispatchNo + " / " + u.PostalCode + " / " + u.ServiceCode + " / " + u.ProductCode + ")").ToList();
+                                  
             validationResult.ItemIds.AddRange(list);
 
             result = list.Count != 0;

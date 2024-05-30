@@ -76,6 +76,10 @@
         <span class="badge badge-pill badge-danger">{{
           application.status
         }}</span>
+        } @else if (application.status == "Generating") {
+        <span class="badge badge-pill badge-info">{{
+          application.status
+        }}</span>
         }
       </h5>
     </div>
@@ -171,7 +175,7 @@
   <div class="row">
     <div class="col-2"></div>
     <div class="col-4 text-center">
-      <button class="btn btn-danger" (click)="decline()">
+      <button class="btn btn-danger" (click)="decline()" [disabled]="saving">
         Decline Application
       </button>
     </div>
@@ -179,7 +183,7 @@
       <button
         class="btn btn-primary"
         (click)="approve()"
-        [disabled]="invalid()"
+        [disabled]="invalid() || saving"
       >
         Approve &amp; Issue
       </button>
@@ -190,7 +194,13 @@
   <div class="row">
     <div class="col-4"></div>
     <div class="col-4 text-center">
-      <button class="btn btn-danger" (click)="undo()">Undo Review</button>
+      <button
+      class="btn btn-danger"
+        (click)="undo()"
+        [disabled]="amount.remaining < amount.issued || saving"
+      >
+        Undo Review
+      </button>
     </div>
     <div class="col-4"></div>
   </div>

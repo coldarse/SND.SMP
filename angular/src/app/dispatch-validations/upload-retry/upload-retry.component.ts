@@ -15,14 +15,12 @@ import { ChibiService } from "@shared/service-proxies/chibis/chibis.service";
   templateUrl: "./upload-retry.component.html",
   styleUrls: ["./upload-retry.component.css"],
 })
-export class UploadRetryComponent
-  extends AppComponentBase
-  implements OnInit
-{
+export class UploadRetryComponent extends AppComponentBase implements OnInit {
   saving = false;
   formFile: any = undefined;
 
   filepath: string;
+  dispatchNo: string;
 
   @Output() onSave = new EventEmitter<any>();
 
@@ -36,9 +34,9 @@ export class UploadRetryComponent
 
   ngOnInit(): void {}
 
-  handleUpload(event){
-    if(event.target.files.length > 0){
-        this.formFile = event.target.files[0];
+  handleUpload(event) {
+    if (event.target.files.length > 0) {
+      this.formFile = event.target.files[0];
     }
   }
 
@@ -46,9 +44,10 @@ export class UploadRetryComponent
     this.saving = true;
 
     const form = new FormData();
-    if (this.formFile != undefined) 
+    if (this.formFile != undefined)
       form.append("UploadFile.file", this.formFile);
     form.append("path", this.filepath);
+    form.append("dispatchNo", this.dispatchNo);
 
     this._chibiService.uploadRetryPreCheckFile(form).subscribe(
       () => {
@@ -56,7 +55,7 @@ export class UploadRetryComponent
         this.bsModalRef.hide();
         this.onSave.emit();
       },
-      () => { 
+      () => {
         this.saving = false;
       }
     );
