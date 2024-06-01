@@ -31,7 +31,7 @@ export class ReviewItemTrackingApplicationComponent
   suffix = "";
   remark = "";
 
-  prefixNoMaxLength = 4;
+  prefixNoMaxLength = 7;
 
   application: ItemTrackingApplicationDto;
 
@@ -47,8 +47,7 @@ export class ReviewItemTrackingApplicationComponent
         this.amount = data.result;
       });
 
-    this.prefixNoMaxLength = 8 - this.application.total.toString().length;
-    if (this.prefixNoMaxLength > 4) this.prefixNoMaxLength = 4;
+    this.prefixNoMaxLength = (8 - (this.application.total - 1).toString().length);
   }
 
   constructor(
@@ -146,7 +145,6 @@ export class ReviewItemTrackingApplicationComponent
   invalid() {
     if (this.prefix.length == 0) return true;
     if (this.prefixNo.length == 0) return true;
-    if (this.prefixNo.length < 2) return true;
     if (this.suffix.length == 0) return true;
     return false;
   }
