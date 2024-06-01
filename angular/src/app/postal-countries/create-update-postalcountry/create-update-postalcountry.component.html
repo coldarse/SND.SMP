@@ -5,13 +5,13 @@
     (ngSubmit)='save()'
 >
     <abp-modal-header
-        [title]='isCreate == true? ("Add PostalCountry" | localize) : ("Edit PostalCountry" | localize)'
+        [title]='isCreate == true? ("Add Postal Country" | localize) : ("Edit Postal Country" | localize)'
         (onCloseClick)='bsModalRef.hide()'
     ></abp-modal-header>
     <div class='modal-body'>
         <div class='form-group row required'>
             <label class='col-md-3 col-form-label' for='postalCode'>
-            {{ 'PostalCode' | localize }}
+            {{ 'Postal Code' | localize }}
             </label>
             <div class='col-md-9'>
             <input
@@ -32,7 +32,7 @@
         </div>
         <div class='form-group row required'>
             <label class='col-md-3 col-form-label' for='countryCode'>
-            {{ 'CountryCode' | localize }}
+            {{ 'Country Code' | localize }}
             </label>
             <div class='col-md-9'>
             <input
