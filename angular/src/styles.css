@@ -1,3 +1,5 @@
+/* Montserrat */
+
 @font-face {
     font-family: 'Montserrat-Black';
     src: url('./assets/fonts/Montserrat/Montserrat-Black.ttf');
@@ -88,6 +90,99 @@
     src: url('./assets/fonts/Montserrat/Montserrat-ThinItalic.ttf');
 }
 
+
+/* Poppins */
+
+@font-face {
+    font-family: 'Poppins-Black';
+    src: url('./assets/fonts/Poppins/Poppins-Black.ttf');
+}
+
+@font-face {
+    font-family: 'Poppins-BlackItalic';
+    src: url('./assets/fonts/Poppins/Poppins-BlackItalic.ttf');
+}
+
+@font-face {
+    font-family: 'Poppins-Bold';
+    src: url('./assets/fonts/Poppins/Poppins-Bold.ttf');
+}
+
+@font-face {
+    font-family: 'Poppins-BoldItalic';
+    src: url('./assets/fonts/Poppins/Poppins-BoldItalic.ttf');
+}
+
+@font-face {
+    font-family: 'Poppins-ExtraBold';
+    src: url('./assets/fonts/Poppins/Poppins-ExtraBold.ttf');
+}
+
+@font-face {
+    font-family: 'Poppins-ExtraBoldItalic';
+    src: url('./assets/fonts/Poppins/Poppins-ExtraBoldItalic.ttf');
+}
+
+@font-face {
+    font-family: 'Poppins-ExtraLight';
+    src: url('./assets/fonts/Poppins/Poppins-ExtraLight.ttf');
+}
+
+@font-face {
+    font-family: 'Poppins-ExtraLightItalic';
+    src: url('./assets/fonts/Poppins/Poppins-ExtraLightItalic.ttf');
+}
+
+@font-face {
+    font-family: 'Poppins-Italic';
+    src: url('./assets/fonts/Poppins/Poppins-Italic.ttf');
+}
+
+@font-face {
+    font-family: 'Poppins-Light';
+    src: url('./assets/fonts/Poppins/Poppins-Light.ttf');
+}
+
+@font-face {
+    font-family: 'Poppins-LightItalic';
+    src: url('./assets/fonts/Poppins/Poppins-LightItalic.ttf');
+}
+
+@font-face {
+    font-family: 'Poppins-Medium';
+    src: url('./assets/fonts/Poppins/Poppins-Medium.ttf');
+}
+
+@font-face {
+    font-family: 'Poppins-MediumItalic';
+    src: url('./assets/fonts/Poppins/Poppins-MediumItalic.ttf');
+}
+
+@font-face {
+    font-family: 'Poppins-Regular';
+    src: url('./assets/fonts/Poppins/Poppins-Regular.ttf');
+}
+
+@font-face {
+    font-family: 'Poppins-SemiBold';
+    src: url('./assets/fonts/Poppins/Poppins-SemiBold.ttf');
+}
+
+@font-face {
+    font-family: 'Poppins-SemiBoldItalic';
+    src: url('./assets/fonts/Poppins/Poppins-SemiBoldItalic.ttf');
+}
+
+@font-face {
+    font-family: 'Poppins-Thin';
+    src: url('./assets/fonts/Poppins/Poppins-Thin.ttf');
+}
+
+@font-face {
+    font-family: 'Poppins-ThinItalic';
+    src: url('./assets/fonts/Poppins/Poppins-ThinItalic.ttf');
+}
+
 body {
-    font-family: 'Montserrat-Regular' !important;
+    font-family: 'Poppins-Regular' !important;
 }

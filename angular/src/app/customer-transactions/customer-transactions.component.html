@@ -65,7 +65,7 @@
         <div class="card-body">
           <div class="table-responsive">
             <table
-              class="table table-striped table-bordered"
+              class="table table-bordered"
               [busy]="isTableLoading"
             >
               <thead class="bg-light">
@@ -104,7 +104,7 @@
                   <td>{{ customerTransaction.referenceNo }}</td>
                   <td>{{ customerTransaction.description }}</td>
                   <td>
-                    {{ customerTransaction.transactionDate | date : "short" }}
+                    {{ customerTransaction.transactionDate | date : "dd/MM/yyyy hh:mm a" }}
                   </td>
                   <!-- <td *ngIf='isButtonVisible("Edit") || isButtonVisible("Delete")'>
                                     <button
