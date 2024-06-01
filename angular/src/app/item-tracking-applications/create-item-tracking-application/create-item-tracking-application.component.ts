@@ -60,10 +60,10 @@ export class CreateItemTrackingApplicationComponent
 
   selectedCustomerPostal(event: any) {
     let split = event.target.value.split("+");
-    let customer = this.groupedCustomerPostal.find(x => x.customerId == split[1]);
+    let customer = split[1] == 'Any' ? undefined : this.groupedCustomerPostal.find(x => x.customerId == split[1]);
 
-    this.customerCode = customer.customerCode;
-    this.customerId = customer.customerId;
+    this.customerCode = customer == undefined ? '' : customer.customerCode;
+    this.customerId = customer == undefined ? 0 : customer.customerId;
     this.postalCode = split[0];
   }
 
