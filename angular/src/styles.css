@@ -91,3 +91,19 @@
 body {
     font-family: 'Montserrat-Regular' !important;
 }
+
+/* .height_control {
+    max-height: 60vh;
+} */
+
+.scroll {
+    max-height: 60vh;
+    overflow: auto;
+}
+
+th {
+    position: sticky;
+    top: 0px;
+    /* 0px if you don't have a navbar, but something is required */
+    background: white;
+}
