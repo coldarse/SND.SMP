@@ -3,6 +3,8 @@ import { AppComponentBase } from '../../../shared/app-component-base';
 import { PostalCountryDto } from '../../../shared/service-proxies/postal-countries/model';
 import { PostalCountryService } from '../../../shared/service-proxies/postal-countries/postal-country.service';
 import { BsModalRef } from 'ngx-bootstrap/modal';
+import { PostalService } from '@shared/service-proxies/postals/postal.service';
+import { PostalDDL } from '@shared/service-proxies/postals/model';
 
 @Component({
   selector: 'app-create-update-postalcountry',
@@ -15,21 +17,33 @@ export class CreateUpdatePostalCountryComponent extends AppComponentBase
   saving = false;
   isCreate = true;
   postalcountry?: PostalCountryDto = {} as PostalCountryDto;
+  isLoaded = false;
+
+  postalDDL: PostalDDL[] = [];
 
   @Output() onSave = new EventEmitter<any>();
 
   constructor(
     injector: Injector,
     public _postalcountryService: PostalCountryService,
+    public _postalService: PostalService,
     public bsModalRef: BsModalRef
   ) {
     super(injector);
   }
 
   ngOnInit(): void {
-    if(this.postalcountry.id != undefined){
-      this.isCreate = false;
-    }
+    this._postalService.getPostalDDL().subscribe((data: any) => {
+      this.postalDDL = data.result;
+      if(this.postalcountry.id != undefined){
+        this.isCreate = false;
+      }
+      this.isLoaded = true;
+    });
+  }
+
+  selectedPostal(event: any) {
+    this.postalcountry.postalCode = event.target.value;
   }
 
   save(): void {

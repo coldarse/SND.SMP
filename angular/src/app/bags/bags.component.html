@@ -6,10 +6,10 @@
                     <h1>{{ 'Bags' | localize }}</h1>
                 </div>
                 <div class='col-6 text-right' *ngIf='isButtonVisible("Create")'>
-                    <a href='javascript:;' class='btn bg-blue' (click)='createBag()'>
+                    <!-- <a href='javascript:;' class='btn bg-blue' (click)='createBag()'>
                         <i class='fa fa-plus-square'></i>
                         {{ 'Create' | localize }}
-                    </a>
+                    </a> -->
                 </div>
             </div>
         </div>
@@ -48,16 +48,16 @@
                         <table class='table table-bordered' [busy]='isTableLoading'>
                             <thead class='bg-light'>
                             <tr>
-                                <th>{{ 'BagNo                         ' | localize }}</th>
-                                <th>{{ 'DispatchId                    ' | localize }}</th>
-                                <th>{{ 'CountryCode                   ' | localize }}</th>
-                                <th>{{ 'WeightPre                     ' | localize }}</th>
-                                <th>{{ 'WeightPost                    ' | localize }}</th>
-                                <th>{{ 'ItemCountPre                  ' | localize }}</th>
-                                <th>{{ 'ItemCountPost                 ' | localize }}</th>
-                                <th>{{ 'WeightVariance                ' | localize }}</th>
-                                <th>{{ 'CN35No                        ' | localize }}</th>
-                                <th>{{ 'UnderAmount                   ' | localize }}</th>
+                                <th>{{ 'Bag No                         ' | localize }}</th>
+                                <th>{{ 'Dispatch Id                    ' | localize }}</th>
+                                <th>{{ 'Country Code                   ' | localize }}</th>
+                                <th>{{ 'Pre-Check Weight                     ' | localize }}</th>
+                                <th>{{ 'Post-Check Weight                    ' | localize }}</th>
+                                <th>{{ 'Pre-Check Item Count                  ' | localize }}</th>
+                                <th>{{ 'Post-Check Item Count                ' | localize }}</th>
+                                <th>{{ 'Weight Variance                ' | localize }}</th>
+                                <th>{{ 'CN35 No                        ' | localize }}</th>
+                                <th>{{ 'Under Amount                   ' | localize }}</th>
                                 <th style='width: 310px;' *ngIf='isButtonVisible("Edit") && isButtonVisible("Delete")'>{{ 'Actions' | localize }}</th>
                             </tr>
                             </thead>

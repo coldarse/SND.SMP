@@ -122,7 +122,7 @@ export class CustomerTransactionsComponent extends PagedListingComponentBase<Cus
     request.keyword = this.keyword;
     request.isAdmin = this.isAdmin;
     request.customer = this.companyCode;
-    request.maxResultCount = this.maxItems;
+    request.maxResultCount = this.pageSize;
 
     this._customerTransactionService
       .getAll(request)

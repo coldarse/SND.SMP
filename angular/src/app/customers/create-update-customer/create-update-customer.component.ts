@@ -33,6 +33,17 @@ export class CreateUpdateCustomerComponent extends AppComponentBase
     if(this.customer.id != undefined){
       this.isCreate = false;
     }
+
+    this.customer.addressLine1 = '-';
+    this.customer.addressLine2 = '-';
+    this.customer.city = '-';
+    this.customer.state = '-';
+    this.customer.country = '-';
+    this.customer.phoneNumber = '-';
+    this.customer.registrationNo = '-';
+    this.customer.emailAddress2 = '-';
+    this.customer.emailAddress3 = '-';
+    this.customer.isActive = true;
   }
 
   save(): void {
