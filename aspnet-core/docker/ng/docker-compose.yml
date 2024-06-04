@@ -2,21 +2,21 @@ version: '3'
 
 services:
 
-  # dispatch_console:
-  #   build: ./
-  #   image: dannychen98/dispatch_console:v1.0.3
-  #   environment:
-  #     ConnectionStrings__Default: "server=65.21.224.66;port=3306;database=SMPDb;uid=droot;pwd=snd@1234"
+  dispatch_console:
+    build: ./
+    image: dannychen98/tfs_dispatch_console:v1.0.0
+    environment:
+      ConnectionStrings__Default: "server=rm-3ns047wo8pox13094go.mysql.rds.aliyuncs.com;port=3306;database=tfsdb;uid=tfs_admin;pwd=tfs@1234"
 
   abp_host:
     build: ./
-    image: dannychen98/smp_api:v1.0.6
+    image: dannychen98/tfs_api:v1.0.0
     environment:
       ASPNETCORE_ENVIRONMENT: "Staging"
-      ConnectionStrings__Default: "server=65.21.224.66;port=3306;database=SMPDb;uid=droot;pwd=snd@1234"
-      App__ServerRootAddress: "http://65.21.224.66:44311/"
-      App__ClientRootAddress: "http://65.21.224.66:4200/"
-      App__CorsOrigins: "http://65.21.224.66:4200"
+      ConnectionStrings__Default: "server=rm-3ns047wo8pox13094go.mysql.rds.aliyuncs.com;port=3306;database=tfsdb;uid=tfs_admin;pwd=tfs@1234"
+      App__ServerRootAddress: "http://tfsexp.com:44311/"
+      App__ClientRootAddress: "http://tfsexp.com:4200/"
+      App__CorsOrigins: "http://tfsexp.com:4200"
       TZ: "America/Toronto"
       Kestrel__Endpoints__Http__Url: "http://+:80"
     ports:
@@ -25,8 +25,8 @@ services:
       - "./Host-Logs:/app/App_Data/Logs"
     restart: always
 
-  # abp_ng:
-  #   build: ./
-  #   image: dannychen98/smp_ms:v1.0.5
-  #   ports:
-  #     - "4200:80"
+  abp_ng:
+    build: ./
+    image: dannychen98/tfs_ms:v1.0.0
+    ports:
+      - "4200:80"
