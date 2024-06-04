@@ -140,7 +140,8 @@ export class SidebarMenuComponent extends AppComponentBase implements OnInit {
       new MenuItem(
         this.l("Pre-Check Upload"),
         "/app/pre-alerts",
-        "fas fa-bell"
+        "fas fa-bell",
+        "Pages.Dispatch"
       ),
       new MenuItem(
         this.l("Rate Weight Breaks"),
