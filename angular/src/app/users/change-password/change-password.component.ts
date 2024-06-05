@@ -8,6 +8,7 @@ import {
   UserServiceProxy
 } from '@shared/service-proxies/service-proxies';
 import { AbpValidationError } from '@shared/components/validation/abp-validation.api';
+import { CustomerService } from '@shared/service-proxies/customers/customer.service';
 
 @Component({
   templateUrl: './change-password.component.html',
@@ -32,7 +33,7 @@ export class ChangePasswordComponent extends AppComponentBase {
 
   constructor(
     injector: Injector,
-    private userServiceProxy: UserServiceProxy,
+    private customerService: CustomerService,
     private router: Router
   ) {
     super(injector);
@@ -41,7 +42,7 @@ export class ChangePasswordComponent extends AppComponentBase {
   changePassword() {
     this.saving = true;
 
-    this.userServiceProxy
+    this.customerService
       .changePassword(this.changePasswordDto)
       .pipe(
         finalize(() => {

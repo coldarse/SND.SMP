@@ -17,15 +17,23 @@ using SND.SMP.Roles;
 using SND.SMP.Roles.Dto;
 using Abp.Application.Services.Dto;
 using SND.SMP.Wallets;
+using SND.SMP.Authorization.Users;
+using Microsoft.AspNetCore.Identity;
+using Abp.IdentityFramework;
+using Abp.Runtime.Session;
+using Abp.EntityFrameworkCore.Repositories;
 
 namespace SND.SMP.Customers
 {
     public class CustomerAppService(IRepository<Customer, long> repository,
         IUserAppService userAppService,
-        IRoleAppService roleAppService) : AsyncCrudAppService<Customer, CustomerDto, long, PagedCustomerResultRequestDto>(repository)
+        IRoleAppService roleAppService,
+        UserManager userManager
+        ) : AsyncCrudAppService<Customer, CustomerDto, long, PagedCustomerResultRequestDto>(repository)
     {
         private readonly IRoleAppService _roleAppService = roleAppService;
         private readonly IUserAppService _userAppService = userAppService;
+        private readonly UserManager _userManager = userManager;
 
         protected override IQueryable<Customer> CreateFilteredQuery(PagedCustomerResultRequestDto input)
         {
@@ -124,6 +132,43 @@ namespace SND.SMP.Customers
         public async Task<List<Customer>> GetAllCustomers()
         {
             return await Repository.GetAllListAsync();
+        }
+
+        protected virtual void CheckErrors(IdentityResult identityResult)
+        {
+            identityResult.CheckErrors(LocalizationManager);
+        }
+
+        public async Task<bool> ChangePassword(ChangePasswordDto input)
+        {
+            await _userManager.InitializeOptionsAsync(AbpSession.TenantId);
+
+            var user = await _userManager.FindByIdAsync(AbpSession.GetUserId().ToString());
+            if (user == null)
+            {
+                throw new Exception("There is no current user!");
+            }
+
+            if (await _userManager.CheckPasswordAsync(user, input.CurrentPassword))
+            {
+                CheckErrors(await _userManager.ChangePasswordAsync(user, input.NewPassword));
+            }
+            else
+            {
+                CheckErrors(IdentityResult.Failed(new IdentityError
+                {
+                    Description = "Incorrect password."
+                }));
+            }
+
+            var customer = await Repository.FirstOrDefaultAsync(x => x.EmailAddress.Equals(user.EmailAddress));
+
+            customer.Password = input.NewPassword;
+
+            await Repository.UpdateAsync(customer);
+            await Repository.GetDbContext().SaveChangesAsync();
+
+            return true;
         }
     }
 }
