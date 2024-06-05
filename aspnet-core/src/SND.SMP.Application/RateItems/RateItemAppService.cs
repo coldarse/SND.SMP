@@ -254,7 +254,7 @@ namespace SND.SMP.RateItems
                 updatedCurrency.Id = currencyCreateId;
             }
 
-            await Repository.GetDbContext().Database.ExecuteSqlRawAsync("TRUNCATE TABLE tfsdb.rateitems");
+            await Repository.GetDbContext().Database.ExecuteSqlRawAsync("TRUNCATE TABLE smpdb.rateitems");
 
             List<RateItem> rateItems = [];
             foreach (RateItemExcel excelItem in rateItemExcel.ToList())
