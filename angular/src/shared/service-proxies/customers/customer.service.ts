@@ -4,6 +4,7 @@ import { catchError, retry, throwError } from 'rxjs';
 import { PagedCustomerResultRequestDto, CustomerDto } from './model';
 import { AppConsts } from '@shared/AppConsts';
 import { ErrorMessage } from '../error-handling';
+import { ChangePasswordDto } from '../service-proxies';
 
 @Injectable()
 export class CustomerService {
@@ -119,6 +120,17 @@ export class CustomerService {
     getAllCustomers(){
         return this.http.get(
             this.url + `/api/services/app/Customer/GetAllCustomers`,
+            this.options_
+        ).pipe(
+            retry(1),
+            catchError(this.errorMessage.HandleErrorResponse),
+        )
+    }
+
+    changePassword(body: ChangePasswordDto){
+        return this.http.post(
+            this.url + '/api/services/app/Customer/ChangePassword',
+            body,
             this.options_
         ).pipe(
             retry(1),
