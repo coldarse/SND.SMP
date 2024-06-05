@@ -163,10 +163,13 @@ namespace SND.SMP.Customers
 
             var customer = await Repository.FirstOrDefaultAsync(x => x.EmailAddress.Equals(user.EmailAddress));
 
-            customer.Password = input.NewPassword;
+            if (customer is not null)
+            {
+                customer.Password = input.NewPassword;
 
-            await Repository.UpdateAsync(customer);
-            await Repository.GetDbContext().SaveChangesAsync();
+                await Repository.UpdateAsync(customer);
+                await Repository.GetDbContext().SaveChangesAsync();
+            }
 
             return true;
         }
