@@ -16,7 +16,7 @@ COPY ["src/SND.SMP.Web.Core", "src/SND.SMP.Web.Core"]
 COPY ["src/SND.SMP.Application", "src/SND.SMP.Application"]
 COPY ["src/SND.SMP.Core", "src/SND.SMP.Core"]
 COPY ["src/SND.SMP.EntityFrameworkCore", "src/SND.SMP.EntityFrameworkCore"]
-COPY ["src/SND.SMP.Shared/SND.SMP.Shared.csproj", "src/SND.SMP.Shared/"]
+COPY ["src/SND.SMP.Shared", "src/SND.SMP.Shared"]
 WORKDIR "/src/src/SND.SMP.Web.Host"
 RUN dotnet publish -c Release -o /publish --no-restore
 
