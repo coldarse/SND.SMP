@@ -7,7 +7,11 @@
                     <h1>{{ 'Rate Items' | localize }}</h1>
                 </div>
                 <div class='col-6 text-right' *ngIf='isButtonVisible("Create")'>
-                    <a href='javascript:;' class='btn bg-blue' (click)='uploadRateItem()'>
+                    <a href='javascript:;' class='btn bg-info' (click)='downloadTemplate()'>
+                        <i class="fa fa-file-download"></i>
+                        {{ 'Download Template' | localize }}
+                    </a>
+                    <a href='javascript:;' class='btn bg-blue ml-1' (click)='uploadRateItem()'>
                         <i class='fa fa-file-arrow-up'></i>
                         {{ 'Upload' | localize }}
                     </a>

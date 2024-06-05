@@ -32,4 +32,11 @@ namespace SND.SMP.FileUploadAPI.Dto
         public string message { get; set; }
         public File file { get; set; }
     }
+
+    public class GetFilesDto 
+    {
+        public string message { get; set; }
+        public List<File> files { get; set; }
+        public int count { get; set; }
+    }
 }

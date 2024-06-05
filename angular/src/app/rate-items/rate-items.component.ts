@@ -11,6 +11,7 @@ import { RateItemService } from "@shared/service-proxies/rate-items/rate-item.se
 import { RateService } from "@shared/service-proxies/rates/rate.service";
 import { CurrencyService } from "@shared/service-proxies/currencies/currency.service";
 import { UploadRateItemComponent } from "./upload-rate-item/upload-rate-item.component";
+import * as XLSX from "xlsx";
 // import { CreateUpdateRateItemComponent } from '../rateItems/create-update-rateItem/create-update-rateItem.component'
 
 class PagedRateItemsRequestDto extends PagedRequestDto {
@@ -118,5 +119,37 @@ export class RateItemsComponent extends PagedListingComponentBase<RateItemDto> {
 
         this.showPaging(result.result.pagedRateItemResultDto, pageNumber);
       });
+  }
+
+  downloadTemplate(){
+    let rateItemHeaders: string[] = [
+      "Rate Card Name",
+      "Service",
+      "Product",
+      "Country Code",
+      "Total",
+      "Item Fees",
+      "Currency",
+      "Payment Mode",
+    ];
+    
+    let rateItemTemplate: string[][] = [rateItemHeaders, []];
+
+    var wb = XLSX.utils.book_new();
+    var ws = XLSX.utils.aoa_to_sheet(rateItemTemplate);
+    ws['!cols'] = this.fitToColumn(rateItemHeaders);
+    XLSX.utils.book_append_sheet(wb, ws, "Sheet 1");
+    XLSX.writeFile(wb, `RateItemsUpload.xlsx`);
+  }
+
+  fitToColumn(arrayOfArray: any[]) {
+    let widths = [];
+    arrayOfArray.forEach((elem) => {
+      widths.push({
+        wch: Math.max(elem.length) + 1
+      });
+    })
+
+    return widths;
   }
 }
