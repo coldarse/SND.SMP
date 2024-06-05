@@ -10,6 +10,10 @@ import { RateWeightBreakDto } from "@shared/service-proxies/rate-weight-breaks/m
 import { RateWeightBreakService } from "@shared/service-proxies/rate-weight-breaks/rate-weight-break.service";
 import { RateService } from "@shared/service-proxies/rates/rate.service";
 import { UploadRateWeightBreakComponent } from "./upload-rate-weight-break/upload-rate-weight-break.component";
+import * as XLSX from "xlsx";
+import { template } from "lodash-es";
+import { ChibiService } from "@shared/service-proxies/chibis/chibis.service";
+import { HttpResponse } from "@angular/common/http";
 
 class PagedRateWeightBreaksRequestDto extends PagedRequestDto {
   keyword: string;
@@ -27,7 +31,6 @@ export class RateWeightBreaksComponent extends PagedListingComponentBase<RateWei
   products: any[] = [];
   rates: any[] = [];
 
-
   selectedRateCard = 0;
   selectedRateCardName = "";
 
@@ -35,7 +38,8 @@ export class RateWeightBreaksComponent extends PagedListingComponentBase<RateWei
     injector: Injector,
     private _rateweightbreakService: RateWeightBreakService,
     private _rateService: RateService,
-    private _modalService: BsModalService
+    private _modalService: BsModalService,
+    private _chibiService: ChibiService
   ) {
     super(injector);
   }
@@ -121,6 +125,34 @@ export class RateWeightBreaksComponent extends PagedListingComponentBase<RateWei
       } else {
         this.isTableLoading = false;
       }
+    });
+  }
+
+  downloadTemplate() {
+    this._chibiService
+    .downloadRateWeightBreakTemplate()
+    .pipe(
+      finalize(() => {
+      })
+    )
+    .subscribe((res: HttpResponse<Blob>) => {
+      var contentDisposition = res.headers.get("content-disposition");
+      var filename = contentDisposition
+        .split(";")[1]
+        .split("filename")[1]
+        .split("=")[1]
+        .trim();
+      console.log(filename);
+      const blob = new Blob([res.body], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      a.click();
+
+      // Clean up
+      window.URL.revokeObjectURL(url);
+      abp.notify.success(this.l("Successfully Downloaded"));
     });
   }
 }

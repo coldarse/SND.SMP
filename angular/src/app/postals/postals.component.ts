@@ -6,6 +6,7 @@ import { PostalDto } from '@shared/service-proxies/postals/model'
 import { PostalService } from '@shared/service-proxies/postals/postal.service'
 import { UploadPostalComponent } from './upload-postal/upload-postal.component';
 import { CreateUpdatePostalComponent } from './create-update-postal/create-update-postal.component';
+import * as XLSX from "xlsx";
 
 class PagedPostalsRequestDto extends PagedRequestDto{
   keyword: string
@@ -136,5 +137,36 @@ export class PostalsComponent extends PagedListingComponentBase<PostalDto> {
         });
       this.showPaging(result.result, pageNumber);
     });
+  }
+
+  downloadTemplate(){
+    let postalHeaders: string[] = [
+      "Postal Code",
+      "Postal Description",
+      "Service Description",
+      "Service Code",
+      "Product Description",
+      "Product Code",
+      "Item Top-Up Value",
+    ];
+    
+    let postalTemplate: string[][] = [postalHeaders, []];
+
+    var wb = XLSX.utils.book_new();
+    var ws = XLSX.utils.aoa_to_sheet(postalTemplate);
+    ws['!cols'] = this.fitToColumn(postalHeaders);
+    XLSX.utils.book_append_sheet(wb, ws, "Sheet 1");
+    XLSX.writeFile(wb, `PostalUpload.xlsx`);
+  }
+
+  fitToColumn(arrayOfArray: any[]) {
+    let widths = [];
+    arrayOfArray.forEach((elem) => {
+      widths.push({
+        wch: Math.max(elem.length) + 1
+      });
+    })
+
+    return widths;
   }
 }

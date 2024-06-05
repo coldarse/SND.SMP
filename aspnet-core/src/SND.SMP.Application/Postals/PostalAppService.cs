@@ -180,7 +180,7 @@ namespace SND.SMP.Postals
                 }
             }
 
-            await Repository.GetDbContext().Database.ExecuteSqlRawAsync("TRUNCATE TABLE smpdb.postals");
+            await Repository.GetDbContext().Database.ExecuteSqlRawAsync("TRUNCATE TABLE tfsdb.postals");
 
             List<Postal> postals = [];
             foreach (PostalExcel excelItem in postalExcel.ToList())

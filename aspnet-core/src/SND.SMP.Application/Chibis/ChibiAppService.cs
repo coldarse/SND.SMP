@@ -25,6 +25,7 @@ using SND.SMP.DispatchValidations;
 using Microsoft.Extensions.Caching.Memory;
 using System.ComponentModel;
 using SND.SMP.Shared;
+using System.IO;
 
 namespace SND.SMP.Chibis
 {
@@ -105,6 +106,18 @@ namespace SND.SMP.Chibis
             response.EnsureSuccessStatusCode();
             var body = await response.Content.ReadAsStringAsync();
             return JsonSerializer.Deserialize<GetFileDto>(body);
+        }
+
+        public static async Task<Stream> GetFileStream(string url)
+        {
+            using var httpClient = new HttpClient();
+            using var response = await httpClient.GetAsync(url);
+            if (response.IsSuccessStatusCode)
+            {
+                var contentByteArray = await response.Content.ReadAsByteArrayAsync();
+                return new MemoryStream(contentByteArray);
+            }
+            return null;
         }
 
         private async Task<Dictionary<string, Album>> PrepareAlbums()
@@ -479,6 +492,34 @@ namespace SND.SMP.Chibis
             return result;
         }
 
+        public async Task<IActionResult> GetRateWeightBreakTemplate()
+        {
+            var chibiKey = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("ChibiKey"));
+            var chibiURL = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("ChibiURL"));
+            var client = new HttpClient();
+            client.DefaultRequestHeaders.Clear();
+            client.DefaultRequestHeaders.Add("x-api-key", chibiKey.Value);
 
+            var request = new HttpRequestMessage
+            {
+                Method = HttpMethod.Get,
+                RequestUri = new Uri(chibiURL.Value + $"files"),
+            };
+            using var response = await client.SendAsync(request);
+            response.EnsureSuccessStatusCode();
+            var body = await response.Content.ReadAsStringAsync();
+            GetFilesDto files = Newtonsoft.Json.JsonConvert.DeserializeObject<GetFilesDto>(body);
+
+            var rateWeightBreakTemplate = files.files.FirstOrDefault(x => x.original.Equals("RateWeightBreakTemplate.xlsx"));
+
+            Stream fileStream = await GetFileStream(rateWeightBreakTemplate.url);
+
+            using MemoryStream ms = new();
+            fileStream.CopyTo(ms);
+            return new FileContentResult(ms.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+            {
+                FileDownloadName = "RateWeightBreakTemplate.xlsx"
+            };
+        }
     }
 }

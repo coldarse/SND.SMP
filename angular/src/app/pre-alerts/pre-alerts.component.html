@@ -209,9 +209,14 @@
                   </h4>
                 </div>
                 <div class="col-md-6 text-right">
-                  <button class="btn btn-info" (click)="downloadTemplate()">
-                    Download Template
-                  </button>
+                  <a
+                    href="javascript:;"
+                    class="btn bg-info"
+                    (click)="downloadTemplate()"
+                  >
+                    <i class="fa fa-file-download"></i>
+                    {{ "Download Template" | localize }}
+                  </a>
                 </div>
               </div>
             </div>
