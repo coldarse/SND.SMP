@@ -14,9 +14,9 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: "Staging"
       ConnectionStrings__Default: "server=rm-3ns047wo8pox13094go.mysql.rds.aliyuncs.com;port=3306;database=tfsdb;uid=tfs_admin;pwd=tfs@1234"
-      App__ServerRootAddress: "https://tfsexp.com:44311/"
-      App__ClientRootAddress: "https://tfsexp.com:4200/"
-      App__CorsOrigins: "https://tfsexp.com:4200"
+      App__ServerRootAddress: "http://tfsexp.com:44311/"
+      App__ClientRootAddress: "http://tfsexp.com:4200/"
+      App__CorsOrigins: "http://tfsexp.com:4200"
       TZ: "America/Toronto"
       Kestrel__Endpoints__Http__Url: "http://+:80"
     ports:
