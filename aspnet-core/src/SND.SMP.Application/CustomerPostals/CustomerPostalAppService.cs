@@ -134,7 +134,7 @@ namespace SND.SMP.CustomerPostals
 
         public async Task<CreateWalletDto> IsCurrencyWalletExist(int rate, int accNo)
         {
-            var rateItem = await _rateItemRepository.FirstOrDefaultAsync(x => x.Id.Equals(rate));
+            var rateItem = await _rateItemRepository.FirstOrDefaultAsync(x => x.RateId.Equals(rate));
 
             var customer = await _customerRepository.FirstOrDefaultAsync(x => x.Id.Equals(accNo));
 
