@@ -6,13 +6,13 @@
           <h1>{{ "Customer Postals" | localize }}</h1>
         </div>
         <div class="col-6 text-right" *ngIf="isButtonVisible('Create')">
-          <!-- <a href='javascript:;' class='btn bg-blue' (click)='createCustomerPostal()'>
+          <!-- <a href='javascript:;' class="btn bg-danger" (click)='createCustomerPostal()'>
                         <i class='fa fa-plus-square'></i>
                         {{ 'Create' | localize }}
                     </a> -->
           <button
             href="javascript:;"
-            class="btn bg-blue"
+            class="btn bg-danger"
             (click)="createCustomerPostal()"
             [disabled]="postalItems.length == 0 || rateItems.length == 0"
           >
@@ -63,7 +63,7 @@
                 <div class="input-group-prepend">
                   <button
                     type="button"
-                    class="btn bg-blue"
+                    class="btn bg-danger"
                     (click)="getDataPage(1)"
                   >
                     <i class="fas fa-search"></i>
@@ -84,10 +84,10 @@
         <div class="card-body">
           <div class="table-responsive">
             <table
-              class="table table-striped table-bordered"
+              class="table border"
               [busy]="isTableLoading"
             >
-              <thead class="bg-light">
+              <thead class="bg-danger">
                 <tr>
                   <th>{{ "Postal" | localize }}</th>
                   <th>{{ "Rate" | localize }}</th>
