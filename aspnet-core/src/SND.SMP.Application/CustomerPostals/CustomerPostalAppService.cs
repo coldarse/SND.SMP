@@ -194,21 +194,24 @@ namespace SND.SMP.CustomerPostals
 
             if (exists is not null) throw new UserFriendlyException("Rate for this Customer Postal already exists");
 
-            if (input.CreateWallet.Create == true)
+            if (input.CreateWallet is not null)
             {
-                var walletName =
-                    input.CreateWallet.Customer +
-                    await GetEWalletTypeAbbr((long)input.CreateWallet.EWalletType) +
-                    await GetCurrencyAbbr((long)input.CreateWallet.Currency);
-
-                await _walletRepository.InsertAsync(new Wallet()
+                if (input.CreateWallet.Create == true)
                 {
-                    Customer = input.CreateWallet.Customer,
-                    EWalletType = (long)input.CreateWallet.EWalletType,
-                    Currency = (long)input.CreateWallet.Currency,
-                    Balance = (decimal)input.CreateWallet.Balance,
-                    Id = walletName
-                });
+                    var walletName =
+                        input.CreateWallet.Customer +
+                        await GetEWalletTypeAbbr((long)input.CreateWallet.EWalletType) +
+                        await GetCurrencyAbbr((long)input.CreateWallet.Currency);
+
+                    await _walletRepository.InsertAsync(new Wallet()
+                    {
+                        Customer = input.CreateWallet.Customer,
+                        EWalletType = (long)input.CreateWallet.EWalletType,
+                        Currency = (long)input.CreateWallet.Currency,
+                        Balance = (decimal)input.CreateWallet.Balance,
+                        Id = walletName
+                    });
+                }
             }
 
             CustomerPostal entity = new()
@@ -236,21 +239,24 @@ namespace SND.SMP.CustomerPostals
 
             var entity = await GetEntityByIdAsync(input.Id);
 
-            if (input.CreateWallet.Create == true)
+            if (input.CreateWallet is not null)
             {
-                var walletName =
-                    input.CreateWallet.Customer +
-                    await GetEWalletTypeAbbr((long)input.CreateWallet.EWalletType) +
-                    await GetCurrencyAbbr((long)input.CreateWallet.Currency);
-
-                await _walletRepository.InsertAsync(new Wallet()
+                if (input.CreateWallet.Create == true)
                 {
-                    Customer = input.CreateWallet.Customer,
-                    EWalletType = (long)input.CreateWallet.EWalletType,
-                    Currency = (long)input.CreateWallet.Currency,
-                    Balance = (decimal)input.CreateWallet.Balance,
-                    Id = walletName
-                });
+                    var walletName =
+                        input.CreateWallet.Customer +
+                        await GetEWalletTypeAbbr((long)input.CreateWallet.EWalletType) +
+                        await GetCurrencyAbbr((long)input.CreateWallet.Currency);
+
+                    await _walletRepository.InsertAsync(new Wallet()
+                    {
+                        Customer = input.CreateWallet.Customer,
+                        EWalletType = (long)input.CreateWallet.EWalletType,
+                        Currency = (long)input.CreateWallet.Currency,
+                        Balance = (decimal)input.CreateWallet.Balance,
+                        Id = walletName
+                    });
+                }
             }
 
             entity.Postal = input.Postal;
