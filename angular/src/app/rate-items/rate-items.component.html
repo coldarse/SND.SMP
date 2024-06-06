@@ -53,7 +53,7 @@
                         </div> -->
                         <div class="col-md-12">
                             @for (rate of rates; track $index) {
-                                <button class="btn btn-primary mr-1" (click)='filter(rate.id)'>
+                                <button class="btn btn-danger mr-1" (click)='filter(rate.id)'>
                                     {{rate.cardName}} ({{rate.count}})
                                 </button>
                             }
@@ -63,7 +63,7 @@
                 <div class='card-body'>
                     <div class='table-responsive'>
                         <table class="table table-bordered" [busy]='isTableLoading'>
-                            <thead class="bg-danger">
+                            <thead>
                             <tr>
                                 <th>{{ 'Rate Card Name' | localize }}</th>
                                 <th>{{ 'Service Code' | localize }}</th>

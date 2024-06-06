@@ -104,3 +104,9 @@ th {
     /* 0px if you don't have a navbar, but something is required */
     /* background: white; */
 }
+
+thead {
+    /* background-color: #E0142B; */
+    background-color: #dc3545;
+    color: white;
+}

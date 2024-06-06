@@ -47,7 +47,7 @@
           <div class="table-responsive">
             @if (showPagination) {
             <table class="table border">
-              <thead class="bg-danger">
+              <thead>
                 <tr>
                   <th>{{ "Customer                    " | localize }}</th>
                   <th>{{ "Date Started                     " | localize }}</th>
@@ -216,7 +216,7 @@
               class="table border"
               [busy]="isTableLoading"
             >
-              <thead class="bg-danger">
+              <thead>
                 <tr>
                   <th>{{ "Customer                    " | localize }}</th>
                   <th>{{ "Date Started                     " | localize }}</th>
