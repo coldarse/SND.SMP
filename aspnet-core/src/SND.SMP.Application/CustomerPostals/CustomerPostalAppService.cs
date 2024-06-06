@@ -236,9 +236,37 @@ namespace SND.SMP.CustomerPostals
 
             var entity = await GetEntityByIdAsync(input.Id);
 
-            await CurrentUnitOfWork.SaveChangesAsync();
+            if (input.CreateWallet.Create == true)
+            {
+                var walletName =
+                    input.CreateWallet.Customer +
+                    await GetEWalletTypeAbbr((long)input.CreateWallet.EWalletType) +
+                    await GetCurrencyAbbr((long)input.CreateWallet.Currency);
 
-            return MapToEntityDto(entity);
+                await _walletRepository.InsertAsync(new Wallet()
+                {
+                    Customer = input.CreateWallet.Customer,
+                    EWalletType = (long)input.CreateWallet.EWalletType,
+                    Currency = (long)input.CreateWallet.Currency,
+                    Balance = (decimal)input.CreateWallet.Balance,
+                    Id = walletName
+                });
+            }
+
+            entity.Postal = input.Postal;
+            entity.Rate = input.Rate;
+            entity.AccountNo = input.AccountNo;
+
+            var updated = await Repository.UpdateAsync(entity);
+
+            return new DetailedCustomerPostalDto()
+            {
+                Postal = updated.Postal,
+                Rate = updated.Rate,
+                RateCard = "",
+                AccountNo = updated.AccountNo,
+                Code = ""
+            };
         }
 
         public async Task<List<PostalDDL>> GetCustomerPostalsByAccountNo(long accountNo)

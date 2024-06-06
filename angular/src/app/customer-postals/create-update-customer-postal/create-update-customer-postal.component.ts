@@ -7,7 +7,10 @@ import {
   Output,
 } from "@angular/core";
 import { AppComponentBase } from "../../../shared/app-component-base";
-import { CustomerPostalDto, DetailedCustomerPostalDto } from "../../../shared/service-proxies/customer-postals/model";
+import {
+  CustomerPostalDto,
+  DetailedCustomerPostalDto,
+} from "../../../shared/service-proxies/customer-postals/model";
 import { CustomerPostalService } from "../../../shared/service-proxies/customer-postals/customer-postal.service";
 import { BsModalRef, BsModalService } from "ngx-bootstrap/modal";
 import { RateDDL } from "@shared/service-proxies/rates/model";
@@ -82,39 +85,15 @@ export class CreateUpdateCustomerPostalComponent
   save(): void {
     this.saving = true;
 
-    if (this.customerpostal.id != undefined) {
-      this._customerpostalService.update(this.customerpostal).subscribe(
-        () => {
-          this.notify.info(this.l("SavedSuccessfully"));
-          this.bsModalRef.hide();
-          this.onSave.emit();
-        },
-        (error: HttpErrorResponse) => {
-          this.saving = false;
-          //Handle error
-          this.bsModalRef.hide();
-          let cc: BsModalRef;
-          cc = this._modalService.show(ErrorModalComponent, {
-            class: "modal-lg",
-            initialState: {
-              title: "",
-              errorMessage: error.message,
-            },
-          });
-        },
-        () => {
-          this.saving = false;
-        }
-      );
-    } else {
-      this._customerpostalService
-        .isCurrencyWalletExist(
-          this.customerpostal.rate,
-          this.customerpostal.accountNo
-        )
-        .subscribe((data: any) => {
-          if (data.result.exists) {
-            this._customerpostalService.create(this.customerpostal).subscribe(
+    this._customerpostalService
+      .isCurrencyWalletExist(
+        this.customerpostal.rate,
+        this.customerpostal.accountNo
+      )
+      .subscribe((data: any) => {
+        if (data.result.exists) {
+          if (this.customerpostal.id != undefined) {
+            this._customerpostalService.update(this.customerpostal).subscribe(
               () => {
                 this.notify.info(this.l("SavedSuccessfully"));
                 this.bsModalRef.hide();
@@ -138,18 +117,70 @@ export class CreateUpdateCustomerPostalComponent
               }
             );
           } else {
-            this.bsModalRef.hide();
-            let cc: BsModalRef;
-            cc = this._modalService.show(ErrorModalComponent, {
-              class: "modal-lg",
-              initialState: {
-                title: "",
-                yesno: true,
-                errorMessage: `This Customer does not have a wallet for ${data.result.currencyDesc} currency. Do you want to help them create this wallet and proceed with Customer Postal creation?`,
+            this._customerpostalService.create(this.customerpostal).subscribe(
+              () => {
+                this.notify.info(this.l("SavedSuccessfully"));
+                this.bsModalRef.hide();
+                this.onSave.emit();
               },
-            });
+              (error: HttpErrorResponse) => {
+                this.saving = false;
+                //Handle error
+                this.bsModalRef.hide();
+                let cc: BsModalRef;
+                cc = this._modalService.show(ErrorModalComponent, {
+                  class: "modal-lg",
+                  initialState: {
+                    title: "",
+                    errorMessage: error.message,
+                  },
+                });
+              },
+              () => {
+                this.saving = false;
+              }
+            );
+          }
+        } else {
+          this.bsModalRef.hide();
+          let cc: BsModalRef;
+          cc = this._modalService.show(ErrorModalComponent, {
+            class: "modal-lg",
+            initialState: {
+              title: "",
+              yesno: true,
+              errorMessage: `This Customer does not have a wallet for ${data.result.currencyDesc} currency. Do you want to help them create this wallet and proceed with Customer Postal creation?`,
+            },
+          });
 
-            cc.content.yesClick.subscribe(() => {
+          cc.content.yesClick.subscribe(() => {
+            if (this.customerpostal.id != undefined) {
+              this.customerpostal.createWallet = data.result;
+              this.customerpostal.createWallet.create = true;
+              this._customerpostalService.update(this.customerpostal).subscribe(
+                () => {
+                  this.notify.info(this.l("SavedSuccessfully"));
+                  this.bsModalRef.hide();
+                  this.onSave.emit();
+                },
+                (error: HttpErrorResponse) => {
+                  this.saving = false;
+                  //Handle error
+                  this.bsModalRef.hide();
+                  let cc: BsModalRef;
+                  cc = this._modalService.show(ErrorModalComponent, {
+                    class: "modal-lg",
+                    initialState: {
+                      title: "",
+                      errorMessage: error.message,
+                    },
+                  });
+                },
+                () => {
+                  this.saving = false;
+                }
+              );
+            } else {
               this.customerpostal.createWallet = data.result;
               this.customerpostal.createWallet.create = true;
               this._customerpostalService.create(this.customerpostal).subscribe(
@@ -175,9 +206,9 @@ export class CreateUpdateCustomerPostalComponent
                   this.saving = false;
                 }
               );
-            });
-          }
-        });
-    }
+            }
+          });
+        }
+      });
   }
 }
