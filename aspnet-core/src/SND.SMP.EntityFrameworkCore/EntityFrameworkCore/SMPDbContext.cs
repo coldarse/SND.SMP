@@ -583,7 +583,7 @@ namespace SND.SMP.EntityFrameworkCore
             builder.Entity<CustomerTransaction>(b =>
             {
                 b.ToTable(SMPConsts.DbTablePrefix + "CustomerTransactions");
-                b.Property(x => x.Wallet).HasColumnName(nameof(CustomerTransaction.Wallet)).HasMaxLength(8);
+                b.Property(x => x.Wallet).HasColumnName(nameof(CustomerTransaction.Wallet)).HasMaxLength(128);
                 b.Property(x => x.Customer).HasColumnName(nameof(CustomerTransaction.Customer)).HasMaxLength(10);
                 b.Property(x => x.PaymentMode).HasColumnName(nameof(CustomerTransaction.PaymentMode)).HasMaxLength(20);
                 b.Property(x => x.Currency).HasColumnName(nameof(CustomerTransaction.Currency)).HasMaxLength(3);
