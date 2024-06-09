@@ -2,11 +2,11 @@ version: '3'
 
 services:
 
-  # dispatch_console:
-  #   build: ./
-  #   image: dannychen98/dispatch_console:v1.0.3
-  #   environment:
-  #     ConnectionStrings__Default: "server=65.21.224.66;port=3306;database=SMPDb;uid=droot;pwd=snd@1234"
+  dispatch_console:
+    build: ./
+    image: dannychen98/dispatch_console:v1.0.3
+    environment:
+      ConnectionStrings__Default: "server=65.21.224.66;port=3306;database=SMPDb;uid=droot;pwd=snd@1234"
 
   abp_host:
     build: ./
@@ -25,8 +25,8 @@ services:
       - "./Host-Logs:/app/App_Data/Logs"
     restart: always
 
-  # abp_ng:
-  #   build: ./
-  #   image: dannychen98/smp_ms:v1.0.5
-  #   ports:
-  #     - "4200:80"
+  abp_ng:
+    build: ./
+    image: dannychen98/smp_ms:v1.0.5
+    ports:
+      - "4200:80"
