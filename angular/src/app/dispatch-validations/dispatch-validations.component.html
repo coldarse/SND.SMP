@@ -25,7 +25,7 @@
                 <div class="input-group-prepend">
                   <button
                     type="button"
-                    class="btn bg-blue"
+                    class="btn bg-danger"
                     (click)="getDataPage(1)"
                   >
                     <i class="fas fa-search"></i>
@@ -46,8 +46,8 @@
         <div class="card-body">
           <div class="table-responsive">
             @if (showPagination) {
-            <table class="table table-striped table-bordered">
-              <thead class="bg-light">
+            <table class="table border">
+              <thead>
                 <tr>
                   <th>{{ "Customer                    " | localize }}</th>
                   <th>{{ "Date Started                     " | localize }}</th>
@@ -213,10 +213,10 @@
             </table>
             }@else {
             <table
-              class="table table-striped table-bordered"
+              class="table border"
               [busy]="isTableLoading"
             >
-              <thead class="bg-light">
+              <thead>
                 <tr>
                   <th>{{ "Customer                    " | localize }}</th>
                   <th>{{ "Date Started                     " | localize }}</th>
