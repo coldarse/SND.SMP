@@ -5,6 +5,7 @@ using System.Net.Http.Headers;
 using System.Text.Json;
 using SND.SMP.Chibis;
 using System.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace SND.SMP.DispatchConsole
 {
@@ -19,15 +20,11 @@ namespace SND.SMP.DispatchConsole
         private int AmountRequested { get; set; }
         private int AmountGiven { get; set; }
 
-        private readonly string _chibiAPIKey;
-        private readonly string _chibiURL;
+        private string _chibiAPIKey;
+        private string _chibiURL;
 
 
-        public TrackingNoGenerator(string chibiAPIKey, string chibiURL)
-        {
-            _chibiAPIKey = chibiAPIKey;
-            _chibiURL = chibiURL;
-        }
+        public TrackingNoGenerator(){}
 
         public async Task DiscoverAndGenerate()
         {
@@ -216,6 +213,13 @@ namespace SND.SMP.DispatchConsole
 
         public async Task<ChibiUpload> InsertExcelFileToChibi(Stream excel, string fileName, string originalName = null, string postalCode = null, string productCode = null)
         {
+            using db dbconn = new();
+            var obj_ChibiKey = await dbconn.ApplicationSettings.FirstOrDefaultAsync(x => x.Name.Equals("ChibiKey"));
+            var obj_ChibiURL = await dbconn.ApplicationSettings.FirstOrDefaultAsync(x => x.Name.Equals("ChibiURL"));
+
+            _chibiAPIKey = obj_ChibiKey.Value;
+            _chibiURL = obj_ChibiURL.Value;
+
             var client = new HttpClient();
             client.DefaultRequestHeaders.Clear();
             client.DefaultRequestHeaders.Add("x-api-key", _chibiAPIKey);
@@ -250,7 +254,7 @@ namespace SND.SMP.DispatchConsole
                     OriginalName = originalName is null ? result.originalName : originalName,
                     GeneratedName = result.name ?? ""
                 };
-                using db dbconn = new();
+                
                 await dbconn.Chibis.AddAsync(entity);
                 await dbconn.SaveChangesAsync();
 

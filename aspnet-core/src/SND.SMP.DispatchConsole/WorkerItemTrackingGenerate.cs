@@ -26,10 +26,8 @@ public class WorkerItemTrackingGenerate : BackgroundService
         while (!stoppingToken.IsCancellationRequested)
         {
             var pollInMs = _configuration.GetValue<int>("Generate:TrackingNoGeneratePollInSec") * 1000;
-            var chibiAPIKey = _configuration.GetValue<string>("Authentication:ChibiAPIKey");
-            var chibiURL = _configuration.GetValue<string>("App:ChibiURL");
 
-            TrackingNoGenerator trackingNoGenerator = new TrackingNoGenerator(chibiAPIKey, chibiURL);
+            TrackingNoGenerator trackingNoGenerator = new TrackingNoGenerator();
 
             await trackingNoGenerator.DiscoverAndGenerate();
 
