@@ -1,0 +1,13 @@
+version: "3.7"
+
+services:
+  chibisafe:
+    image: chibisafe/chibisafe:v5.6.10
+    container_name: chibisafe
+    volumes:
+      - ./database:/home/node/chibisafe/database:rw
+      - ./uploads:/home/node/chibisafe/uploads:rw
+      - ./logs:/home/node/chibisafe/logs:rw
+    ports:
+      - 24424:8000
+    restart: always
