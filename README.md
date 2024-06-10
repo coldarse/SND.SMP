@@ -132,7 +132,7 @@ This SMD Portal will be using MySQL as its database storage. Here are the steps 
 
 ![image](https://github.com/jackywoo1991/images/blob/main/SMP/MySQL/MYSQL20.png?raw=true)
 
-### Installing GitHub Desktop
+## Installing GitHub Desktop
 
 The source control for this project is using GitHub Enterprise. If you do not have an account, go to [GitHub Signup Page](https://github.com/signup?ref_cta=Sign+up&ref_loc=header+logged+out&ref_page=%2F&source=header-home) to create an account. Remember to use your company account. After you have created an account, request access to GitHub enterprise from your manager and provide your account name.
 
