@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This SMI portal is created to replace the V1 version for Signature Mail. It is a revamped version, which consists of the frontend (Angular 17), backend (Dotnet 8 Core C#), a background worker to process heavy tasks, a MySQL as database, and a dockerized FileServer called ChibiSafe. All these are running on their own respective images using Docker (Except for the DB). The recommended server for this project is a Linux Server due to its flexibility, ease of use, and affordability.
+This SMI Portal is created to replace the V1 version for Signature Mail. It is a revamped version, which consists of the frontend (Angular 17), backend (Dotnet 8 Core C#), a background worker to process heavy tasks, a MySQL as database, and a dockerized FileServer called ChibiSafe. All these are running on their respective images using Docker (Except for the DB). The recommended server for this project is a Linux Server due to its flexibility, ease of use, and affordability.
 
 ## SMP Information
 
@@ -28,23 +28,25 @@ This SMI portal is created to replace the V1 version for Signature Mail. It is a
 ![image]()
 
 Database: 
--	Uses Azure PostgreSQL for each service
--	1 DB per service
+-	Uses MySQL
 
-Backend Cluster:
--	Uses Azure Kubernetes Cluster Manager
--	Web Gateway API is a Gateway to access all Services
+Backend and Background Worker:
+-	Uses Docker to containerize the image.
 
 Frontend:
--	KMS Angular is containerized as an instance
--	Will be accessed using public URL
+-	SMI Portal is containerized as an instance
+-	Will be accessed using a public URL
+
+ChibiSafe File Server:
+-	Docker to containerize the image.
+
 
 ## Guide
-Below are the steps to guide you to run this project in local environment.
+Below are the steps to guide you to run this project in the local environment.
 
 ### Installing MySQL 8.0 
 
-This SMD will be using MySQL as their database storage. Here are the steps to install MySQL on your local development machine.
+This SMD Portal will be using MySQL as its database storage. Here are the steps to install MySQL on your local development machine.
 1.	Head to [Community DL Page (dev.mysql.com)](https://dev.mysql.com/downloads/installer/) to download the installer. We are using the current latest version 8.0.36. Select the Windows x86-64bit installer.
 
 ![image](https://github.com/jackywoo1991/images/blob/main/SMP/MySQL/MYSQL01.png?raw=true)
