@@ -258,9 +258,6 @@ Below are the steps to install Docker Desktop on your local machine.
 ![image](https://user-images.githubusercontent.com/124862597/228182136-b1767c1d-af17-4ee9-a46c-d1cb79319448.png)
 ![image](https://user-images.githubusercontent.com/124862597/228182157-22e15876-4bd0-4787-a39a-bbb7e54fe13d.png)
 
-15. The `etc/docker` folder under the main solution contains a `up.ps1` file. Execute it to run the necessary infrastructure services.
-
-![image](https://user-images.githubusercontent.com/124862597/230540470-47d41f36-0039-4f52-a11b-d1758cb38766.png)
 
 ## Installing node version manager
 Node Version Manager (NVM), as the name implies, is a tool for managing Node versions on your device.
