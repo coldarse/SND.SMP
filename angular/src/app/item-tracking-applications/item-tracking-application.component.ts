@@ -7,6 +7,8 @@ import { ItemTrackingApplicationService } from '@shared/service-proxies/item-tra
 import { CreateUpdateItemTrackingApplicationComponent } from '../item-tracking-applications/create-update-item-tracking-application/create-update-item-tracking-application.component';
 import { CreateItemTrackingApplicationComponent } from './create-item-tracking-application/create-item-tracking-application.component';
 import { ReviewItemTrackingApplicationComponent } from './review-item-tracking-application/review-item-tracking-application.component';
+import { ChibiService } from '@shared/service-proxies/chibis/chibis.service';
+import { HttpResponse } from '@angular/common/http';
 
 class PagedItemTrackingApplicationsRequestDto extends PagedRequestDto{
   keyword: string
@@ -25,6 +27,7 @@ export class ItemTrackingApplicationsComponent extends PagedListingComponentBase
   constructor(
     injector: Injector,
     private _itemtrackingapplicationService: ItemTrackingApplicationService,
+    private _chibiService: ChibiService,
     private _modalService: BsModalService
   ){
     super(injector);
@@ -36,6 +39,34 @@ export class ItemTrackingApplicationsComponent extends PagedListingComponentBase
 
   editItemTrackingApplication(entity: ItemTrackingApplicationDto){
     this.showReviewItemTrackingApplicationDialog(entity);
+  }
+
+  exportItemTrackingIds(entity: ItemTrackingApplicationDto){
+    this._chibiService
+    .downloadItemTrackingIds(entity.id)
+    .pipe(
+      finalize(() => {
+      })
+    )
+    .subscribe((res: HttpResponse<Blob>) => {
+      var contentDisposition = res.headers.get("content-disposition");
+      var filename = contentDisposition
+        .split(";")[1]
+        .split("filename")[1]
+        .split("=")[1]
+        .trim();
+      console.log(filename);
+      const blob = new Blob([res.body], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      a.click();
+
+      // Clean up
+      window.URL.revokeObjectURL(url);
+      abp.notify.success(this.l("Successfully Downloaded"));
+    });
   }
 
   private showCreateItemTrackingApplicationDialog(){

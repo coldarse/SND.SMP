@@ -26,6 +26,7 @@ using Microsoft.Extensions.Caching.Memory;
 using System.ComponentModel;
 using SND.SMP.Shared;
 using System.IO;
+using SND.SMP.ItemTrackingReviews;
 
 namespace SND.SMP.Chibis
 {
@@ -34,12 +35,14 @@ namespace SND.SMP.Chibis
         IRepository<Queue, long> queueRepository,
         IRepository<ApplicationSetting, int> applicationSettingRepository,
         IRepository<DispatchValidation, string> dispatchValidationRepository,
+        IRepository<ItemTrackingReview, int> itemTrackingReviewsRepository,
         IMemoryCache memoryCache
     ) : AsyncCrudAppService<Chibi, ChibiDto, long, PagedChibiResultRequestDto>(repository)
     {
         private readonly IRepository<Queue, long> _queueRepository = queueRepository;
         private readonly IRepository<ApplicationSetting, int> _applicationSettingRepository = applicationSettingRepository;
         private readonly IRepository<DispatchValidation, string> _dispatchValidationRepository = dispatchValidationRepository;
+        private readonly IRepository<ItemTrackingReview, int> _itemTrackingReviewsRepository = itemTrackingReviewsRepository;
         private readonly IMemoryCache _memoryCache = memoryCache;
         protected override IQueryable<Chibi> CreateFilteredQuery(PagedChibiResultRequestDto input)
         {
@@ -498,7 +501,21 @@ namespace SND.SMP.Chibis
             return result;
         }
 
+        public async Task<IActionResult> GetItemTrackingIds(int applicationId)
+        {
+            var review = await _itemTrackingReviewsRepository.FirstOrDefaultAsync(x => x.ApplicationId.Equals(applicationId)) ?? throw new UserFriendlyException("Item Tracking Review Not Found!");
+
+            var originalName = string.Format("{0}_{1}_{2}_{3}_{4}.xlsx", review.Prefix, review.PrefixNo, review.Suffix, review.TotalGiven, review.CustomerCode);
+
+            return await GetExcelByOriginalName(originalName);
+        }
+
         public async Task<IActionResult> GetRateWeightBreakTemplate()
+        {
+            return await GetExcelByOriginalName("RateWeightBreakTemplate.xlsx");
+        }
+
+        public async Task<IActionResult> GetExcelByOriginalName(string originalName)
         {
             var chibiKey = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("ChibiKey"));
             var chibiURL = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("ChibiURL"));
@@ -516,7 +533,7 @@ namespace SND.SMP.Chibis
             var body = await response.Content.ReadAsStringAsync();
             GetFilesDto files = Newtonsoft.Json.JsonConvert.DeserializeObject<GetFilesDto>(body);
 
-            var rateWeightBreakTemplate = files.files.FirstOrDefault(x => x.original.Equals("RateWeightBreakTemplate.xlsx"));
+            var rateWeightBreakTemplate = files.files.FirstOrDefault(x => x.original.Equals(originalName));
 
             Stream fileStream = await GetFileStream(rateWeightBreakTemplate.url);
 
@@ -524,7 +541,7 @@ namespace SND.SMP.Chibis
             fileStream.CopyTo(ms);
             return new FileContentResult(ms.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
             {
-                FileDownloadName = "RateWeightBreakTemplate.xlsx"
+                FileDownloadName = originalName
             };
         }
     }

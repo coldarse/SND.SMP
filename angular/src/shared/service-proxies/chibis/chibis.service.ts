@@ -77,4 +77,13 @@ export class ChibiService {
       })
       .pipe(retry(1), catchError(this.errorMessage.HandleErrorResponse));
   }
+
+  downloadItemTrackingIds(applicationId: number) {
+    return this.http
+      .get(this.url + `/api/services/app/Chibi/GetItemTrackingIds?applicationId=${applicationId}`, {
+        responseType: "blob",
+        observe: "response",
+      })
+      .pipe(retry(1), catchError(this.errorMessage.HandleErrorResponse));
+  }
 }
