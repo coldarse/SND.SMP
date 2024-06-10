@@ -1,4 +1,4 @@
-![image](https://github.com/coldarse/SND.SMP/assets/37390180/58b7d03e-a1e8-4ff5-acba-33e870098561)![image](https://github.com/coldarse/SND.SMP/assets/37390180/b320dc66-c850-4e19-bd8f-74a47def9993) # SND SMP
+# SND SMP
 
 ## Introduction
 
