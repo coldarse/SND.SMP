@@ -194,6 +194,74 @@ The guide below will be to install GitHub Desktop on your local machine and pull
 
 ![image](https://github.com/jackywoo1991/images/blob/main/SMP/GITHUB/GITHUB13.png?raw=true)
 
+### Installing Docker Desktop
+
+In this project, we will utilize Docker to deploy our applications.
+
+Below are the steps to install Docker Desktop on your local machine.
+
+1.	Head over to [https://www.docker.com/products/docker-desktop/](https://www.docker.com/products/docker-desktop/) and download Docker Desktop for windows
+
+![image](https://user-images.githubusercontent.com/124862597/228181794-ab2341a7-c0c5-421f-9eba-ad9ed3ae7f09.png)
+
+2.	Click on the `.exe` file to open the installer.
+
+![image](https://user-images.githubusercontent.com/124862597/230108626-0be0f167-699c-480a-b5ae-3668b5e8814a.png)
+
+3.	You will see the Configuration page, you may uncheck **Add shortcut to desktop** if you do not wish for it to, but make sure to check **Use WSL 2**, this will enable you to run both Windows and Linux containers on your Windows machine. Click **Ok**.
+
+![image](https://user-images.githubusercontent.com/124862597/228181855-7ea3a791-e150-4a47-9e5d-9d5513c4c771.png)
+
+4.	The installer will now start installing Docker Desktop. The installation will take a while.
+
+![image](https://user-images.githubusercontent.com/124862597/228181887-a85f2e40-b222-42c0-85c4-c6f3b68ce07e.png)
+
+5.	After the installation is complete, it will prompt you to restart your machine. Click **Close and restart**.
+ 
+![image](https://user-images.githubusercontent.com/124862597/228181908-6b8e07b9-0c90-4d36-a0ec-36432bbcfbcd.png)
+
+6.	After your machine has restarted, Docker Desktop will automatically pop up its Service Agreement. You may read through the agreement if you wish and select **Accept**.
+
+![image](https://user-images.githubusercontent.com/124862597/228181935-15f17cd3-6e39-4088-a789-68585293b948.png)
+
+7.	If you have not previously configured Docker on your machine or have not run any linux related VMs before, you will be prompted to update/install WSL kernel. Follow the link and you will be brought the Step 4 in the link.
+
+![image](https://user-images.githubusercontent.com/124862597/228181955-e1dc35f5-86cc-42d2-bdb8-0f9e26495146.png)
+
+8.	Click on the link to download the installer for the latest WSL kernel.
+
+![image](https://user-images.githubusercontent.com/124862597/228181989-b0720a25-c4f2-440f-90c5-3f30167d1877.png)
+
+9.	Click on the `.msi` file to open the installer.
+
+![image](https://user-images.githubusercontent.com/124862597/228182003-cc271769-36c2-4e42-840d-c82b0b27e9c3.png)
+
+10.	You will be prompted a pop-up to install the WSL. Click **Next**.
+
+![image](https://user-images.githubusercontent.com/124862597/228182026-bc683fd7-bdae-4652-a15a-0fa4bc33f1f6.png)
+
+11.	It will be a quick installation. Click **Finish**.
+ 
+![image](https://user-images.githubusercontent.com/124862597/228182047-4287dd12-103e-446a-8665-345124bf2ccc.png)
+
+12.	Use `Windows Key + S` to open search on Windows and type in **Windows PowerShell** and **Run As Administrator**.
+
+![image](https://user-images.githubusercontent.com/124862597/228182060-90c91299-5279-4bbf-83ae-cc112e51b79c.png)
+ 
+13.	Type in the command `wsl --set-default-version 2` to set the default version of WSL.
+
+![image](https://user-images.githubusercontent.com/124862597/228182086-de779275-ee6e-4b7c-a27f-5014703abbd1.png)
+
+14.	Open Docker Desktop if it’s not already open and you shall see **Docker Desktop Starting** and you shall see a green bar at the bottom left when it has started.
+
+![image](https://user-images.githubusercontent.com/124862597/228182122-a155a45d-786b-4092-be4f-95d93ffa5ce4.png)
+![image](https://user-images.githubusercontent.com/124862597/228182136-b1767c1d-af17-4ee9-a46c-d1cb79319448.png)
+![image](https://user-images.githubusercontent.com/124862597/228182157-22e15876-4bd0-4787-a39a-bbb7e54fe13d.png)
+
+15. The `etc/docker` folder under the main solution contains a `up.ps1` file. Execute it to run the necessary infrastructure services.
+
+![image](https://user-images.githubusercontent.com/124862597/230540470-47d41f36-0039-4f52-a11b-d1758cb38766.png)
+
 ## Installing node version manager
 Node Version Manager (NVM), as the name implies, is a tool for managing Node versions on your device.
 
