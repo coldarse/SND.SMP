@@ -1,4 +1,4 @@
- # SND SMP
+![image](https://github.com/coldarse/SND.SMP/assets/37390180/58b7d03e-a1e8-4ff5-acba-33e870098561)![image](https://github.com/coldarse/SND.SMP/assets/37390180/b320dc66-c850-4e19-bd8f-74a47def9993) # SND SMP
 
 ## Introduction
 
@@ -302,6 +302,59 @@ services:
 10. To run this, simply run the command `docker compose up -d`.
 
 11. The parameter `-d` is to make sure the container is running in the background.
+
+12. You shall see it begin to pull the image from the ChibiSafe Repository (if you don't have the image on your local machine)
+
+13. And when its done pulling, it will start on its own.
+
+![image](https://github.com/coldarse/SND.SMP/assets/37390180/e40b5b65-3693-4a27-8351-aad30ccfc453)
+
+14. If you see the container has been started like the image above, you can now head over to [link](http://localhost:24424) and you will see the page below.
+
+![image](https://github.com/coldarse/SND.SMP/assets/37390180/7d9820ff-3b12-4392-bb8a-c4b87526217d)
+
+15. On the top right corner, click `Login / Register`.
+
+![image](https://github.com/coldarse/SND.SMP/assets/37390180/f500e13a-0ea0-4649-a779-a487f83dbca2)
+
+16. In the `Username` and `Password` key in `admin` on both and click `Sign In`.
+
+![image](https://github.com/coldarse/SND.SMP/assets/37390180/2360ead9-ab17-4ada-899f-c75111a6bda0)
+
+17. You are now logged in to the file server as an admin.
+
+![image](https://github.com/coldarse/SND.SMP/assets/37390180/6eb7638a-5d8f-4b1e-af51-e64e2ecb5f03)
+
+18. You can select the `Credentials` menu under `Account` to change your admin password.
+
+![image](https://github.com/coldarse/SND.SMP/assets/37390180/a4492535-251d-49bd-a5e4-5c6777e26214)
+
+19. This project uses the admin account, so to use this we will need the key for the APIs to verify. Click on `Request new API key` and you will be prompted that this will overwrite the old key, select `Confirm` to generate.
+
+![image](https://github.com/coldarse/SND.SMP/assets/37390180/1912ca29-91d4-4069-a4ab-cd7d09fcb501)
+
+![image](https://github.com/coldarse/SND.SMP/assets/37390180/1c7f800e-e0f4-47f8-bb70-7db904bd7cff)
+
+20. Hover over the textbox to show your generated key and copy it.
+
+21. If you have done the database migration, you will need to insert this into the `applicationsettings` table.
+
+22. Head over to MySQL and locate the `applicationsettings` table. Right click and `Select Rows`
+
+![image](https://github.com/coldarse/SND.SMP/assets/37390180/98eac89f-bb69-4b30-a2c8-8f396b433724)
+
+23. Insert/Update the below 2 records in this table if you do not already have them.
+
+-	`ChibiURL` : `http://localhost:24424/api/`
+-	`ChibiKey` : {_YourGeneratedToken_}
+
+![image](https://github.com/coldarse/SND.SMP/assets/37390180/1fddd239-7b1c-4c84-84e7-2515dc85a837)
+
+24. On the bottom right corner, click `Apply` and `Apply` in the prompt to execute this query for change.
+
+![image](https://github.com/coldarse/SND.SMP/assets/37390180/864169a1-8d7d-417e-84f7-49f80c2b96a8)
+
+![image](https://github.com/coldarse/SND.SMP/assets/37390180/194809a8-1140-4b83-9502-d747a968ab83)
 
 
 ## Installing node version manager
