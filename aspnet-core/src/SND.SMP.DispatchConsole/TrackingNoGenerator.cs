@@ -168,7 +168,7 @@ namespace SND.SMP.DispatchConsole
 
                     string fileName = string.Format("{0}_{1}_{2}_{3}_{4}.xlsx", Prefix, PrefixNo, Suffix, AmountGiven, Customer);
 
-                    ChibiUpload uploadExcel = await InsertExcelFileToChibi(stream, fileName, review.PostalCode, review.ProductCode);
+                    ChibiUpload uploadExcel = await InsertExcelFileToChibi(stream, fileName, originalName: null, postalCode: review.PostalCode, productCode: review.ProductCode);
 
                     application.Path = uploadExcel.url;
                     application.Range = string.Format("{0} - {1}", trackingIds[0].ToString(), trackingIds[^1].ToString());
@@ -258,7 +258,7 @@ namespace SND.SMP.DispatchConsole
                 await dbconn.Chibis.AddAsync(entity);
                 await dbconn.SaveChangesAsync();
 
-                await FileServer.InsertFileToAlbum(result.uuid, true, dbconn, postalCode, null, productCode);
+                await FileServer.InsertFileToAlbum(result.uuid, false, dbconn, postalCode, null, productCode);
             }
 
             return result;
