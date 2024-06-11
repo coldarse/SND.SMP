@@ -119,4 +119,14 @@ export class PostalCountryService {
             catchError(this.errorMessage.HandleErrorResponse),
         )
     }
+
+    getCountries(){
+        return this.http.get(
+            this.url + `/api/services/app/PostalCountry/GetCountries`,
+            this.options_
+        ).pipe(
+            retry(1),
+            catchError(this.errorMessage.HandleErrorResponse),
+        )
+    }
 }

@@ -16,6 +16,8 @@ export class CreateUpdateAirportComponent extends AppComponentBase
   isCreate = true;
   airport?: AirportDto = {} as AirportDto;
 
+  countries: string[] = []; 
+
   @Output() onSave = new EventEmitter<any>();
 
   constructor(
@@ -30,6 +32,10 @@ export class CreateUpdateAirportComponent extends AppComponentBase
     if(this.airport.id != undefined){
       this.isCreate = false;
     }
+  }
+
+  selectedCountry(event: any) {
+    this.airport.country = event.target.value;
   }
 
   save(): void {

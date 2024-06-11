@@ -56,20 +56,15 @@
             {{ 'Country' | localize }}
             </label>
             <div class='col-md-9'>
-            <input
-                type='text'
-                class='form-control'
-                name='country'
-                id='country'
-                required
-                [(ngModel)]='airport.country'
-                #countryModel='ngModel'
-                #countryEl
-            />
-            <abp-validation-summary
-                [control]='countryModel'
-                [controlEl]='countryEl'
-            ></abp-validation-summary>
+            <select 
+                name="countries" 
+                id="countries"
+                class="form-control"
+                (change)="selectedCountry($event)"
+                [(ngModel)]="airport.country"
+            >
+                <option value="{{country}}" *ngFor="let country of countries">{{ country }}</option>
+            </select>
             </div>
         </div>
     </div>

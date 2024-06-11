@@ -5,6 +5,7 @@ import { finalize } from 'rxjs/operators';
 import { AirportDto } from '@shared/service-proxies/airports/model'
 import { AirportService } from '@shared/service-proxies/airports/airport.service'
 import { CreateUpdateAirportComponent } from '../airports/create-update-airport/create-update-airport.component'
+import { PostalCountryService } from '@shared/service-proxies/postal-countries/postal-country.service';
 
 class PagedAirportsRequestDto extends PagedRequestDto{
   keyword: string
@@ -19,10 +20,12 @@ export class AirportsComponent extends PagedListingComponentBase<AirportDto> {
 
   keyword = '';
   airports: any[] = [];
+  countries: string[] = [];
 
   constructor(
     injector: Injector,
     private _airportService: AirportService,
+    private _postalCountryService: PostalCountryService,
     private _modalService: BsModalService
   ){
     super(injector);
@@ -43,6 +46,9 @@ export class AirportsComponent extends PagedListingComponentBase<AirportDto> {
         CreateUpdateAirportComponent,
         {
           class: 'modal-lg',
+          initialState: {
+            countries: this.countries
+          },
         }
       );
     }
@@ -52,7 +58,8 @@ export class AirportsComponent extends PagedListingComponentBase<AirportDto> {
         {
           class: 'modal-lg',
           initialState: {
-            airport: entity
+            airport: entity,
+            countries: this.countries
           },
         }
       );
@@ -103,18 +110,21 @@ export class AirportsComponent extends PagedListingComponentBase<AirportDto> {
     )
     .subscribe((result: any) => {
       this.airports = [];
-        result.result.items.forEach((element: AirportDto) => {
+      result.result.items.forEach((element: AirportDto) => {
 
-          let tempAirport = {
-            id: element.id,
-            name: element.name,
-            code: element.code,
-            country: element.country,
-          }
+        let tempAirport = {
+          id: element.id,
+          name: element.name,
+          code: element.code,
+          country: element.country,
+        }
 
-          this.airports.push(tempAirport);
-        });
-      this.showPaging(result.result, pageNumber);
+        this.airports.push(tempAirport);
+      });
+      this._postalCountryService.getCountries().subscribe((data: any) => {
+        this.countries = data.result;
+        this.showPaging(result.result, pageNumber);
+      });
     });
   }
 }
