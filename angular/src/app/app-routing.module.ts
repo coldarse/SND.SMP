@@ -9,6 +9,7 @@ import { TenantsComponent } from "./tenants/tenants.component";
 import { RolesComponent } from "app/roles/roles.component";
 import { ChangePasswordComponent } from "./users/change-password/change-password.component";
 /* Insert Routing Import */
+import { AirportsComponent } from './airports/airports.component';
 import { ItemTrackingApplicationsComponent } from "./item-tracking-applications/item-tracking-application.component";
 import { IMPCSComponent } from "./impcs/impcs.component";
 import { RefundsComponent } from "./refunds/refunds.component";
@@ -71,6 +72,7 @@ import { DispatchTrackingComponent } from "./dispatch-tracking/dispatch-tracking
             canActivate: [AppRouteGuard],
           },
           /* Insert Path */
+                    { path: 'airports', data: { permission: 'Pages.Airport' }, component: AirportsComponent, canActivate: [AppRouteGuard] },
           {
             path: "item-tracking-applications",
             data: { permission: "Pages.ItemTrackingApplication" },

@@ -194,7 +194,7 @@ The guide below will be to install GitHub Desktop on your local machine and pull
 
 ![image](https://github.com/jackywoo1991/images/blob/main/SMP/GITHUB/GITHUB13.png?raw=true)
 
-### Installing Docker Desktop
+## Installing Docker Desktop
 
 In this project, we will utilize Docker to deploy our applications.
 

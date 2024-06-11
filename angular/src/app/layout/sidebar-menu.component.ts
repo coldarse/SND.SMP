@@ -77,10 +77,16 @@ export class SidebarMenuComponent extends AppComponentBase implements OnInit {
       ),
       /* Insert Menu Path */
       new MenuItem(
-        this.l('Item Tracking'),
-        '/app/item-tracking-applications',
-        'fas fa-magnifying-glass-location',
-        'Pages.ItemTrackingApplication'
+        this.l("Airports"),
+        "/app/airports",
+        "fas fa-plane-arrival",
+        "Pages.Airport"
+      ),
+      new MenuItem(
+        this.l("Item Tracking"),
+        "/app/item-tracking-applications",
+        "fas fa-magnifying-glass-location",
+        "Pages.ItemTrackingApplication"
       ),
       new MenuItem(
         this.l("IMPCS"),

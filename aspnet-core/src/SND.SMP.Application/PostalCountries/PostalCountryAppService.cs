@@ -107,5 +107,18 @@ namespace SND.SMP.PostalCountries
 
             return postalCountries;
         }
+
+        public async Task<List<string>> GetCountries()
+        {
+            var postalCountries = await Repository.GetAllListAsync();
+
+            var distinctedCountries = postalCountries.DistinctBy(x => x.CountryCode);
+
+            List<string> countries = [];
+
+            foreach(var dc in distinctedCountries) countries.Add(dc.CountryCode);
+
+            return countries;
+        }
     }
 }

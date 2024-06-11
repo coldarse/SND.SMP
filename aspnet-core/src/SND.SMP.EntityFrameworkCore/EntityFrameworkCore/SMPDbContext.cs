@@ -4,6 +4,7 @@ using SND.SMP.Authorization.Roles;
 using SND.SMP.Authorization.Users;
 using SND.SMP.MultiTenancy;
 /* Using Definition */
+using SND.SMP.Airports;
 using SND.SMP.ItemTrackings;
 using SND.SMP.ItemIdRunningNos;
 using SND.SMP.ItemTrackingReviews;
@@ -64,6 +65,7 @@ namespace SND.SMP.EntityFrameworkCore
         public DbSet<ItemTrackingReview> ItemTrackingReviews { get; set; }
         public DbSet<ItemIdRunningNo> ItemIdRunningNos { get; set; }
         public DbSet<ItemTracking> ItemTrackings { get; set; }
+        public DbSet<Airport> Airports { get; set; }
         /* Define a DbSet for each entity of the application */
 
         public SMPDbContext(DbContextOptions<SMPDbContext> options)
@@ -76,6 +78,15 @@ namespace SND.SMP.EntityFrameworkCore
             base.OnModelCreating(builder);
 
             /* Define Tables */
+            builder.Entity<Airport>(b =>
+            {
+                b.ToTable(SMPConsts.DbTablePrefix + "Airports");
+                b.Property(x => x.Name).HasColumnName(nameof(Airport.Name)).HasMaxLength(256);
+                b.Property(x => x.Code).HasColumnName(nameof(Airport.Code)).HasMaxLength(32);
+                b.Property(x => x.Country).HasColumnName(nameof(Airport.Country)).HasMaxLength(2);
+                b.HasKey(x => x.Id);
+            });
+
             builder.Entity<ItemTracking>(b =>
             {
                 b.ToTable(SMPConsts.DbTablePrefix + "ItemTrackings");

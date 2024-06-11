@@ -10,6 +10,11 @@ namespace SND.SMP.Authorization
         public const string Pages_Roles = "Pages.Roles";
 
         /* Define your permissions here */
+        public const string Pages_Airport = "Pages.Airport";
+        public const string Pages_Airport_Create = "Pages.Airport.Create";
+        public const string Pages_Airport_Edit = "Pages.Airport.Edit";
+        public const string Pages_Airport_Delete = "Pages.Airport.Delete";
+
         public const string Pages_ItemTracking = "Pages.ItemTracking";
         public const string Pages_ItemTracking_Create = "Pages.ItemTracking.Create";
         public const string Pages_ItemTracking_Edit = "Pages.ItemTracking.Edit";
