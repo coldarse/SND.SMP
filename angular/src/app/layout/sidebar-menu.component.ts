@@ -132,6 +132,12 @@ export class SidebarMenuComponent extends AppComponentBase implements OnInit {
         "Pages.Dispatch"
       ),
       new MenuItem(
+        this.l("Dispatch Tracking"),
+        "/app/dispatch-tracking",
+        "fas fa-thumbtack",
+        "Pages.Dispatch"
+      ),
+      new MenuItem(
         this.l("Queues"),
         "/app/queues",
         "fas fa-arrow-down-wide-short",

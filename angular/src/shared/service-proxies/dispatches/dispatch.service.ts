@@ -157,9 +157,10 @@ export class DispatchService {
       .pipe(retry(1), catchError(this.errorMessage.HandleErrorResponse));
   }
 
-  // Get Dispatch Info 
-  getDispatchInfoListPaged(body: PagedDispatchResultRequestDto){
-    let url_ = this.url + "/api/services/app/Dispatch/GetDispatchInfoListPaged?";
+  // Get Dispatch Info
+  getDispatchInfoListPaged(body: PagedDispatchResultRequestDto) {
+    let url_ =
+      this.url + "/api/services/app/Dispatch/GetDispatchInfoListPaged?";
 
     if (body.keyword === null)
       throw new Error("The parameter 'keyword' cannot be null.");
@@ -186,53 +187,69 @@ export class DispatchService {
       .pipe(retry(1), catchError(this.errorMessage.HandleErrorResponse));
   }
 
-  downloadManifest(dispatchNo: string, isPreCheckWeight: boolean){
+  downloadManifest(dispatchNo: string, isPreCheckWeight: boolean) {
     return this.http
       .get(
-        this.url + `/api/services/app/Dispatch/DownloadDispatchManifest?dispatchNo=${dispatchNo}&isPreCheckWeight=${isPreCheckWeight}`,
-        { responseType: 'blob', observe: 'response' }
+        this.url +
+          `/api/services/app/Dispatch/DownloadDispatchManifest?dispatchNo=${dispatchNo}&isPreCheckWeight=${isPreCheckWeight}`,
+        { responseType: "blob", observe: "response" }
       )
-      .pipe(
-        retry(1), 
-        catchError(this.errorMessage.HandleErrorResponse)
-      );
+      .pipe(retry(1), catchError(this.errorMessage.HandleErrorResponse));
   }
 
-  downloadBag(dispatchNo: string, isPreCheckWeight: boolean){
+  downloadBag(dispatchNo: string, isPreCheckWeight: boolean) {
     return this.http
-    .get(
-      this.url + `/api/services/app/Dispatch/DownloadDispatchBag?dispatchNo=${dispatchNo}&isPreCheckWeight=${isPreCheckWeight}`,
-      { responseType: 'blob', observe: 'response' }
-    )
-    .pipe(
-      retry(1), 
-      catchError(this.errorMessage.HandleErrorResponse)
-    );
+      .get(
+        this.url +
+          `/api/services/app/Dispatch/DownloadDispatchBag?dispatchNo=${dispatchNo}&isPreCheckWeight=${isPreCheckWeight}`,
+        { responseType: "blob", observe: "response" }
+      )
+      .pipe(retry(1), catchError(this.errorMessage.HandleErrorResponse));
   }
 
   //Get Dashboard Dispatch
   getDashboardDispatchInfo(isAdmin: boolean, top: number, customer: string) {
     return this.http
-    .get(
-      isAdmin ? 
-        this.url + `/api/services/app/Dispatch/GetDashboardDispatchInfo?isAdmin=${isAdmin}&top=${top}` :
-        this.url + `/api/services/app/Dispatch/GetDashboardDispatchInfo?isAdmin=${isAdmin}&top=${top}&customerCode=${customer}`,
-      this.options_
-    )
-    .pipe(retry(1), catchError(this.errorMessage.HandleErrorResponse));
+      .get(
+        isAdmin
+          ? this.url +
+              `/api/services/app/Dispatch/GetDashboardDispatchInfo?isAdmin=${isAdmin}&top=${top}`
+          : this.url +
+              `/api/services/app/Dispatch/GetDashboardDispatchInfo?isAdmin=${isAdmin}&top=${top}&customerCode=${customer}`,
+        this.options_
+      )
+      .pipe(retry(1), catchError(this.errorMessage.HandleErrorResponse));
   }
 
-  private getFilenameFromContentDisposition(contentDisposition: string): string {
+  getDispatchesForTracking(filter?: string, countryCode?: string) {
+    let completeUrl =
+      this.url + "/api/services/app/Dispatch/GetDispatchesForTracking";
+
+    if (filter != undefined && countryCode != undefined)
+      completeUrl =
+        completeUrl + `?filter=${filter}&countryCode=${countryCode}`;
+    else {
+      if (countryCode != undefined)
+        completeUrl = completeUrl + `?countryCode=${countryCode}`;
+      if (filter != undefined) completeUrl = completeUrl + `?filter=${filter}`;
+    }
+
+    return this.http
+      .get(completeUrl, this.options_)
+      .pipe(retry(1), catchError(this.errorMessage.HandleErrorResponse));
+  }
+
+  private getFilenameFromContentDisposition(
+    contentDisposition: string
+  ): string {
     if (!contentDisposition) {
-      return '';
+      return "";
     }
     const filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
     const matches = filenameRegex.exec(contentDisposition);
     if (!matches || !matches[1]) {
-      return '';
+      return "";
     }
-    return matches[1].replace(/['"]/g, '');
+    return matches[1].replace(/['"]/g, "");
   }
-
-  
 }

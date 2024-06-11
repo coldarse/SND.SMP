@@ -140,6 +140,8 @@ import { CardsComponent } from "./cards/cards.component";
 import { CreateItemTrackingApplicationComponent } from "./item-tracking-applications/create-item-tracking-application/create-item-tracking-application.component";
 import { ReviewItemTrackingApplicationComponent } from "./item-tracking-applications/review-item-tracking-application/review-item-tracking-application.component";
 
+import { DispatchTrackingComponent } from "./dispatch-tracking/dispatch-tracking.component";
+
 @NgModule({
   declarations: [
     AppComponent,
@@ -222,6 +224,7 @@ import { ReviewItemTrackingApplicationComponent } from "./item-tracking-applicat
     PrePostCheckWeightComponent,
     CreateItemTrackingApplicationComponent,
     ReviewItemTrackingApplicationComponent,
+    DispatchTrackingComponent,
   ],
   imports: [
     CommonModule,

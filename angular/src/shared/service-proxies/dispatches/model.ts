@@ -179,3 +179,35 @@ export interface Zip {
   blob: Blob;
   filename: string;
 }
+
+export interface DispatchBag {
+  bagId: number;
+  bagNo: string;
+  itemCount: number;
+  select: boolean;
+}
+
+export interface DispatchCountry {
+  bagCount: number;
+  countryCode: string;
+  dispatchBags: DispatchBag[];
+  open: boolean;
+}
+
+export interface DispatchInfo {
+  dispatch: string;
+  dispatchId: number;
+  dispatchDate: string;
+  postalCode: string;
+  status: number;
+  customer: string;
+  open: boolean;
+  dispatchCountries: DispatchCountry[];
+}
+
+export interface DispatchTracking {
+  dispatches: DispatchInfo[];
+  countries: string[]
+}
+
+

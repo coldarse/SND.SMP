@@ -136,7 +136,7 @@ namespace SND.SMP.Dispatches
                 CurrencyId = rateItem.CurrencyId,
             };
         }
-        private byte[] CreateSLManifestExcelFile(List<SLManifest> dataList)
+        private static byte[] CreateSLManifestExcelFile(List<SLManifest> dataList)
         {
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
             using ExcelPackage package = new();
@@ -157,7 +157,7 @@ namespace SND.SMP.Dispatches
             }
             return package.GetAsByteArray();
         }
-        private byte[] CreateGQManifestExcelFile(List<GQManifest> dataList)
+        private static byte[] CreateGQManifestExcelFile(List<GQManifest> dataList)
         {
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
             using ExcelPackage package = new();
@@ -178,7 +178,7 @@ namespace SND.SMP.Dispatches
             }
             return package.GetAsByteArray();
         }
-        private byte[] CreateKGManifestExcelFile(List<KGManifest> dataList)
+        private static byte[] CreateKGManifestExcelFile(List<KGManifest> dataList)
         {
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
             using ExcelPackage package = new();
@@ -200,7 +200,7 @@ namespace SND.SMP.Dispatches
             }
             return package.GetAsByteArray();
         }
-        private byte[] CreateSLBagExcelFile(List<SLBag> dataList)
+        private static byte[] CreateSLBagExcelFile(List<SLBag> dataList)
         {
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
             using ExcelPackage package = new();
@@ -221,7 +221,7 @@ namespace SND.SMP.Dispatches
             }
             return package.GetAsByteArray();
         }
-        private byte[] CreateGQBagExcelFile(List<GQBag> dataList)
+        private static byte[] CreateGQBagExcelFile(List<GQBag> dataList)
         {
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
             using ExcelPackage package = new();
@@ -242,7 +242,7 @@ namespace SND.SMP.Dispatches
             }
             return package.GetAsByteArray();
         }
-        private byte[] CreateKGBagExcelFile(List<KGBag> dataList)
+        private static byte[] CreateKGBagExcelFile(List<KGBag> dataList)
         {
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
             using ExcelPackage package = new();
@@ -1138,7 +1138,7 @@ namespace SND.SMP.Dispatches
 
             return result;
         }
-        private string RemoveKGForbiddenKeywords(string description)
+        private static string RemoveKGForbiddenKeywords(string description)
         {
             var result = description;
 
@@ -2412,5 +2412,81 @@ namespace SND.SMP.Dispatches
             }
         }
 
+        public async Task<DispatchTracking> GetDispatchesForTracking(string filter = null, string countryCode = null)
+        {
+            List<DispatchInfo> result = [];
+            List<string> countries = [];
+
+            var dispatches = await Repository.GetAllListAsync();
+
+            foreach (var dispatch in dispatches)
+            {
+                DispatchInfo dt = new()
+                {
+                    Dispatch = dispatch.DispatchNo,
+                    DispatchId = dispatch.Id,
+                    DispatchDate = (DateOnly)dispatch.DispatchDate,
+                    PostalCode = dispatch.PostalCode,
+                    Status = (int)dispatch.Status,
+                    Customer = dispatch.CustomerCode,
+                    Open = false,
+                };
+
+                var bags = await _bagRepository.GetAllListAsync(x => x.DispatchId.Equals(dispatch.Id));
+
+                List<DispatchCountry> dc = [];
+
+                var distinctedCountryCode = bags.DistinctBy(x => x.CountryCode).ToList();
+
+                foreach (var country in distinctedCountryCode) countries.Add(country.CountryCode);
+
+                if (countryCode is not null) distinctedCountryCode = distinctedCountryCode.Where(x => x.CountryCode.Equals(countryCode)).ToList();
+
+                if (distinctedCountryCode.Count != 0)
+                {
+                    foreach (var country in distinctedCountryCode)
+                    {
+                        var bagsInCountry = bags.Where(x => x.CountryCode.Equals(country.CountryCode)).ToList();
+
+                        List<DispatchBag> db = [];
+                        foreach (var bag in bagsInCountry)
+                        {
+                            db.Add(new DispatchBag()
+                            {
+                                BagId = bag.Id,
+                                BagNo = bag.BagNo,
+                                ItemCount = bag.ItemCountPost == null ? 0 : (int)bag.ItemCountPost,
+                                Select = false,
+                            });
+                        }
+
+                        dc.Add(new DispatchCountry()
+                        {
+                            CountryCode = country.CountryCode,
+                            BagCount = bagsInCountry.Count,
+                            DispatchBags = db
+                        });
+                    }
+
+                    dt.DispatchCountries = dc;
+
+                    result.Add(dt);
+                }
+            }
+
+            if (filter is not null)
+            {
+                result = result.Where(x =>
+                            x.Dispatch.Contains(filter) ||
+                            x.PostalCode.Contains(filter) ||
+                            x.Customer.Contains(filter)
+                        ).ToList();
+            }
+
+            return new DispatchTracking(){
+                Dispatches = result,
+                Countries = countries.Distinct().ToList()
+            };
+        }
     }
 }

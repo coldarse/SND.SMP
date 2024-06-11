@@ -32,6 +32,7 @@ import { RateItemsComponent } from "./rate-items/rate-items.component";
 import { CustomerTransactionsComponent } from "./customer-transactions/customer-transactions.component";
 import { PreAlertComponent } from "./pre-alerts/pre-alerts.component";
 import { PostChecksComponent } from "./post-checks/post-checks.component";
+import { DispatchTrackingComponent } from "./dispatch-tracking/dispatch-tracking.component";
 
 @NgModule({
   imports: [
@@ -134,6 +135,12 @@ import { PostChecksComponent } from "./post-checks/post-checks.component";
             path: "dispatches",
             data: { permission: "Pages.Dispatch" },
             component: DispatchesComponent,
+            canActivate: [AppRouteGuard],
+          },
+          {
+            path: "dispatch-tracking",
+            data: { permission: "Pages.Dispatch" },
+            component: DispatchTrackingComponent,
             canActivate: [AppRouteGuard],
           },
           {
