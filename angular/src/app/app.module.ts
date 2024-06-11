@@ -39,6 +39,10 @@ import { SidebarLogoComponent } from "./layout/sidebar-logo.component";
 import { SidebarUserPanelComponent } from "./layout/sidebar-user-panel.component";
 import { SidebarMenuComponent } from "./layout/sidebar-menu.component";
 /* Insert Import */
+import { AirportsComponent } from './airports/airports.component';
+import { CreateUpdateAirportComponent } from './airports/create-update-airport/create-update-airport.component';
+import { AirportService } from '@shared/service-proxies/airports/airport.service';
+
 import { ItemTrackingReviewService } from "@shared/service-proxies/item-tracking-reviews/item-tracking-review.service";
 import { ItemTrackingApplicationsComponent } from "./item-tracking-applications/item-tracking-application.component";
 import { CreateUpdateItemTrackingApplicationComponent } from "./item-tracking-applications/create-update-item-tracking-application/create-update-item-tracking-application.component";
@@ -170,6 +174,8 @@ import { ReviewItemTrackingApplicationComponent } from "./item-tracking-applicat
     SidebarUserPanelComponent,
     SidebarMenuComponent,
     /* Insert Component */
+        AirportsComponent,
+        CreateUpdateAirportComponent,
     ItemTrackingApplicationsComponent,
     CreateUpdateItemTrackingApplicationComponent,
     IMPCSComponent,
@@ -241,6 +247,7 @@ import { ReviewItemTrackingApplicationComponent } from "./item-tracking-applicat
   ],
   providers: [
     /* Insert Service */
+        AirportService,
     ItemTrackingReviewService,
     ItemTrackingApplicationService,
     IMPCService,

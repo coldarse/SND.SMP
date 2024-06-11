@@ -1,0 +1,81 @@
+<form
+    class='form-horizontal'
+    autocomplete='off'
+    #createAirportModal='ngForm'
+    (ngSubmit)='save()'
+>
+    <abp-modal-header
+        [title]='isCreate == true? ("Add Airport" | localize) : ("Edit Airport" | localize)'
+        (onCloseClick)='bsModalRef.hide()'
+    ></abp-modal-header>
+    <div class='modal-body'>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='name'>
+            {{ 'Name' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='text'
+                class='form-control'
+                name='name'
+                id='name'
+                required
+                [(ngModel)]='airport.name'
+                #nameModel='ngModel'
+                #nameEl
+            />
+            <abp-validation-summary
+                [control]='nameModel'
+                [controlEl]='nameEl'
+            ></abp-validation-summary>
+            </div>
+        </div>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='code'>
+            {{ 'Code' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='text'
+                class='form-control'
+                name='code'
+                id='code'
+                required
+                [(ngModel)]='airport.code'
+                #codeModel='ngModel'
+                #codeEl
+            />
+            <abp-validation-summary
+                [control]='codeModel'
+                [controlEl]='codeEl'
+            ></abp-validation-summary>
+            </div>
+        </div>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='country'>
+            {{ 'Country' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='text'
+                class='form-control'
+                name='country'
+                id='country'
+                required
+                [(ngModel)]='airport.country'
+                #countryModel='ngModel'
+                #countryEl
+            />
+            <abp-validation-summary
+                [control]='countryModel'
+                [controlEl]='countryEl'
+            ></abp-validation-summary>
+            </div>
+        </div>
+    </div>
+    <abp-modal-footer
+    [cancelDisabled]='saving'
+    [saveDisabled]='!createAirportModal.form.valid || saving'
+    (onCancelClick)='bsModalRef.hide()'
+    ></abp-modal-footer>
+</form>
