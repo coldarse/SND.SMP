@@ -127,7 +127,7 @@ namespace SND.SMP.RateItems
 
             return new FullRateItemDetailDto()
             {
-                PagedRateItemResultDto = new PagedResultDto<RateItemDetailDto>(totalCount, [..detailed]),
+                PagedRateItemResultDto = new PagedResultDto<RateItemDetailDto>(totalCount, [.. detailed]),
                 Rates = rates
             };
         }
@@ -177,17 +177,20 @@ namespace SND.SMP.RateItems
             List<RateItemExcel> rateItemExcel = [];
             foreach (DataRow dr in dataTable.Rows)
             {
-                rateItemExcel.Add(new RateItemExcel()
+                if (dr.ItemArray[0].ToString() != "")
                 {
-                    RateCard = dr.ItemArray[0].ToString(),
-                    ServiceCode = dr.ItemArray[1].ToString(),
-                    ProductCode = dr.ItemArray[2].ToString(),
-                    CountryCode = dr.ItemArray[3].ToString(),
-                    Total = dr.ItemArray[4].ToString() == "" ? 0 : Convert.ToDecimal(dr.ItemArray[4]),
-                    Fee = dr.ItemArray[5].ToString() == "" ? 0 : Convert.ToDecimal(dr.ItemArray[5]),
-                    Currency = dr.ItemArray[6].ToString(),
-                    PaymentMode = dr.ItemArray[7].ToString()
-                });
+                    rateItemExcel.Add(new RateItemExcel()
+                    {
+                        RateCard = dr.ItemArray[0].ToString(),
+                        ServiceCode = dr.ItemArray[1].ToString(),
+                        ProductCode = dr.ItemArray[2].ToString(),
+                        CountryCode = dr.ItemArray[3].ToString(),
+                        Total = dr.ItemArray[4].ToString() == "" ? 0 : Convert.ToDecimal(dr.ItemArray[4]),
+                        Fee = dr.ItemArray[5].ToString() == "" ? 0 : Convert.ToDecimal(dr.ItemArray[5]),
+                        Currency = dr.ItemArray[6].ToString(),
+                        PaymentMode = dr.ItemArray[7].ToString()
+                    });
+                }
             }
 
             var distinctedByRateCards = rateItemExcel.DistinctBy(x => x.RateCard);

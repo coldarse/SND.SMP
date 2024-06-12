@@ -85,11 +85,14 @@ namespace SND.SMP.PostalCountries
             List<PostalCountryExcel> postalCountryExcel = [];
             foreach (DataRow dr in dataTable.Rows)
             {
-                postalCountryExcel.Add(new PostalCountryExcel()
+                if (dr.ItemArray[0].ToString() != "")
                 {
-                    PostalCode = dr.ItemArray[0].ToString(),
-                    CountryCode = dr.ItemArray[1].ToString(),
-                });
+                    postalCountryExcel.Add(new PostalCountryExcel()
+                    {
+                        PostalCode = dr.ItemArray[0].ToString(),
+                        CountryCode = dr.ItemArray[1].ToString(),
+                    });
+                }
             }
 
             await Repository.GetDbContext().Database.ExecuteSqlRawAsync("TRUNCATE TABLE smpdb.postalcountries");
@@ -117,7 +120,7 @@ namespace SND.SMP.PostalCountries
 
             List<string> countries = [];
 
-            foreach(var dc in distinctedCountries) countries.Add(dc.CountryCode);
+            foreach (var dc in distinctedCountries) countries.Add(dc.CountryCode);
 
             return countries;
         }

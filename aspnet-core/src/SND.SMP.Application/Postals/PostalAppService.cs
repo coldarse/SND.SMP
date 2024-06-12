@@ -148,16 +148,19 @@ namespace SND.SMP.Postals
             List<PostalExcel> postalExcel = [];
             foreach (DataRow dr in dataTable.Rows)
             {
-                postalExcel.Add(new PostalExcel()
+                if (dr.ItemArray[0].ToString() != "")
                 {
-                    PostalCode = dr.ItemArray[0].ToString(),
-                    PostalDesc = dr.ItemArray[1].ToString(),
-                    ServiceDesc = dr.ItemArray[2].ToString(),
-                    ServiceCode = dr.ItemArray[3].ToString(),
-                    ProductDesc = dr.ItemArray[4].ToString(),
-                    ProductCode = dr.ItemArray[5].ToString(),
-                    ItemTopUpValue = dr.ItemArray[6].ToString() == "" ? 0 : Convert.ToDecimal(dr.ItemArray[6]),
-                });
+                    postalExcel.Add(new PostalExcel()
+                    {
+                        PostalCode = dr.ItemArray[0].ToString(),
+                        PostalDesc = dr.ItemArray[1].ToString(),
+                        ServiceDesc = dr.ItemArray[2].ToString(),
+                        ServiceCode = dr.ItemArray[3].ToString(),
+                        ProductDesc = dr.ItemArray[4].ToString(),
+                        ProductCode = dr.ItemArray[5].ToString(),
+                        ItemTopUpValue = dr.ItemArray[6].ToString() == "" ? 0 : Convert.ToDecimal(dr.ItemArray[6]),
+                    });
+                }
             }
 
             var distinctedByPostalCode = postalExcel.DistinctBy(x => x.PostalCode?[0..Math.Min(x.PostalCode.Length, 2)]);

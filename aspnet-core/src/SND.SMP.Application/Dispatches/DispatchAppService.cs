@@ -1713,13 +1713,16 @@ namespace SND.SMP.Dispatches
             List<Bag> bags = [];
             foreach (DataRow dr in dataTable.Rows)
             {
-                bags.Add(new Bag()
+                if (dr.ItemArray[4].ToString() != "")
                 {
-                    BagNo = dr.ItemArray[4].ToString(),
-                    WeightPost = dr.ItemArray[6] is null ? 0 : Convert.ToDecimal(dr.ItemArray[6]),
-                    ItemCountPost = dr.ItemArray[7] is null ? 0 : Convert.ToInt32(dr.ItemArray[7]),
-                    WeightVariance = 0,
-                });
+                    bags.Add(new Bag()
+                    {
+                        BagNo = dr.ItemArray[4].ToString(),
+                        WeightPost = dr.ItemArray[6] is null ? 0 : Convert.ToDecimal(dr.ItemArray[6]),
+                        ItemCountPost = dr.ItemArray[7] is null ? 0 : Convert.ToInt32(dr.ItemArray[7]),
+                        WeightVariance = 0,
+                    });
+                }
             }
 
             int postCheckTotalBags = bags.Count;
