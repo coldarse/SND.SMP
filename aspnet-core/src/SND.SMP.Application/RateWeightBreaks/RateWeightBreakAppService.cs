@@ -19,6 +19,7 @@ using SND.SMP.Currencies;
 using SND.SMP.Rates;
 using System.Configuration.Internal;
 using Microsoft.EntityFrameworkCore;
+using Abp.Linq.Extensions;
 using System.Text.Json;
 
 namespace SND.SMP.RateWeightBreaks
@@ -40,7 +41,7 @@ namespace SND.SMP.RateWeightBreaks
                 .WhereIf(!input.Keyword.IsNullOrWhiteSpace(), x =>
                     x.PostalOrgId.Contains(input.Keyword) ||
                     x.ProductCode.Contains(input.Keyword) ||
-                    x.PaymentMode.Contains(input.Keyword)).AsQueryable();
+                    x.PaymentMode.Contains(input.Keyword));
         }
 
         #region Private Functions

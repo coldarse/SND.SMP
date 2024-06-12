@@ -3,6 +3,7 @@ using Abp.Application.Services;
 using Abp.Extensions;
 using Abp.Collections.Extensions;
 using Abp.Domain.Repositories;
+using Abp.Linq.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,7 +18,7 @@ namespace SND.SMP.Rates
         {
             return Repository.GetAllIncluding()
                 .WhereIf(!input.Keyword.IsNullOrWhiteSpace(), x =>
-                    x.CardName.Contains(input.Keyword)).AsQueryable();
+                    x.CardName.Contains(input.Keyword));
         }
 
         public async Task<List<Rate>> GetRates()

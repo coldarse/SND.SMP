@@ -3,6 +3,7 @@ using Abp.Application.Services;
 using Abp.Extensions;
 using Abp.Collections.Extensions;
 using Abp.Domain.Repositories;
+using Abp.Linq.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,7 +26,7 @@ namespace SND.SMP.PostalCountries
             return Repository.GetAllIncluding()
                 .WhereIf(!input.Keyword.IsNullOrWhiteSpace(), x =>
                     x.PostalCode.Contains(input.Keyword) ||
-                    x.CountryCode.Contains(input.Keyword)).AsQueryable();
+                    x.CountryCode.Contains(input.Keyword));
         }
 
         private async Task<DataTable> ConvertToDatatable(Stream ms)

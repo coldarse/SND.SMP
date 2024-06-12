@@ -9,7 +9,7 @@ import { TenantsComponent } from "./tenants/tenants.component";
 import { RolesComponent } from "app/roles/roles.component";
 import { ChangePasswordComponent } from "./users/change-password/change-password.component";
 /* Insert Routing Import */
-import { AirportsComponent } from './airports/airports.component';
+import { AirportsComponent } from "./airports/airports.component";
 import { ItemTrackingApplicationsComponent } from "./item-tracking-applications/item-tracking-application.component";
 import { IMPCSComponent } from "./impcs/impcs.component";
 import { RefundsComponent } from "./refunds/refunds.component";
@@ -71,7 +71,12 @@ import { PostChecksComponent } from "./post-checks/post-checks.component";
             canActivate: [AppRouteGuard],
           },
           /* Insert Path */
-                    { path: 'airports', data: { permission: 'Pages.Airport' }, component: AirportsComponent, canActivate: [AppRouteGuard] },
+          {
+            path: "airports",
+            data: { permission: "Pages.Airport" },
+            component: AirportsComponent,
+            canActivate: [AppRouteGuard],
+          },
           {
             path: "item-tracking-applications",
             data: { permission: "Pages.ItemTrackingApplication" },
@@ -150,7 +155,7 @@ import { PostChecksComponent } from "./post-checks/post-checks.component";
             canActivate: [AppRouteGuard],
           },
           {
-            path: "rate-weight-breaks",
+            path: "de-rates",
             data: { permission: "Pages.RateWeightBreak" },
             component: RateWeightBreaksComponent,
             canActivate: [AppRouteGuard],
@@ -198,7 +203,7 @@ import { PostChecksComponent } from "./post-checks/post-checks.component";
             canActivate: [AppRouteGuard],
           },
           {
-            path: "rate-items",
+            path: "ts-rates",
             data: { permission: "Pages.RateItem" },
             component: RateItemsComponent,
             canActivate: [AppRouteGuard],
