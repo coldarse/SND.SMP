@@ -535,6 +535,7 @@ namespace SND.SMP.EntityFrameworkCore
                 b.ToTable(SMPConsts.DbTablePrefix + "Rates");
                 b.Property(x => x.CardName).HasColumnName(nameof(Rate.CardName)).HasMaxLength(50);
                 b.Property(x => x.Count).HasColumnName(nameof(Rate.Count));
+                b.Property(x => x.Service).HasColumnName(nameof(Rate.Service)).HasMaxLength(2);
                 b.HasKey(x => x.Id);
             });
 

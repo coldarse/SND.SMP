@@ -10,5 +10,6 @@ namespace SND.SMP.Rates
     {
         public string CardName { get; set; }
         public long Count { get; set; }
+        public string Service { get; set; }
     }
 }

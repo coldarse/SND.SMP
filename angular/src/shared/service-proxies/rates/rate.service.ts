@@ -112,10 +112,10 @@ export class RateService {
         )
     }
 
-    //Get All Rates Without Pagination
-    getRates(){
+    //Get All DE Rates Without Pagination
+    getDERates(){
         return this.http.get(
-            this.url + `/api/services/app/Rate/GetRates`,
+            this.url + `/api/services/app/Rate/GetDERates`,
             this.options_
         ).pipe(
             retry(1),

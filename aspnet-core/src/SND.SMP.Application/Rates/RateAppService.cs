@@ -21,9 +21,9 @@ namespace SND.SMP.Rates
                     x.CardName.Contains(input.Keyword));
         }
 
-        public async Task<List<Rate>> GetRates()
+        public async Task<List<Rate>> GetDERates()
         {
-            return await Repository.GetAllListAsync();
+            return await Repository.GetAllListAsync(x => x.Service.Equals("DE"));
         }
 
         public async Task<List<RateDDL>> GetRateDDL()

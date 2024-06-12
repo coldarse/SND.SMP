@@ -107,7 +107,8 @@ namespace SND.SMP.RateWeightBreaks
                     var rateCardCreateId = await _rateRepository.InsertAndGetIdAsync(new Rate()
                     {
                         CardName = rc.CardName,
-                        Count = rc.Count
+                        Count = rc.Count,
+                        Service = "DE"
                     });
 
                     var updatedRateCard = rateCard.FirstOrDefault(x => x.CardName.Equals(rc.CardName));

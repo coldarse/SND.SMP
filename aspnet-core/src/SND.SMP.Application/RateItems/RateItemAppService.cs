@@ -82,7 +82,7 @@ namespace SND.SMP.RateItems
 
             var query = CreateFilteredQuery(input);
 
-            var rates = await rateRepository.GetAllListAsync();
+            var rates = await rateRepository.GetAllListAsync(x => x.Service.Equals("TS"));
 
             var currencies = await currencyRepository.GetAllListAsync();
 
@@ -121,7 +121,8 @@ namespace SND.SMP.RateItems
             {
                 Id = 0,
                 CardName = "All",
-                Count = rateItemCount
+                Count = rateItemCount,
+                Service = "All"
             });
 
             return new FullRateItemDetailDto()
@@ -228,7 +229,8 @@ namespace SND.SMP.RateItems
                     var rateCardCreateId = await rateRepository.InsertAndGetIdAsync(new Rate()
                     {
                         CardName = rc.CardName,
-                        Count = rc.Count
+                        Count = rc.Count,
+                        Service = "TS"
                     });
 
                     var updatedRateCard = rateCard.FirstOrDefault(x => x.CardName.Equals(rc.CardName));
