@@ -72,7 +72,7 @@ export class SidebarMenuComponent extends AppComponentBase implements OnInit {
         this.l("Users"),
         "/app/users",
         "fas fa-users",
-        "Pages.Users"
+        "Pages.UsersPage"
       ),
       /* Insert Menu Path */
       
