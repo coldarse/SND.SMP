@@ -21,10 +21,17 @@ namespace SND.SMP.Airports
         protected override IQueryable<Airport> CreateFilteredQuery(PagedAirportResultRequestDto input)
         {
             return Repository.GetAllIncluding()
-                .WhereIf(!input.Keyword.IsNullOrWhiteSpace(), x => 
+                .WhereIf(!input.Keyword.IsNullOrWhiteSpace(), x =>
                     x.Name.Contains(input.Keyword) ||
                     x.Code.Contains(input.Keyword) ||
                     x.Country.Contains(input.Keyword));
+        }
+
+        public async Task<List<AirportDto>> GetAirportList()
+        {
+            var airports = await Repository.GetAllListAsync();
+
+            return ObjectMapper.Map<List<AirportDto>>(airports);
         }
     }
 }

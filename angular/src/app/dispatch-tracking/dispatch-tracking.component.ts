@@ -3,6 +3,8 @@ import {
   PagedListingComponentBase,
   PagedRequestDto,
 } from "@shared/paged-listing-component-base";
+import { AirportService } from "@shared/service-proxies/airports/airport.service";
+import { AirportDto } from "@shared/service-proxies/airports/model";
 import { DispatchService } from "@shared/service-proxies/dispatches/dispatch.service";
 import {
   DispatchInfo,
@@ -22,11 +24,17 @@ export class DispatchTrackingComponent
 
   countries: string[] = [];
 
+  airports: AirportDto[] = [];
+
   country = "";
 
   keyword = "";
 
-  constructor(private _dispatchService: DispatchService, injector: Injector) {
+  constructor(
+    private _dispatchService: DispatchService, 
+    private _airportService: AirportService,
+    injector: Injector
+  ) {
     super(injector);
   }
 
@@ -34,6 +42,9 @@ export class DispatchTrackingComponent
     this._dispatchService.getDispatchesForTracking().subscribe((data: any) => {
       this.dispatches = data.result.dispatches;
       this.countries = data.result.countries;
+    });
+    this._airportService.getAirportList().subscribe((data: any) => {
+      this.airports = data.result;
     });
   }
 

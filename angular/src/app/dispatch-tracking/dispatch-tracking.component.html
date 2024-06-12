@@ -197,11 +197,13 @@
                                             </td>
                                             <td>
                                                 <div class="row">
-                                                <input
-                                                    type="text"
+                                                <select 
+                                                    name="airport" 
+                                                    id="airport"
                                                     class="form-control"
-                                                    placeholder="Stage 7 Description"
-                                                />
+                                                >
+                                                    <option value="{{airport.name}}" *ngFor="let airport of airports">{{airport.name}}</option>
+                                                </select>
                                                 </div>
                                                 <div class="row">
                                                 <input
