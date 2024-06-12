@@ -144,7 +144,7 @@ export class SidebarMenuComponent extends AppComponentBase implements OnInit {
           new MenuItem(
             this.l("IMPCS"),
             "/app/impcs",
-            "fas fa-barcode",
+            "fas fa-magnifying-glass-location",
             "Pages.IMPC"
           ),
           new MenuItem(
@@ -157,7 +157,7 @@ export class SidebarMenuComponent extends AppComponentBase implements OnInit {
       new MenuItem(
         this.l("Item Tracking"),
         "/app/item-tracking-applications",
-        "fas fa-magnifying-glass-location",
+        "fas fa-barcode",
         "Pages.ItemTrackingApplication"
       ),
       new MenuItem(
