@@ -100,6 +100,7 @@ namespace SND.SMP.DispatchValidations
             query = ApplySorting(query, input);
             query = ApplyPaging(query, input);
 
+            query = query.OrderByDescending(x => x.DateStarted);   
 
             var entities = await AsyncQueryableExecuter.ToListAsync(query);
 

@@ -2017,6 +2017,8 @@ namespace SND.SMP.Dispatches
             query = ApplySorting(query, input);
             query = ApplyPaging(query, input);
 
+            query = query.OrderByDescending(x => x.Id);
+
             var entities = await AsyncQueryableExecuter.ToListAsync(query);
 
             List<DispatchInfoDto> result = [];
