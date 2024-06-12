@@ -8,6 +8,7 @@ namespace SND.SMP.Authorization
         public const string Pages_Users = "Pages.Users";
         public const string Pages_Users_Activation = "Pages.Users.Activation";
 
+        public const string Pages_RolesPage = "Pages.RolesPage";
         public const string Pages_Roles = "Pages.Roles";
 
         /* Define your permissions here */

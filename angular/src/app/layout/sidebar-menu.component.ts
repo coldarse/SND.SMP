@@ -60,7 +60,7 @@ export class SidebarMenuComponent extends AppComponentBase implements OnInit {
         this.l("Roles"),
         "/app/roles",
         "fas fa-theater-masks",
-        "Pages.Roles"
+        "Pages.RolesPage"
       ),
       new MenuItem(
         this.l("Tenants"),
