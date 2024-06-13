@@ -12,7 +12,7 @@
       >
     </h4>
     <h5 class="col-md-12">
-      {{ error.message }}
+      <span class="badge badge-dark">{{ error.message }}</span>
     </h5>
     <section class="loop" style="max-height: 150px; overflow: auto; width: 80%">
       <p class="col-md-12" *ngFor="let item of error.itemIds">
