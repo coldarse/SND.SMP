@@ -12,12 +12,8 @@ using SND.SMP.Refunds.Dto;
 
 namespace SND.SMP.Refunds
 {
-    public class RefundAppService : AsyncCrudAppService<Refund, RefundDto, int, PagedRefundResultRequestDto>
+    public class RefundAppService(IRepository<Refund, int> repository) : AsyncCrudAppService<Refund, RefundDto, int, PagedRefundResultRequestDto>(repository)
     {
-
-        public RefundAppService(IRepository<Refund, int> repository) : base(repository)
-        {
-        }
         protected override IQueryable<Refund> CreateFilteredQuery(PagedRefundResultRequestDto input)
         {
             return Repository.GetAllIncluding()

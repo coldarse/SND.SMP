@@ -12,12 +12,8 @@ using SND.SMP.ApplicationSettings.Dto;
 
 namespace SND.SMP.ApplicationSettings
 {
-    public class ApplicationSettingAppService : AsyncCrudAppService<ApplicationSetting, ApplicationSettingDto, int, PagedApplicationSettingResultRequestDto>
+    public class ApplicationSettingAppService(IRepository<ApplicationSetting, int> repository) : AsyncCrudAppService<ApplicationSetting, ApplicationSettingDto, int, PagedApplicationSettingResultRequestDto>(repository)
     {
-
-        public ApplicationSettingAppService(IRepository<ApplicationSetting, int> repository) : base(repository)
-        {
-        }
         protected override IQueryable<ApplicationSetting> CreateFilteredQuery(PagedApplicationSettingResultRequestDto input)
         {
             return Repository.GetAllIncluding()

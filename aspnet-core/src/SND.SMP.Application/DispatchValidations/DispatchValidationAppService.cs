@@ -15,12 +15,8 @@ using Abp.AutoMapper;
 
 namespace SND.SMP.DispatchValidations
 {
-    public class DispatchValidationAppService : AsyncCrudAppService<DispatchValidation, DispatchValidationDto, string, PagedDispatchValidationResultRequestDto>
+    public class DispatchValidationAppService(IRepository<DispatchValidation, string> repository) : AsyncCrudAppService<DispatchValidation, DispatchValidationDto, string, PagedDispatchValidationResultRequestDto>(repository)
     {
-
-        public DispatchValidationAppService(IRepository<DispatchValidation, string> repository) : base(repository)
-        {
-        }
         protected override IQueryable<DispatchValidation> CreateFilteredQuery(PagedDispatchValidationResultRequestDto input)
         {
             return input.isAdmin ?

@@ -44,6 +44,7 @@ namespace SND.SMP.Chibis
         private readonly IRepository<DispatchValidation, string> _dispatchValidationRepository = dispatchValidationRepository;
         private readonly IRepository<ItemTrackingReview, int> _itemTrackingReviewsRepository = itemTrackingReviewsRepository;
         private readonly IMemoryCache _memoryCache = memoryCache;
+        
         protected override IQueryable<Chibi> CreateFilteredQuery(PagedChibiResultRequestDto input)
         {
             return Repository.GetAllIncluding()
@@ -55,7 +56,7 @@ namespace SND.SMP.Chibis
                     x.GeneratedName.Contains(input.Keyword));
         }
 
-        private async Task<string> GetFileStreamAsString(string url)
+        private static async Task<string> GetFileStreamAsString(string url)
         {
             using var httpClient = new HttpClient();
             using var response = await httpClient.GetAsync(url);

@@ -12,12 +12,8 @@ using SND.SMP.Items.Dto;
 
 namespace SND.SMP.Items
 {
-    public class ItemAppService : AsyncCrudAppService<Item, ItemDto, string, PagedItemResultRequestDto>
+    public class ItemAppService(IRepository<Item, string> repository) : AsyncCrudAppService<Item, ItemDto, string, PagedItemResultRequestDto>(repository)
     {
-
-        public ItemAppService(IRepository<Item, string> repository) : base(repository)
-        {
-        }
         protected override IQueryable<Item> CreateFilteredQuery(PagedItemResultRequestDto input)
         {
             return Repository.GetAllIncluding()
