@@ -86,4 +86,12 @@ export class ChibiService {
       })
       .pipe(retry(1), catchError(this.errorMessage.HandleErrorResponse));
   }
+
+  deleteDispatch(path: string, dispatchNo: string) {
+    return this.http
+      .get(
+        this.url + `/api/services/app/Chibi/DeleteDispatch?path=${path}&dispatchNo=${dispatchNo}`,
+        this.options_)
+      .pipe(retry(1), catchError(this.errorMessage.HandleErrorResponse));
+  }
 }

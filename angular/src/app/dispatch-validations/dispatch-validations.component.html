@@ -66,6 +66,7 @@
                   <th>{{ "Validation Progress              " | localize }}</th>
                   <th>{{ "Error              " | localize }}</th>
                   <th>{{ "Retry              " | localize }}</th>
+                  <th>{{ "Delete              " | localize }}</th>
                   <!-- <th style='width: 310px;' *ngIf='isButtonVisible("Edit") && isButtonVisible("Delete")'>{{ 'Actions' | localize }}</th> -->
                 </tr>
               </thead>
@@ -179,11 +180,23 @@
                       class="btn btn-warning mx-auto"
                       [disabled]="dispatchvalidation.isValid"
                       (click)="
-                        retryDispatchValidation(dispatchvalidation.filePath, dispatchvalidation.dispatchNo)
+                        retryDispatchValidation(dispatchvalidation.filePath, dispatchvalidation.dispatchNo, dispatchvalidation.customerCode)
                       "
                     >
                       <i class="fa-solid fa-rotate-right"></i>
                       Retry
+                    </button>
+                  </td>
+                  <td>
+                    <button
+                      class="btn btn-danger mx-auto"
+                      [disabled]="dispatchvalidation.isValid"
+                      (click)="
+                        deleteDispatch(dispatchvalidation.filePath, dispatchvalidation.dispatchNo)
+                      "
+                    >
+                      <i class="fas fa-minus-circle"></i>
+                      Delete
                     </button>
                   </td>
                   <!-- <td
@@ -235,6 +248,7 @@
                   <th>{{ "Validation Progress              " | localize }}</th>
                   <th>{{ "Error              " | localize }}</th>
                   <th>{{ "Retry              " | localize }}</th>
+                  <th>{{ "Delete              " | localize }}</th>
                   <!-- <th style='width: 310px;' *ngIf='isButtonVisible("Edit") && isButtonVisible("Delete")'>{{ 'Actions' | localize }}</th> -->
                 </tr>
               </thead>
@@ -348,11 +362,23 @@
                       class="btn btn-warning mx-auto"
                       [disabled]="dispatchvalidation.isValid"
                       (click)="
-                        retryDispatchValidation(dispatchvalidation.filePath, dispatchvalidation.dispatchNo)
+                        retryDispatchValidation(dispatchvalidation.filePath, dispatchvalidation.dispatchNo, dispatchvalidation.customerCode)
                       "
                     >
                       <i class="fa-solid fa-rotate-right"></i>
                       Retry
+                    </button>
+                  </td>
+                  <td>
+                    <button
+                      class="btn btn-danger mx-auto"
+                      [disabled]="dispatchvalidation.isValid"
+                      (click)="
+                        deleteDispatch(dispatchvalidation.filePath, dispatchvalidation.dispatchNo)
+                      "
+                    >
+                      <i class="fas fa-minus-circle"></i>
+                      Delete
                     </button>
                   </td>
                   <!-- <td

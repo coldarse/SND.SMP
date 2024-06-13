@@ -27,6 +27,7 @@ using System.ComponentModel;
 using SND.SMP.Shared;
 using System.IO;
 using SND.SMP.ItemTrackingReviews;
+using SND.SMP.Dispatches;
 
 namespace SND.SMP.Chibis
 {
@@ -36,6 +37,7 @@ namespace SND.SMP.Chibis
         IRepository<ApplicationSetting, int> applicationSettingRepository,
         IRepository<DispatchValidation, string> dispatchValidationRepository,
         IRepository<ItemTrackingReview, int> itemTrackingReviewsRepository,
+        IRepository<Dispatch, int> dispatchRepository,
         IMemoryCache memoryCache
     ) : AsyncCrudAppService<Chibi, ChibiDto, long, PagedChibiResultRequestDto>(repository)
     {
@@ -43,8 +45,9 @@ namespace SND.SMP.Chibis
         private readonly IRepository<ApplicationSetting, int> _applicationSettingRepository = applicationSettingRepository;
         private readonly IRepository<DispatchValidation, string> _dispatchValidationRepository = dispatchValidationRepository;
         private readonly IRepository<ItemTrackingReview, int> _itemTrackingReviewsRepository = itemTrackingReviewsRepository;
+        private readonly IRepository<Dispatch, int> _dispatchRepository = dispatchRepository;
         private readonly IMemoryCache _memoryCache = memoryCache;
-        
+
         protected override IQueryable<Chibi> CreateFilteredQuery(PagedChibiResultRequestDto input)
         {
             return Repository.GetAllIncluding()
@@ -110,6 +113,25 @@ namespace SND.SMP.Chibis
             response.EnsureSuccessStatusCode();
             var body = await response.Content.ReadAsStringAsync();
             return JsonSerializer.Deserialize<GetFileDto>(body);
+        }
+
+        public async Task<bool> DeleteFile(string uuid)
+        {
+            var chibiKey = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("ChibiKey"));
+            var chibiURL = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("ChibiURL"));
+            var client = new HttpClient();
+            client.DefaultRequestHeaders.Clear();
+            client.DefaultRequestHeaders.Add("x-api-key", chibiKey.Value);
+
+            var request = new HttpRequestMessage
+            {
+                Method = HttpMethod.Delete,
+                RequestUri = new Uri(chibiURL.Value + $"file/{uuid}"),
+            };
+
+            using var response = await client.SendAsync(request);
+            response.EnsureSuccessStatusCode();
+            return true;
         }
 
         public static async Task<Stream> GetFileStream(string url)
@@ -374,6 +396,57 @@ namespace SND.SMP.Chibis
             return true;
         }
 
+        private static bool IsUpdateParticulars(string PostalCode, string ServiceCode, string ProductCode, string RateOptionId)
+        {
+            if (PostalCode != "" && PostalCode != null) return true;
+            if (ServiceCode != "" && ServiceCode != null) return true;
+            if (ProductCode != "" && ProductCode != null) return true;
+            if (RateOptionId != "") return true;
+            return false;
+        }
+
+        public async Task<bool> DeleteDispatch(string path, string dispatchNo)
+        {
+            var dispatchFile = await Repository.FirstOrDefaultAsync(x => x.URL.Equals(path));
+            var dispatchFilePair = await Repository.GetAllListAsync(x => x.OriginalName.Equals(dispatchFile.OriginalName));
+            var excelDispatchFile = dispatchFilePair.FirstOrDefault(x => x.URL.Contains("xlsx"));
+
+            foreach (var pair in dispatchFilePair)
+            {
+                var uuid = await GetFileUUIDByPath(pair.URL);
+                await Repository.DeleteAsync(pair);
+                await DeleteFile(uuid);
+            }
+
+            var errorDetailsForDispatch = await Repository.GetAllListAsync(x => x.OriginalName.Equals(dispatchNo));
+            foreach (var error in errorDetailsForDispatch)
+            {
+                var uuid = await GetFileUUIDByPath(error.URL);
+                await Repository.DeleteAsync(error);
+                await DeleteFile(uuid);
+            }
+
+            var dispatchValidation = await _dispatchValidationRepository.FirstOrDefaultAsync(x => x.DispatchNo.Equals(dispatchNo));
+            await _dispatchValidationRepository.DeleteAsync(dispatchValidation);
+
+            var dispatch = await _dispatchRepository.FirstOrDefaultAsync(x => x.DispatchNo.Equals(dispatchNo));
+            await _dispatchRepository.DeleteAsync(dispatch);
+
+            var queues = await _queueRepository.GetAllListAsync(x => x.FilePath.Equals(excelDispatchFile.URL));
+            foreach (var queue in queues) await _queueRepository.DeleteAsync(queue);
+
+            return true;
+        }
+
+        public async Task<string> GetFileUUIDByPath(string path)
+        {
+            GetFilesDto files = await GetChibiFiles();
+
+            var file = files.files.FirstOrDefault(x => x.url.Equals(path));
+
+            return file.uuid;
+        }
+
         [Consumes("multipart/form-data")]
         public async Task<bool> PreCheckRetryUpload([FromForm] PreCheckRetryDto uploadRetryPreCheck)
         {
@@ -386,9 +459,25 @@ namespace SND.SMP.Chibis
                 var fileProfile = jsonDispatchFile.URL;
                 var fileString = await GetFileStreamAsString(fileProfile);
 
+                DispatchProfileDto dispatchProfile = Newtonsoft.Json.JsonConvert.DeserializeObject<DispatchProfileDto>(fileString);
+
+                var update = IsUpdateParticulars(uploadRetryPreCheck.Details.PostalCode, uploadRetryPreCheck.Details.ServiceCode, uploadRetryPreCheck.Details.ProductCode, uploadRetryPreCheck.Details.RateOptionId);
+
+                if (update)
+                {
+                    dispatchProfile.PostalCode = uploadRetryPreCheck.Details.PostalCode == "" ? dispatchProfile.PostalCode : uploadRetryPreCheck.Details.PostalCode;
+                    dispatchProfile.ServiceCode = uploadRetryPreCheck.Details.ServiceCode == "" ? dispatchProfile.ServiceCode : uploadRetryPreCheck.Details.ServiceCode;
+                    dispatchProfile.ProductCode = uploadRetryPreCheck.Details.ProductCode == "" ? dispatchProfile.ProductCode : uploadRetryPreCheck.Details.ProductCode;
+                    dispatchProfile.RateOptionId = uploadRetryPreCheck.Details.RateOptionId == "" ? dispatchProfile.RateOptionId : uploadRetryPreCheck.Details.RateOptionId;
+
+                    fileString = Newtonsoft.Json.JsonConvert.SerializeObject(dispatchProfile);
+                }
+
                 foreach (var pair in dispatchFilePair)
                 {
+                    var uuid = await GetFileUUIDByPath(pair.URL);
                     await Repository.DeleteAsync(pair);
+                    await DeleteFile(uuid);
                 }
 
                 string uuidFileName = Guid.NewGuid().ToString();
@@ -414,17 +503,45 @@ namespace SND.SMP.Chibis
 
                 await _queueRepository.UpdateAsync(queue);
                 await _queueRepository.GetDbContext().SaveChangesAsync();
-
-                if (uploadRetryPreCheck.dispatchNo is not null)
-                {
-                    var errorDetailsForDispatch = await Repository.GetAllListAsync(x => x.OriginalName.Equals(uploadRetryPreCheck.dispatchNo));
-                    foreach (var error in errorDetailsForDispatch) await Repository.DeleteAsync(error);
-                }
-
-                return true;
             }
             else
             {
+                var dispatchFile = await Repository.FirstOrDefaultAsync(x => x.URL.Equals(uploadRetryPreCheck.path));
+
+                var dispatchFilePair = await Repository.GetAllListAsync(x => x.OriginalName.Equals(dispatchFile.OriginalName));
+                var jsonDispatchFile = dispatchFilePair.FirstOrDefault(x => x.URL.Contains("json"));
+                var excelDispatchFile = dispatchFilePair.FirstOrDefault(x => x.URL.Contains("xlsx"));
+                var fileProfile = jsonDispatchFile.URL;
+                var fileString = await GetFileStreamAsString(fileProfile);
+
+                DispatchProfileDto dispatchProfile = Newtonsoft.Json.JsonConvert.DeserializeObject<DispatchProfileDto>(fileString);
+
+                var update = IsUpdateParticulars(uploadRetryPreCheck.Details.PostalCode, uploadRetryPreCheck.Details.ServiceCode, uploadRetryPreCheck.Details.ProductCode, uploadRetryPreCheck.Details.RateOptionId);
+
+                if (update)
+                {
+                    dispatchProfile.PostalCode = uploadRetryPreCheck.Details.PostalCode == "" ? dispatchProfile.PostalCode : uploadRetryPreCheck.Details.PostalCode;
+                    dispatchProfile.ServiceCode = uploadRetryPreCheck.Details.ServiceCode == "" ? dispatchProfile.ServiceCode : uploadRetryPreCheck.Details.ServiceCode;
+                    dispatchProfile.ProductCode = uploadRetryPreCheck.Details.ProductCode == "" ? dispatchProfile.ProductCode : uploadRetryPreCheck.Details.ProductCode;
+                    dispatchProfile.RateOptionId = uploadRetryPreCheck.Details.RateOptionId == "" ? dispatchProfile.RateOptionId : uploadRetryPreCheck.Details.RateOptionId;
+
+                    fileString = Newtonsoft.Json.JsonConvert.SerializeObject(dispatchProfile);
+                }
+
+                await Repository.DeleteAsync(jsonDispatchFile);
+
+                uploadRetryPreCheck.UploadFile = new()
+                {
+                    fileName = excelDispatchFile.UUID + ".xlsx.profile.json",
+                    fileType = "json",
+                    json = fileString
+                };
+                var jsonFile = await UploadFile(uploadRetryPreCheck.UploadFile, excelDispatchFile.OriginalName);
+
+                var deserializedFileString = Newtonsoft.Json.JsonConvert.DeserializeObject<PreCheckDetails>(fileString);
+
+                await InsertFileToAlbum(jsonFile.uuid, false, deserializedFileString.PostalCode, deserializedFileString.ServiceCode, deserializedFileString.ProductCode);
+
                 var queue = await _queueRepository.FirstOrDefaultAsync(x => (x.FilePath == uploadRetryPreCheck.path) && (x.EventType == "Validate Dispatch"));
 
                 queue.Status = "New";
@@ -432,15 +549,20 @@ namespace SND.SMP.Chibis
 
                 await _queueRepository.UpdateAsync(queue);
                 await _queueRepository.GetDbContext().SaveChangesAsync();
-
-                if (uploadRetryPreCheck.dispatchNo is not null)
-                {
-                    var errorDetailsForDispatch = await Repository.GetAllListAsync(x => x.OriginalName.Equals(uploadRetryPreCheck.dispatchNo));
-                    foreach (var error in errorDetailsForDispatch) await Repository.DeleteAsync(error);
-                }
-
-                return true;
             }
+
+            if (uploadRetryPreCheck.dispatchNo is not null)
+            {
+                var errorDetailsForDispatch = await Repository.GetAllListAsync(x => x.OriginalName.Equals(uploadRetryPreCheck.dispatchNo));
+                foreach (var error in errorDetailsForDispatch)
+                {
+                    var uuid = await GetFileUUIDByPath(error.URL);
+                    await Repository.DeleteAsync(error);
+                    await DeleteFile(uuid);
+                }
+            }
+
+            return true;
         }
 
         [Consumes("multipart/form-data")]
@@ -482,7 +604,7 @@ namespace SND.SMP.Chibis
 
             if (result != null)
             {
-                result.originalName = uploadFile.file.FileName.Replace(".xlsx", "") + $"_{result.name}";
+                result.originalName = originalName is null ? uploadFile.file.FileName.Replace(".xlsx", "") + $"_{result.name}" : originalName;
                 //Insert to DB
                 Chibi entity = new()
                 {
@@ -516,7 +638,7 @@ namespace SND.SMP.Chibis
             return await GetExcelByOriginalName("RateWeightBreakTemplate.xlsx");
         }
 
-        public async Task<IActionResult> GetExcelByOriginalName(string originalName)
+        public async Task<GetFilesDto> GetChibiFiles()
         {
             var chibiKey = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("ChibiKey"));
             var chibiURL = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("ChibiURL"));
@@ -533,10 +655,16 @@ namespace SND.SMP.Chibis
             response.EnsureSuccessStatusCode();
             var body = await response.Content.ReadAsStringAsync();
             GetFilesDto files = Newtonsoft.Json.JsonConvert.DeserializeObject<GetFilesDto>(body);
+            return files;
+        }
 
-            var rateWeightBreakTemplate = files.files.FirstOrDefault(x => x.original.Equals(originalName));
+        public async Task<IActionResult> GetExcelByOriginalName(string originalName)
+        {
+            GetFilesDto files = await GetChibiFiles();
 
-            Stream fileStream = await GetFileStream(rateWeightBreakTemplate.url);
+            var found = files.files.FirstOrDefault(x => x.original.Equals(originalName));
+
+            Stream fileStream = await GetFileStream(found.url);
 
             using MemoryStream ms = new();
             fileStream.CopyTo(ms);
