@@ -468,7 +468,7 @@ namespace SND.SMP.DispatchConsole
                             Currency = currency.Abbr,
                             TransactionType = "Pre-Alert",
                             Amount = -totalPrice,
-                            ReferenceNo = "",
+                            ReferenceNo = DispatchProfile.DispatchNo,
                             Description = $"Deducted {Currency} {totalPrice} from {wallet.Customer}'s {wallet.Id} Wallet. Remaining {Currency} {wallet.Balance}.",
                             TransactionDate = cstDateTime
                         });

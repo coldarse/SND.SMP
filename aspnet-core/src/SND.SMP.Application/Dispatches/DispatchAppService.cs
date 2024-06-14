@@ -1490,8 +1490,8 @@ namespace SND.SMP.Dispatches
                             Currency = currency.Abbr,
                             TransactionType = "Surcharge Amount",
                             Amount = -totalSurchargePrice,
-                            ReferenceNo = "",
-                            Description = "Surcharge",
+                            ReferenceNo = dispatch.DispatchNo,
+                            Description = $"Deducted {currency.Abbr} {totalSurchargePrice} from {wallet.Customer}'s {wallet.Id} Wallet. Remaining {currency.Abbr} {wallet.Balance}.",
                             TransactionDate = cstDateTime
                         });
                     }
@@ -1530,8 +1530,8 @@ namespace SND.SMP.Dispatches
                             Currency = currency.Abbr,
                             TransactionType = "Refund Amount",
                             Amount = -totalRefundPrice,
-                            ReferenceNo = "",
-                            Description = "Refund",
+                            ReferenceNo = dispatch.DispatchNo,
+                            Description = $"Credited {currency.Abbr} {totalRefundPrice} to {wallet.Customer}'s {wallet.Id} Wallet. Current Balance is {currency.Abbr} {wallet.Balance}.",
                             TransactionDate = cstDateTime
                         });
                     }
@@ -1651,8 +1651,8 @@ namespace SND.SMP.Dispatches
                     Currency = currency.Abbr,
                     TransactionType = "Surcharge Amount",
                     Amount = totalSurchargePrice,
-                    ReferenceNo = "",
-                    Description = "Surcharge",
+                    ReferenceNo = dispatch.DispatchNo,
+                    Description = $"Deducted {currency.Abbr} {totalSurchargePrice} from {wallet.Customer}'s {wallet.Id} Wallet. Remaining {currency.Abbr} {wallet.Balance}.",
                     TransactionDate = cstDateTime
                 });
             }
@@ -1690,8 +1690,8 @@ namespace SND.SMP.Dispatches
                     Currency = currency.Abbr,
                     TransactionType = "Refund Amount",
                     Amount = -totalRefundPrice,
-                    ReferenceNo = "",
-                    Description = "Refund",
+                    ReferenceNo = dispatch.DispatchNo,
+                    Description = $"Credited {currency.Abbr} {totalRefundPrice} to {wallet.Customer}'s {wallet.Id} Wallet. Current Balance is {currency.Abbr} {wallet.Balance}.",
                     TransactionDate = cstDateTime
                 });
             }
@@ -2368,8 +2368,8 @@ namespace SND.SMP.Dispatches
                         Currency = currency.Abbr,
                         TransactionType = "Surcharge Amount",
                         Amount = totalSurchargePrice,
-                        ReferenceNo = "",
-                        Description = "Surcharge",
+                        ReferenceNo = dispatch.DispatchNo,
+                        Description = $"Deducted {currency.Abbr} {totalSurchargePrice} from {wallet.Customer}'s {wallet.Id} Wallet. Remaining {currency.Abbr} {wallet.Balance}.",
                         TransactionDate = cstDateTime
                     });
                 }
@@ -2408,8 +2408,8 @@ namespace SND.SMP.Dispatches
                         Currency = currency.Abbr,
                         TransactionType = "Refund Amount",
                         Amount = -totalRefundPrice,
-                        ReferenceNo = "",
-                        Description = "Refund",
+                        ReferenceNo = dispatch.DispatchNo,
+                        Description = $"Credited {currency.Abbr} {totalRefundPrice} to {wallet.Customer}'s {wallet.Id} Wallet. Current Balance is {currency.Abbr} {wallet.Balance}.",
                         TransactionDate = cstDateTime
                     });
                 }
