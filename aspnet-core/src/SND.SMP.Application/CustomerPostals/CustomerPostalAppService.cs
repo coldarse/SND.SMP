@@ -124,6 +124,7 @@ namespace SND.SMP.CustomerPostals
 
             detailed = [.. ApplySorting(detailed.AsQueryable(), input)];
             detailed = [.. ApplyPaging(detailed.AsQueryable(), input)];
+            
 
 
             return new PagedResultDto<DetailedCustomerPostalDto>(

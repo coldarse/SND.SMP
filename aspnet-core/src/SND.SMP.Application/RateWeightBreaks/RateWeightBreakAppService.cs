@@ -44,7 +44,6 @@ namespace SND.SMP.RateWeightBreaks
                     x.PaymentMode.Contains(input.Keyword));
         }
 
-        #region Private Functions
         private async Task<long> InsertAndGetIdForCurrency(string currency)
         {
             var currencyCreateId = await _currencyRepository.InsertAsync(new Currency()
@@ -55,7 +54,6 @@ namespace SND.SMP.RateWeightBreaks
             await _currencyRepository.GetDbContext().SaveChangesAsync();
             return currencyCreateId.Id;
         }
-
         private async Task<string> InsertAndGetIdForPostalOrg(string postal)
         {
             var existingPostalOrg = await _postalOrgRepository.FirstOrDefaultAsync(x => x.Id.Equals(postal));
@@ -83,7 +81,6 @@ namespace SND.SMP.RateWeightBreaks
                 return newPostalOrg.Id;
             }
         }
-
         private async Task<List<Rate>> InsertAndGetUpdatedRateCards(List<string> rateCards)
         {
             List<Rate> rateCard = [];
@@ -125,7 +122,7 @@ namespace SND.SMP.RateWeightBreaks
 
             return rateCard;
         }
-        #endregion
+
 
         public async Task<RateCardWeightBreakDisplayDto> GetRateWeightBreakByRate(int rateid)
         {

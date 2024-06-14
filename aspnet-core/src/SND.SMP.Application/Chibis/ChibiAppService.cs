@@ -48,17 +48,6 @@ namespace SND.SMP.Chibis
         private readonly IRepository<Dispatch, int> _dispatchRepository = dispatchRepository;
         private readonly IMemoryCache _memoryCache = memoryCache;
 
-        protected override IQueryable<Chibi> CreateFilteredQuery(PagedChibiResultRequestDto input)
-        {
-            return Repository.GetAllIncluding()
-                .WhereIf(!input.Keyword.IsNullOrWhiteSpace(), x =>
-                    x.FileName.Contains(input.Keyword) ||
-                    x.UUID.Contains(input.Keyword) ||
-                    x.URL.Contains(input.Keyword) ||
-                    x.OriginalName.Contains(input.Keyword) ||
-                    x.GeneratedName.Contains(input.Keyword));
-        }
-
         private static async Task<string> GetFileStreamAsString(string url)
         {
             using var httpClient = new HttpClient();
@@ -67,81 +56,6 @@ namespace SND.SMP.Chibis
             {
                 string contentString = await response.Content.ReadAsStringAsync();
                 return contentString;
-            }
-            return null;
-        }
-
-        public async Task<List<DispatchValidateDto>> GetDispatchValidationError(string dispatchNo)
-        {
-            var file = await Repository.FirstOrDefaultAsync(x => x.OriginalName == dispatchNo) ?? throw new UserFriendlyException("Error Details Not Found");
-
-            using var httpClient = new HttpClient();
-            try
-            {
-                using var response = await httpClient.GetAsync(file.URL);
-                if (response.IsSuccessStatusCode)
-                {
-                    string contentString = await response.Content.ReadAsStringAsync();
-                    return Newtonsoft.Json.JsonConvert.DeserializeObject<List<DispatchValidateDto>>(contentString);
-                }
-                else
-                {
-                    throw new UserFriendlyException($"Failed to download file. Status code: {response.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                throw new UserFriendlyException($"Error downloading file: {ex.Message}");
-            }
-        }
-
-        public async Task<GetFileDto> GetFile(string uuid)
-        {
-            var chibiKey = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("ChibiKey"));
-            var chibiURL = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("ChibiURL"));
-            var client = new HttpClient();
-            client.DefaultRequestHeaders.Clear();
-            client.DefaultRequestHeaders.Add("x-api-key", chibiKey.Value);
-
-            var request = new HttpRequestMessage
-            {
-                Method = HttpMethod.Get,
-                RequestUri = new Uri(chibiURL.Value + $"file/{uuid}"),
-            };
-
-            using var response = await client.SendAsync(request);
-            response.EnsureSuccessStatusCode();
-            var body = await response.Content.ReadAsStringAsync();
-            return JsonSerializer.Deserialize<GetFileDto>(body);
-        }
-
-        public async Task<bool> DeleteFile(string uuid)
-        {
-            var chibiKey = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("ChibiKey"));
-            var chibiURL = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("ChibiURL"));
-            var client = new HttpClient();
-            client.DefaultRequestHeaders.Clear();
-            client.DefaultRequestHeaders.Add("x-api-key", chibiKey.Value);
-
-            var request = new HttpRequestMessage
-            {
-                Method = HttpMethod.Delete,
-                RequestUri = new Uri(chibiURL.Value + $"file/{uuid}"),
-            };
-
-            using var response = await client.SendAsync(request);
-            response.EnsureSuccessStatusCode();
-            return true;
-        }
-
-        public static async Task<Stream> GetFileStream(string url)
-        {
-            using var httpClient = new HttpClient();
-            using var response = await httpClient.GetAsync(url);
-            if (response.IsSuccessStatusCode)
-            {
-                var contentByteArray = await response.Content.ReadAsByteArrayAsync();
-                return new MemoryStream(contentByteArray);
             }
             return null;
         }
@@ -369,33 +283,6 @@ namespace SND.SMP.Chibis
             return false;
         }
 
-        [Consumes("multipart/form-data")]
-        public async Task<bool> PreCheckUpload([FromForm] PreCheckDto uploadPreCheck)
-        {
-            string uuidFileName = Guid.NewGuid().ToString();
-            uploadPreCheck.UploadFile.json = Newtonsoft.Json.JsonConvert.SerializeObject(uploadPreCheck.Details);
-            uploadPreCheck.UploadFile.fileName = uuidFileName + ".xlsx";
-            uploadPreCheck.UploadFile.fileType = "xlsx";
-            var xlsxFile = await UploadFile(uploadPreCheck.UploadFile);
-
-            uploadPreCheck.UploadFile.fileName = uuidFileName + ".xlsx.profile.json";
-            uploadPreCheck.UploadFile.fileType = "json";
-            var jsonFile = await UploadFile(uploadPreCheck.UploadFile, xlsxFile.originalName);
-
-            await InsertFileToAlbum(xlsxFile.uuid, false, uploadPreCheck.Details.PostalCode, uploadPreCheck.Details.ServiceCode, uploadPreCheck.Details.ProductCode);
-            await InsertFileToAlbum(jsonFile.uuid, false, uploadPreCheck.Details.PostalCode, uploadPreCheck.Details.ServiceCode, uploadPreCheck.Details.ProductCode);
-
-            await _queueRepository.InsertAsync(new Queue()
-            {
-                EventType = "Validate Dispatch",
-                FilePath = xlsxFile.url,
-                DateCreated = DateTime.Now,
-                Status = "New"
-            });
-
-            return true;
-        }
-
         private static bool IsUpdateParticulars(string PostalCode, string ServiceCode, string ProductCode, string RateOptionId)
         {
             if (PostalCode != "" && PostalCode != null) return true;
@@ -403,6 +290,95 @@ namespace SND.SMP.Chibis
             if (ProductCode != "" && ProductCode != null) return true;
             if (RateOptionId != "") return true;
             return false;
+        }
+
+        private static async Task<Stream> GetFileStream(string url)
+        {
+            using var httpClient = new HttpClient();
+            using var response = await httpClient.GetAsync(url);
+            if (response.IsSuccessStatusCode)
+            {
+                var contentByteArray = await response.Content.ReadAsByteArrayAsync();
+                return new MemoryStream(contentByteArray);
+            }
+            return null;
+        }
+
+        protected override IQueryable<Chibi> CreateFilteredQuery(PagedChibiResultRequestDto input)
+        {
+            return Repository.GetAllIncluding()
+                .WhereIf(!input.Keyword.IsNullOrWhiteSpace(), x =>
+                    x.FileName.Contains(input.Keyword) ||
+                    x.UUID.Contains(input.Keyword) ||
+                    x.URL.Contains(input.Keyword) ||
+                    x.OriginalName.Contains(input.Keyword) ||
+                    x.GeneratedName.Contains(input.Keyword));
+        }
+
+
+
+
+        public async Task<List<DispatchValidateDto>> GetDispatchValidationError(string dispatchNo)
+        {
+            var file = await Repository.FirstOrDefaultAsync(x => x.OriginalName == dispatchNo) ?? throw new UserFriendlyException("Error Details Not Found");
+
+            using var httpClient = new HttpClient();
+            try
+            {
+                using var response = await httpClient.GetAsync(file.URL);
+                if (response.IsSuccessStatusCode)
+                {
+                    string contentString = await response.Content.ReadAsStringAsync();
+                    return Newtonsoft.Json.JsonConvert.DeserializeObject<List<DispatchValidateDto>>(contentString);
+                }
+                else
+                {
+                    throw new UserFriendlyException($"Failed to download file. Status code: {response.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new UserFriendlyException($"Error downloading file: {ex.Message}");
+            }
+        }
+
+        public async Task<GetFileDto> GetFile(string uuid)
+        {
+            var chibiKey = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("ChibiKey"));
+            var chibiURL = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("ChibiURL"));
+            var client = new HttpClient();
+            client.DefaultRequestHeaders.Clear();
+            client.DefaultRequestHeaders.Add("x-api-key", chibiKey.Value);
+
+            var request = new HttpRequestMessage
+            {
+                Method = HttpMethod.Get,
+                RequestUri = new Uri(chibiURL.Value + $"file/{uuid}"),
+            };
+
+            using var response = await client.SendAsync(request);
+            response.EnsureSuccessStatusCode();
+            var body = await response.Content.ReadAsStringAsync();
+            return JsonSerializer.Deserialize<GetFileDto>(body);
+        }
+
+        public async Task<bool> DeleteFile(string uuid)
+        {
+            var chibiKey = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("ChibiKey"));
+            var chibiURL = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("ChibiURL"));
+            var client = new HttpClient();
+            client.DefaultRequestHeaders.Clear();
+            client.DefaultRequestHeaders.Add("x-api-key", chibiKey.Value);
+
+            var request = new HttpRequestMessage
+            {
+                Method = HttpMethod.Delete,
+                RequestUri = new Uri(chibiURL.Value + $"file/{uuid}"),
+            };
+
+            using var response = await client.SendAsync(request);
+            response.EnsureSuccessStatusCode();
+            return true;
         }
 
         public async Task<bool> DeleteDispatch(string path, string dispatchNo)
@@ -445,6 +421,56 @@ namespace SND.SMP.Chibis
             var file = files.files.FirstOrDefault(x => x.url.Equals(path));
 
             return file.uuid;
+        }
+
+        public async Task<IActionResult> GetItemTrackingIds(int applicationId)
+        {
+            var review = await _itemTrackingReviewsRepository.FirstOrDefaultAsync(x => x.ApplicationId.Equals(applicationId)) ?? throw new UserFriendlyException("Item Tracking Review Not Found!");
+
+            var originalName = string.Format("{0}_{1}_{2}_{3}_{4}.xlsx", review.Prefix, review.PrefixNo, review.Suffix, review.TotalGiven, review.CustomerCode);
+
+            return await GetExcelByOriginalName(originalName);
+        }
+
+        public async Task<IActionResult> GetRateWeightBreakTemplate()
+        {
+            return await GetExcelByOriginalName("RateWeightBreakTemplate.xlsx");
+        }
+
+        public async Task<GetFilesDto> GetChibiFiles()
+        {
+            var chibiKey = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("ChibiKey"));
+            var chibiURL = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("ChibiURL"));
+            var client = new HttpClient();
+            client.DefaultRequestHeaders.Clear();
+            client.DefaultRequestHeaders.Add("x-api-key", chibiKey.Value);
+
+            var request = new HttpRequestMessage
+            {
+                Method = HttpMethod.Get,
+                RequestUri = new Uri(chibiURL.Value + $"files"),
+            };
+            using var response = await client.SendAsync(request);
+            response.EnsureSuccessStatusCode();
+            var body = await response.Content.ReadAsStringAsync();
+            GetFilesDto files = Newtonsoft.Json.JsonConvert.DeserializeObject<GetFilesDto>(body);
+            return files;
+        }
+
+        public async Task<IActionResult> GetExcelByOriginalName(string originalName)
+        {
+            GetFilesDto files = await GetChibiFiles();
+
+            var found = files.files.FirstOrDefault(x => x.original.Equals(originalName));
+
+            Stream fileStream = await GetFileStream(found.url);
+
+            using MemoryStream ms = new();
+            fileStream.CopyTo(ms);
+            return new FileContentResult(ms.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+            {
+                FileDownloadName = originalName
+            };
         }
 
         [Consumes("multipart/form-data")]
@@ -624,54 +650,33 @@ namespace SND.SMP.Chibis
             return result;
         }
 
-        public async Task<IActionResult> GetItemTrackingIds(int applicationId)
+        [Consumes("multipart/form-data")]
+        public async Task<bool> PreCheckUpload([FromForm] PreCheckDto uploadPreCheck)
         {
-            var review = await _itemTrackingReviewsRepository.FirstOrDefaultAsync(x => x.ApplicationId.Equals(applicationId)) ?? throw new UserFriendlyException("Item Tracking Review Not Found!");
+            string uuidFileName = Guid.NewGuid().ToString();
+            uploadPreCheck.UploadFile.json = Newtonsoft.Json.JsonConvert.SerializeObject(uploadPreCheck.Details);
+            uploadPreCheck.UploadFile.fileName = uuidFileName + ".xlsx";
+            uploadPreCheck.UploadFile.fileType = "xlsx";
+            var xlsxFile = await UploadFile(uploadPreCheck.UploadFile);
 
-            var originalName = string.Format("{0}_{1}_{2}_{3}_{4}.xlsx", review.Prefix, review.PrefixNo, review.Suffix, review.TotalGiven, review.CustomerCode);
+            uploadPreCheck.UploadFile.fileName = uuidFileName + ".xlsx.profile.json";
+            uploadPreCheck.UploadFile.fileType = "json";
+            var jsonFile = await UploadFile(uploadPreCheck.UploadFile, xlsxFile.originalName);
 
-            return await GetExcelByOriginalName(originalName);
-        }
+            await InsertFileToAlbum(xlsxFile.uuid, false, uploadPreCheck.Details.PostalCode, uploadPreCheck.Details.ServiceCode, uploadPreCheck.Details.ProductCode);
+            await InsertFileToAlbum(jsonFile.uuid, false, uploadPreCheck.Details.PostalCode, uploadPreCheck.Details.ServiceCode, uploadPreCheck.Details.ProductCode);
 
-        public async Task<IActionResult> GetRateWeightBreakTemplate()
-        {
-            return await GetExcelByOriginalName("RateWeightBreakTemplate.xlsx");
-        }
-
-        public async Task<GetFilesDto> GetChibiFiles()
-        {
-            var chibiKey = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("ChibiKey"));
-            var chibiURL = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("ChibiURL"));
-            var client = new HttpClient();
-            client.DefaultRequestHeaders.Clear();
-            client.DefaultRequestHeaders.Add("x-api-key", chibiKey.Value);
-
-            var request = new HttpRequestMessage
+            await _queueRepository.InsertAsync(new Queue()
             {
-                Method = HttpMethod.Get,
-                RequestUri = new Uri(chibiURL.Value + $"files"),
-            };
-            using var response = await client.SendAsync(request);
-            response.EnsureSuccessStatusCode();
-            var body = await response.Content.ReadAsStringAsync();
-            GetFilesDto files = Newtonsoft.Json.JsonConvert.DeserializeObject<GetFilesDto>(body);
-            return files;
+                EventType = "Validate Dispatch",
+                FilePath = xlsxFile.url,
+                DateCreated = DateTime.Now,
+                Status = "New"
+            });
+
+            return true;
         }
 
-        public async Task<IActionResult> GetExcelByOriginalName(string originalName)
-        {
-            GetFilesDto files = await GetChibiFiles();
 
-            var found = files.files.FirstOrDefault(x => x.original.Equals(originalName));
-
-            Stream fileStream = await GetFileStream(found.url);
-
-            using MemoryStream ms = new();
-            fileStream.CopyTo(ms);
-            return new FileContentResult(ms.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-            {
-                FileDownloadName = originalName
-            };
-        }
     }
 }
