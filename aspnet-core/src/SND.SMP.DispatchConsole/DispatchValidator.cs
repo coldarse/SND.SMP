@@ -727,7 +727,7 @@ namespace SND.SMP.DispatchConsole
                                   ).Select(u => $"{u.Id} [{u.DispatchNo} / {u.PostalCode} / {u.ServiceCode} / {u.ProductCode}]").ToList();
 
             validationResult.ItemIds.AddRange(list);
-            validationResult.Message = $"Dispatch Particulars [{DispatchProfile.DispatchNo} / {DispatchProfile.PostalCode} / {DispatchProfile.ServiceCode} / {DispatchProfile.ProductCode}]";
+            if(list.Count != 0) validationResult.Message = $"Dispatch Particulars [{DispatchProfile.DispatchNo} / {DispatchProfile.PostalCode} / {DispatchProfile.ServiceCode} / {DispatchProfile.ProductCode}]";
 
             result = list.Count != 0;
 
