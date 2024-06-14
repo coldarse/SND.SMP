@@ -469,7 +469,7 @@ namespace SND.SMP.DispatchConsole
                             TransactionType = "Pre-Alert",
                             Amount = -totalPrice,
                             ReferenceNo = "",
-                            Description = "Pre-Alert",
+                            Description = $"Deducted {Currency} {totalPrice} from {wallet.Customer}'s {wallet.Id} Wallet. Remaining {Currency} {wallet.Balance}.",
                             TransactionDate = cstDateTime
                         });
                     }
