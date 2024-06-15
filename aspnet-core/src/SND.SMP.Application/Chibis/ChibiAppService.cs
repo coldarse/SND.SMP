@@ -391,7 +391,7 @@ namespace SND.SMP.Chibis
             {
                 var uuid = await GetFileUUIDByPath(pair.URL);
                 await Repository.DeleteAsync(pair);
-                await DeleteFile(uuid);
+                if (!uuid.Equals("")) await DeleteFile(uuid);
             }
 
             var errorDetailsForDispatch = await Repository.GetAllListAsync(x => x.OriginalName.Equals(dispatchNo));
@@ -399,7 +399,7 @@ namespace SND.SMP.Chibis
             {
                 var uuid = await GetFileUUIDByPath(error.URL);
                 await Repository.DeleteAsync(error);
-                await DeleteFile(uuid);
+                if (!uuid.Equals("")) await DeleteFile(uuid);
             }
 
             var dispatchValidation = await _dispatchValidationRepository.FirstOrDefaultAsync(x => x.DispatchNo.Equals(dispatchNo));
@@ -420,7 +420,7 @@ namespace SND.SMP.Chibis
 
             var file = files.files.FirstOrDefault(x => x.url.Equals(path));
 
-            return file.uuid;
+            return file is null ? "" : file.uuid;
         }
 
         public async Task<IActionResult> GetItemTrackingIds(int applicationId)
@@ -503,7 +503,7 @@ namespace SND.SMP.Chibis
                 {
                     var uuid = await GetFileUUIDByPath(pair.URL);
                     await Repository.DeleteAsync(pair);
-                    await DeleteFile(uuid);
+                    if (!uuid.Equals("")) await DeleteFile(uuid);
                 }
 
                 string uuidFileName = Guid.NewGuid().ToString();
@@ -584,7 +584,7 @@ namespace SND.SMP.Chibis
                 {
                     var uuid = await GetFileUUIDByPath(error.URL);
                     await Repository.DeleteAsync(error);
-                    await DeleteFile(uuid);
+                    if (!uuid.Equals("")) await DeleteFile(uuid);
                 }
             }
 
