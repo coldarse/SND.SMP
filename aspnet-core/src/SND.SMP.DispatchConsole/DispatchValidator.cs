@@ -210,6 +210,7 @@ namespace SND.SMP.DispatchConsole
                     {
                         if (rowTouched > 0)
                         {
+                            if(reader[0] is null) break;
                             var strPostalCode = reader[0].ToString()!;
                             var dispatchDate = DateOnly.ParseExact(reader[1].ToString()!, "dd/MM/yyyy", CultureInfo.InvariantCulture);
                             var strServiceCode = reader[2].ToString()!;
