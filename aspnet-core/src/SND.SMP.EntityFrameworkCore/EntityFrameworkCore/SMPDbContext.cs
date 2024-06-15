@@ -331,7 +331,7 @@ namespace SND.SMP.EntityFrameworkCore
                 b.Property(x => x.CustomerCode                    ).HasColumnName(nameof(DispatchValidation.CustomerCode                    )).HasMaxLength(10);
                 b.Property(x => x.DateStarted                     ).HasColumnName(nameof(DispatchValidation.DateStarted                     ));
                 b.Property(x => x.DateCompleted                   ).HasColumnName(nameof(DispatchValidation.DateCompleted                   ));
-                b.Property(x => x.DispatchNo                      ).HasColumnName(nameof(DispatchValidation.DispatchNo                      )).HasMaxLength(15);
+                b.Property(x => x.DispatchNo                      ).HasColumnName(nameof(DispatchValidation.DispatchNo                      )).HasMaxLength(128);
                 b.Property(x => x.FilePath                        ).HasColumnName(nameof(DispatchValidation.FilePath                        )).HasMaxLength(200);
                 b.Property(x => x.IsFundLack                      ).HasColumnName(nameof(DispatchValidation.IsFundLack                      ));
                 b.Property(x => x.IsValid                         ).HasColumnName(nameof(DispatchValidation.IsValid                         ));
@@ -354,7 +354,7 @@ namespace SND.SMP.EntityFrameworkCore
                 b.Property(x => x.ServiceCode                     ).HasColumnName(nameof(Dispatch.ServiceCode                     )).HasMaxLength(10);
                 b.Property(x => x.ProductCode                     ).HasColumnName(nameof(Dispatch.ProductCode                     )).HasMaxLength(10);
                 b.Property(x => x.DispatchDate                    ).HasColumnName(nameof(Dispatch.DispatchDate                    ));
-                b.Property(x => x.DispatchNo                      ).HasColumnName(nameof(Dispatch.DispatchNo                      )).HasMaxLength(15);
+                b.Property(x => x.DispatchNo                      ).HasColumnName(nameof(Dispatch.DispatchNo                      )).HasMaxLength(128);
                 b.Property(x => x.ETAtoHKG                        ).HasColumnName(nameof(Dispatch.ETAtoHKG                        ));
                 b.Property(x => x.FlightTrucking                  ).HasColumnName(nameof(Dispatch.FlightTrucking                  )).HasMaxLength(50);
                 b.Property(x => x.BatchId                         ).HasColumnName(nameof(Dispatch.BatchId                         )).HasMaxLength(35);
