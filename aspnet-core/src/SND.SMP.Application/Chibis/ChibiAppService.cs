@@ -488,10 +488,10 @@ namespace SND.SMP.Chibis
 
                 if (update)
                 {
-                    dispatchProfile.PostalCode = uploadRetryPreCheck.Details.PostalCode == "" ? dispatchProfile.PostalCode : uploadRetryPreCheck.Details.PostalCode;
-                    dispatchProfile.ServiceCode = uploadRetryPreCheck.Details.ServiceCode == "" ? dispatchProfile.ServiceCode : uploadRetryPreCheck.Details.ServiceCode;
-                    dispatchProfile.ProductCode = uploadRetryPreCheck.Details.ProductCode == "" ? dispatchProfile.ProductCode : uploadRetryPreCheck.Details.ProductCode;
-                    dispatchProfile.RateOptionId = uploadRetryPreCheck.Details.RateOptionId == "" ? dispatchProfile.RateOptionId : uploadRetryPreCheck.Details.RateOptionId;
+                    dispatchProfile.PostalCode = string.IsNullOrWhiteSpace(uploadRetryPreCheck.Details.PostalCode) ? dispatchProfile.PostalCode : uploadRetryPreCheck.Details.PostalCode;
+                    dispatchProfile.ServiceCode = string.IsNullOrWhiteSpace(uploadRetryPreCheck.Details.ServiceCode) ? dispatchProfile.ServiceCode : uploadRetryPreCheck.Details.ServiceCode;
+                    dispatchProfile.ProductCode = string.IsNullOrWhiteSpace(uploadRetryPreCheck.Details.ProductCode) ? dispatchProfile.ProductCode : uploadRetryPreCheck.Details.ProductCode;
+                    dispatchProfile.RateOptionId = string.IsNullOrWhiteSpace(uploadRetryPreCheck.Details.RateOptionId) ? dispatchProfile.RateOptionId : uploadRetryPreCheck.Details.RateOptionId;
 
                     fileString = Newtonsoft.Json.JsonConvert.SerializeObject(dispatchProfile);
                 }
@@ -543,10 +543,10 @@ namespace SND.SMP.Chibis
 
                 if (update)
                 {
-                    dispatchProfile.PostalCode = uploadRetryPreCheck.Details.PostalCode == "" ? dispatchProfile.PostalCode : uploadRetryPreCheck.Details.PostalCode;
-                    dispatchProfile.ServiceCode = uploadRetryPreCheck.Details.ServiceCode == "" ? dispatchProfile.ServiceCode : uploadRetryPreCheck.Details.ServiceCode;
-                    dispatchProfile.ProductCode = uploadRetryPreCheck.Details.ProductCode == "" ? dispatchProfile.ProductCode : uploadRetryPreCheck.Details.ProductCode;
-                    dispatchProfile.RateOptionId = uploadRetryPreCheck.Details.RateOptionId == "" ? dispatchProfile.RateOptionId : uploadRetryPreCheck.Details.RateOptionId;
+                    dispatchProfile.PostalCode = string.IsNullOrWhiteSpace(uploadRetryPreCheck.Details.PostalCode) ? dispatchProfile.PostalCode : uploadRetryPreCheck.Details.PostalCode;
+                    dispatchProfile.ServiceCode = string.IsNullOrWhiteSpace(uploadRetryPreCheck.Details.ServiceCode) ? dispatchProfile.ServiceCode : uploadRetryPreCheck.Details.ServiceCode;
+                    dispatchProfile.ProductCode = string.IsNullOrWhiteSpace(uploadRetryPreCheck.Details.ProductCode) ? dispatchProfile.ProductCode : uploadRetryPreCheck.Details.ProductCode;
+                    dispatchProfile.RateOptionId = string.IsNullOrWhiteSpace(uploadRetryPreCheck.Details.RateOptionId) ? dispatchProfile.RateOptionId : uploadRetryPreCheck.Details.RateOptionId;
 
                     fileString = Newtonsoft.Json.JsonConvert.SerializeObject(dispatchProfile);
                 }

@@ -18,6 +18,10 @@ using SND.SMP.Customers;
 using SND.SMP.Dispatches;
 using SND.SMP.Items;
 using SND.SMP.Postals;
+using System.Net.Http;
+using System.IO;
+using System.Data;
+using OfficeOpenXml;
 
 
 namespace SND.SMP.ItemTrackingReviews
@@ -117,7 +121,7 @@ namespace SND.SMP.ItemTrackingReviews
 
         // [HttpGet]
         // [Route("api/test")]
-        // private async OutPreRegisterItem UploadItem(InPreRegisterItem input, string postal)
+        // public async OutPreRegisterItem UploadItem(InPreRegisterItem input, string postal)
         // {
         //     const string SUCCESS = "success";
         //     const string FAILED = "failed";
@@ -137,10 +141,8 @@ namespace SND.SMP.ItemTrackingReviews
         //     result.RefNo = input.RefNo;
         //     //result.ItemID = input.ItemID;
         //     result.Status = FAILED;
-        //     result.Errors = new List<string>();
+        //     result.Errors = [];
         //     result.APIItemID = "";
-
-
 
         //     string postalSupported = postal[..2];
 
@@ -152,25 +154,14 @@ namespace SND.SMP.ItemTrackingReviews
 
         //         if (cust != null)
         //         {
-        //             accNo = cust.AccountNo;
+        //             accNo = cust.Code;
         //             clientSecret = cust.ClientSecret;
-
-        //             #region Ban
-        //             var isCustBanned = IsCustomerBanned(accNo, postalId);
-        //             if (isCustBanned)
-        //             {
-        //                 result.Status = FAILED;
-        //                 result.Errors.Add("Your account has been temporarily suspended due to insufficient fund");
-
-        //                 return result;
-        //             }
-        //             #endregion
 
         //             string signHashRequest = input.SignatureHash.Trim().ToUpper();
         //             string signHashRaw = string.Format("{0}-{1}-{2}-{3}", input.ItemID, input.RefNo, input.ClientKey, clientSecret);
         //             string signHashServer = Assetrio.Core.Crypto.Encode(signHashRaw).Trim().ToUpper();
 
-        //             var signMatched = cust.ClientKey == DEMO_CLIENT_KEY ? true : signHashRequest == signHashServer;
+        //             var signMatched = signHashRequest == signHashServer;
 
         //             if (signMatched)
         //             {
@@ -182,7 +173,7 @@ namespace SND.SMP.ItemTrackingReviews
         //                 {
         //                     if (input.RecipientCountry.ToUpper().Trim() == postalSupported)
         //                     {
-        //                         ModelState.AddModelError("", $"Invalid country {input.RecipientCountry} for this service");
+        //                         result.Errors.Add($"Invalid country {input.RecipientCountry} for this service");
         //                     }
         //                 }
         //                 #endregion
@@ -190,7 +181,7 @@ namespace SND.SMP.ItemTrackingReviews
         //                 #region Service Code
         //                 if (!string.Equals(input.ServiceCode.Trim(), "TS", StringComparison.OrdinalIgnoreCase))
         //                 {
-        //                     ModelState.AddModelError("", "Invalid service code");
+        //                     result.Errors.Add("Invalid service code");
         //                 }
         //                 #endregion
 
@@ -199,7 +190,7 @@ namespace SND.SMP.ItemTrackingReviews
         //                     #region Product Code
         //                     if (!string.Equals(input.ProductCode.Trim(), "OMT", StringComparison.OrdinalIgnoreCase) && !string.Equals(input.ProductCode.Trim(), "PRT", StringComparison.OrdinalIgnoreCase))
         //                     {
-        //                         ModelState.AddModelError("", "Invalid product code");
+        //                         result.Errors.Add("Invalid product code");
         //                     }
         //                     #endregion
 
@@ -213,7 +204,7 @@ namespace SND.SMP.ItemTrackingReviews
         //                         {
         //                             if (string.IsNullOrWhiteSpace(input.IOSSTax))
         //                             {
-        //                                 ModelState.AddModelError("", $"IOSSTax is mandatory for {input.RecipientCountry}");
+        //                                 result.Errors.Add($"IOSSTax is mandatory for {input.RecipientCountry}");
         //                             }
         //                         }
         //                     }
@@ -224,7 +215,7 @@ namespace SND.SMP.ItemTrackingReviews
         //                     #region Product Code
         //                     if (!string.Equals(input.ProductCode.Trim(), "OMT", StringComparison.OrdinalIgnoreCase))
         //                     {
-        //                         ModelState.AddModelError("", "Invalid product code");
+        //                         result.Errors.Add("Invalid product code");
         //                     }
         //                     #endregion
         //                 }
@@ -234,16 +225,16 @@ namespace SND.SMP.ItemTrackingReviews
         //                 {
         //                     if ((string.IsNullOrWhiteSpace(input.ItemID) ? "" : input.ItemID.ToLower().Trim()) != auto.ToLower().Trim())
         //                     {
-        //                         ModelState.AddModelError("", "Invalid ItemID value. ItemID must be set to 'auto'");
+        //                         result.Errors.Add("Invalid ItemID value. ItemID must be set to 'auto'");
         //                     }
         //                 }
 
         //                 if (!postalSupported.Equals("GQ"))
         //                 {
-        //                     var nextItemIdFromRange = GetNextAvailableAnyAccountTrackingNumber(postalId);
+        //                     var nextItemIdFromRange = await GetNextAvailableAnyAccountTrackingNumber(postalId);
         //                     if (string.IsNullOrWhiteSpace(nextItemIdFromRange))
         //                     {
-        //                         ModelState.AddModelError("", "Insufficient API Item ID. Please contact us for assistance");
+        //                         result.Errors.Add("Insufficient API Item ID. Please contact us for assistance");
         //                     }
         //                 }
 
@@ -252,7 +243,7 @@ namespace SND.SMP.ItemTrackingReviews
         //                     var isOwned = IsTrackingNoOwner(accNo, input.PoolItemId, input.ProductCode);
         //                     if (!isOwned)
         //                     {
-        //                         ModelState.AddModelError("", "Invalid Pool Item ID");
+        //                         result.Errors.Add("Invalid Pool Item ID");
         //                     }
         //                 }
 
@@ -564,6 +555,157 @@ namespace SND.SMP.ItemTrackingReviews
         //     return result;
         // }
 
+        // public static async Task<Stream> GetFileStream(string url)
+        // {
+        //     using var httpClient = new HttpClient();
+        //     using var response = await httpClient.GetAsync(url);
+        //     if (response.IsSuccessStatusCode)
+        //     {
+        //         var contentByteArray = await response.Content.ReadAsByteArrayAsync();
+        //         return new MemoryStream(contentByteArray);
+        //     }
+        //     return null;
+        // }
+        // private static DataTable ConvertToDatatable(Stream ms)
+        // {
+        //     DataTable dataTable = new();
+
+        //     ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
+        //     using (var package = new ExcelPackage(ms))
+        //     {
+        //         ExcelWorksheet worksheet = package.Workbook.Worksheets[0];
+
+        //         // Assuming the first row is the header
+        //         for (int i = 1; i <= worksheet.Dimension.End.Column; i++)
+        //         {
+        //             string columnName = worksheet.Cells[1, i].Value?.ToString();
+        //             if (!string.IsNullOrEmpty(columnName))
+        //             {
+        //                 dataTable.Columns.Add(columnName);
+        //             }
+        //         }
+
+        //         // Populate DataTable with data from Excel
+        //         for (int row = 2; row <= worksheet.Dimension.End.Row; row++)
+        //         {
+        //             DataRow dataRow = dataTable.NewRow();
+        //             for (int col = 1; col <= worksheet.Dimension.End.Column; col++)
+        //             {
+        //                 dataRow[col - 1] = worksheet.Cells[row, col].Value;
+        //             }
+        //             dataTable.Rows.Add(dataRow);
+        //         }
+        //     }
+
+        //     return dataTable;
+        // }
+
+        // public async Task<bool> GetItemTrackingFilePath(string trackingNo, string customerCode)
+        // {
+        //     string prefix = trackingNo[..2];
+        //     string prefixNo = trackingNo.Substring(2, 2);
+        //     string suffix = trackingNo[^2..];
+
+        //     var reviews = await _itemTrackingReviewRepository.GetAllListAsync(x =>
+        //                                                                         x.Prefix.Equals(prefix) &&
+        //                                                                         x.PrefixNo.Equals(prefixNo) &&
+        //                                                                         x.Suffix.Equals(suffix) &&
+        //                                                                         x.CustomerCode.Equals(customerCode)
+        //                                                                      );
+
+        //     List<string> paths = [];
+
+        //     foreach (var review in reviews)
+        //     {
+        //         var application = await _itemTrackingApplicationRepository.FirstOrDefaultAsync(x => x.Id.Equals(review.ApplicationId));
+
+        //         if (application is not null) paths.Add(application.Path);
+        //     }
+
+        //     if (!paths.Count.Equals(0))
+        //     {
+        //         foreach (var path in paths)
+        //         {
+        //             Stream excel_stream = await GetFileStream(path);
+        //             DataTable dataTable = ConvertToDatatable(excel_stream);
+
+        //             List<ItemTrackingIdDto> items = [];
+        //             foreach (DataRow dr in dataTable.Rows)
+        //             {
+        //                 if (dr.ItemArray[0].ToString() != "")
+        //                 {
+        //                     items.Add(new ItemTrackingIdDto()
+        //                     {
+        //                         TrackingNo = dr.ItemArray[0].ToString(),
+        //                         DateCreated = dr.ItemArray[1].ToString(),
+        //                         DateUsed = dr.ItemArray[2].ToString(),
+        //                         DispatchNo = dr.ItemArray[3].ToString(),
+        //                     });
+        //                 }
+        //             }
+
+                    
+
+        //         }
+        //     }
+
+        //     return true;
+        // }
+
+        // public static string GetNextAvailableAnyAccountTrackingNumber(string postalId, bool? willUpdate = false, string accNo = null, int? customerId = null, string postalCode = null, string productCode = null, bool mustFilterByPostalCode = false)
+        // {
+        //     string result = null;
+
+
+        //     var q = db.RegisterTrackingNumbers
+        //         .Where(u => u.PostalID == postalId && u.AccountNo == null && u.DateUsed == null);
+
+        //     if (!string.IsNullOrWhiteSpace(productCode))
+        //     {
+        //         q = q.Where(u => u.ProductCode == productCode);
+        //     }
+
+        //     if (mustFilterByPostalCode)
+        //     {
+        //         if (!string.IsNullOrWhiteSpace(postalCode))
+        //         {
+        //             q = q.Where(u => u.PostalCode == postalCode);
+        //         }
+        //     }
+
+        //     var x = 0;
+        //     var count = q.Count();
+
+        //     if (count > 1)
+        //     {
+        //         var maxRan = count - 1;
+
+        //         x = RNGUtil.Next(0, maxRan);
+        //     }
+
+        //     var item = q
+        //         .OrderBy(u => u.TrackingNo)
+        //         .Skip(x)
+        //         .Take(1)
+        //         .FirstOrDefault();
+
+        //     if (item != null)
+        //     {
+        //         result = item.TrackingNo;
+
+        //         if (willUpdate.GetValueOrDefault())
+        //         {
+
+        //             item.AccountNo = accNo;
+        //             item.CustomerID = customerId;
+        //             item.PostalCode = postalCode;
+
+        //         }
+        //     }
+
+        //     return result;
+        // }
         // public async Task<decimal> GetItemTopupValueFromPostalMaintenance(string postalCode, string serviceCode, string productCode)
         // {
         //     var postal = await _postalRepository.FirstOrDefaultAsync(x =>
@@ -603,7 +745,7 @@ namespace SND.SMP.ItemTrackingReviews
         //     }
         // }
 
-        // public async Task AlertIfLowThreshold(string postalId, int threshold, string productCode = null)
+        // public static async Task AlertIfLowThreshold(string postalId, int threshold, string productCode = null)
         // {
         //     threshold = 50000; //default
 
@@ -636,8 +778,7 @@ namespace SND.SMP.ItemTrackingReviews
         //         threshold = 50000;
         //     }
 
-        //     var q = await _itemTrackingRepository.FirstOrDefaultAsync(x => 
-        //                                                                 x.Postal)
+        //     var q = await _itemTrackingRepository.RegisterTrackingNumbers
         //         .Where(u => u.PostalID == postalId)
         //         .Where(u => u.AccountNo == null)
         //         .Where(u => u.DateUsed == null);
@@ -683,8 +824,7 @@ namespace SND.SMP.ItemTrackingReviews
         //         #endregion
         //     }
         // }
-   
-   
+
     }
 }
 

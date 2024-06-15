@@ -24,7 +24,7 @@ namespace SND.SMP.DispatchConsole
         private string _chibiURL;
 
 
-        public TrackingNoGenerator(){}
+        public TrackingNoGenerator() { }
 
         public async Task DiscoverAndGenerate()
         {
@@ -175,7 +175,7 @@ namespace SND.SMP.DispatchConsole
                     application.Status = GenerateConst.Status_Completed;
                 }
 
-                runningNos.RunningNo = endingNo; 
+                runningNos.RunningNo = endingNo;
 
                 DateTime endTime = DateTime.Now;
                 application.TookInSec = (endTime - startTime).Seconds;
@@ -254,7 +254,7 @@ namespace SND.SMP.DispatchConsole
                     OriginalName = originalName is null ? result.originalName : originalName,
                     GeneratedName = result.name ?? ""
                 };
-                
+
                 await dbconn.Chibis.AddAsync(entity);
                 await dbconn.SaveChangesAsync();
 
@@ -268,25 +268,32 @@ namespace SND.SMP.DispatchConsole
         {
             using db db = new();
 
-            var review = db.ItemTrackingReviews
+            var reviews = db.ItemTrackingReviews
                 .Where(x => x.Prefix == Prefix)
                 .Where(x => x.PrefixNo == PrefixNo)
                 .Where(x => x.Suffix == Suffix)
-                .FirstOrDefault();
+                .ToList();
 
-            if (review == null) return false;
+            if (reviews.Count == 0) return false;
 
-            var application = db.ItemTrackingApplications.FirstOrDefault(x => x.Id == review.ApplicationId);
-
-            Stream excelFile = await FileServer.GetFileStream(application.Path);
-
-            DataTable dataTable = ConvertToDatatable(excelFile);
-
-            if (dataTable.Rows.Count == 0) return false;
-
-            foreach (DataRow dr in dataTable.Rows)
+            foreach (var review in reviews)
             {
-                if (dr.ItemArray[0].ToString() == trackingNo) return true;
+                var applications = db.ItemTrackingApplications.Where(x => x.Id.Equals(review.ApplicationId)).ToList();
+
+                foreach (var application in applications)
+                {
+                    Stream excelFile = await FileServer.GetFileStream(application.Path);
+
+                    DataTable dataTable = ConvertToDatatable(excelFile);
+
+                    if (dataTable.Rows.Count == 0) return false;
+
+                    foreach (DataRow dr in dataTable.Rows)
+                    {
+                        if (dr.ItemArray[0].ToString() == trackingNo) return true;
+                    }
+                }
+
             }
 
             return false;
