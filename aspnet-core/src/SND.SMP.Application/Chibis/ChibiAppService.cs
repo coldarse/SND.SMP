@@ -405,9 +405,6 @@ namespace SND.SMP.Chibis
             var dispatchValidation = await _dispatchValidationRepository.FirstOrDefaultAsync(x => x.DispatchNo.Equals(dispatchNo));
             await _dispatchValidationRepository.DeleteAsync(dispatchValidation);
 
-            var dispatch = await _dispatchRepository.FirstOrDefaultAsync(x => x.DispatchNo.Equals(dispatchNo));
-            await _dispatchRepository.DeleteAsync(dispatch);
-
             var queues = await _queueRepository.GetAllListAsync(x => x.FilePath.Equals(excelDispatchFile.URL));
             foreach (var queue in queues) await _queueRepository.DeleteAsync(queue);
 
@@ -653,28 +650,34 @@ namespace SND.SMP.Chibis
         [Consumes("multipart/form-data")]
         public async Task<bool> PreCheckUpload([FromForm] PreCheckDto uploadPreCheck)
         {
-            string uuidFileName = Guid.NewGuid().ToString();
-            uploadPreCheck.UploadFile.json = Newtonsoft.Json.JsonConvert.SerializeObject(uploadPreCheck.Details);
-            uploadPreCheck.UploadFile.fileName = uuidFileName + ".xlsx";
-            uploadPreCheck.UploadFile.fileType = "xlsx";
-            var xlsxFile = await UploadFile(uploadPreCheck.UploadFile);
+            var dispatch = await _dispatchRepository.FirstOrDefaultAsync(x => x.DispatchNo.Equals(uploadPreCheck.Details.DispatchNo));
 
-            uploadPreCheck.UploadFile.fileName = uuidFileName + ".xlsx.profile.json";
-            uploadPreCheck.UploadFile.fileType = "json";
-            var jsonFile = await UploadFile(uploadPreCheck.UploadFile, xlsxFile.originalName);
-
-            await InsertFileToAlbum(xlsxFile.uuid, false, uploadPreCheck.Details.PostalCode, uploadPreCheck.Details.ServiceCode, uploadPreCheck.Details.ProductCode);
-            await InsertFileToAlbum(jsonFile.uuid, false, uploadPreCheck.Details.PostalCode, uploadPreCheck.Details.ServiceCode, uploadPreCheck.Details.ProductCode);
-
-            await _queueRepository.InsertAsync(new Queue()
+            if (dispatch is null)
             {
-                EventType = "Validate Dispatch",
-                FilePath = xlsxFile.url,
-                DateCreated = DateTime.Now,
-                Status = "New"
-            });
+                string uuidFileName = Guid.NewGuid().ToString();
+                uploadPreCheck.UploadFile.json = Newtonsoft.Json.JsonConvert.SerializeObject(uploadPreCheck.Details);
+                uploadPreCheck.UploadFile.fileName = uuidFileName + ".xlsx";
+                uploadPreCheck.UploadFile.fileType = "xlsx";
+                var xlsxFile = await UploadFile(uploadPreCheck.UploadFile);
 
-            return true;
+                uploadPreCheck.UploadFile.fileName = uuidFileName + ".xlsx.profile.json";
+                uploadPreCheck.UploadFile.fileType = "json";
+                var jsonFile = await UploadFile(uploadPreCheck.UploadFile, xlsxFile.originalName);
+
+                await InsertFileToAlbum(xlsxFile.uuid, false, uploadPreCheck.Details.PostalCode, uploadPreCheck.Details.ServiceCode, uploadPreCheck.Details.ProductCode);
+                await InsertFileToAlbum(jsonFile.uuid, false, uploadPreCheck.Details.PostalCode, uploadPreCheck.Details.ServiceCode, uploadPreCheck.Details.ProductCode);
+
+                await _queueRepository.InsertAsync(new Queue()
+                {
+                    EventType = "Validate Dispatch",
+                    FilePath = xlsxFile.url,
+                    DateCreated = DateTime.Now,
+                    Status = "New"
+                });
+
+                return true;
+            }
+            return false;
         }
 
 

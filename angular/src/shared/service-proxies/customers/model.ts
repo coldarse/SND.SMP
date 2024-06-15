@@ -16,6 +16,9 @@ export interface CustomerDto extends EntityDto<number> {
     emailAddress2: string;
     emailAddress3: string;
     isActive: boolean;
+    clientKey: string;
+    clientSecret: string;
+    aPIAccessToken: string;
 }
 
 export interface PagedCustomerResultRequestDto extends PagedAndSortedResultRequestDto {

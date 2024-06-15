@@ -588,6 +588,9 @@ namespace SND.SMP.EntityFrameworkCore
                 b.Property(x => x.EmailAddress2).HasColumnName(nameof(Customer.EmailAddress2));
                 b.Property(x => x.EmailAddress3).HasColumnName(nameof(Customer.EmailAddress3));
                 b.Property(x => x.IsActive).HasColumnName(nameof(Customer.IsActive));
+                b.Property(x => x.ClientSecret).HasColumnName(nameof(Customer.ClientSecret)).HasMaxLength(100);
+                b.Property(x => x.ClientKey).HasColumnName(nameof(Customer.ClientKey)).HasMaxLength(100);
+                b.Property(x => x.APIAccessToken).HasColumnName(nameof(Customer.APIAccessToken)).HasMaxLength(250);
                 b.HasKey(x => x.Id);
                 b.HasAlternateKey(x => x.Code);
             });

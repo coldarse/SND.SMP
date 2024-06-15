@@ -51,6 +51,9 @@ export class CreateUpdateCustomerComponent
       this.customer.emailAddress2 = "-";
       this.customer.emailAddress3 = "-";
       this.customer.isActive = true;
+      this.customer.clientKey = "-";
+      this.customer.clientSecret = "-";
+      this.customer.aPIAccessToken = "-";
     }
   }
 
