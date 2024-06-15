@@ -332,7 +332,7 @@ namespace SND.SMP.Dispatches
 
             var listDeductedTare = await GetDeductTare(dispatchId, tare, true, 3m, 1);
 
-            var listKGCos = await _impcRepository.GetAllListAsync(x => x.Type.Equals("KGCos"));
+            var listKGCos = await _impcRepository.GetAllListAsync(x => x.Type.Equals("KG"));
 
             foreach (var u in items)
             {
@@ -484,7 +484,7 @@ namespace SND.SMP.Dispatches
 
             var listDeducted = await GetDeductTare(dispatchId, bagTareWeightInGram, true, 3m, 1);
 
-            var listGQCos = await _impcRepository.GetAllListAsync(x => x.Type.Equals("GQCos"));
+            var listGQCos = await _impcRepository.GetAllListAsync(x => x.Type.Equals("GQ"));
 
             string impcToCode = "";
             string logisticCode = "";
@@ -899,7 +899,7 @@ namespace SND.SMP.Dispatches
 
             var destination = "";
 
-            var listKGCos = await _impcRepository.GetAllListAsync(x => x.Type.Equals("KGCos"));
+            var listKGCos = await _impcRepository.GetAllListAsync(x => x.Type.Equals("KG"));
             var kgc = listKGCos.FirstOrDefault(u => u.CountryCode.Equals(countryCode));
             if (kgc is not null) destination = kgc.AirportCode;
 
@@ -958,7 +958,7 @@ namespace SND.SMP.Dispatches
 
             var destination = "";
             var bags = items.GroupBy(u => u.BagNo).ToList();
-            var listGQCos = await _impcRepository.GetAllListAsync(x => x.Type.Equals("GQCos"));
+            var listGQCos = await _impcRepository.GetAllListAsync(x => x.Type.Equals("GQ"));
             var kgc = listGQCos.FirstOrDefault(u => u.CountryCode.Equals(countryCode));
             if (kgc != null) destination = kgc.AirportCode;
 
@@ -1873,7 +1873,7 @@ namespace SND.SMP.Dispatches
 
             var countries = bags.GroupBy(x => x.CountryCode).Select(u => u.Key).OrderBy(u => u).ToList();
 
-            var Cos = await _impcRepository.GetAllListAsync(x => x.Type.Equals($"{code}Cos"));
+            var Cos = await _impcRepository.GetAllListAsync(x => x.Type.Equals($"{code}"));
 
             var customerCode = dispatch.CustomerCode;
             var productCode = dispatch.ProductCode;
@@ -2038,7 +2038,7 @@ namespace SND.SMP.Dispatches
 
             var countries = bags.GroupBy(x => x.CountryCode).Select(u => u.Key).OrderBy(u => u).ToList();
 
-            var Cos = await _impcRepository.GetAllListAsync(x => x.Type.Equals($"{code}Cos"));
+            var Cos = await _impcRepository.GetAllListAsync(x => x.Type.Equals($"{code}"));
 
             var customerCode = dispatch.CustomerCode;
             var productCode = dispatch.ProductCode;
