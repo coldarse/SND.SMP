@@ -121,7 +121,7 @@ namespace SND.SMP.ItemTrackingReviews
 
         // [HttpGet]
         // [Route("api/test")]
-        // public async OutPreRegisterItem UploadItem(InPreRegisterItem input, string postal)
+        // public async OutPreRegisterItem PreReg(InPreRegisterItem input, string postal)
         // {
         //     const string SUCCESS = "success";
         //     const string FAILED = "failed";
@@ -348,8 +348,21 @@ namespace SND.SMP.ItemTrackingReviews
         //                 {
         //                     newItem = await _itemRepository.InsertAsync(new Item
         //                     {
+        //                         Id = newItemIdFromSPS,
         //                         DispatchID = dispatchTemp.Id,
-        //                         DispatchName = dispatchTemp.DispatchNo,
+        //                         BagID = 0,
+        //                         DispatchDate = dispatchTemp.DispatchDate,
+        //                         Month = 1,
+        //                         PostalCode = input.ServiceCode,
+        //                         ServiceCode = input.ServiceCode,
+        //                         ProductCode = input.ProductCode,
+        //                         CountryCode = input.RecipientCountry,
+        //                         Weight = input.Weight,
+        //                         BagNo = "",
+        //                         SealNo = "",
+        //                         Price
+
+
         //                         ExtRemark = dispatchTemp.DispatchNo,
         //                         BagNo = null,
         //                         SealNo = null,
@@ -601,7 +614,7 @@ namespace SND.SMP.ItemTrackingReviews
         //     return dataTable;
         // }
 
-        // public async Task<bool> GetItemTrackingFilePath(string trackingNo, string customerCode)
+        // public async Task<ItemIds> GetItemTrackingFile(string trackingNo, string customerCode)
         // {
         //     string prefix = trackingNo[..2];
         //     string prefixNo = trackingNo.Substring(2, 2);
@@ -623,10 +636,14 @@ namespace SND.SMP.ItemTrackingReviews
         //         if (application is not null) paths.Add(application.Path);
         //     }
 
+
+        //     string itemIdFilePath = "";
+        //     List<ItemTrackingWithPath> ItemWithPath = [];
         //     if (!paths.Count.Equals(0))
         //     {
         //         foreach (var path in paths)
         //         {
+        //             ItemTrackingWithPath itemWithPath = new();      
         //             Stream excel_stream = await GetFileStream(path);
         //             DataTable dataTable = ConvertToDatatable(excel_stream);
 
@@ -642,65 +659,104 @@ namespace SND.SMP.ItemTrackingReviews
         //                         DateUsed = dr.ItemArray[2].ToString(),
         //                         DispatchNo = dr.ItemArray[3].ToString(),
         //                     });
+
+        //                     if (dr.ItemArray[0].ToString().Equals(trackingNo)) itemIdFilePath = path;
         //                 }
         //             }
-
-                    
-
+        //             itemWithPath.ItemIds = items;
+        //             itemWithPath.ExcelPath = path;
+        //             ItemWithPath.Add(itemWithPath);
         //         }
         //     }
 
-        //     return true;
+        //     return new ItemIds()
+        //     {
+        //         ItemWithPath = ItemWithPath,
+        //         Path = itemIdFilePath
+        //     };
         // }
 
-        // public static string GetNextAvailableAnyAccountTrackingNumber(string postalId, bool? willUpdate = false, string accNo = null, int? customerId = null, string postalCode = null, string productCode = null, bool mustFilterByPostalCode = false)
+        // public async Task<string> GetNextAvailableAnyAccountTrackingNumber(string trackingNo)
+        // {
+        //     var itemIds = await GetItemTrackingFile(trackingNo, "Any Account");
+
+        //     var itemLists = itemIds.ItemWithPath.FirstOrDefault(x => x.ExcelPath.Equals(itemIds.Path));
+
+        //     int index = itemLists.ItemIds.FindIndex(x => x.TrackingNo.Equals(trackingNo));
+
+        //     bool isLast = index == itemLists.ItemIds.Count - 1;
+
+        //     if(!isLast) return itemLists.ItemIds[index + 1].TrackingNo;
+
+        //     return "";
+        // }
+
+        // public static async string GetNextAvailableAnyAccountTrackingNumber(
+        //         string postalId, 
+        //         bool? willUpdate = false, 
+        //         string accNo = null, 
+        //         int? customerId = null, 
+        //         string postalCode = null, 
+        //         string productCode = null, 
+        //         bool mustFilterByPostalCode = false)
         // {
         //     string result = null;
 
-
-        //     var q = db.RegisterTrackingNumbers
-        //         .Where(u => u.PostalID == postalId && u.AccountNo == null && u.DateUsed == null);
-
-        //     if (!string.IsNullOrWhiteSpace(productCode))
+        //     using (Core.ModelP.spsp db = new Core.ModelP.spsp())
         //     {
-        //         q = q.Where(u => u.ProductCode == productCode);
-        //     }
-
-        //     if (mustFilterByPostalCode)
-        //     {
-        //         if (!string.IsNullOrWhiteSpace(postalCode))
+        //         using (var dbContextTransaction = db.Database.BeginTransaction())
         //         {
-        //             q = q.Where(u => u.PostalCode == postalCode);
-        //         }
-        //     }
+        //             var q = db.RegisterTrackingNumbers
+        //                 .Where(u => u.PostalID == postalId && u.AccountNo == null && u.DateUsed == null);
+        //             //.Where(u => u.PostalID == postalId)
+        //             //.Where(u => u.AccountNo == null)
+        //             //.Where(u => u.DateUsed == null);
 
-        //     var x = 0;
-        //     var count = q.Count();
+        //             if (!string.IsNullOrWhiteSpace(productCode))
+        //             {
+        //                 q = q.Where(u => u.ProductCode == productCode);
+        //             }
 
-        //     if (count > 1)
-        //     {
-        //         var maxRan = count - 1;
+        //             if (mustFilterByPostalCode)
+        //             {
+        //                 if (!string.IsNullOrWhiteSpace(postalCode))
+        //                 {
+        //                     q = q.Where(u => u.PostalCode == postalCode);
+        //                 }
+        //             }
 
-        //         x = RNGUtil.Next(0, maxRan);
-        //     }
+        //             var x = 0;
+        //             var count = q.Count();
 
-        //     var item = q
-        //         .OrderBy(u => u.TrackingNo)
-        //         .Skip(x)
-        //         .Take(1)
-        //         .FirstOrDefault();
+        //             if (count > 1)
+        //             {
+        //                 var maxRan = count - 1;
 
-        //     if (item != null)
-        //     {
-        //         result = item.TrackingNo;
+        //                 x = RNGUtil.Next(0, maxRan);
+        //             }
 
-        //         if (willUpdate.GetValueOrDefault())
-        //         {
+        //             var item = q
+        //                 .OrderBy(u => u.TrackingNo)
+        //                 .Skip(x)
+        //                 .Take(1)
+        //                 .FirstOrDefault();
 
-        //             item.AccountNo = accNo;
-        //             item.CustomerID = customerId;
-        //             item.PostalCode = postalCode;
+        //             if (item != null)
+        //             {
+        //                 result = item.TrackingNo;
 
+        //                 if (willUpdate.GetValueOrDefault())
+        //                 {
+
+        //                     item.AccountNo = accNo;
+        //                     item.CustomerID = customerId;
+        //                     item.PostalCode = postalCode;
+
+        //                     db.SaveChanges();
+        //                 }
+        //             }
+
+        //             dbContextTransaction.Commit();
         //         }
         //     }
 
