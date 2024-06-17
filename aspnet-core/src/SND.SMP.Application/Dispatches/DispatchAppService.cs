@@ -1461,7 +1461,7 @@ namespace SND.SMP.Dispatches
                     {
                         await _weightAdjustmentRepository.InsertAsync(new WeightAdjustment()
                         {
-                            Amount = totalSurchargePrice,
+                            Amount = Math.Abs(totalSurchargePrice),
                             DateTime = DateTime.UtcNow,
                             Description = "Post Check Under Declare",
                             ReferenceNo = dispatch.DispatchNo,
@@ -1491,7 +1491,7 @@ namespace SND.SMP.Dispatches
                             TransactionType = "Surcharge Amount",
                             Amount = -totalSurchargePrice,
                             ReferenceNo = dispatch.DispatchNo,
-                            Description = $"Deducted {currency.Abbr} {totalSurchargePrice} from {wallet.Customer}'s {wallet.Id} Wallet. Remaining {currency.Abbr} {wallet.Balance}.",
+                            Description = $"Deducted {currency.Abbr} {decimal.Round(Math.Abs(totalSurchargePrice), 2, MidpointRounding.AwayFromZero)} from {wallet.Customer}'s {wallet.Id} Wallet. Remaining {currency.Abbr} {decimal.Round(wallet.Balance, 2, MidpointRounding.AwayFromZero)}.",
                             TransactionDate = cstDateTime
                         });
                     }
@@ -1501,7 +1501,7 @@ namespace SND.SMP.Dispatches
                     {
                         await _weightAdjustmentRepository.InsertAsync(new WeightAdjustment()
                         {
-                            Amount = totalRefundPrice * (-1),
+                            Amount = Math.Abs(totalRefundPrice),
                             DateTime = DateTime.UtcNow,
                             Description = "Post Check Over Declare",
                             ReferenceNo = dispatch.DispatchNo,
@@ -1511,7 +1511,7 @@ namespace SND.SMP.Dispatches
                         await _weightAdjustmentRepository.GetDbContext().SaveChangesAsync();
 
                         var wallet = await _walletRepository.FirstOrDefaultAsync(x => x.Customer.Equals(customer.Code) && x.Currency.Equals(rateItem.CurrencyId));
-                        wallet.Balance -= totalRefundPrice;
+                        wallet.Balance += Math.Abs(totalRefundPrice);
                         await _walletRepository.UpdateAsync(wallet);
                         await _walletRepository.GetDbContext().SaveChangesAsync();
 
@@ -1529,9 +1529,9 @@ namespace SND.SMP.Dispatches
                             PaymentMode = eWallet.Type,
                             Currency = currency.Abbr,
                             TransactionType = "Refund Amount",
-                            Amount = -totalRefundPrice,
+                            Amount = totalRefundPrice,
                             ReferenceNo = dispatch.DispatchNo,
-                            Description = $"Credited {currency.Abbr} {totalRefundPrice} to {wallet.Customer}'s {wallet.Id} Wallet. Current Balance is {currency.Abbr} {wallet.Balance}.",
+                            Description = $"Credited {currency.Abbr} {decimal.Round(Math.Abs(totalRefundPrice), 2, MidpointRounding.AwayFromZero)} to {wallet.Customer}'s {wallet.Id} Wallet. Current Balance is {currency.Abbr} {decimal.Round(wallet.Balance, 2, MidpointRounding.AwayFromZero)}.",
                             TransactionDate = cstDateTime
                         });
                     }
@@ -1622,7 +1622,7 @@ namespace SND.SMP.Dispatches
             {
                 await _weightAdjustmentRepository.InsertAsync(new WeightAdjustment()
                 {
-                    Amount = totalSurchargePrice,
+                    Amount = Math.Abs(totalSurchargePrice),
                     DateTime = DateTime.UtcNow,
                     Description = "Post Check Under Declare",
                     ReferenceNo = dispatch.DispatchNo,
@@ -1650,9 +1650,9 @@ namespace SND.SMP.Dispatches
                     PaymentMode = eWallet.Type,
                     Currency = currency.Abbr,
                     TransactionType = "Surcharge Amount",
-                    Amount = totalSurchargePrice,
+                    Amount = -totalSurchargePrice,
                     ReferenceNo = dispatch.DispatchNo,
-                    Description = $"Deducted {currency.Abbr} {totalSurchargePrice} from {wallet.Customer}'s {wallet.Id} Wallet. Remaining {currency.Abbr} {wallet.Balance}.",
+                    Description = $"Deducted {currency.Abbr} {decimal.Round(Math.Abs(totalSurchargePrice), 2, MidpointRounding.AwayFromZero)} from {wallet.Customer}'s {wallet.Id} Wallet. Remaining {currency.Abbr} {decimal.Round(wallet.Balance, 2, MidpointRounding.AwayFromZero)}.",
                     TransactionDate = cstDateTime
                 });
             }
@@ -1661,7 +1661,7 @@ namespace SND.SMP.Dispatches
             {
                 await _weightAdjustmentRepository.InsertAsync(new WeightAdjustment()
                 {
-                    Amount = totalRefundPrice * (-1),
+                    Amount = Math.Abs(totalRefundPrice),
                     DateTime = DateTime.UtcNow,
                     Description = "Post Check Over Declare",
                     ReferenceNo = dispatch.DispatchNo,
@@ -1671,7 +1671,7 @@ namespace SND.SMP.Dispatches
                 await _weightAdjustmentRepository.GetDbContext().SaveChangesAsync();
 
                 var wallet = await _walletRepository.FirstOrDefaultAsync(x => x.Customer.Equals(customer.Code) && x.Currency.Equals(rateItem.CurrencyId));
-                wallet.Balance -= totalRefundPrice;
+                wallet.Balance += Math.Abs(totalRefundPrice);
                 await _walletRepository.UpdateAsync(wallet);
                 await _walletRepository.GetDbContext().SaveChangesAsync();
 
@@ -1689,9 +1689,9 @@ namespace SND.SMP.Dispatches
                     PaymentMode = eWallet.Type,
                     Currency = currency.Abbr,
                     TransactionType = "Refund Amount",
-                    Amount = -totalRefundPrice,
+                    Amount = totalRefundPrice,
                     ReferenceNo = dispatch.DispatchNo,
-                    Description = $"Credited {currency.Abbr} {totalRefundPrice} to {wallet.Customer}'s {wallet.Id} Wallet. Current Balance is {currency.Abbr} {wallet.Balance}.",
+                    Description = $"Credited {currency.Abbr} {decimal.Round(Math.Abs(totalRefundPrice), 2, MidpointRounding.AwayFromZero)} to {wallet.Customer}'s {wallet.Id} Wallet. Current Balance is {currency.Abbr} {decimal.Round(wallet.Balance, 2, MidpointRounding.AwayFromZero)}.",
                     TransactionDate = cstDateTime
                 });
             }
@@ -2339,7 +2339,7 @@ namespace SND.SMP.Dispatches
                 {
                     await _weightAdjustmentRepository.InsertAsync(new WeightAdjustment()
                     {
-                        Amount = totalSurchargePrice,
+                        Amount = Math.Abs(totalSurchargePrice),
                         DateTime = DateTime.UtcNow,
                         Description = "Post Check Under Declare",
                         ReferenceNo = dispatch.DispatchNo,
@@ -2367,9 +2367,9 @@ namespace SND.SMP.Dispatches
                         PaymentMode = eWallet.Type,
                         Currency = currency.Abbr,
                         TransactionType = "Surcharge Amount",
-                        Amount = totalSurchargePrice,
+                        Amount = -totalSurchargePrice,
                         ReferenceNo = dispatch.DispatchNo,
-                        Description = $"Deducted {currency.Abbr} {totalSurchargePrice} from {wallet.Customer}'s {wallet.Id} Wallet. Remaining {currency.Abbr} {wallet.Balance}.",
+                        Description = $"Deducted {currency.Abbr} {decimal.Round(Math.Abs(totalSurchargePrice), 2, MidpointRounding.AwayFromZero)} from {wallet.Customer}'s {wallet.Id} Wallet. Remaining {currency.Abbr} {decimal.Round(wallet.Balance, 2, MidpointRounding.AwayFromZero)}.",
                         TransactionDate = cstDateTime
                     });
                 }
@@ -2379,7 +2379,7 @@ namespace SND.SMP.Dispatches
                 {
                     await _weightAdjustmentRepository.InsertAsync(new WeightAdjustment()
                     {
-                        Amount = totalRefundPrice * (-1),
+                        Amount = Math.Abs(totalRefundPrice),
                         DateTime = DateTime.UtcNow,
                         Description = "Post Check Over Declare",
                         ReferenceNo = dispatch.DispatchNo,
@@ -2389,7 +2389,7 @@ namespace SND.SMP.Dispatches
                     await _weightAdjustmentRepository.GetDbContext().SaveChangesAsync();
 
                     var wallet = await _walletRepository.FirstOrDefaultAsync(x => x.Customer.Equals(customer.Code) && x.Currency.Equals(rateItem.CurrencyId));
-                    wallet.Balance -= totalRefundPrice;
+                    wallet.Balance += Math.Abs(totalRefundPrice);
                     await _walletRepository.UpdateAsync(wallet);
                     await _walletRepository.GetDbContext().SaveChangesAsync();
 
@@ -2407,9 +2407,9 @@ namespace SND.SMP.Dispatches
                         PaymentMode = eWallet.Type,
                         Currency = currency.Abbr,
                         TransactionType = "Refund Amount",
-                        Amount = -totalRefundPrice,
+                        Amount = totalRefundPrice,
                         ReferenceNo = dispatch.DispatchNo,
-                        Description = $"Credited {currency.Abbr} {totalRefundPrice} to {wallet.Customer}'s {wallet.Id} Wallet. Current Balance is {currency.Abbr} {wallet.Balance}.",
+                        Description = $"Credited {currency.Abbr} {decimal.Round(Math.Abs(totalRefundPrice), 2, MidpointRounding.AwayFromZero)} to {wallet.Customer}'s {wallet.Id} Wallet. Current Balance is {currency.Abbr} {decimal.Round(wallet.Balance, 2, MidpointRounding.AwayFromZero)}.",
                         TransactionDate = cstDateTime
                     });
                 }
