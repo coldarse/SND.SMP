@@ -278,71 +278,55 @@ namespace SND.SMP.ItemTrackingReviews
 
                         #endregion
 
-
-                        string dispNo = string.Format("TempDisp-{0}-{1}-{2}-{3}", accNo, input.PostalCode, input.ServiceCode, input.ProductCode);
-
-                        var dispatchTemp = await _dispatchRepository.FirstOrDefaultAsync(x =>
-                                                                                            x.DispatchNo.Equals(dispNo) &&
-                                                                                            x.CustomerCode.Equals(accNo)
-                                                                                        );
-
-                        if (dispatchTemp == null)
-                        {
-                            dispatchTemp = await _dispatchRepository.InsertAsync(new Dispatch
-                            {
-                                DispatchNo = dispNo,
-                                CustomerCode = accNo,
-                                PostalCode = input.PostalCode,
-                                ServiceCode = input.ServiceCode,
-                                ProductCode = input.ProductCode,
-                                DispatchDate = null,
-                                BatchId = "",
-                                TransactionDateTime = DateTime.Now
-                            });
-
-                            await _dispatchRepository.GetDbContext().SaveChangesAsync();
-                        }
-
-                        string newItemIdFromSPS = null;
-
                         if (!string.IsNullOrWhiteSpace(input.PoolItemId))
                         {
-                            newItemIdFromSPS = input.PoolItemId;
-                            input.ItemID = newItemIdFromSPS;
-                            //Nothing to generate because the pool item ID already assigned to this account no.
-                        }
-                        else
-                        {
-                            #region New Item ID from SPS
-                            if ((string.IsNullOrWhiteSpace(input.ItemID) ? "" : input.ItemID).ToLower().Trim() == auto.ToLower().Trim())
+                            var isOwned = await IsTrackingNoOwner(accNo, input.PoolItemId, input.ProductCode);
+                            if (!isOwned)
                             {
-                                newItemIdFromSPS = await GetNextAvailableAnyAccountTrackingNumber(postalCode, false, postalCode = postalSupported == "KG" ? input.ProductCode : null);
+                                result.Errors.Add("Invalid Pool Item ID");
+                            }
+                        }
 
-                                if (!string.IsNullOrWhiteSpace(newItemIdFromSPS))
+                        if (result.Errors.Count == 0)
+                        {
+                            string dispNo = string.Format("TempDisp-{0}-{1}-{2}-{3}", accNo, input.PostalCode, input.ServiceCode, input.ProductCode);
+
+                            var dispatchTemp = await _dispatchRepository.FirstOrDefaultAsync(x =>
+                                                                                                x.DispatchNo.Equals(dispNo) &&
+                                                                                                x.CustomerCode.Equals(accNo)
+                                                                                            );
+
+                            if (dispatchTemp == null)
+                            {
+                                dispatchTemp = await _dispatchRepository.InsertAsync(new Dispatch
                                 {
-                                    try
-                                    {
-                                        await InsertUpdateTrackingNumber(newItemIdFromSPS, accNo, cust.Id, input.PostalCode);
+                                    DispatchNo = dispNo,
+                                    CustomerCode = accNo,
+                                    PostalCode = input.PostalCode,
+                                    ServiceCode = input.ServiceCode,
+                                    ProductCode = input.ProductCode,
+                                    DispatchDate = null,
+                                    BatchId = "",
+                                    TransactionDateTime = DateTime.Now
+                                });
 
-                                        await AlertIfLowThreshold(postalCode, threshold);
+                                await _dispatchRepository.GetDbContext().SaveChangesAsync();
+                            }
 
-                                        result.ItemID = newItemIdFromSPS;
-                                        result.Status = SUCCESS;
-                                    }
-                                    catch (Exception ex)
-                                    {
-                                        result.Status = FAILED;
-                                        result.Errors.Add(ex.Message);
-                                    }
-                                }
+                            string newItemIdFromSPS = null;
 
+                            if (!string.IsNullOrWhiteSpace(input.PoolItemId))
+                            {
+                                newItemIdFromSPS = input.PoolItemId;
                                 input.ItemID = newItemIdFromSPS;
+                                //Nothing to generate because the pool item ID already assigned to this account no.
                             }
                             else
                             {
-                                if (isItemIDAutoMandatory)
+                                #region New Item ID from SPS
+                                if ((string.IsNullOrWhiteSpace(input.ItemID) ? "" : input.ItemID).ToLower().Trim() == auto.ToLower().Trim())
                                 {
-                                    newItemIdFromSPS = await GetNextAvailableAnyAccountTrackingNumber(postalCode, false, input.PostalCode);
+                                    newItemIdFromSPS = await GetNextAvailableAnyAccountTrackingNumber(postalCode, false, postalCode = postalSupported == "KG" ? input.ProductCode : null);
 
                                     if (!string.IsNullOrWhiteSpace(newItemIdFromSPS))
                                     {
@@ -364,138 +348,159 @@ namespace SND.SMP.ItemTrackingReviews
 
                                     input.ItemID = newItemIdFromSPS;
                                 }
+                                else
+                                {
+                                    if (isItemIDAutoMandatory)
+                                    {
+                                        newItemIdFromSPS = await GetNextAvailableAnyAccountTrackingNumber(postalCode, false, input.PostalCode);
+
+                                        if (!string.IsNullOrWhiteSpace(newItemIdFromSPS))
+                                        {
+                                            try
+                                            {
+                                                await InsertUpdateTrackingNumber(newItemIdFromSPS, accNo, cust.Id, input.PostalCode);
+
+                                                await AlertIfLowThreshold(postalCode, threshold);
+
+                                                result.ItemID = newItemIdFromSPS;
+                                                result.Status = SUCCESS;
+                                            }
+                                            catch (Exception ex)
+                                            {
+                                                result.Status = FAILED;
+                                                result.Errors.Add(ex.Message);
+                                            }
+                                        }
+
+                                        input.ItemID = newItemIdFromSPS;
+                                    }
+                                }
+                                #endregion
                             }
-                            #endregion
-                        }
 
-                        var newItem = await _itemRepository.FirstOrDefaultAsync(x =>
-                                                                                    x.DispatchID.Equals(dispatchTemp.Id) &&
-                                                                                    x.Id.Equals(input.ItemID)
-                                                                               );
+                            var newItem = await _itemRepository.FirstOrDefaultAsync(x =>
+                                                                                        x.DispatchID.Equals(dispatchTemp.Id) &&
+                                                                                        x.Id.Equals(input.ItemID)
+                                                                                   );
 
-                        if (newItem is null)
-                        {
-                            newItem = await _itemRepository.InsertAsync(new Item
+                            if (newItem is null)
                             {
-                                Id = newItemIdFromSPS,
-                                DispatchID = dispatchTemp.Id,
-                                BagID = null,
-                                DispatchDate = dispatchTemp.DispatchDate,
-                                Month = 0,
-                                PostalCode = input.ServiceCode,
-                                ServiceCode = input.ServiceCode,
-                                ProductCode = input.ProductCode,
-                                CountryCode = input.RecipientCountry,
-                                Weight = input.Weight,
-                                BagNo = "",
-                                SealNo = "",
-                                Price = 0m,
-                                ItemValue = input.ItemValue,
-                                ItemDesc = input.ItemDesc,
-                                RecpName = input.RecipientName,
-                                TelNo = input.RecipientContactNo,
-                                Email = input.RecipientEmail,
-                                Address = input.RecipientAddress,
-                                Postcode = input.RecipientPostcode,
-                                City = input.RecipientCity,
-                                Address2 = "",
-                                AddressNo = "",
-                                State = input.RecipientState,
-                                Length = 0,
-                                Width = 0,
-                                Height = 0,
-                                Qty = 0,
-                                TaxPayMethod = "",
-                                IdentityType = "",
-                                PassportNo = input.IdentityNo
-                            });
+                                newItem = await _itemRepository.InsertAsync(new Item
+                                {
+                                    Id = newItemIdFromSPS,
+                                    DispatchID = dispatchTemp.Id,
+                                    BagID = null,
+                                    DispatchDate = dispatchTemp.DispatchDate,
+                                    Month = 0,
+                                    PostalCode = input.ServiceCode,
+                                    ServiceCode = input.ServiceCode,
+                                    ProductCode = input.ProductCode,
+                                    CountryCode = input.RecipientCountry,
+                                    Weight = input.Weight,
+                                    BagNo = "",
+                                    SealNo = "",
+                                    Price = 0m,
+                                    ItemValue = input.ItemValue,
+                                    ItemDesc = input.ItemDesc,
+                                    RecpName = input.RecipientName,
+                                    TelNo = input.RecipientContactNo,
+                                    Email = input.RecipientEmail,
+                                    Address = input.RecipientAddress,
+                                    Postcode = input.RecipientPostcode,
+                                    City = input.RecipientCity,
+                                    Address2 = "",
+                                    AddressNo = "",
+                                    State = input.RecipientState,
+                                    Length = 0,
+                                    Width = 0,
+                                    Height = 0,
+                                    Qty = 0,
+                                    TaxPayMethod = "",
+                                    IdentityType = "",
+                                    PassportNo = input.IdentityNo
+                                });
 
-                            #region Item Topup Value
-                            var itemTopupValue = await GetItemTopupValueFromPostalMaintenance(input.PostalCode, input.ServiceCode, input.ProductCode);
-                            newItem.ItemValue = newItem.ItemValue is null ? 0m + itemTopupValue : (decimal)newItem.ItemValue + itemTopupValue;
+                                #region Item Topup Value
+                                var itemTopupValue = await GetItemTopupValueFromPostalMaintenance(input.PostalCode, input.ServiceCode, input.ProductCode);
+                                newItem.ItemValue = newItem.ItemValue is null ? 0m + itemTopupValue : (decimal)newItem.ItemValue + itemTopupValue;
 
-                            #endregion
+                                #endregion
 
+                            }
+                            else
+                            {
+                                newItem.Weight = input.Weight;
+                                newItem.ItemValue = input.ItemValue;
+                                newItem.ItemDesc = input.ItemDesc;
+                                newItem.RecpName = input.RecipientName;
+                                newItem.TelNo = input.RecipientContactNo;
+                                newItem.Email = input.RecipientEmail;
+                                newItem.Address = input.RecipientAddress;
+                                newItem.City = input.RecipientCity;
+                                newItem.Postcode = input.RecipientPostcode;
+                                newItem.CountryCode = input.RecipientCountry;
+                                newItem.RefNo = input.RefNo;
+                                newItem.HSCode = input.HSCode;
+                                newItem.SenderName = input.SenderName;
+                                newItem.IOSSTax = input.IOSSTax;
+                                newItem.AddressNo = input.AddressNo;
+                                newItem.PassportNo = input.IdentityNo;
+                                newItem.IdentityType = input.IdentityType;
+
+                                #region Item Topup Value
+                                var itemTopupValue = await GetItemTopupValueFromPostalMaintenance(input.PostalCode, input.ServiceCode, input.ProductCode);
+                                newItem.ItemValue = newItem.ItemValue is null ? 0m + itemTopupValue : (decimal)newItem.ItemValue + itemTopupValue;
+                                #endregion
+
+
+                            }
+
+                            // var item = await _itemRepository.FirstOrDefaultAsync(u => u.Id == newItem.Id);
+
+                            // if (item != null)
+                            // {
+                            string apiItemId = newItem.Id;
+
+                            if (!string.IsNullOrWhiteSpace(apiItemId))
+                            {
+                                result.APIItemID = apiItemId;
+
+                                result.Status = SUCCESS;
+                                result.Errors.Clear();
+
+                                //Log.Add($"PreReg-KG GetExisting for { input.RefNo } - { input.ItemID }", $"input [{ input.ItemID } - { input.ItemDesc } - { input.RecipientName } - { input.Weight }] get { result.APIItemID }");
+                            }
+                            else
+                            {
+                                var newId = newItem.Id;
+
+                                apiItemId = newItem.Id;
+
+                                result.APIItemID = apiItemId;
+
+                                result.Status = SUCCESS;
+                                result.Errors.Clear();
+
+                                //Log.Add($"PreReg-KG Success for { input.RefNo } - { input.ItemID }", $"input [{ input.ItemID } - { input.ItemDesc } - { input.RecipientName } - { input.Weight }] get { result.APIItemID }");
+                            }
                         }
                         else
                         {
-                            newItem.Weight = input.Weight;
-                            newItem.ItemValue = input.ItemValue;
-                            newItem.ItemDesc = input.ItemDesc;
-                            newItem.RecpName = input.RecipientName;
-                            newItem.TelNo = input.RecipientContactNo;
-                            newItem.Email = input.RecipientEmail;
-                            newItem.Address = input.RecipientAddress;
-                            newItem.City = input.RecipientCity;
-                            newItem.Postcode = input.RecipientPostcode;
-                            newItem.CountryCode = input.RecipientCountry;
-                            newItem.RefNo = input.RefNo;
-                            newItem.HSCode = input.HSCode;
-                            newItem.SenderName = input.SenderName;
-                            newItem.IOSSTax = input.IOSSTax;
-                            newItem.AddressNo = input.AddressNo;
-                            newItem.PassportNo = input.IdentityNo;
-                            newItem.IdentityType = input.IdentityType;
-
-                            #region Item Topup Value
-                            var itemTopupValue = await GetItemTopupValueFromPostalMaintenance(input.PostalCode, input.ServiceCode, input.ProductCode);
-                            newItem.ItemValue = newItem.ItemValue is null ? 0m + itemTopupValue : (decimal)newItem.ItemValue + itemTopupValue;
-                            #endregion
-
-
+                            result.Status = FAILED;
                         }
-
-                        // var item = await _itemRepository.FirstOrDefaultAsync(u => u.Id == newItem.Id);
-
-                        // if (item != null)
-                        // {
-                        string apiItemId = newItem.Id;
-
-                        if (!string.IsNullOrWhiteSpace(apiItemId))
-                        {
-                            result.APIItemID = apiItemId;
-
-                            result.Status = SUCCESS;
-                            result.Errors.Clear();
-
-                            //Log.Add($"PreReg-KG GetExisting for { input.RefNo } - { input.ItemID }", $"input [{ input.ItemID } - { input.ItemDesc } - { input.RecipientName } - { input.Weight }] get { result.APIItemID }");
-                        }
-                        else
-                        {
-                            var newId = newItem.Id;
-
-                            apiItemId = newItem.Id;
-
-                            result.APIItemID = apiItemId;
-
-                            result.Status = SUCCESS;
-                            result.Errors.Clear();
-
-                            //Log.Add($"PreReg-KG Success for { input.RefNo } - { input.ItemID }", $"input [{ input.ItemID } - { input.ItemDesc } - { input.RecipientName } - { input.Weight }] get { result.APIItemID }");
-                        }
-
-                        // }
-                        // else
-                        // {
-                        //     result.Status = FAILED;
-                        //     result.Errors.Add("Item is not found in the system");
-                        // }
                     }
                     else
                     {
-                        result.Status = FAILED;
                         result.Errors.Add("Signature hash is invalid");
                     }
                 }
                 else
                 {
-                    result.Status = FAILED;
                     result.Errors.Add("Client key is invalid");
                 }
             }
             else
             {
-                result.Status = FAILED;
                 result.Errors.Add("Postal not supported");
             }
 
@@ -503,7 +508,6 @@ namespace SND.SMP.ItemTrackingReviews
             string signHashRespServer = GenerateMD5Hash(signHashRespRaw);
 
             result.SignatureHash = signHashRespServer;
-
 
             #region Pool Item ID - Don't return API Item ID output
             if (!string.IsNullOrWhiteSpace(input.PoolItemId))
@@ -559,6 +563,17 @@ namespace SND.SMP.ItemTrackingReviews
             }
 
             return dataTable;
+        }
+
+        public async Task<bool> IsTrackingNoOwner(string accNo, string trackingNo, string productCode)
+        {
+            var itemtrackingid = await _itemTrackingRepository.FirstOrDefaultAsync(x =>
+                                                                                x.TrackingNo.Equals(trackingNo) &&
+                                                                                x.ProductCode.Equals(productCode) &&
+                                                                                x.CustomerCode.Equals(accNo)
+                                                                             );
+
+            return itemtrackingid != null;
         }
         public async Task<ItemIds> GetItemTrackingFile(string customerCode, string trackingNo = "", string postalCode = null, string productCode = null)
         {

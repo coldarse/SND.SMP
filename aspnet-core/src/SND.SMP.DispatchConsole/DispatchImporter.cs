@@ -381,7 +381,7 @@ namespace SND.SMP.DispatchConsole
                     dispatch.ItemCount = itemCount;
                     dispatch.TotalWeight = totalWeight;
                     dispatch.TotalPrice = totalPrice;
-                    dispatch.ImportProgress = Convert.ToInt32(Convert.ToDecimal(itemCount / Convert.ToDecimal(rowCount)) * 100);
+                    dispatch.ImportProgress = 100;
 
                     var queueTask = db.Queues.Find(_queueId);
                     if (queueTask != null)

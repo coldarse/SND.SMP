@@ -326,8 +326,6 @@ namespace SND.SMP.Dispatches
 
             var tare = 110m;
 
-            var currentDate = DateTime.Now.ToString("yyyy-MM-dd");
-
             var random = new Random();
 
             var listDeductedTare = await GetDeductTare(dispatchId, tare, true, 3m, 1);
@@ -426,7 +424,7 @@ namespace SND.SMP.Dispatches
                     Impc_To_Code = impcToCode,
                     Bag_Tare_Weight = tare,
                     Bag_Weight = bagWeightInGram,
-                    Dispatch_Sent_Date = u.DispatchDate.ToString(),
+                    Dispatch_Sent_Date = u.DispatchDate.Value.ToString("dd/MM/yyyy"),
                     Logistic_Code = logisticCode,
                     IOSS = ioss,
                     Tax_Code = taxCode
@@ -477,8 +475,6 @@ namespace SND.SMP.Dispatches
             }
 
             var bagTareWeightInGram = 110;
-
-            var currentDate = DateTime.Now.ToString("yyyy-MM-dd");
 
             var random = new Random();
 
@@ -589,7 +585,7 @@ namespace SND.SMP.Dispatches
                     Impc_To_Code = impcToCode,
                     Bag_Tare_Weight = bagTareWeightInGram,
                     Bag_Weight = bagWeightInGram,
-                    Dispatch_Sent_Date = currentDate,
+                    Dispatch_Sent_Date = DateTime.Now.ToString("dd/MM/yyyy"),
                     Logistic_Code = logisticCode,
                     IOSS = iossTax
                 });
@@ -636,8 +632,6 @@ namespace SND.SMP.Dispatches
             }
 
             var bagTareWeightInGram = 110;
-
-            var currentDate = DateTime.Now.ToString("yyyy-MM-dd");
 
             var random = new Random();
 
@@ -851,7 +845,7 @@ namespace SND.SMP.Dispatches
                     Impc_To_Code = "JPKWSA",
                     Bag_Tare_Weight = bagTareWeightInGram,
                     Bag_Weight = bagWeightInGram,
-                    Dispatch_Sent_Date = currentDate,
+                    Dispatch_Sent_Date = DateTime.Now.ToString("dd/MM/yyyy"),
                     Logistic_Code = "KEPBKLGT001285",
                     IOSS = ""
                 });
@@ -1739,32 +1733,17 @@ namespace SND.SMP.Dispatches
                 var bags = await _bagRepository.GetAllListAsync(x => x.DispatchId.Equals(dispatch.Id));
                 dispatchInfo.TotalCountry = bags.GroupBy(x => x.CountryCode).Count();
 
-                int status = (int)dispatch.Status;
-                switch (status)
+                int status = dispatch.Status ?? 0;
+                dispatchInfo.Status = status switch
                 {
-                    case 1:
-                        dispatchInfo.Status = "Upload Completed";
-                        break;
-                    case 2:
-                        dispatchInfo.Status = "Post Check";
-                        break;
-                    case 3:
-                        dispatchInfo.Status = "CN35 Completed";
-                        break;
-                    case 4:
-                        dispatchInfo.Status = "Leg 1 Completed";
-                        break;
-                    case 5:
-                        dispatchInfo.Status = "Leg 2 Completed";
-                        break;
-                    case 6:
-                        dispatchInfo.Status = "Arrived At Destination";
-                        break;
-                    default:
-                        dispatchInfo.Status = $"Stage {status}";
-                        break;
-                }
-
+                    1 => "Upload Completed",
+                    2 => "Post Check",
+                    3 => "CN35 Completed",
+                    4 => "Leg 1 Completed",
+                    5 => "Leg 2 Completed",
+                    6 => "Arrived At Destination",
+                    _ => $"Stage {status}",
+                };
                 result.Add(dispatchInfo);
             }
 
@@ -1776,6 +1755,8 @@ namespace SND.SMP.Dispatches
             CheckGetAllPermission();
 
             var query = CreateFilteredQuery(input);
+
+            query = query.Where(x => !x.DispatchNo.ToLower().Contains("temp"));
 
             var totalCount = await AsyncQueryableExecuter.CountAsync(query);
 
