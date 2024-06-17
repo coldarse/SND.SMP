@@ -166,7 +166,7 @@ namespace SND.SMP.DispatchConsole
 
                     Stream stream = new MemoryStream(buffer);
 
-                    string fileName = string.Format("{0}_{1}_{2}_{3}_{4}.xlsx", Prefix, PrefixNo, Suffix, AmountGiven, Customer);
+                    string fileName = string.Format("{0}_{1}_{2}_{3}_{4}.xlsx", Prefix, PrefixNo, Suffix, AmountGiven, Customer.Replace(" ", "_"));
 
                     ChibiUpload uploadExcel = await InsertExcelFileToChibi(stream, fileName, originalName: null, postalCode: review.PostalCode, productCode: review.ProductCode);
 
