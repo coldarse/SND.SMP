@@ -12,7 +12,7 @@
             <h6>{{ transaction.customer }}</h6>
           </div>
           <div class="col-sm-4">
-            <h6>{{ transaction.description }}</h6>
+            <h6>{{ transaction.transactionType }}</h6>
           </div>
           @if (transaction.amount > 0) {
           <div class="col-sm-6 text-success text-right">
@@ -32,7 +32,7 @@
               transaction.paymentMode
             }}</span>
             <span class="badge badge-pill badge-info ml-1">{{
-              transaction.transactionType
+              transaction.wallet
             }}</span>
             <span class="badge badge-pill badge-info ml-1">{{
               transaction.currency

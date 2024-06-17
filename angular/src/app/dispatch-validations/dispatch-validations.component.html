@@ -46,7 +46,7 @@
         <div class="card-body">
           <div class="table table-bordered table-responsive">
             @if (showPagination) {
-            <table class="table table-bordered">
+            <table class="table table-bordered" [busy]="isTableLoading">
               <thead>
                 <tr>
                   <th>{{ "Customer                    " | localize }}</th>
@@ -180,7 +180,11 @@
                       class="btn btn-warning mx-auto"
                       [disabled]="dispatchvalidation.isValid"
                       (click)="
-                        retryDispatchValidation(dispatchvalidation.filePath, dispatchvalidation.dispatchNo, dispatchvalidation.customerCode)
+                        retryDispatchValidation(
+                          dispatchvalidation.filePath,
+                          dispatchvalidation.dispatchNo,
+                          dispatchvalidation.customerCode
+                        )
                       "
                     >
                       <i class="fa-solid fa-rotate-right"></i>
@@ -192,7 +196,10 @@
                       class="btn btn-danger mx-auto"
                       [disabled]="dispatchvalidation.isValid"
                       (click)="
-                        deleteDispatch(dispatchvalidation.filePath, dispatchvalidation.dispatchNo)
+                        deleteDispatch(
+                          dispatchvalidation.filePath,
+                          dispatchvalidation.dispatchNo
+                        )
                       "
                     >
                       <i class="fas fa-minus-circle"></i>
@@ -225,10 +232,7 @@
               </tbody>
             </table>
             }@else {
-            <table
-              class="table table-bordered"
-              [busy]="isTableLoading"
-            >
+            <table class="table table-bordered" [busy]="isTableLoading">
               <thead>
                 <tr>
                   <th>{{ "Customer                    " | localize }}</th>
@@ -362,7 +366,11 @@
                       class="btn btn-warning mx-auto"
                       [disabled]="dispatchvalidation.isValid"
                       (click)="
-                        retryDispatchValidation(dispatchvalidation.filePath, dispatchvalidation.dispatchNo, dispatchvalidation.customerCode)
+                        retryDispatchValidation(
+                          dispatchvalidation.filePath,
+                          dispatchvalidation.dispatchNo,
+                          dispatchvalidation.customerCode
+                        )
                       "
                     >
                       <i class="fa-solid fa-rotate-right"></i>
@@ -374,7 +382,10 @@
                       class="btn btn-danger mx-auto"
                       [disabled]="dispatchvalidation.isValid"
                       (click)="
-                        deleteDispatch(dispatchvalidation.filePath, dispatchvalidation.dispatchNo)
+                        deleteDispatch(
+                          dispatchvalidation.filePath,
+                          dispatchvalidation.dispatchNo
+                        )
                       "
                     >
                       <i class="fas fa-minus-circle"></i>
