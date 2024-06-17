@@ -218,6 +218,11 @@ namespace SND.SMP.EntityFrameworkCore
                 b.HasOne<Dispatch>().WithMany().HasForeignKey(x => x.DispatchID);
                 b.HasOne<Bag>().WithMany().HasForeignKey(x => x.BagID);
                 b.HasKey(x => x.Id);
+                b.HasKey(x => new
+                {
+                    x.Id,
+                    x.DispatchID,
+                });
             });
 
             builder.Entity<Item>(b =>
@@ -305,7 +310,11 @@ namespace SND.SMP.EntityFrameworkCore
                 b.Property(x => x.FinalOfficeId                 ).HasColumnName(nameof(Item.FinalOfficeId                 )).HasMaxLength(50);
                 b.HasOne<Dispatch>().WithMany().HasForeignKey(x => x.DispatchID);
                 b.HasOne<Bag>().WithMany().HasForeignKey(x => x.BagID);
-                b.HasKey(x => x.Id);
+                b.HasKey(x => new
+                {
+                    x.Id,
+                    x.DispatchID,
+                });
             });
 
             builder.Entity<Bag>(b =>

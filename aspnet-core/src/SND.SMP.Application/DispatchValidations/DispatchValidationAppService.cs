@@ -86,10 +86,9 @@ namespace SND.SMP.DispatchValidations
 
             var totalCount = await AsyncQueryableExecuter.CountAsync(query);
 
-            query = ApplySorting(query, input);
-            query = ApplyPaging(query, input);
-
             query = query.OrderByDescending(x => x.DateStarted);
+            // query = ApplySorting(query, input);
+            query = ApplyPaging(query, input);
 
             var entities = await AsyncQueryableExecuter.ToListAsync(query);
 
@@ -103,7 +102,7 @@ namespace SND.SMP.DispatchValidations
         {
             var validations = isAdmin ? await Repository.GetAllListAsync() : await Repository.GetAllListAsync(x => x.CustomerCode.Equals(customer));
 
-            return [.. validations.OrderByDescending(x => x.ValidationProgress).Take(top)];
+            return [.. validations.OrderByDescending(x => x.DateStarted).Take(top)];
         }
     }
 }
