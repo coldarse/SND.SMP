@@ -338,7 +338,24 @@ namespace SND.SMP.ItemTrackingReviews
                                     newItemIdFromSPS = await GetNextAvailableAnyAccountTrackingNumber(postalCode, false, postalCode = postalSupported == "KG" ? input.ProductCode : null);
 
                                     if (string.IsNullOrWhiteSpace(newItemIdFromSPS)) result.Errors.Add("Insufficient Pool Item ID");
-                                    else input.ItemID = newItemIdFromSPS;
+                                    else
+                                    {
+                                        try
+                                        {
+                                            await InsertUpdateTrackingNumber(newItemIdFromSPS, customerCode, cust.Id, input.PostalCode);
+
+                                            await AlertIfLowThreshold(postalCode, threshold);
+
+                                            result.ItemID = newItemIdFromSPS;
+                                            result.Status = SUCCESS;
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            result.Status = FAILED;
+                                            result.Errors.Add(ex.Message);
+                                        }
+                                        input.ItemID = newItemIdFromSPS;
+                                    }
                                 }
                                 else
                                 {
@@ -347,7 +364,24 @@ namespace SND.SMP.ItemTrackingReviews
                                         newItemIdFromSPS = await GetNextAvailableAnyAccountTrackingNumber(postalCode, false, input.PostalCode);
 
                                         if (string.IsNullOrWhiteSpace(newItemIdFromSPS)) result.Errors.Add("Insufficient Pool Item ID");
-                                        else input.ItemID = newItemIdFromSPS;
+                                        else
+                                        {
+                                            try
+                                            {
+                                                await InsertUpdateTrackingNumber(newItemIdFromSPS, customerCode, cust.Id, input.PostalCode);
+
+                                                await AlertIfLowThreshold(postalCode, threshold);
+
+                                                result.ItemID = newItemIdFromSPS;
+                                                result.Status = SUCCESS;
+                                            }
+                                            catch (Exception ex)
+                                            {
+                                                result.Status = FAILED;
+                                                result.Errors.Add(ex.Message);
+                                            }
+                                            input.ItemID = newItemIdFromSPS;
+                                        }
                                     }
                                 }
                                 #endregion
