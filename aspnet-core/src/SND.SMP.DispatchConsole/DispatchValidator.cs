@@ -452,6 +452,8 @@ namespace SND.SMP.DispatchConsole
                                                 .Where(u => u.Currency == CurrencyId)
                                                 .FirstOrDefault();
 
+                        var initialBalance = wallet.Balance;
+
                         wallet.Balance -= totalPrice;
 
                         DateTime DateTimeUTC = DateTime.UtcNow;
@@ -469,7 +471,7 @@ namespace SND.SMP.DispatchConsole
                             TransactionType = "Pre-Alert",
                             Amount = -totalPrice,
                             ReferenceNo = DispatchProfile.DispatchNo,
-                            Description = $"Deducted {Currency} {decimal.Round(totalPrice, 2, MidpointRounding.AwayFromZero)} from {wallet.Customer}'s {wallet.Id} Wallet. Remaining {Currency} {decimal.Round(wallet.Balance, 2, MidpointRounding.AwayFromZero)}.",
+                            Description = $"Initial Balance: {Currency} {initialBalance}. Deducted {Currency} {decimal.Round(totalPrice, 2, MidpointRounding.AwayFromZero)} from {wallet.Customer}'s {wallet.Id} Wallet. Remaining {Currency} {decimal.Round(wallet.Balance, 2, MidpointRounding.AwayFromZero)}.",
                             TransactionDate = cstDateTime
                         });
                         
