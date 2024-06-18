@@ -1235,8 +1235,8 @@ namespace SND.SMP.Dispatches
 
         }
 
-        
-        
+
+
         public async Task<GetPostCheck> GetPostCheckAsync(string dispatchNo)
         {
             var dispatch = await Repository.FirstOrDefaultAsync(x => x.DispatchNo.Equals(dispatchNo)) ?? throw new UserFriendlyException("Dispatch Not Found.");
@@ -1288,20 +1288,19 @@ namespace SND.SMP.Dispatches
                 item.DateStage2 = DateTime.MinValue;
             }
 
-            var wa = await _weightAdjustmentRepository.FirstOrDefaultAsync(x =>
+            var wa_ud = await _weightAdjustmentRepository.FirstOrDefaultAsync(x =>
                                          x.ReferenceNo.Equals(dispatch.DispatchNo) &&
-                                         x.Description.Contains("Under Declare") &&
-                                        !x.InvoiceId.Equals(0)
+                                         x.Description.Contains("Under Declare")
                                 );
 
-            if (wa is not null)
+            if (wa_ud is not null)
             {
-                decimal refundAmount = wa.Amount.Equals(null) ? 0 : wa.Amount;
+                decimal refundAmount = wa_ud.Amount.Equals(null) ? 0 : wa_ud.Amount;
 
-                wa.InvoiceId = 0;
-                wa.Description = $"Undid Post Check for Dispatch {dispatchNo}";
+                wa_ud.InvoiceId = 0;
+                wa_ud.Description = $"Undid Post Check for Dispatch {dispatchNo}";
 
-                await _weightAdjustmentRepository.UpdateAsync(wa);
+                wa_ud = await _weightAdjustmentRepository.UpdateAsync(wa_ud);
                 await _weightAdjustmentRepository.GetDbContext().SaveChangesAsync();
 
                 var wallet = await _walletRepository.FirstOrDefaultAsync(x => x.Customer.Equals(customer.Code) && x.Currency.Equals(rateItem.CurrencyId));
@@ -1309,9 +1308,39 @@ namespace SND.SMP.Dispatches
                 await _walletRepository.UpdateAsync(wallet);
                 await _walletRepository.GetDbContext().SaveChangesAsync();
 
-                await _weightAdjustmentRepository.DeleteAsync(wa);
-                await _weightAdjustmentRepository.GetDbContext().SaveChangesAsync();
+                dispatch.TotalWeight -= Math.Abs(wa_ud.Weight);
+
+                var eWallet = await _ewalletTypeRepository.FirstOrDefaultAsync(x => x.Id.Equals(wallet.EWalletType));
+                var currency = await _currencyRepository.FirstOrDefaultAsync(x => x.Id.Equals(wallet.Currency));
+
+                DateTime DateTimeUTC = DateTime.UtcNow;
+                TimeZoneInfo cstZone = TimeZoneInfo.FindSystemTimeZoneById("Singapore Standard Time");
+                DateTime cstDateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTimeUTC, cstZone);
+
+                await _customerTransactionRepository.InsertAsync(new CustomerTransaction()
+                {
+                    Wallet = wallet.Id,
+                    Customer = wallet.Customer,
+                    PaymentMode = eWallet.Type,
+                    Currency = currency.Abbr,
+                    TransactionType = "Refund Amount",
+                    Amount = Math.Abs(refundAmount),
+                    ReferenceNo = dispatch.DispatchNo,
+                    Description = $"Credited {currency.Abbr} {decimal.Round(Math.Abs(refundAmount), 2, MidpointRounding.AwayFromZero)} to {wallet.Customer}'s {wallet.Id} Wallet. Remaining {currency.Abbr} {decimal.Round(wallet.Balance, 2, MidpointRounding.AwayFromZero)}.",
+                    TransactionDate = cstDateTime
+                });
             }
+            else
+            {
+                var wa_od = await _weightAdjustmentRepository.FirstOrDefaultAsync(x =>
+                                                         x.ReferenceNo.Equals(dispatch.DispatchNo) &&
+                                                         x.Description.Contains("Over Declare")
+                                                );
+                
+                dispatch.TotalWeight += wa_od is null ? 0 : Math.Abs(wa_od.Weight);
+            }
+
+            await _dispatchRepository.UpdateAsync(dispatch);
 
             return true;
         }

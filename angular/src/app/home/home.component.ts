@@ -24,6 +24,7 @@ export class HomeComponent
 
   type1 = { eWalletType: 1 };
   type2 = { eWalletType: 2 };
+  type3 = { eWalletType: 3 };
 
   showTable = '1';
 

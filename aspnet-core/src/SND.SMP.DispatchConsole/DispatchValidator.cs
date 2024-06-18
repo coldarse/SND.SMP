@@ -453,7 +453,6 @@ namespace SND.SMP.DispatchConsole
                                                 .FirstOrDefault();
 
                         wallet.Balance -= totalPrice;
-                        await dbconn.SaveChangesAsync();
 
                         DateTime DateTimeUTC = DateTime.UtcNow;
                         TimeZoneInfo cstZone = TimeZoneInfo.FindSystemTimeZoneById("Singapore Standard Time");
@@ -473,6 +472,8 @@ namespace SND.SMP.DispatchConsole
                             Description = $"Deducted {Currency} {decimal.Round(totalPrice, 2, MidpointRounding.AwayFromZero)} from {wallet.Customer}'s {wallet.Id} Wallet. Remaining {Currency} {decimal.Round(wallet.Balance, 2, MidpointRounding.AwayFromZero)}.",
                             TransactionDate = cstDateTime
                         });
+                        
+                        await dbconn.SaveChangesAsync();
                     }
 
 
