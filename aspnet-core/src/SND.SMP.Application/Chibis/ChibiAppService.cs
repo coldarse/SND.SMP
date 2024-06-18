@@ -28,6 +28,10 @@ using SND.SMP.Shared;
 using System.IO;
 using SND.SMP.ItemTrackingReviews;
 using SND.SMP.Dispatches;
+using SND.SMP.ItemTrackings;
+using SND.SMP.Items;
+using SND.SMP.ItemMins;
+using SND.SMP.Bags;
 
 namespace SND.SMP.Chibis
 {
@@ -37,7 +41,11 @@ namespace SND.SMP.Chibis
         IRepository<ApplicationSetting, int> applicationSettingRepository,
         IRepository<DispatchValidation, string> dispatchValidationRepository,
         IRepository<ItemTrackingReview, int> itemTrackingReviewsRepository,
+        IRepository<ItemTracking, int> itemTrackingsRepository,
+        IRepository<Item, string> itemsRepository,
+        IRepository<ItemMin, string> itemMinsRepository,
         IRepository<Dispatch, int> dispatchRepository,
+        IRepository<Bag, int> bagsRepository,
         IMemoryCache memoryCache
     ) : AsyncCrudAppService<Chibi, ChibiDto, long, PagedChibiResultRequestDto>(repository)
     {
@@ -45,6 +53,10 @@ namespace SND.SMP.Chibis
         private readonly IRepository<ApplicationSetting, int> _applicationSettingRepository = applicationSettingRepository;
         private readonly IRepository<DispatchValidation, string> _dispatchValidationRepository = dispatchValidationRepository;
         private readonly IRepository<ItemTrackingReview, int> _itemTrackingReviewsRepository = itemTrackingReviewsRepository;
+        private readonly IRepository<ItemTracking, int> _itemTrackingsRepository = itemTrackingsRepository;
+        private readonly IRepository<Item, string> _itemsRepository = itemsRepository;
+        private readonly IRepository<ItemMin, string> _itemMinsRepository = itemMinsRepository;
+        private readonly IRepository<Bag, int> _bagsRepository = bagsRepository;
         private readonly IRepository<Dispatch, int> _dispatchRepository = dispatchRepository;
         private readonly IMemoryCache _memoryCache = memoryCache;
 
@@ -383,9 +395,41 @@ namespace SND.SMP.Chibis
 
         public async Task<bool> DeleteDispatch(string path, string dispatchNo)
         {
+            var dispatch = await _dispatchRepository.FirstOrDefaultAsync(x => x.DispatchNo.Equals(dispatchNo)) ?? throw new UserFriendlyException("No Dispatch Found");
+            var dispatchValidation = await _dispatchValidationRepository.FirstOrDefaultAsync(x => x.DispatchNo.Equals(dispatchNo)) ?? throw new UserFriendlyException("No Dispatch Validation Found");
             var dispatchFile = await Repository.FirstOrDefaultAsync(x => x.URL.Equals(path));
             var dispatchFilePair = await Repository.GetAllListAsync(x => x.OriginalName.Equals(dispatchFile.OriginalName));
             var excelDispatchFile = dispatchFilePair.FirstOrDefault(x => x.URL.Contains("xlsx"));
+
+            var items = await _itemsRepository.GetAllListAsync(x => x.DispatchID.Equals(dispatch.Id));
+
+            if (items.Count > 0)
+            {
+                foreach (var item in items)
+                {
+                    var itemTracking = await _itemTrackingsRepository.FirstOrDefaultAsync(x => x.TrackingNo.Equals(item.Id));
+                    if (itemTracking is not null) await _itemTrackingsRepository.DeleteAsync(itemTracking);
+                    await _itemsRepository.DeleteAsync(item);
+                }
+            }
+
+            var itemMins = await _itemMinsRepository.GetAllListAsync(x => x.DispatchID.Equals(dispatch.Id));
+            if (itemMins.Count > 0)
+            {
+                foreach (var itemMin in itemMins) await _itemMinsRepository.DeleteAsync(itemMin);
+            }
+
+            var bags = await _bagsRepository.GetAllListAsync(x => x.DispatchId.Equals(dispatch.Id));
+            if (bags.Count > 0)
+            {
+                foreach (var bag in bags) await _bagsRepository.DeleteAsync(bag);
+            }
+
+            var queues = await _queueRepository.GetAllListAsync(x => x.FilePath.Equals(excelDispatchFile.URL));
+            if (queues.Count > 0)
+            {
+                foreach (var queue in queues) await _queueRepository.DeleteAsync(queue);
+            }
 
             foreach (var pair in dispatchFilePair)
             {
@@ -402,11 +446,9 @@ namespace SND.SMP.Chibis
                 if (!uuid.Equals("")) await DeleteFile(uuid);
             }
 
-            var dispatchValidation = await _dispatchValidationRepository.FirstOrDefaultAsync(x => x.DispatchNo.Equals(dispatchNo));
             await _dispatchValidationRepository.DeleteAsync(dispatchValidation);
 
-            var queues = await _queueRepository.GetAllListAsync(x => x.FilePath.Equals(excelDispatchFile.URL));
-            foreach (var queue in queues) await _queueRepository.DeleteAsync(queue);
+            await _dispatchRepository.DeleteAsync(dispatch);
 
             return true;
         }

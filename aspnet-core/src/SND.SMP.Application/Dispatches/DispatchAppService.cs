@@ -1552,7 +1552,7 @@ namespace SND.SMP.Dispatches
                             PaymentMode = eWallet.Type,
                             Currency = currency.Abbr,
                             TransactionType = "Refund Amount",
-                            Amount = totalRefundPrice,
+                            Amount = Math.Abs(totalRefundPrice),
                             ReferenceNo = dispatch.DispatchNo,
                             Description = $"Credited {currency.Abbr} {decimal.Round(Math.Abs(totalRefundPrice), 2, MidpointRounding.AwayFromZero)} to {wallet.Customer}'s {wallet.Id} Wallet. Current Balance is {currency.Abbr} {decimal.Round(wallet.Balance, 2, MidpointRounding.AwayFromZero)}.",
                             TransactionDate = cstDateTime
@@ -1712,7 +1712,7 @@ namespace SND.SMP.Dispatches
                     PaymentMode = eWallet.Type,
                     Currency = currency.Abbr,
                     TransactionType = "Refund Amount",
-                    Amount = totalRefundPrice,
+                    Amount = Math.Abs(totalRefundPrice),
                     ReferenceNo = dispatch.DispatchNo,
                     Description = $"Credited {currency.Abbr} {decimal.Round(Math.Abs(totalRefundPrice), 2, MidpointRounding.AwayFromZero)} to {wallet.Customer}'s {wallet.Id} Wallet. Current Balance is {currency.Abbr} {decimal.Round(wallet.Balance, 2, MidpointRounding.AwayFromZero)}.",
                     TransactionDate = cstDateTime
@@ -2417,7 +2417,7 @@ namespace SND.SMP.Dispatches
                         PaymentMode = eWallet.Type,
                         Currency = currency.Abbr,
                         TransactionType = "Refund Amount",
-                        Amount = totalRefundPrice,
+                        Amount = Math.Abs(totalRefundPrice),
                         ReferenceNo = dispatch.DispatchNo,
                         Description = $"Credited {currency.Abbr} {decimal.Round(Math.Abs(totalRefundPrice), 2, MidpointRounding.AwayFromZero)} to {wallet.Customer}'s {wallet.Id} Wallet. Current Balance is {currency.Abbr} {decimal.Round(wallet.Balance, 2, MidpointRounding.AwayFromZero)}.",
                         TransactionDate = cstDateTime
