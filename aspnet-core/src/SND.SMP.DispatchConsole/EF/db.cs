@@ -71,6 +71,12 @@ public partial class db : DbContext
 
     public virtual DbSet<SND.SMP.ItemIdRunningNos.ItemIdRunningNo> ItemIdRunningNos { get; set; }
 
+    public virtual DbSet<SND.SMP.DispatchUsedAmounts.DispatchUsedAmount> DispatchUsedAmounts { get; set; }
+
+
+
+    // public virtual DbSet<SND.SMP.ApplicationSettings.ApplicationSetting> ApplicationSettings { get; set; }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         => optionsBuilder.UseMySql("server=65.21.224.66;port=3306;database=SMPDb;uid=droot;pwd=snd@1234", Microsoft.EntityFrameworkCore.ServerVersion.Parse("8.0.30-mysql"));
 

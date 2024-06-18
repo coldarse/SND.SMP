@@ -12,12 +12,8 @@ using SND.SMP.Bags.Dto;
 
 namespace SND.SMP.Bags
 {
-    public class BagAppService : AsyncCrudAppService<Bag, BagDto, int, PagedBagResultRequestDto>
+    public class BagAppService(IRepository<Bag, int> repository) : AsyncCrudAppService<Bag, BagDto, int, PagedBagResultRequestDto>(repository)
     {
-
-        public BagAppService(IRepository<Bag, int> repository) : base(repository)
-        {
-        }
         protected override IQueryable<Bag> CreateFilteredQuery(PagedBagResultRequestDto input)
         {
             return Repository.GetAllIncluding()

@@ -6,7 +6,11 @@
           <h1>{{ "Customers" | localize }}</h1>
         </div>
         <div class="col-6 text-right" *ngIf="isButtonVisible('Create')">
-          <a href="javascript:;" class="btn bg-blue" (click)="createCustomer()">
+          <a
+            href="javascript:;"
+            class="btn bg-danger"
+            (click)="createCustomer()"
+          >
             <i class="fa fa-plus-square"></i>
             {{ "Create Customer" | localize }}
           </a>
@@ -25,7 +29,7 @@
                 <div class="input-group-prepend">
                   <button
                     type="button"
-                    class="btn bg-blue"
+                    class="btn bg-danger"
                     (click)="search(true)"
                   >
                     <i class="fas fa-search"></i>
@@ -64,7 +68,6 @@
                   <th>{{ "Code" | localize }}</th>
                   <th>{{ "Company Name" | localize }}</th>
                   <th>{{ "Email Address" | localize }}</th>
-                  <!-- <th>{{ 'Password' | localize }}</th> -->
                   <th>{{ "Address Line 1" | localize }}</th>
                   <th>{{ "Address Line 2" | localize }}</th>
                   <th>{{ "City" | localize }}</th>
@@ -75,12 +78,9 @@
                   <th>{{ "Email Address 2" | localize }}</th>
                   <th>{{ "Email Address 3" | localize }}</th>
                   <th>{{ "IsActive" | localize }}</th>
-                  <th
-                    style="width: 310px"
-                    *ngIf="isButtonVisible('Edit') && isButtonVisible('Delete')"
-                  >
-                    {{ "Actions" | localize }}
-                  </th>
+                  <th *ngIf="isButtonVisible('Edit')">{{ "Edit" | localize }}</th>
+                  <th *ngIf="isButtonVisible('Delete')">{{ "Delete" | localize }}</th>
+                  <th>{{ "Postal" | localize }}</th>
                 </tr>
               </thead>
               <tbody>
@@ -99,7 +99,6 @@
                   <td>{{ customer.code }}</td>
                   <td>{{ customer.companyName }}</td>
                   <td>{{ customer.emailAddress }}</td>
-                  <!-- <td>{{ customer.password }}</td> -->
                   <td>{{ customer.addressLine1 }}</td>
                   <td>{{ customer.addressLine2 }}</td>
                   <td>{{ customer.city }}</td>
@@ -124,7 +123,7 @@
                     <i class="fas fa-times-circle"></i>
                   </td>
                   <td
-                    *ngIf="isButtonVisible('Edit') || isButtonVisible('Delete')"
+                    *ngIf="isButtonVisible('Edit')"
                   >
                     <button
                       type="button"
@@ -135,6 +134,8 @@
                       <i class="fas fa-pencil-alt"></i>
                       {{ "Edit" | localize }}
                     </button>
+                  </td>
+                  <td *ngIf="isButtonVisible('Delete')">
                     <button
                       type="button"
                       class="btn btn-sm bg-danger mx-1"
@@ -144,6 +145,8 @@
                       <i class="fas fa-trash"></i>
                       {{ "Delete" | localize }}
                     </button>
+                  </td>
+                  <td>
                     <button
                       type="button"
                       class="btn btn-sm bg-warning mx-2"
@@ -189,15 +192,14 @@
   </section>
 
   @if (openPostal) {
-    <section class="content px-2">
-      <app-customer-postals
-        [selectedCustomer]="selectedCustomer"
-        (getPostalDDLEmit)="gotPostalDDL($event)"
-        (getRateDDLEmit)="gotRateDDL($event)"
-        (closeEmit)="closePostal()"
-      >
-      </app-customer-postals>
-    </section>
+  <section class="content px-2">
+    <app-customer-postals
+      [selectedCustomer]="selectedCustomer"
+      (getPostalDDLEmit)="gotPostalDDL($event)"
+      (getRateDDLEmit)="gotRateDDL($event)"
+      (closeEmit)="closePostal()"
+    >
+    </app-customer-postals>
+  </section>
   }
-  
 </div>

@@ -37,7 +37,9 @@ namespace SND.SMP.ItemTrackingApplications
 
         public async Task<bool> CreateTrackingApplication(string CustomerCode, long CustomerId, int Total, string ProductCode, string ProductDesc, string PostalCode)
         {
-            var postal = await _postalRepository.FirstOrDefaultAsync(x => x.PostalCode.Equals(PostalCode));
+            var postals = await _postalRepository.GetAllListAsync();
+
+            var postal = postals.FirstOrDefault(x => x.PostalCode[..2].Equals(PostalCode[..2]) && x.ProductCode.Equals(ProductCode));
 
             await Repository.InsertAsync(new ItemTrackingApplication()
             {

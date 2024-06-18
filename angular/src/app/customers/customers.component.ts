@@ -186,6 +186,9 @@ export class CustomersComponent extends PagedListingComponentBase<CustomerDto> {
             emailAddress2: element.emailAddress2,
             emailAddress3: element.emailAddress3,
             isActive: element.isActive,
+            clientSecret: element.clientSecret,
+            clientKey: element.clientKey,
+            aPIAccessToken: element.aPIAccessToken,
           };
 
           this.customers.push(tempCustomer);

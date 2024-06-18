@@ -12,12 +12,8 @@ using SND.SMP.ItemIdRunningNos.Dto;
 
 namespace SND.SMP.ItemIdRunningNos
 {
-    public class ItemIdRunningNoAppService : AsyncCrudAppService<ItemIdRunningNo, ItemIdRunningNoDto, long, PagedItemIdRunningNoResultRequestDto>
+    public class ItemIdRunningNoAppService(IRepository<ItemIdRunningNo, long> repository) : AsyncCrudAppService<ItemIdRunningNo, ItemIdRunningNoDto, long, PagedItemIdRunningNoResultRequestDto>(repository)
     {
-
-        public ItemIdRunningNoAppService(IRepository<ItemIdRunningNo, long> repository) : base(repository)
-        {
-        }
         protected override IQueryable<ItemIdRunningNo> CreateFilteredQuery(PagedItemIdRunningNoResultRequestDto input)
         {
             return Repository.GetAllIncluding()

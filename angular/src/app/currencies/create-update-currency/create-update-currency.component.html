@@ -19,6 +19,8 @@
                 class='form-control'
                 name='currency'
                 id='currency'
+                maxlength="3"
+                oninput="let p=this.selectionStart;this.value=this.value.toUpperCase();this.setSelectionRange(p, p);"
                 required
                 [(ngModel)]='currency.abbr'
                 #currencyModel='ngModel'

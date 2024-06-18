@@ -1,11 +1,11 @@
 <abp-modal-header
-  [title]="'Upload Retry' | localize"
+  [title]="'Retry Pre-Check' | localize"
   (onCloseClick)="bsModalRef.hide()"
 ></abp-modal-header>
 <div class="modal-body">
   <div class="form-group row">
     <label class="col-md-3 col-form-label" for="retryFile">
-      {{ "Retry Pre-Check (.xlsx)" | localize }}
+      {{ "Upload Retry (.xlsx)" | localize }}
     </label>
     <div class="col-md-9">
       <input
@@ -18,6 +18,93 @@
       />
     </div>
   </div>
+  <div class="form-group row">
+    <label class="col-md-3 col-form-label" for="postal">
+      {{ "Postal" | localize }}
+    </label>
+    <div class="col-md-9">
+      <select
+        name="postal"
+        id="postal"
+        class="form-control"
+        (change)="selectedPostal($event)"
+        [disabled]="postalItems.length === 0"
+        [(ngModel)]="selectedPostalValue"
+      >
+        <option value="">Select Postal</option>
+        @for (postalItem of postalItems; track $index) {
+        <option value="{{ postalItem.postalCode }}">
+          {{ postalItem.postalDesc }}
+        </option>
+        }
+      </select>
+    </div>
+  </div>
+  <div class="form-group row">
+    <label class="col-md-3 col-form-label" for="service">
+      {{ "Service" | localize }}
+    </label>
+    <div class="col-md-9">
+      <select
+        name="service"
+        id="service"
+        class="form-control"
+        (change)="selectedService($event)"
+        [disabled]="serviceItems.length === 0"
+        [(ngModel)]="selectedServiceValue"
+      >
+        <option value="">Select Service</option>
+        @for (serviceItem of serviceItems; track $index) {
+        <option value="{{ serviceItem.serviceCode }}">
+          {{ serviceItem.serviceDesc }}
+        </option>
+        }
+      </select>
+    </div>
+  </div>
+  <div class="form-group row">
+    <label class="col-md-3 col-form-label" for="product">
+      {{ "Product" | localize }}
+    </label>
+    <div class="col-md-9">
+      <select
+        name="product"
+        id="product"
+        class="form-control"
+        (change)="selectedProduct($event)"
+        [disabled]="productItems.length === 0"
+        [(ngModel)]="selectedProductValue"
+      >
+        <option value="">Select Product</option>
+        @for (productItem of productItems; track $index) {
+        <option value="{{ productItem.productCode }}">
+          {{ productItem.productDesc }}
+        </option>
+        }
+      </select>
+    </div>
+  </div>
+  @if (selectedPostalPrefix === 'CO') {
+  <div class="form-group row">
+    <label class="col-md-3 col-form-label" for="kgrate">
+      {{ "KG Rate Option" | localize }}
+    </label>
+    <div class="col-md-9">
+      <select
+        name="kgrate"
+        id="kgrate"
+        class="form-control"
+        (change)="selectedKGRate($event)"
+        [(ngModel)]="selectedKGRateValue"
+      >
+        <option value="">None</option>
+        <option value="Opt1">Ex MIA via Other Airline</option>
+        <option value="Opt2">Ex MIA via UPS</option>
+        <option value="Opt3">Ex HKG - MIA + UPS Freight</option>
+      </select>
+    </div>
+  </div>
+  }
 </div>
 <abp-modal-footer
   [cancelDisabled]="saving"

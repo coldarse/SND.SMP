@@ -13,6 +13,7 @@ using Newtonsoft.Json;
 using System.Net.Http.Headers;
 using SND.SMP.Chibis;
 using SND.SMP.CustomerTransactions;
+using SND.SMP.DispatchUsedAmounts;
 
 namespace SND.SMP.DispatchConsole
 {
@@ -140,6 +141,7 @@ namespace SND.SMP.DispatchConsole
 
             DispatchValidateDto validationResult_dispatch_IsDuplicate = new() { Category = "Duplicated Dispatch No." };
             DispatchValidateDto validationResult_dispatch_IsParticularsNotTally = new() { Category = "Dispatch Particulars Not Tally" };
+            DispatchValidateDto validationResult_bag_IsDuplicate = new() { Category = "Duplicated Bag No" };
             DispatchValidateDto validationResult_id_IsDuplicate = new() { Category = "Duplicated Item ID" };
             DispatchValidateDto validationResult_id_HasInvalidLength = new() { Category = "Invalid Length" };
             DispatchValidateDto validationResult_id_HasInvalidPrefixSuffix = new() { Category = "Invalid Prefix & Suffix" };
@@ -201,6 +203,7 @@ namespace SND.SMP.DispatchConsole
 
                 var month = Convert.ToInt32($"{DispatchProfile.DateDispatch.Year}{DispatchProfile.DateDispatch.Month.ToString().PadLeft(2, '0')}");
                 var listItemIds = new List<string>();
+                var listBagNos = new List<string>();
                 var listCountryCodes = new List<DispatchValidateCountryDto>();
                 var listParticulars = new List<DispatchValidateParticularsDto>();
 
@@ -210,6 +213,7 @@ namespace SND.SMP.DispatchConsole
                     {
                         if (rowTouched > 0)
                         {
+                            if (reader[0] is null) break;
                             var strPostalCode = reader[0].ToString()!;
                             var dispatchDate = DateOnly.ParseExact(reader[1].ToString()!, "dd/MM/yyyy", CultureInfo.InvariantCulture);
                             var strServiceCode = reader[2].ToString()!;
@@ -248,6 +252,7 @@ namespace SND.SMP.DispatchConsole
                             totalPrice += price;
 
                             listItemIds.Add(itemId);
+                            if (!listBagNos.Contains(bagNo)) listBagNos.Add(bagNo);
                             listCountryCodes.Add(new DispatchValidateCountryDto { Id = itemId, CountryCode = countryCode });
                             listParticulars.Add(new DispatchValidateParticularsDto { Id = itemId, DispatchNo = strDispatchNo, PostalCode = strPostalCode, ServiceCode = strServiceCode, ProductCode = strProductCode });
 
@@ -258,6 +263,7 @@ namespace SND.SMP.DispatchConsole
                                 Parallel.Invoke(new ParallelOptions
                                 { MaxDegreeOfParallelism = Environment.ProcessorCount },
                                     () => Id_IsDuplicate(ref validationResult_id_IsDuplicate, listItemIds),
+                                    () => Bag_IsDuplicate(ref validationResult_bag_IsDuplicate, listBagNos),
                                     () => Id_HasInvalidLength(ref validationResult_id_HasInvalidLength, listItemIds),
                                     () => Id_HasInvalidPrefixSuffix(ref validationResult_id_HasInvalidPrefixSuffix, listItemIds),
                                     () => Id_HasInvalidCheckDigit(ref validationResult_id_HasInvalidCheckDigit, listItemIds),
@@ -313,6 +319,7 @@ namespace SND.SMP.DispatchConsole
                     Parallel.Invoke(new ParallelOptions
                     { MaxDegreeOfParallelism = Environment.ProcessorCount },
                         () => Id_IsDuplicate(ref validationResult_id_IsDuplicate, listItemIds),
+                        () => Bag_IsDuplicate(ref validationResult_bag_IsDuplicate, listBagNos),
                         () => Id_HasInvalidLength(ref validationResult_id_HasInvalidLength, listItemIds),
                         () => Id_HasInvalidPrefixSuffix(ref validationResult_id_HasInvalidPrefixSuffix, listItemIds),
                         () => Id_HasInvalidCheckDigit(ref validationResult_id_HasInvalidCheckDigit, listItemIds),
@@ -320,7 +327,7 @@ namespace SND.SMP.DispatchConsole
                         () => Dispatch_IsParticularsNotTally(ref validationResult_dispatch_IsParticularsNotTally, listParticulars));
                 }
 
-                #region Wallet Balance
+                #region Check Wallet Balance
 
                 var wallet = db.Wallets
                     .Where(u => u.Customer == CustomerCode)
@@ -331,33 +338,9 @@ namespace SND.SMP.DispatchConsole
                 {
                     isFundLack = true;
                     var lack = totalPrice - wallet.Balance;
-                    validationResult_wallet_InsufficientBalance.Message = $"Insufficient fund by {CurrencyId} {lack:N2}. Your wallet balance is {CurrencyId} {wallet.Balance:N2}. Total payment is {CurrencyId} {totalPrice:N2}.";
+                    validationResult_wallet_InsufficientBalance.Message = $"Insufficient fund by {Currency} {lack:N2}. Your wallet balance is {Currency} {wallet.Balance:N2}. Total payment is {Currency} {totalPrice:N2}.";
                 }
-                else
-                {
-                    wallet.Balance -= totalPrice;
-                    await db.SaveChangesAsync();
 
-                    DateTime DateTimeUTC = DateTime.UtcNow;
-                    TimeZoneInfo cstZone = TimeZoneInfo.FindSystemTimeZoneById("Singapore Standard Time");
-                    DateTime cstDateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTimeUTC, cstZone);
-
-                    var eWallet = await db.EWalletTypes.FirstOrDefaultAsync(x => x.Id.Equals(wallet.EWalletType));
-
-                    await db.CustomerTransactions.AddAsync(new CustomerTransaction()
-                    {
-                        Wallet = wallet.Id,
-                        Customer = wallet.Customer,
-                        PaymentMode = eWallet.Type,
-                        Currency = currency.Abbr,
-                        TransactionType = "Pre-Alert",
-                        Amount = -totalPrice,
-                        ReferenceNo = "",
-                        Description = "Pre-Alert",
-                        TransactionDate = cstDateTime
-                    });
-
-                }
                 #endregion
 
                 #region Dispatch Validation
@@ -466,6 +449,49 @@ namespace SND.SMP.DispatchConsole
 
                             await FileServer.InsertFileToAlbum(result.uuid, true, dbconn);
                         }
+                    }
+                    else //---- Deduct Amount If Valid ----//
+                    {
+                        using var dbconn = new db();
+                        var wallet = dbconn.Wallets
+                                                .Where(u => u.Customer == CustomerCode)
+                                                .Where(u => u.Currency == CurrencyId)
+                                                .FirstOrDefault();
+
+                        var initialBalance = wallet.Balance;
+
+                        wallet.Balance -= totalPrice;
+
+                        DateTime DateTimeUTC = DateTime.UtcNow;
+                        TimeZoneInfo cstZone = TimeZoneInfo.FindSystemTimeZoneById("Singapore Standard Time");
+                        DateTime cstDateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTimeUTC, cstZone);
+
+                        var eWallet = await dbconn.EWalletTypes.FirstOrDefaultAsync(x => x.Id.Equals(wallet.EWalletType));
+
+                        await dbconn.CustomerTransactions.AddAsync(new CustomerTransaction()
+                        {
+                            Wallet = wallet.Id,
+                            Customer = wallet.Customer,
+                            PaymentMode = eWallet.Type,
+                            Currency = currency.Abbr,
+                            TransactionType = "Pre-Alert",
+                            Amount = -totalPrice,
+                            ReferenceNo = DispatchProfile.DispatchNo,
+                            Description = $"Initial Balance: {Currency} {initialBalance}. Deducted {Currency} {decimal.Round(totalPrice, 2, MidpointRounding.AwayFromZero)} from {wallet.Customer}'s {wallet.Id} Wallet. Remaining {Currency} {decimal.Round(wallet.Balance, 2, MidpointRounding.AwayFromZero)}.",
+                            TransactionDate = cstDateTime
+                        });
+
+                        await dbconn.DispatchUsedAmounts.AddAsync(new DispatchUsedAmount()
+                        {
+                            CustomerCode = wallet.Customer,
+                            Wallet = wallet.Id,
+                            Amount = totalPrice,
+                            DispatchNo = DispatchProfile.DispatchNo,
+                            DateTime = cstDateTime,
+                            Description = "Pre-Alert"
+                        });
+
+                        await dbconn.SaveChangesAsync();
                     }
 
 
@@ -718,11 +744,29 @@ namespace SND.SMP.DispatchConsole
                                         u.PostalCode != DispatchProfile.PostalCode ||
                                         u.ServiceCode != DispatchProfile.ServiceCode ||
                                         u.ProductCode != DispatchProfile.ProductCode
-                                  ).Select(u => u.Id + " (" + u.DispatchNo + " / " + u.PostalCode + " / " + u.ServiceCode + " / " + u.ProductCode + ")").ToList();
+                                  ).Select(u => $"{u.Id} [{u.DispatchNo} / {u.PostalCode} / {u.ServiceCode} / {u.ProductCode}]").ToList();
 
             validationResult.ItemIds.AddRange(list);
+            if (list.Count != 0) validationResult.Message = $"Dispatch Particulars [{DispatchProfile.DispatchNo} / {DispatchProfile.PostalCode} / {DispatchProfile.ServiceCode} / {DispatchProfile.ProductCode}]";
 
             result = list.Count != 0;
+
+            return result;
+        }
+
+        private static bool Bag_IsDuplicate(ref Dto.DispatchValidateDto validationResult, List<string> bags)
+        {
+            var result = false;
+
+            using db db = new();
+            db.ChangeTracker.AutoDetectChangesEnabled = false;
+
+            var existingBagNo = db.Bags.Where(u => bags.Contains(u.BagNo.ToUpper().Trim())).Select(u => u.Id + " (" + u.Dispatch.DispatchNo + ")").ToList();
+
+            if (existingBagNo is not null)
+            {
+                validationResult.ItemIds.AddRange(existingBagNo);
+            }
 
             return result;
         }

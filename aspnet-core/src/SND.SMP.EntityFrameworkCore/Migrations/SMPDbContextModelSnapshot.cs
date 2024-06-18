@@ -1320,6 +1320,32 @@ namespace SND.SMP.Migrations
                     b.ToTable("AbpWebhookSubscriptions");
                 });
 
+            modelBuilder.Entity("SND.SMP.Airports.Airport", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<string>("Code")
+                        .HasMaxLength(32)
+                        .HasColumnType("varchar(32)")
+                        .HasColumnName("Code");
+
+                    b.Property<string>("Country")
+                        .HasMaxLength(2)
+                        .HasColumnType("varchar(2)")
+                        .HasColumnName("Country");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)")
+                        .HasColumnName("Name");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Airports", (string)null);
+                });
+
             modelBuilder.Entity("SND.SMP.ApplicationSettings.ApplicationSetting", b =>
                 {
                     b.Property<int>("Id")
@@ -1743,6 +1769,11 @@ namespace SND.SMP.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint");
 
+                    b.Property<string>("APIAccessToken")
+                        .HasMaxLength(250)
+                        .HasColumnType("varchar(250)")
+                        .HasColumnName("APIAccessToken");
+
                     b.Property<string>("AddressLine1")
                         .HasColumnType("longtext")
                         .HasColumnName("AddressLine1");
@@ -1754,6 +1785,16 @@ namespace SND.SMP.Migrations
                     b.Property<string>("City")
                         .HasColumnType("longtext")
                         .HasColumnName("City");
+
+                    b.Property<string>("ClientKey")
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("ClientKey");
+
+                    b.Property<string>("ClientSecret")
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("ClientSecret");
 
                     b.Property<string>("Code")
                         .IsRequired()
@@ -1804,11 +1845,51 @@ namespace SND.SMP.Migrations
                     b.ToTable("Customers", (string)null);
                 });
 
+            modelBuilder.Entity("SND.SMP.DispatchUsedAmounts.DispatchUsedAmount", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("Amount");
+
+                    b.Property<string>("CustomerCode")
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("CustomerCode");
+
+                    b.Property<DateTime>("DateTime")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("DateTime");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)")
+                        .HasColumnName("Description");
+
+                    b.Property<string>("DispatchNo")
+                        .HasMaxLength(128)
+                        .HasColumnType("varchar(128)")
+                        .HasColumnName("DispatchNo");
+
+                    b.Property<string>("Wallet")
+                        .HasMaxLength(128)
+                        .HasColumnType("varchar(128)")
+                        .HasColumnName("Wallet");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("DispatchUsedAmounts", (string)null);
+                });
+
             modelBuilder.Entity("SND.SMP.DispatchValidations.DispatchValidation", b =>
                 {
                     b.Property<string>("DispatchNo")
-                        .HasMaxLength(15)
-                        .HasColumnType("varchar(15)")
+                        .HasMaxLength(128)
+                        .HasColumnType("varchar(128)")
                         .HasColumnName("DispatchNo");
 
                     b.Property<string>("CustomerCode")
@@ -2006,8 +2087,8 @@ namespace SND.SMP.Migrations
                         .HasColumnName("DispatchDate");
 
                     b.Property<string>("DispatchNo")
-                        .HasMaxLength(15)
-                        .HasColumnType("varchar(15)")
+                        .HasMaxLength(128)
+                        .HasColumnType("varchar(128)")
                         .HasColumnName("DispatchNo");
 
                     b.Property<DateOnly?>("ETAtoHKG")
@@ -2332,6 +2413,10 @@ namespace SND.SMP.Migrations
                     b.Property<string>("Id")
                         .HasColumnType("varchar(255)");
 
+                    b.Property<int?>("DispatchID")
+                        .HasColumnType("int")
+                        .HasColumnName("DispatchID");
+
                     b.Property<string>("Address")
                         .HasMaxLength(100)
                         .HasColumnType("varchar(100)")
@@ -2358,10 +2443,6 @@ namespace SND.SMP.Migrations
                     b.Property<DateOnly?>("DispatchDate")
                         .HasColumnType("date")
                         .HasColumnName("DispatchDate");
-
-                    b.Property<int?>("DispatchID")
-                        .HasColumnType("int")
-                        .HasColumnName("DispatchID");
 
                     b.Property<string>("ExtID")
                         .HasMaxLength(20)
@@ -2405,7 +2486,7 @@ namespace SND.SMP.Migrations
                         .HasColumnType("decimal(18,3)")
                         .HasColumnName("Weight");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id", "DispatchID");
 
                     b.HasIndex("BagID");
 
@@ -2617,6 +2698,10 @@ namespace SND.SMP.Migrations
                     b.Property<string>("Id")
                         .HasColumnType("varchar(255)");
 
+                    b.Property<int?>("DispatchID")
+                        .HasColumnType("int")
+                        .HasColumnName("DispatchID");
+
                     b.Property<string>("Address")
                         .HasMaxLength(500)
                         .HasColumnType("varchar(500)")
@@ -2758,10 +2843,6 @@ namespace SND.SMP.Migrations
                     b.Property<DateOnly?>("DispatchDate")
                         .HasColumnType("date")
                         .HasColumnName("DispatchDate");
-
-                    b.Property<int?>("DispatchID")
-                        .HasColumnType("int")
-                        .HasColumnName("DispatchID");
 
                     b.Property<string>("Email")
                         .HasMaxLength(100)
@@ -2996,7 +3077,7 @@ namespace SND.SMP.Migrations
                         .HasColumnType("decimal(18,3)")
                         .HasColumnName("Width");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id", "DispatchID");
 
                     b.HasIndex("BagID");
 
@@ -3334,6 +3415,11 @@ namespace SND.SMP.Migrations
                     b.Property<long>("Count")
                         .HasColumnType("bigint")
                         .HasColumnName("Count");
+
+                    b.Property<string>("Service")
+                        .HasMaxLength(2)
+                        .HasColumnType("varchar(2)")
+                        .HasColumnName("Service");
 
                     b.HasKey("Id");
 
@@ -3712,7 +3798,9 @@ namespace SND.SMP.Migrations
 
                     b.HasOne("SND.SMP.Dispatches.Dispatch", null)
                         .WithMany()
-                        .HasForeignKey("DispatchID");
+                        .HasForeignKey("DispatchID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("SND.SMP.Items.Item", b =>
@@ -3723,7 +3811,9 @@ namespace SND.SMP.Migrations
 
                     b.HasOne("SND.SMP.Dispatches.Dispatch", null)
                         .WithMany()
-                        .HasForeignKey("DispatchID");
+                        .HasForeignKey("DispatchID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("SND.SMP.MultiTenancy.Tenant", b =>

@@ -12,12 +12,8 @@ using SND.SMP.IMPCS.Dto;
 
 namespace SND.SMP.IMPCS
 {
-    public class IMPCAppService : AsyncCrudAppService<IMPC, IMPCDto, int, PagedIMPCResultRequestDto>
+    public class IMPCAppService(IRepository<IMPC, int> repository) : AsyncCrudAppService<IMPC, IMPCDto, int, PagedIMPCResultRequestDto>(repository)
     {
-
-        public IMPCAppService(IRepository<IMPC, int> repository) : base(repository)
-        {
-        }
         protected override IQueryable<IMPC> CreateFilteredQuery(PagedIMPCResultRequestDto input)
         {
             return Repository.GetAllIncluding()

@@ -5,6 +5,7 @@ using System.Net.Http.Headers;
 using System.Text.Json;
 using SND.SMP.Chibis;
 using System.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace SND.SMP.DispatchConsole
 {
@@ -19,15 +20,11 @@ namespace SND.SMP.DispatchConsole
         private int AmountRequested { get; set; }
         private int AmountGiven { get; set; }
 
-        private readonly string _chibiAPIKey;
-        private readonly string _chibiURL;
+        private string _chibiAPIKey;
+        private string _chibiURL;
 
 
-        public TrackingNoGenerator(string chibiAPIKey, string chibiURL)
-        {
-            _chibiAPIKey = chibiAPIKey;
-            _chibiURL = chibiURL;
-        }
+        public TrackingNoGenerator() { }
 
         public async Task DiscoverAndGenerate()
         {
@@ -169,16 +166,16 @@ namespace SND.SMP.DispatchConsole
 
                     Stream stream = new MemoryStream(buffer);
 
-                    string fileName = string.Format("{0}_{1}_{2}_{3}_{4}.xlsx", Prefix, PrefixNo, Suffix, AmountGiven, Customer);
+                    string fileName = string.Format("{0}_{1}_{2}_{3}_{4}.xlsx", Prefix, PrefixNo, Suffix, AmountGiven, Customer.Replace(" ", "_"));
 
-                    ChibiUpload uploadExcel = await InsertExcelFileToChibi(stream, fileName, review.PostalCode, review.ProductCode);
+                    ChibiUpload uploadExcel = await InsertExcelFileToChibi(stream, fileName, originalName: null, postalCode: review.PostalCode, productCode: review.ProductCode);
 
                     application.Path = uploadExcel.url;
                     application.Range = string.Format("{0} - {1}", trackingIds[0].ToString(), trackingIds[^1].ToString());
                     application.Status = GenerateConst.Status_Completed;
                 }
 
-                runningNos.RunningNo = endingNo; 
+                runningNos.RunningNo = endingNo;
 
                 DateTime endTime = DateTime.Now;
                 application.TookInSec = (endTime - startTime).Seconds;
@@ -216,6 +213,13 @@ namespace SND.SMP.DispatchConsole
 
         public async Task<ChibiUpload> InsertExcelFileToChibi(Stream excel, string fileName, string originalName = null, string postalCode = null, string productCode = null)
         {
+            using db dbconn = new();
+            var obj_ChibiKey = await dbconn.ApplicationSettings.FirstOrDefaultAsync(x => x.Name.Equals("ChibiKey"));
+            var obj_ChibiURL = await dbconn.ApplicationSettings.FirstOrDefaultAsync(x => x.Name.Equals("ChibiURL"));
+
+            _chibiAPIKey = obj_ChibiKey.Value;
+            _chibiURL = obj_ChibiURL.Value;
+
             var client = new HttpClient();
             client.DefaultRequestHeaders.Clear();
             client.DefaultRequestHeaders.Add("x-api-key", _chibiAPIKey);
@@ -250,11 +254,11 @@ namespace SND.SMP.DispatchConsole
                     OriginalName = originalName is null ? result.originalName : originalName,
                     GeneratedName = result.name ?? ""
                 };
-                using db dbconn = new();
+
                 await dbconn.Chibis.AddAsync(entity);
                 await dbconn.SaveChangesAsync();
 
-                await FileServer.InsertFileToAlbum(result.uuid, true, dbconn, postalCode, null, productCode);
+                await FileServer.InsertFileToAlbum(result.uuid, false, dbconn, postalCode, null, productCode);
             }
 
             return result;
@@ -264,25 +268,32 @@ namespace SND.SMP.DispatchConsole
         {
             using db db = new();
 
-            var review = db.ItemTrackingReviews
+            var reviews = db.ItemTrackingReviews
                 .Where(x => x.Prefix == Prefix)
                 .Where(x => x.PrefixNo == PrefixNo)
                 .Where(x => x.Suffix == Suffix)
-                .FirstOrDefault();
+                .ToList();
 
-            if (review == null) return false;
+            if (reviews.Count == 0) return false;
 
-            var application = db.ItemTrackingApplications.FirstOrDefault(x => x.Id == review.ApplicationId);
-
-            Stream excelFile = await FileServer.GetFileStream(application.Path);
-
-            DataTable dataTable = ConvertToDatatable(excelFile);
-
-            if (dataTable.Rows.Count == 0) return false;
-
-            foreach (DataRow dr in dataTable.Rows)
+            foreach (var review in reviews)
             {
-                if (dr.ItemArray[0].ToString() == trackingNo) return true;
+                var applications = db.ItemTrackingApplications.Where(x => x.Id.Equals(review.ApplicationId)).ToList();
+
+                foreach (var application in applications)
+                {
+                    Stream excelFile = await FileServer.GetFileStream(application.Path);
+
+                    DataTable dataTable = ConvertToDatatable(excelFile);
+
+                    if (dataTable.Rows.Count == 0) return false;
+
+                    foreach (DataRow dr in dataTable.Rows)
+                    {
+                        if (dr.ItemArray[0].ToString() == trackingNo) return true;
+                    }
+                }
+
             }
 
             return false;

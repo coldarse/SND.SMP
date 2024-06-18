@@ -83,7 +83,7 @@ export class PostChecksComponent extends AppComponentBase implements OnInit {
   calculate(event: any, index: any) {
     let bag = this.postchecks.bags.find((x) => x.id === index.id);
     bag.weightPost = +event.target.value;
-    bag.weightVariance = +(bag.weightPre - bag.weightPost).toFixed(3);
+    bag.weightVariance = +(bag.weightPost - bag.weightPre).toFixed(3);
 
     let totalBagsPostChecked = 0;
     let totalWeightPostChecked = 0;
@@ -141,7 +141,7 @@ export class PostChecksComponent extends AppComponentBase implements OnInit {
       (result: any) => {
         if (result.result) {
           this.notify.info(this.l("Post Check Completed"));
-          this.ngOnInit();
+          this.router.navigate(["/app/dispatches"]);
         } else this.notify.error(this.l("Error Post Check"));
       },
       (error: HttpErrorResponse) => {
@@ -171,7 +171,7 @@ export class PostChecksComponent extends AppComponentBase implements OnInit {
         (result: any) => {
           if (result.result) {
             this.notify.info(this.l("ByPassed Post Check"));
-            this.ngOnInit();
+            this.router.navigate(["/app/dispatches"]);
           } else this.notify.error(this.l("Failed to ByPass Post Check"));
         },
         (error: HttpErrorResponse) => {
@@ -197,7 +197,7 @@ export class PostChecksComponent extends AppComponentBase implements OnInit {
       (result: any) => {
         if (result.result) {
           this.notify.info(this.l("UploadedSuccessfully"));
-          this.ngOnInit();
+          this.router.navigate(["/app/dispatches"]);
         } else this.notify.error(this.l("UploadFailed"));
       },
       (error: HttpErrorResponse) => {

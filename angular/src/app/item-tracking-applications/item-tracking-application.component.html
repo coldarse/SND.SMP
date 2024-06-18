@@ -1,135 +1,185 @@
 <div [@routerTransition]>
-    <section class='content-header'>
-        <div class='container-fluid'>
-            <div class='row'>
-                <div class='col-6'>
-                    <h1>{{ 'Item Tracking' | localize }}</h1>
-                </div>
-                <div class='col-6 text-right' *ngIf='isButtonVisible("Create")'>
-                    <a href='javascript:;' class='btn bg-blue' (click)='createItemTrackingApplication()'>
-                        <i class='fa fa-plus-square'></i>
-                        {{ 'Create' | localize }}
-                    </a>
-                </div>
-            </div>
+  <section class="content-header">
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-6">
+          <h1>{{ "Item Tracking" | localize }}</h1>
         </div>
-    </section>
-    <section class='content px-2'>
-        <div class='container-fluid'>
-            <div class='card'>
-                <div class='card-header'>
-                    <div class='row'>
-                        <div class='col-md-6'>&emsp;</div>
-                        <div class='col-md-6'>
-                            <div class='input-group'>
-                                <div class='input-group-prepend'>
-                                    <button
-                                            type='button'
-                                            class='btn bg-blue'
-                                            (click)='getDataPage(1)'
-                                    >
-                                        <i class='fas fa-search'></i>
-                                    </button>
-                                </div>
-                                <input
-                                        type='text'
-                                        class='form-control'
-                                        name='keyword'
-                                        [placeholder]='"SearchWithThreeDot" | localize'
-                                        [(ngModel)]='keyword'
-                                        (keyup.enter)='getDataPage(1)'
-                                />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class='card-body'>
-                    <div class='table-responsive'>
-                        <table class='table table-striped table-bordered' [busy]='isTableLoading'>
-                            <thead class='bg-dark'>
-                            <tr>
-                                <th>{{ 'Customer Code' | localize }}</th>
-                                <th>{{ 'Postal Code' | localize }}</th>
-                                <th>{{ 'Postal Desc' | localize }}</th>
-                                <th>{{ 'Total' | localize }}</th>
-                                <th>{{ 'Range' | localize }}</th>
-                                <th>{{ 'Product Code' | localize }}</th>
-                                <th>{{ 'Product Desc' | localize }}</th>
-                                <th>{{ 'Status' | localize }}</th>
-                                <th>{{ 'Date Created' | localize }}</th>
-                                <th style='width: 310px;' *ngIf='isButtonVisible("Edit") && isButtonVisible("Delete")'>{{ 'Actions' | localize }}</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <tr
-                                    *ngFor='
-                  let itemtrackingapplication of itemtrackingapplications
-                    | paginate
-                      : {
-                          id: "server",
-                          itemsPerPage: pageSize,
-                          currentPage: pageNumber,
-                          totalItems: totalItems
-                        }
-                '
-                            >
-                                <td>{{ itemtrackingapplication.customerCode }}</td>
-                                <td>{{ itemtrackingapplication.postalCode }}</td>
-                                <td>{{ itemtrackingapplication.postalDesc }}</td>
-                                <td>{{ itemtrackingapplication.total }}</td>
-                                <td>{{ itemtrackingapplication.range }}</td>
-                                <td>{{ itemtrackingapplication.productCode }}</td>
-                                <td>{{ itemtrackingapplication.productDesc }}</td>
-                                <td>{{ itemtrackingapplication.status }}</td>
-                                <td>{{ itemtrackingapplication.dateCreated | date : "short" }}</td>
-                                <td *ngIf='isButtonVisible("Edit") || isButtonVisible("Delete")'>
-                                    <button
-                                            type='button'
-                                            class='btn btn-sm bg-secondary'
-                                            (click)='editItemTrackingApplication(itemtrackingapplication)'
-                                    >
-                                        <i class='fas fa-pencil-alt'></i>
-                                        {{ 'Review' | localize }}
-                                    </button>
-                                    <button
-                                            type='button'
-                                            class='btn btn-sm bg-danger mx-2'
-                                            (click)='delete(itemtrackingapplication)'
-                                            *ngIf='isButtonVisible("Delete")'
-                                    >
-                                        <i class='fas fa-trash'></i>
-                                        {{ 'Delete' | localize }}
-                                    </button>
-                                </td>
-                            </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                <div class='card-footer table-card-footer bg-light border-top'>
-                    <div class='row'>
-                        <div class='col-sm-4 col-12 text-sm-left text-center'>
-                            <button class='btn btn-secondary' (click)='refresh()'>
-                                <i class='fas fa-redo-alt'></i>
-                            </button>
-                        </div>
-                        <div class='col-sm-4 col-12 text-center'>
-                            <p class='mb-0 my-2'>
-                                {{ 'TotalRecordsCount' | localize: totalItems }}
-                            </p>
-                        </div>
-                        <div class='col-sm-4 col-12'>
-                            <div class='float-sm-right m-auto'>
-                                <abp-pagination-controls
-                                        id='server'
-                                        (pageChange)='getDataPage($event)'
-                                >
-                                </abp-pagination-controls>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <div class="col-6 text-right" *ngIf="isButtonVisible('Create')">
+          <a
+            href="javascript:;"
+            class="btn bg-danger"
+            (click)="createItemTrackingApplication()"
+          >
+            <i class="fa fa-plus-square"></i>
+            {{ "Create" | localize }}
+          </a>
         </div>
-    </section>
+      </div>
+    </div>
+  </section>
+  <section class="content px-2">
+    <div class="container-fluid">
+      <div class="card">
+        <div class="card-header">
+          <div class="row">
+            <div class="col-md-6">&emsp;</div>
+            <div class="col-md-6">
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <button
+                    type="button"
+                    class="btn bg-danger"
+                    (click)="getDataPage(1)"
+                  >
+                    <i class="fas fa-search"></i>
+                  </button>
+                </div>
+                <input
+                  type="text"
+                  class="form-control"
+                  name="keyword"
+                  [placeholder]="'SearchWithThreeDot' | localize"
+                  [(ngModel)]="keyword"
+                  (keyup.enter)="getDataPage(1)"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-bordered" [busy]="isTableLoading">
+              <thead>
+                <tr>
+                  <th>{{ "Customer Code" | localize }}</th>
+                  <th>{{ "Postal Code" | localize }}</th>
+                  <th>{{ "Postal Desc" | localize }}</th>
+                  <th>{{ "Total" | localize }}</th>
+                  <th>{{ "Range" | localize }}</th>
+                  <th>{{ "Product Code" | localize }}</th>
+                  <th>{{ "Product Desc" | localize }}</th>
+                  <th>{{ "Status" | localize }}</th>
+                  <th>{{ "Date Created" | localize }}</th>
+                  <th
+                    style="width: 310px"
+                    *ngIf="isButtonVisible('Edit') && isButtonVisible('Delete')"
+                  >
+                    {{ "Actions" | localize }}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  *ngFor="
+                    let itemtrackingapplication of itemtrackingapplications
+                      | paginate
+                        : {
+                            id: 'server',
+                            itemsPerPage: pageSize,
+                            currentPage: pageNumber,
+                            totalItems: totalItems
+                          }
+                  "
+                >
+                  <td>{{ itemtrackingapplication.customerCode }}</td>
+                  <td>{{ itemtrackingapplication.postalCode }}</td>
+                  <td>{{ itemtrackingapplication.postalDesc }}</td>
+                  <td>{{ itemtrackingapplication.total }}</td>
+                  <td>{{ itemtrackingapplication.range }}</td>
+                  <td>{{ itemtrackingapplication.productCode }}</td>
+                  <td>{{ itemtrackingapplication.productDesc }}</td>
+                  <td>
+                    @if(itemtrackingapplication.status == "Pending"){
+                    <span class="badge badge-pill badge-warning">{{
+                      itemtrackingapplication.status
+                    }}</span>
+                    } @else if (itemtrackingapplication.status == "Approved") {
+                    <span class="badge badge-pill badge-success">{{
+                      itemtrackingapplication.status
+                    }}</span>
+                    } @else if (itemtrackingapplication.status == "Approved & Generated") {
+                    <span class="badge badge-pill badge-success">{{
+                      itemtrackingapplication.status
+                    }}</span>
+                    } @else if (itemtrackingapplication.status == "Declined") {
+                    <span class="badge badge-pill badge-danger">{{
+                      itemtrackingapplication.status
+                    }}</span>
+                    } @else if (itemtrackingapplication.status == "Generating")
+                    {
+                    <span class="badge badge-pill badge-info">{{
+                      itemtrackingapplication.status
+                    }}</span>
+                    }
+                  </td>
+                  <td>
+                    {{ itemtrackingapplication.dateCreated | date : "short" }}
+                  </td>
+                  <td
+                    *ngIf="isButtonVisible('Edit') || isButtonVisible('Delete')"
+                  >
+                    <button
+                      type="button"
+                      class="btn btn-sm bg-secondary"
+                      (click)="
+                        editItemTrackingApplication(itemtrackingapplication)
+                      "
+                    >
+                      <i class="fas fa-pencil-alt"></i>
+                      {{ "Review" | localize }}
+                    </button>
+                    <button
+                      type="button"
+                      class="btn btn-sm bg-danger mx-2"
+                      (click)="delete(itemtrackingapplication)"
+                      *ngIf="isButtonVisible('Delete')"
+                      [disabled]="itemtrackingapplication.status == 'Approved & Generated'"
+                    >
+                      <i class="fas fa-trash"></i>
+                      {{ "Delete" | localize }}
+                    </button>
+                    <button
+                      *ngIf="itemtrackingapplication.range != ''"
+                      type="button"
+                      class="btn btn-sm bg-info"
+                      (click)="
+                        exportItemTrackingIds(itemtrackingapplication)
+                      "
+                    >
+                    <i class="fas fa-file-export"></i>
+                      {{ "Export" | localize }}
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card-footer table-card-footer bg-light border-top">
+          <div class="row">
+            <div class="col-sm-4 col-12 text-sm-left text-center">
+              <button class="btn btn-secondary" (click)="refresh()">
+                <i class="fas fa-redo-alt"></i>
+              </button>
+            </div>
+            <div class="col-sm-4 col-12 text-center">
+              <p class="mb-0 my-2">
+                {{ "TotalRecordsCount" | localize : totalItems }}
+              </p>
+            </div>
+            <div class="col-sm-4 col-12">
+              <div class="float-sm-right m-auto">
+                <abp-pagination-controls
+                  id="server"
+                  (pageChange)="getDataPage($event)"
+                >
+                </abp-pagination-controls>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 </div>

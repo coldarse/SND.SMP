@@ -1,3 +1,4 @@
+using System.Net.Http.Headers;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using SND.SMP.DispatchConsole.EF;
@@ -65,7 +66,13 @@ namespace SND.SMP.DispatchConsole
             {
                 Method = HttpMethod.Post,
                 RequestUri = new Uri(chibiURL.Value + "album/create"),
-                Content = new StringContent("{'name': '" + name + "'}"),
+                Content = new StringContent("{\n  \"name\": \"" + name + "\"\n}")
+                {
+                    Headers =
+                    {
+                        ContentType = new MediaTypeHeaderValue("application/json")
+                    }
+                }
             };
 
             using var response = await client.SendAsync(request);
@@ -160,7 +167,7 @@ namespace SND.SMP.DispatchConsole
                 if (productCode != null)
                 {
                     var product_album = albums.FirstOrDefault(a => a.name == "Product_" + productCode);
-                    if (product_album == null) await CreateInsertPostalAlbum(productCode, file_uuid, dbconn);
+                    if (product_album == null) await CreateInsertProductAlbum(productCode, file_uuid, dbconn);
                     else await AddFileToAlbum(product_album.uuid, file_uuid, dbconn);
                 }
             }

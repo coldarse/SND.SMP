@@ -293,6 +293,46 @@
             ></abp-validation-summary>
             </div>
         </div>
+        <div class='form-group row'>
+            <label class='col-md-3 col-form-label' for='clientKey'>
+            {{ 'Client Key' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='text'
+                class='form-control'
+                name='clientKey'
+                id='clientKey'
+                [(ngModel)]='customer.clientKey'
+                #clientKeyModel='ngModel'
+                #clientKeyEl
+            />
+            <abp-validation-summary
+                [control]='clientKeyModel'
+                [controlEl]='clientKeyEl'
+            ></abp-validation-summary>
+            </div>
+        </div>
+        <div class='form-group row'>
+            <label class='col-md-3 col-form-label' for='clientSecret'>
+            {{ 'Client Secret' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='text'
+                class='form-control'
+                name='clientSecret'
+                id='clientSecret'
+                [(ngModel)]='customer.clientSecret'
+                #clientSecretModel='ngModel'
+                #clientSecretEl
+            />
+            <abp-validation-summary
+                [control]='clientSecretModel'
+                [controlEl]='clientSecretEl'
+            ></abp-validation-summary>
+            </div>
+        </div>
     </div>
     <abp-modal-footer
     [cancelDisabled]='saving'

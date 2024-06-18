@@ -47,7 +47,7 @@ namespace SND.SMP.DispatchConsole
 
                 var _customerPostal = db.Customerpostals.FirstOrDefault(u => (u.AccountNo == acctNo.Id) && (u.Postal == _postalCode));
                 _rates = [.. db.Rateitems
-                            .Where(u => u.Id == _customerPostal.Rate)
+                            .Where(u => u.RateId == _customerPostal.Rate)
                             .Where(u => u.ServiceCode == _serviceCode)];
 
 
@@ -66,7 +66,7 @@ namespace SND.SMP.DispatchConsole
 
                 var _customerPostal = db.Customerpostals.FirstOrDefault(u => (u.AccountNo == acctNo.Id) && (u.Postal == _postalCode));
                 _rateWeightBreaks = [.. db.Rateweightbreaks
-                                        .Where(u => u.Id == _customerPostal.Rate)
+                                        .Where(u => u.RateId == _customerPostal.Rate)
                                         .Where(u => u.ProductCode == _productCode)];
 
                 CurrencyId = _rateWeightBreaks.Select(u => u.CurrencyId).FirstOrDefault();

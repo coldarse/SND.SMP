@@ -28,11 +28,50 @@ namespace SND.SMP.RateItems
         IRepository<Currency, long> currencyRepository
         ) : AsyncCrudAppService<RateItem, RateItemDto, long, PagedRateItemResultRequestDto>(repository)
     {
+
+        private readonly IRepository<Rate,int> _rateRepository = rateRepository;
+        private readonly IRepository<Currency,long> _currencyRepository = currencyRepository;
+
         protected override IQueryable<RateItem> CreateFilteredQuery(PagedRateItemResultRequestDto input)
         {
             return Repository.GetAllIncluding()
                 .WhereIf(!input.Keyword.IsNullOrWhiteSpace(), x =>
                     x.RateId.ToString().Equals(input.Keyword));
+        }
+
+        private static DataTable ConvertToDatatable(Stream ms)
+        {
+            DataTable dataTable = new();
+
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
+            using (var package = new ExcelPackage(ms))
+            {
+                ExcelWorksheet worksheet = package.Workbook.Worksheets[0];
+
+                // Assuming the first row is the header
+                for (int i = 1; i <= worksheet.Dimension.End.Column; i++)
+                {
+                    string columnName = worksheet.Cells[1, i].Value?.ToString();
+                    if (!string.IsNullOrEmpty(columnName))
+                    {
+                        dataTable.Columns.Add(columnName);
+                    }
+                }
+
+                // Populate DataTable with data from Excel
+                for (int row = 2; row <= worksheet.Dimension.End.Row; row++)
+                {
+                    DataRow dataRow = dataTable.NewRow();
+                    for (int col = 1; col <= worksheet.Dimension.End.Column; col++)
+                    {
+                        dataRow[col - 1] = worksheet.Cells[row, col].Value;
+                    }
+                    dataTable.Rows.Add(dataRow);
+                }
+            }
+
+            return dataTable;
         }
 
         private IQueryable<RateItemDetailDto> ApplySorting(IQueryable<RateItemDetailDto> query, PagedRateItemResultRequestDto input)
@@ -82,9 +121,9 @@ namespace SND.SMP.RateItems
 
             var query = CreateFilteredQuery(input);
 
-            var rates = await rateRepository.GetAllListAsync();
+            var rates = await _rateRepository.GetAllListAsync(x => x.Service.Equals("TS"));
 
-            var currencies = await currencyRepository.GetAllListAsync();
+            var currencies = await _currencyRepository.GetAllListAsync();
 
             List<RateItemDetailDto> detailed = [];
 
@@ -121,49 +160,15 @@ namespace SND.SMP.RateItems
             {
                 Id = 0,
                 CardName = "All",
-                Count = rateItemCount
+                Count = rateItemCount,
+                Service = "All"
             });
 
             return new FullRateItemDetailDto()
             {
-                PagedRateItemResultDto = new PagedResultDto<RateItemDetailDto>(totalCount, [..detailed]),
+                PagedRateItemResultDto = new PagedResultDto<RateItemDetailDto>(totalCount, [.. detailed]),
                 Rates = rates
             };
-        }
-
-        private async Task<DataTable> ConvertToDatatable(Stream ms)
-        {
-            DataTable dataTable = new();
-
-            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-
-            using (var package = new ExcelPackage(ms))
-            {
-                ExcelWorksheet worksheet = package.Workbook.Worksheets[0];
-
-                // Assuming the first row is the header
-                for (int i = 1; i <= worksheet.Dimension.End.Column; i++)
-                {
-                    string columnName = worksheet.Cells[1, i].Value?.ToString();
-                    if (!string.IsNullOrEmpty(columnName))
-                    {
-                        dataTable.Columns.Add(columnName);
-                    }
-                }
-
-                // Populate DataTable with data from Excel
-                for (int row = 2; row <= worksheet.Dimension.End.Row; row++)
-                {
-                    DataRow dataRow = dataTable.NewRow();
-                    for (int col = 1; col <= worksheet.Dimension.End.Column; col++)
-                    {
-                        dataRow[col - 1] = worksheet.Cells[row, col].Value;
-                    }
-                    dataTable.Rows.Add(dataRow);
-                }
-            }
-
-            return dataTable;
         }
 
         [Consumes("multipart/form-data")]
@@ -171,32 +176,39 @@ namespace SND.SMP.RateItems
         {
             if (input.file == null || input.file.Length == 0) return [];
 
-            DataTable dataTable = await ConvertToDatatable(input.file.OpenReadStream());
+            DataTable dataTable = ConvertToDatatable(input.file.OpenReadStream());
 
             List<RateItemExcel> rateItemExcel = [];
             foreach (DataRow dr in dataTable.Rows)
             {
-                rateItemExcel.Add(new RateItemExcel()
+                if (dr.ItemArray[0].ToString() != "")
                 {
-                    RateCard = dr.ItemArray[0].ToString(),
-                    ServiceCode = dr.ItemArray[1].ToString(),
-                    ProductCode = dr.ItemArray[2].ToString(),
-                    CountryCode = dr.ItemArray[3].ToString(),
-                    Total = dr.ItemArray[4].ToString() == "" ? 0 : Convert.ToDecimal(dr.ItemArray[4]),
-                    Fee = dr.ItemArray[5].ToString() == "" ? 0 : Convert.ToDecimal(dr.ItemArray[5]),
-                    Currency = dr.ItemArray[6].ToString(),
-                    PaymentMode = dr.ItemArray[7].ToString()
-                });
+                    rateItemExcel.Add(new RateItemExcel()
+                    {
+                        RateCard = dr.ItemArray[0].ToString(),
+                        ServiceCode = dr.ItemArray[1].ToString(),
+                        ProductCode = dr.ItemArray[2].ToString(),
+                        CountryCode = dr.ItemArray[3].ToString(),
+                        Total = dr.ItemArray[4].ToString() == "" ? 0 : Convert.ToDecimal(dr.ItemArray[4]),
+                        Fee = dr.ItemArray[5].ToString() == "" ? 0 : Convert.ToDecimal(dr.ItemArray[5]),
+                        Currency = dr.ItemArray[6].ToString(),
+                        PaymentMode = dr.ItemArray[7].ToString()
+                    });
+                }
             }
 
             var distinctedByRateCards = rateItemExcel.DistinctBy(x => x.RateCard);
+
+            var ts_rates = await _rateRepository.GetAllListAsync(x => x.Service.Equals("TS"));
+            foreach (var rate in ts_rates) await _rateRepository.DeleteAsync(rate);
+            await _rateRepository.GetDbContext().SaveChangesAsync();
 
             List<Rate> rateCard = [];
             foreach (var distinctedRateCard in distinctedByRateCards)
             {
                 int distinctedCount = rateItemExcel.Count(x => x.RateCard.Equals(distinctedRateCard.RateCard));
 
-                var rate = await rateRepository.FirstOrDefaultAsync(x => x.CardName.Equals(distinctedRateCard.RateCard));
+                var rate = await _rateRepository.FirstOrDefaultAsync(x => x.CardName.Equals(distinctedRateCard.RateCard));
 
                 rateCard.Add(new Rate()
                 {
@@ -211,7 +223,7 @@ namespace SND.SMP.RateItems
             List<Currency> currency = [];
             foreach (var distinctedCurrency in distinctedByCurrency)
             {
-                var curr = await currencyRepository.FirstOrDefaultAsync(x => x.Abbr.Equals(distinctedCurrency.Currency));
+                var curr = await _currencyRepository.FirstOrDefaultAsync(x => x.Abbr.Equals(distinctedCurrency.Currency));
 
                 currency.Add(new Currency()
                 {
@@ -225,10 +237,11 @@ namespace SND.SMP.RateItems
             {
                 if (rc.Id.Equals(0))
                 {
-                    var rateCardCreateId = await rateRepository.InsertAndGetIdAsync(new Rate()
+                    var rateCardCreateId = await _rateRepository.InsertAndGetIdAsync(new Rate()
                     {
                         CardName = rc.CardName,
-                        Count = rc.Count
+                        Count = rc.Count,
+                        Service = "TS"
                     });
 
                     var updatedRateCard = rateCard.FirstOrDefault(x => x.CardName.Equals(rc.CardName));
@@ -236,15 +249,15 @@ namespace SND.SMP.RateItems
                 }
                 else
                 {
-                    var rateCardForUpdate = await rateRepository.FirstOrDefaultAsync(x => x.Id.Equals(rc.Id));
+                    var rateCardForUpdate = await _rateRepository.FirstOrDefaultAsync(x => x.Id.Equals(rc.Id));
                     rateCardForUpdate.Count = rc.Count;
-                    var rateCardUpdate = await rateRepository.UpdateAsync(rateCardForUpdate);
+                    var rateCardUpdate = await _rateRepository.UpdateAsync(rateCardForUpdate);
                 }
             }
 
             foreach (var c in currency.Where(x => x.Id.Equals(0)))
             {
-                var currencyCreateId = await currencyRepository.InsertAndGetIdAsync(new Currency()
+                var currencyCreateId = await _currencyRepository.InsertAndGetIdAsync(new Currency()
                 {
                     Abbr = c.Abbr,
                     Description = ""

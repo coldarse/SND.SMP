@@ -12,12 +12,8 @@ using SND.SMP.ItemTrackings.Dto;
 
 namespace SND.SMP.ItemTrackings
 {
-    public class ItemTrackingAppService : AsyncCrudAppService<ItemTracking, ItemTrackingDto, int, PagedItemTrackingResultRequestDto>
+    public class ItemTrackingAppService(IRepository<ItemTracking, int> repository) : AsyncCrudAppService<ItemTracking, ItemTrackingDto, int, PagedItemTrackingResultRequestDto>(repository)
     {
-
-        public ItemTrackingAppService(IRepository<ItemTracking, int> repository) : base(repository)
-        {
-        }
         protected override IQueryable<ItemTracking> CreateFilteredQuery(PagedItemTrackingResultRequestDto input)
         {
             return Repository.GetAllIncluding()

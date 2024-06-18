@@ -124,6 +124,7 @@ namespace SND.SMP.CustomerPostals
 
             detailed = [.. ApplySorting(detailed.AsQueryable(), input)];
             detailed = [.. ApplyPaging(detailed.AsQueryable(), input)];
+            
 
 
             return new PagedResultDto<DetailedCustomerPostalDto>(
@@ -273,6 +274,33 @@ namespace SND.SMP.CustomerPostals
                 AccountNo = updated.AccountNo,
                 Code = ""
             };
+        }
+
+        public async Task<List<PostalDDL>> GetCustomerPostalsByCustomerCode(string customerCode)
+        {
+            var customer = await _customerRepository.FirstOrDefaultAsync(x => x.Code.Equals(customerCode));
+            var customerPostals = await Repository.GetAllListAsync(x => x.AccountNo.Equals(customer.Id));
+            customerPostals = customerPostals.DistinctBy(x => x.Postal).ToList();
+
+            var postals = await _postalRepository.GetAllListAsync();
+            postals = postals.DistinctBy(x => x.PostalCode).ToList();
+
+            var rates = await _rateRepository.GetAllListAsync();
+
+            List<PostalDDL> postalDDLs = [];
+            foreach (CustomerPostal cp in customerPostals.ToList())
+            {
+                var postal = postals.FirstOrDefault(x => x.PostalCode.Equals(cp.Postal));
+                string rateCardName = rates.FirstOrDefault(x => x.Id.Equals(cp.Rate)).CardName;
+
+                postalDDLs.Add(new PostalDDL()
+                {
+                    PostalCode = postal.PostalCode,
+                    PostalDesc = postal.PostalDesc + $" ({rateCardName})",
+                });
+            }
+
+            return postalDDLs;
         }
 
         public async Task<List<PostalDDL>> GetCustomerPostalsByAccountNo(long accountNo)

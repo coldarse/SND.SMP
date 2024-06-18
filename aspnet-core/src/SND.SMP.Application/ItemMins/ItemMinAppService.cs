@@ -12,12 +12,8 @@ using SND.SMP.ItemMins.Dto;
 
 namespace SND.SMP.ItemMins
 {
-    public class ItemMinAppService : AsyncCrudAppService<ItemMin, ItemMinDto, string, PagedItemMinResultRequestDto>
+    public class ItemMinAppService(IRepository<ItemMin, string> repository) : AsyncCrudAppService<ItemMin, ItemMinDto, string, PagedItemMinResultRequestDto>(repository)
     {
-
-        public ItemMinAppService(IRepository<ItemMin, string> repository) : base(repository)
-        {
-        }
         protected override IQueryable<ItemMin> CreateFilteredQuery(PagedItemMinResultRequestDto input)
         {
             return Repository.GetAllIncluding()

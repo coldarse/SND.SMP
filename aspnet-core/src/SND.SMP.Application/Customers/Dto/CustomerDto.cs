@@ -22,5 +22,8 @@ namespace SND.SMP.Customers.Dto
         public string EmailAddress2 { get; set; }
         public string EmailAddress3 { get; set; }
         public bool IsActive { get; set; }
+        public string ClientKey { get; set; }
+        public string ClientSecret { get; set; }
+        public string APIAccessToken { get; set; }
     }
 }

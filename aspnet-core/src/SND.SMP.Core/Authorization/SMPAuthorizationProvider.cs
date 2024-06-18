@@ -8,12 +8,24 @@ namespace SND.SMP.Authorization
     {
         public override void SetPermissions(IPermissionDefinitionContext context)
         {
+            context.CreatePermission(PermissionNames.Pages_UsersPage, L("UsersPage"));
             context.CreatePermission(PermissionNames.Pages_Users, L("Users"));
             context.CreatePermission(PermissionNames.Pages_Users_Activation, L("UsersActivation"));
+            context.CreatePermission(PermissionNames.Pages_RolesPage, L("RolesPage"));
             context.CreatePermission(PermissionNames.Pages_Roles, L("Roles"));
             context.CreatePermission(PermissionNames.Pages_Tenants, L("Tenants"), multiTenancySides: MultiTenancySides.Host);
 
             /* Define your permissions here */
+            context.CreatePermission(PermissionNames.Pages_DispatchUsedAmount, L("DispatchUsedAmounts"));
+            context.CreatePermission(PermissionNames.Pages_DispatchUsedAmount_Create, L("DispatchUsedAmountsCreate"));
+            context.CreatePermission(PermissionNames.Pages_DispatchUsedAmount_Edit, L("DispatchUsedAmountsEdit"));
+            context.CreatePermission(PermissionNames.Pages_DispatchUsedAmount_Delete, L("DispatchUsedAmountsDelete"));
+
+            context.CreatePermission(PermissionNames.Pages_Airport, L("Airports"));
+            context.CreatePermission(PermissionNames.Pages_Airport_Create, L("AirportsCreate"));
+            context.CreatePermission(PermissionNames.Pages_Airport_Edit, L("AirportsEdit"));
+            context.CreatePermission(PermissionNames.Pages_Airport_Delete, L("AirportsDelete"));
+
             context.CreatePermission(PermissionNames.Pages_ItemTracking, L("ItemTrackings"));
             context.CreatePermission(PermissionNames.Pages_ItemTracking_Create, L("ItemTrackingsCreate"));
             context.CreatePermission(PermissionNames.Pages_ItemTracking_Edit, L("ItemTrackingsEdit"));

@@ -147,6 +147,7 @@ namespace SND.SMP.DispatchConsole
                         {
                             if (rowTouched > 0)
                             {
+                                if(reader[0] is null) break;
                                 var strPostalCode = reader[0].ToString()!;
                                 var dispatchDate = DateOnly.ParseExact(reader[1].ToString()!, "dd/MM/yyyy", CultureInfo.InvariantCulture);
                                 var strServiceCode = reader[2].ToString()!;
@@ -380,7 +381,7 @@ namespace SND.SMP.DispatchConsole
                     dispatch.ItemCount = itemCount;
                     dispatch.TotalWeight = totalWeight;
                     dispatch.TotalPrice = totalPrice;
-                    dispatch.ImportProgress = Convert.ToInt32(Convert.ToDecimal(itemCount / Convert.ToDecimal(rowCount)) * 100);
+                    dispatch.ImportProgress = 100;
 
                     var queueTask = db.Queues.Find(_queueId);
                     if (queueTask != null)
