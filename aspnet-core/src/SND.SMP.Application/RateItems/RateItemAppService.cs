@@ -28,6 +28,10 @@ namespace SND.SMP.RateItems
         IRepository<Currency, long> currencyRepository
         ) : AsyncCrudAppService<RateItem, RateItemDto, long, PagedRateItemResultRequestDto>(repository)
     {
+
+        private readonly IRepository<Rate,int> _rateRepository = rateRepository;
+        private readonly IRepository<Currency,long> _currencyRepository = currencyRepository;
+
         protected override IQueryable<RateItem> CreateFilteredQuery(PagedRateItemResultRequestDto input)
         {
             return Repository.GetAllIncluding()
@@ -117,9 +121,9 @@ namespace SND.SMP.RateItems
 
             var query = CreateFilteredQuery(input);
 
-            var rates = await rateRepository.GetAllListAsync(x => x.Service.Equals("TS"));
+            var rates = await _rateRepository.GetAllListAsync(x => x.Service.Equals("TS"));
 
-            var currencies = await currencyRepository.GetAllListAsync();
+            var currencies = await _currencyRepository.GetAllListAsync();
 
             List<RateItemDetailDto> detailed = [];
 
@@ -195,12 +199,16 @@ namespace SND.SMP.RateItems
 
             var distinctedByRateCards = rateItemExcel.DistinctBy(x => x.RateCard);
 
+            var ts_rates = await _rateRepository.GetAllListAsync(x => x.Service.Equals("TS"));
+            foreach (var rate in ts_rates) await _rateRepository.DeleteAsync(rate);
+            await _rateRepository.GetDbContext().SaveChangesAsync();
+
             List<Rate> rateCard = [];
             foreach (var distinctedRateCard in distinctedByRateCards)
             {
                 int distinctedCount = rateItemExcel.Count(x => x.RateCard.Equals(distinctedRateCard.RateCard));
 
-                var rate = await rateRepository.FirstOrDefaultAsync(x => x.CardName.Equals(distinctedRateCard.RateCard));
+                var rate = await _rateRepository.FirstOrDefaultAsync(x => x.CardName.Equals(distinctedRateCard.RateCard));
 
                 rateCard.Add(new Rate()
                 {
@@ -215,7 +223,7 @@ namespace SND.SMP.RateItems
             List<Currency> currency = [];
             foreach (var distinctedCurrency in distinctedByCurrency)
             {
-                var curr = await currencyRepository.FirstOrDefaultAsync(x => x.Abbr.Equals(distinctedCurrency.Currency));
+                var curr = await _currencyRepository.FirstOrDefaultAsync(x => x.Abbr.Equals(distinctedCurrency.Currency));
 
                 currency.Add(new Currency()
                 {
@@ -229,7 +237,7 @@ namespace SND.SMP.RateItems
             {
                 if (rc.Id.Equals(0))
                 {
-                    var rateCardCreateId = await rateRepository.InsertAndGetIdAsync(new Rate()
+                    var rateCardCreateId = await _rateRepository.InsertAndGetIdAsync(new Rate()
                     {
                         CardName = rc.CardName,
                         Count = rc.Count,
@@ -241,15 +249,15 @@ namespace SND.SMP.RateItems
                 }
                 else
                 {
-                    var rateCardForUpdate = await rateRepository.FirstOrDefaultAsync(x => x.Id.Equals(rc.Id));
+                    var rateCardForUpdate = await _rateRepository.FirstOrDefaultAsync(x => x.Id.Equals(rc.Id));
                     rateCardForUpdate.Count = rc.Count;
-                    var rateCardUpdate = await rateRepository.UpdateAsync(rateCardForUpdate);
+                    var rateCardUpdate = await _rateRepository.UpdateAsync(rateCardForUpdate);
                 }
             }
 
             foreach (var c in currency.Where(x => x.Id.Equals(0)))
             {
-                var currencyCreateId = await currencyRepository.InsertAndGetIdAsync(new Currency()
+                var currencyCreateId = await _currencyRepository.InsertAndGetIdAsync(new Currency()
                 {
                     Abbr = c.Abbr,
                     Description = ""

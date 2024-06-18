@@ -140,6 +140,7 @@ namespace SND.SMP.DispatchConsole
 
             DispatchValidateDto validationResult_dispatch_IsDuplicate = new() { Category = "Duplicated Dispatch No." };
             DispatchValidateDto validationResult_dispatch_IsParticularsNotTally = new() { Category = "Dispatch Particulars Not Tally" };
+            DispatchValidateDto validationResult_bag_IsDuplicate = new() { Category = "Duplicated Bag No" };
             DispatchValidateDto validationResult_id_IsDuplicate = new() { Category = "Duplicated Item ID" };
             DispatchValidateDto validationResult_id_HasInvalidLength = new() { Category = "Invalid Length" };
             DispatchValidateDto validationResult_id_HasInvalidPrefixSuffix = new() { Category = "Invalid Prefix & Suffix" };
@@ -201,6 +202,7 @@ namespace SND.SMP.DispatchConsole
 
                 var month = Convert.ToInt32($"{DispatchProfile.DateDispatch.Year}{DispatchProfile.DateDispatch.Month.ToString().PadLeft(2, '0')}");
                 var listItemIds = new List<string>();
+                var listBagNos = new List<string>();
                 var listCountryCodes = new List<DispatchValidateCountryDto>();
                 var listParticulars = new List<DispatchValidateParticularsDto>();
 
@@ -249,6 +251,7 @@ namespace SND.SMP.DispatchConsole
                             totalPrice += price;
 
                             listItemIds.Add(itemId);
+                            if(!listBagNos.Contains(bagNo)) listBagNos.Add(bagNo);
                             listCountryCodes.Add(new DispatchValidateCountryDto { Id = itemId, CountryCode = countryCode });
                             listParticulars.Add(new DispatchValidateParticularsDto { Id = itemId, DispatchNo = strDispatchNo, PostalCode = strPostalCode, ServiceCode = strServiceCode, ProductCode = strProductCode });
 
@@ -259,6 +262,7 @@ namespace SND.SMP.DispatchConsole
                                 Parallel.Invoke(new ParallelOptions
                                 { MaxDegreeOfParallelism = Environment.ProcessorCount },
                                     () => Id_IsDuplicate(ref validationResult_id_IsDuplicate, listItemIds),
+                                    () => Bag_IsDuplicate(ref validationResult_bag_IsDuplicate, listBagNos),
                                     () => Id_HasInvalidLength(ref validationResult_id_HasInvalidLength, listItemIds),
                                     () => Id_HasInvalidPrefixSuffix(ref validationResult_id_HasInvalidPrefixSuffix, listItemIds),
                                     () => Id_HasInvalidCheckDigit(ref validationResult_id_HasInvalidCheckDigit, listItemIds),
@@ -314,6 +318,7 @@ namespace SND.SMP.DispatchConsole
                     Parallel.Invoke(new ParallelOptions
                     { MaxDegreeOfParallelism = Environment.ProcessorCount },
                         () => Id_IsDuplicate(ref validationResult_id_IsDuplicate, listItemIds),
+                        () => Bag_IsDuplicate(ref validationResult_bag_IsDuplicate, listBagNos),
                         () => Id_HasInvalidLength(ref validationResult_id_HasInvalidLength, listItemIds),
                         () => Id_HasInvalidPrefixSuffix(ref validationResult_id_HasInvalidPrefixSuffix, listItemIds),
                         () => Id_HasInvalidCheckDigit(ref validationResult_id_HasInvalidCheckDigit, listItemIds),
@@ -734,6 +739,23 @@ namespace SND.SMP.DispatchConsole
             if(list.Count != 0) validationResult.Message = $"Dispatch Particulars [{DispatchProfile.DispatchNo} / {DispatchProfile.PostalCode} / {DispatchProfile.ServiceCode} / {DispatchProfile.ProductCode}]";
 
             result = list.Count != 0;
+
+            return result;
+        }
+
+        private static bool Bag_IsDuplicate(ref Dto.DispatchValidateDto validationResult, List<string> bags)
+        {
+            var result = false;
+
+            using db db = new();
+            db.ChangeTracker.AutoDetectChangesEnabled = false;
+
+            var existingBagNo = db.Bags.Where(u => bags.Contains(u.BagNo.ToUpper().Trim())).Select(u => u.Id + " (" + u.Dispatch.DispatchNo + ")").ToList();
+
+            if (existingBagNo is not null)
+            {
+                validationResult.ItemIds.AddRange(existingBagNo);
+            }
 
             return result;
         }

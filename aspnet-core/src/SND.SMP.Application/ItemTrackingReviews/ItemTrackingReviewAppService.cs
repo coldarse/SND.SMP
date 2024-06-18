@@ -590,16 +590,16 @@ namespace SND.SMP.ItemTrackingReviews
         {
             List<ItemTrackingReview> reviews = [];
 
-            //---- Gets the reviews using Tracking No. Prefix, PrefixNo, Suffix and CustomerCode ----//
+            //---- Gets the reviews using Tracking No. Prefix, Suffix and CustomerCode ----//
             if (!string.IsNullOrWhiteSpace(trackingNo))
             {
                 string prefix = trackingNo[..2];
-                string prefixNo = trackingNo.Substring(2, 2);
+                // string prefixNo = trackingNo.Substring(2, 2);
                 string suffix = trackingNo[^2..];
 
                 reviews = await _itemTrackingReviewRepository.GetAllListAsync(x =>
                                                                                     x.Prefix.Equals(prefix) &&
-                                                                                    x.PrefixNo.Equals(prefixNo) &&
+                                                                                    // x.PrefixNo.Equals(prefixNo) &&
                                                                                     x.Suffix.Equals(suffix) &&
                                                                                     x.CustomerCode.Equals(customerCode)
                                                                                  );
