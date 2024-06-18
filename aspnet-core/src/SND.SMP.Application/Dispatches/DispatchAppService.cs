@@ -38,6 +38,7 @@ using SND.SMP.CustomerTransactions;
 using SND.SMP.EWalletTypes;
 using SND.SMP.Currencies;
 using SND.SMP.DispatchUsedAmounts;
+using SND.SMP.DispatchValidations;
 
 namespace SND.SMP.Dispatches
 {
@@ -58,7 +59,8 @@ namespace SND.SMP.Dispatches
         IRepository<CustomerTransaction, long> customerTransactionRepository,
         IRepository<EWalletType, long> ewalletTypeRepository,
         IRepository<Currency, long> currencyRepository,
-        IRepository<DispatchUsedAmount, int> dispatchUsedAmountRepository
+        IRepository<DispatchUsedAmount, int> dispatchUsedAmountRepository,
+        IRepository<DispatchValidation, string> dispatchValidationRepository
     ) : AsyncCrudAppService<Dispatch, DispatchDto, int, PagedDispatchResultRequestDto>(repository)
     {
 
@@ -78,6 +80,7 @@ namespace SND.SMP.Dispatches
         private readonly IRepository<EWalletType, long> _ewalletTypeRepository = ewalletTypeRepository;
         private readonly IRepository<Currency, long> _currencyRepository = currencyRepository;
         private readonly IRepository<DispatchUsedAmount, int> _dispatchUsedAmountRepository = dispatchUsedAmountRepository;
+        private readonly IRepository<DispatchValidation, string> _dispatchValidationRepository = dispatchValidationRepository;
 
         [System.Text.RegularExpressions.GeneratedRegex(@"[a-zA-Z]")]
         private static partial System.Text.RegularExpressions.Regex MyRegex();
@@ -1886,6 +1889,8 @@ namespace SND.SMP.Dispatches
 
             var entities = await AsyncQueryableExecuter.ToListAsync(query);
 
+            var dispatchValidation = await _dispatchValidationRepository.GetAllListAsync();
+
             List<DispatchInfoDto> result = [];
 
             foreach (var entity in entities)
@@ -1921,30 +1926,19 @@ namespace SND.SMP.Dispatches
                 dispatchInfo.TotalCountry = bags.GroupBy(x => x.CountryCode).Count();
 
                 int status = (int)entity.Status;
-                switch (status)
+                dispatchInfo.Status = status switch
                 {
-                    case 1:
-                        dispatchInfo.Status = "Upload Completed";
-                        break;
-                    case 2:
-                        dispatchInfo.Status = "Post Check";
-                        break;
-                    case 3:
-                        dispatchInfo.Status = "CN35 Completed";
-                        break;
-                    case 4:
-                        dispatchInfo.Status = "Leg 1 Completed";
-                        break;
-                    case 5:
-                        dispatchInfo.Status = "Leg 2 Completed";
-                        break;
-                    case 6:
-                        dispatchInfo.Status = "Arrived At Destination";
-                        break;
-                    default:
-                        dispatchInfo.Status = $"Stage {status}";
-                        break;
-                }
+                    1 => "Upload Completed",
+                    2 => "Post Check",
+                    3 => "CN35 Completed",
+                    4 => "Leg 1 Completed",
+                    5 => "Leg 2 Completed",
+                    6 => "Arrived At Destination",
+                    _ => $"Stage {status}",
+                };
+
+                
+                dispatchInfo.Path = dispatchValidation.FirstOrDefault(x => x.DispatchNo.Equals(entity.DispatchNo)).FilePath;
 
                 result.Add(dispatchInfo);
 
