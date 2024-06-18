@@ -2,11 +2,11 @@ echo " Welcome to docker build"
 echo ""
 echo ""
 
-$ABP_HOST="dannychen98/smp_api:v1.1.4"
+$ABP_HOST="dannychen98/smp_api:v1.1.9"
 $ABP_HOST_DOCKERFILE_PATH="src/SND.SMP.Web.Host/Dockerfile"
 $SMP_DISPATCH_DOCKERFILE_PATH="src/SND.SMP.DispatchConsole/Dockerfile"
-$ABP_NG="dannychen98/smp_ms:v1.1.3"
-$SMP_DISPATCH="dannychen98/dispatch_console:v1.1.3"
+$ABP_NG="dannychen98/smp_ms:v1.1.7"
+$SMP_DISPATCH="dannychen98/dispatch_console:v1.1.6"
 
 # cd ..
 # echo " Building docker image $SMP_DISPATCH..."
