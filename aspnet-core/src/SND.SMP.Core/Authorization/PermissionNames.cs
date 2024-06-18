@@ -12,6 +12,11 @@ namespace SND.SMP.Authorization
         public const string Pages_Roles = "Pages.Roles";
 
         /* Define your permissions here */
+        public const string Pages_DispatchUsedAmount = "Pages.DispatchUsedAmount";
+        public const string Pages_DispatchUsedAmount_Create = "Pages.DispatchUsedAmount.Create";
+        public const string Pages_DispatchUsedAmount_Edit = "Pages.DispatchUsedAmount.Edit";
+        public const string Pages_DispatchUsedAmount_Delete = "Pages.DispatchUsedAmount.Delete";
+
         public const string Pages_Airport = "Pages.Airport";
         public const string Pages_Airport_Create = "Pages.Airport.Create";
         public const string Pages_Airport_Edit = "Pages.Airport.Edit";

@@ -4,6 +4,7 @@ using SND.SMP.Authorization.Roles;
 using SND.SMP.Authorization.Users;
 using SND.SMP.MultiTenancy;
 /* Using Definition */
+using SND.SMP.DispatchUsedAmounts;
 using SND.SMP.Airports;
 using SND.SMP.ItemTrackings;
 using SND.SMP.ItemIdRunningNos;
@@ -66,6 +67,7 @@ namespace SND.SMP.EntityFrameworkCore
         public DbSet<ItemIdRunningNo> ItemIdRunningNos { get; set; }
         public DbSet<ItemTracking> ItemTrackings { get; set; }
         public DbSet<Airport> Airports { get; set; }
+        public DbSet<DispatchUsedAmount> DispatchUsedAmounts { get; set; }
         /* Define a DbSet for each entity of the application */
 
         public SMPDbContext(DbContextOptions<SMPDbContext> options)
@@ -78,6 +80,18 @@ namespace SND.SMP.EntityFrameworkCore
             base.OnModelCreating(builder);
 
             /* Define Tables */
+            builder.Entity<DispatchUsedAmount>(b =>
+            {
+                b.ToTable(SMPConsts.DbTablePrefix + "DispatchUsedAmounts");
+                b.Property(x => x.CustomerCode).HasColumnName(nameof(DispatchUsedAmount.CustomerCode)).HasMaxLength(255);
+                b.Property(x => x.Wallet).HasColumnName(nameof(DispatchUsedAmount.Wallet)).HasMaxLength(128);
+                b.Property(x => x.Amount).HasColumnName(nameof(DispatchUsedAmount.Amount)).HasPrecision(18, 2);
+                b.Property(x => x.DispatchNo).HasColumnName(nameof(DispatchUsedAmount.DispatchNo)).HasMaxLength(128);
+                b.Property(x => x.DateTime).HasColumnName(nameof(DispatchUsedAmount.DateTime));
+                b.Property(x => x.Description).HasColumnName(nameof(DispatchUsedAmount.Description)).HasMaxLength(256);
+                b.HasKey(x => x.Id);
+            });
+
             builder.Entity<Airport>(b =>
             {
                 b.ToTable(SMPConsts.DbTablePrefix + "Airports");
