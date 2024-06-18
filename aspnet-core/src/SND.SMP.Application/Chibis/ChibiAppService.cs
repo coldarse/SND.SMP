@@ -410,34 +410,75 @@ namespace SND.SMP.Chibis
 
         public async Task<bool> DeleteDispatch(string path, string dispatchNo)
         {
-            var dispatch = await _dispatchRepository.FirstOrDefaultAsync(x => x.DispatchNo.Equals(dispatchNo)) ?? throw new UserFriendlyException("No Dispatch Found");
             var dispatchValidation = await _dispatchValidationRepository.FirstOrDefaultAsync(x => x.DispatchNo.Equals(dispatchNo)) ?? throw new UserFriendlyException("No Dispatch Validation Found");
             var dispatchFile = await Repository.FirstOrDefaultAsync(x => x.URL.Equals(path));
             var dispatchFilePair = await Repository.GetAllListAsync(x => x.OriginalName.Equals(dispatchFile.OriginalName));
             var excelDispatchFile = dispatchFilePair.FirstOrDefault(x => x.URL.Contains("xlsx"));
 
-            var items = await _itemsRepository.GetAllListAsync(x => x.DispatchID.Equals(dispatch.Id));
+            var dispatch = await _dispatchRepository.FirstOrDefaultAsync(x => x.DispatchNo.Equals(dispatchNo));
 
-            if (items.Count > 0)
+            if (dispatch is not null)
             {
-                foreach (var item in items)
+                var items = await _itemsRepository.GetAllListAsync(x => x.DispatchID.Equals(dispatch.Id));
+
+                if (items.Count > 0)
                 {
-                    var itemTracking = await _itemTrackingsRepository.FirstOrDefaultAsync(x => x.TrackingNo.Equals(item.Id));
-                    if (itemTracking is not null) await _itemTrackingsRepository.DeleteAsync(itemTracking);
-                    await _itemsRepository.DeleteAsync(item);
+                    foreach (var item in items)
+                    {
+                        var itemTracking = await _itemTrackingsRepository.FirstOrDefaultAsync(x => x.TrackingNo.Equals(item.Id));
+                        if (itemTracking is not null) await _itemTrackingsRepository.DeleteAsync(itemTracking);
+                        await _itemsRepository.DeleteAsync(item);
+                    }
                 }
-            }
 
-            var itemMins = await _itemMinsRepository.GetAllListAsync(x => x.DispatchID.Equals(dispatch.Id));
-            if (itemMins.Count > 0)
-            {
-                foreach (var itemMin in itemMins) await _itemMinsRepository.DeleteAsync(itemMin);
-            }
+                var itemMins = await _itemMinsRepository.GetAllListAsync(x => x.DispatchID.Equals(dispatch.Id));
+                if (itemMins.Count > 0)
+                {
+                    foreach (var itemMin in itemMins) await _itemMinsRepository.DeleteAsync(itemMin);
+                }
 
-            var bags = await _bagsRepository.GetAllListAsync(x => x.DispatchId.Equals(dispatch.Id));
-            if (bags.Count > 0)
-            {
-                foreach (var bag in bags) await _bagsRepository.DeleteAsync(bag);
+                var bags = await _bagsRepository.GetAllListAsync(x => x.DispatchId.Equals(dispatch.Id));
+                if (bags.Count > 0)
+                {
+                    foreach (var bag in bags) await _bagsRepository.DeleteAsync(bag);
+                }
+
+                var dispatchUsedAmount = await _dispatchUsedAmountRepository.FirstOrDefaultAsync(x => x.DispatchNo.Equals(dispatch.DispatchNo));
+
+                if (dispatchUsedAmount is not null)
+                {
+                    var wallet = await _walletRepository.FirstOrDefaultAsync(x => x.Id.Equals(dispatchUsedAmount.Wallet));
+
+                    if (wallet is not null)
+                    {
+                        var refundAmount = dispatchUsedAmount.Amount;
+                        wallet.Balance += refundAmount;
+                        await _walletRepository.UpdateAsync(wallet);
+
+                        var eWallet = await _ewalletTypeRepository.FirstOrDefaultAsync(x => x.Id.Equals(wallet.EWalletType));
+                        var currency = await _currencyRepository.FirstOrDefaultAsync(x => x.Id.Equals(wallet.Currency));
+
+                        DateTime DateTimeUTC = DateTime.UtcNow;
+                        TimeZoneInfo cstZone = TimeZoneInfo.FindSystemTimeZoneById("Singapore Standard Time");
+                        DateTime cstDateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTimeUTC, cstZone);
+
+                        await _customerTransactionRepository.InsertAsync(new CustomerTransaction()
+                        {
+                            Wallet = wallet.Id,
+                            Customer = wallet.Customer,
+                            PaymentMode = eWallet.Type,
+                            Currency = currency.Abbr,
+                            TransactionType = "Refund Amount after Delete Dispatch",
+                            Amount = Math.Abs(refundAmount),
+                            ReferenceNo = dispatch.DispatchNo,
+                            Description = $"Credited {currency.Abbr} {decimal.Round(Math.Abs(refundAmount), 2, MidpointRounding.AwayFromZero)} to {wallet.Customer}'s {wallet.Id} Wallet. Remaining {currency.Abbr} {decimal.Round(wallet.Balance, 2, MidpointRounding.AwayFromZero)}.",
+                            TransactionDate = cstDateTime
+                        });
+                    }
+                    await _dispatchUsedAmountRepository.DeleteAsync(dispatchUsedAmount);
+                }
+
+                await _dispatchRepository.DeleteAsync(dispatch);
             }
 
             var queues = await _queueRepository.GetAllListAsync(x => x.FilePath.Equals(excelDispatchFile.URL));
@@ -462,45 +503,6 @@ namespace SND.SMP.Chibis
             }
 
             await _dispatchValidationRepository.DeleteAsync(dispatchValidation);
-
-            var dispatchUsedAmount = await _dispatchUsedAmountRepository.FirstOrDefaultAsync(x => x.DispatchNo.Equals(dispatch.DispatchNo));
-
-            if (dispatchUsedAmount is not null)
-            {
-                var wallet = await _walletRepository.FirstOrDefaultAsync(x => x.Id.Equals(dispatchUsedAmount.Wallet));
-
-                if (wallet is not null)
-                {
-                    var refundAmount = dispatchUsedAmount.Amount;
-                    wallet.Balance += refundAmount;
-                    await _walletRepository.UpdateAsync(wallet);
-
-                    var eWallet = await _ewalletTypeRepository.FirstOrDefaultAsync(x => x.Id.Equals(wallet.EWalletType));
-                    var currency = await _currencyRepository.FirstOrDefaultAsync(x => x.Id.Equals(wallet.Currency));
-
-                    DateTime DateTimeUTC = DateTime.UtcNow;
-                    TimeZoneInfo cstZone = TimeZoneInfo.FindSystemTimeZoneById("Singapore Standard Time");
-                    DateTime cstDateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTimeUTC, cstZone);
-
-                    await _customerTransactionRepository.InsertAsync(new CustomerTransaction()
-                    {
-                        Wallet = wallet.Id,
-                        Customer = wallet.Customer,
-                        PaymentMode = eWallet.Type,
-                        Currency = currency.Abbr,
-                        TransactionType = "Refund Amount after Delete Dispatch",
-                        Amount = Math.Abs(refundAmount),
-                        ReferenceNo = dispatch.DispatchNo,
-                        Description = $"Credited {currency.Abbr} {decimal.Round(Math.Abs(refundAmount), 2, MidpointRounding.AwayFromZero)} to {wallet.Customer}'s {wallet.Id} Wallet. Remaining {currency.Abbr} {decimal.Round(wallet.Balance, 2, MidpointRounding.AwayFromZero)}.",
-                        TransactionDate = cstDateTime
-                    });
-                }
-                await _dispatchUsedAmountRepository.DeleteAsync(dispatchUsedAmount);
-            }
-
-            await _dispatchRepository.DeleteAsync(dispatch);
-
-
 
             return true;
         }
