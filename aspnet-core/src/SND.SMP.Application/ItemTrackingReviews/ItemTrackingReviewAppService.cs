@@ -163,10 +163,9 @@ namespace SND.SMP.ItemTrackingReviews
         {
             const string SUCCESS = "success";
             const string FAILED = "failed";
-
             string auto = "auto";
 
-            string accNo = "";
+            string customerCode = "";
             string clientSecret = "";
 
             int threshold = 50000;
@@ -177,10 +176,10 @@ namespace SND.SMP.ItemTrackingReviews
 
             result.ResponseID = GenerateMD5Hash(newResponseIDRaw);
             result.RefNo = input.RefNo;
-            //result.ItemID = input.ItemID;
             result.Status = FAILED;
             result.Errors = [];
             result.APIItemID = "";
+            //result.ItemID = input.ItemID;
 
             string postalSupported = postal[..2];
 
@@ -190,16 +189,16 @@ namespace SND.SMP.ItemTrackingReviews
             {
                 var cust = await _customerRepository.FirstOrDefaultAsync(u => u.ClientKey == input.ClientKey);
 
-                if (cust != null)
+                if (cust is not null)
                 {
-                    accNo = cust.Code;
+                    customerCode = cust.Code;
                     clientSecret = cust.ClientSecret;
 
                     string signHashRequest = input.SignatureHash.Trim().ToUpper();
                     string signHashRaw = string.Format("{0}-{1}-{2}-{3}", input.ItemID, input.RefNo, input.ClientKey, clientSecret);
                     string signHashServer = GenerateMD5Hash(signHashRaw).Trim().ToUpper();
 
-                    var signMatched = signHashRequest == signHashServer;
+                    var signMatched = signHashRequest.Equals(signHashServer);
 
                     if (signMatched)
                     {
@@ -270,30 +269,25 @@ namespace SND.SMP.ItemTrackingReviews
                         if (!postalSupported.Equals("GQ"))
                         {
                             var nextItemIdFromRange = await GetNextAvailableAnyAccountTrackingNumber(postalCode);
-                            if (string.IsNullOrWhiteSpace(nextItemIdFromRange))
-                            {
-                                result.Errors.Add("Insufficient API Item ID. Please contact us for assistance");
-                            }
+                            if (string.IsNullOrWhiteSpace(nextItemIdFromRange)) result.Errors.Add("Insufficient API Item ID. Please contact us for assistance");
                         }
 
                         #endregion
 
                         if (!string.IsNullOrWhiteSpace(input.PoolItemId))
                         {
-                            var isOwned = await IsTrackingNoOwner(accNo, input.PoolItemId, input.ProductCode);
-                            if (!isOwned)
-                            {
-                                result.Errors.Add("Invalid Pool Item ID");
-                            }
+                            var isOwned = await IsTrackingNoOwner(customerCode, input.PoolItemId, input.ProductCode);
+                            if (!isOwned) result.Errors.Add("Invalid Pool Item ID");
                         }
 
                         if (result.Errors.Count == 0)
                         {
-                            string dispNo = string.Format("TempDisp-{0}-{1}-{2}-{3}", accNo, input.PostalCode, input.ServiceCode, input.ProductCode);
+                            //---- Create a Temporary Dispatch to insert Items ----//
+                            string dispNo = string.Format("TempDisp-{0}-{1}-{2}-{3}", customerCode, input.PostalCode, input.ServiceCode, input.ProductCode);
 
                             var dispatchTemp = await _dispatchRepository.FirstOrDefaultAsync(x =>
                                                                                                 x.DispatchNo.Equals(dispNo) &&
-                                                                                                x.CustomerCode.Equals(accNo)
+                                                                                                x.CustomerCode.Equals(customerCode)
                                                                                             );
 
                             if (dispatchTemp == null)
@@ -301,7 +295,7 @@ namespace SND.SMP.ItemTrackingReviews
                                 dispatchTemp = await _dispatchRepository.InsertAsync(new Dispatch
                                 {
                                     DispatchNo = dispNo,
-                                    CustomerCode = accNo,
+                                    CustomerCode = customerCode,
                                     PostalCode = input.PostalCode,
                                     ServiceCode = input.ServiceCode,
                                     ProductCode = input.ProductCode,
@@ -317,9 +311,24 @@ namespace SND.SMP.ItemTrackingReviews
 
                             if (!string.IsNullOrWhiteSpace(input.PoolItemId))
                             {
+                                //---- Nothing to generate because the pool item ID already assigned to this Customer Code. ----//
                                 newItemIdFromSPS = input.PoolItemId;
                                 input.ItemID = newItemIdFromSPS;
-                                //Nothing to generate because the pool item ID already assigned to this account no.
+
+                                try
+                                {
+                                    await InsertUpdateTrackingNumber(newItemIdFromSPS, customerCode, cust.Id, input.PostalCode);
+
+                                    await AlertIfLowThreshold(postalCode, threshold);
+
+                                    result.ItemID = newItemIdFromSPS;
+                                    result.Status = SUCCESS;
+                                }
+                                catch (Exception ex)
+                                {
+                                    result.Status = FAILED;
+                                    result.Errors.Add(ex.Message);
+                                }
                             }
                             else
                             {
@@ -328,25 +337,8 @@ namespace SND.SMP.ItemTrackingReviews
                                 {
                                     newItemIdFromSPS = await GetNextAvailableAnyAccountTrackingNumber(postalCode, false, postalCode = postalSupported == "KG" ? input.ProductCode : null);
 
-                                    if (!string.IsNullOrWhiteSpace(newItemIdFromSPS))
-                                    {
-                                        try
-                                        {
-                                            await InsertUpdateTrackingNumber(newItemIdFromSPS, accNo, cust.Id, input.PostalCode);
-
-                                            await AlertIfLowThreshold(postalCode, threshold);
-
-                                            result.ItemID = newItemIdFromSPS;
-                                            result.Status = SUCCESS;
-                                        }
-                                        catch (Exception ex)
-                                        {
-                                            result.Status = FAILED;
-                                            result.Errors.Add(ex.Message);
-                                        }
-                                    }
-
-                                    input.ItemID = newItemIdFromSPS;
+                                    if (string.IsNullOrWhiteSpace(newItemIdFromSPS)) result.Errors.Add("Insufficient Pool Item ID");
+                                    else input.ItemID = newItemIdFromSPS;
                                 }
                                 else
                                 {
@@ -354,25 +346,8 @@ namespace SND.SMP.ItemTrackingReviews
                                     {
                                         newItemIdFromSPS = await GetNextAvailableAnyAccountTrackingNumber(postalCode, false, input.PostalCode);
 
-                                        if (!string.IsNullOrWhiteSpace(newItemIdFromSPS))
-                                        {
-                                            try
-                                            {
-                                                await InsertUpdateTrackingNumber(newItemIdFromSPS, accNo, cust.Id, input.PostalCode);
-
-                                                await AlertIfLowThreshold(postalCode, threshold);
-
-                                                result.ItemID = newItemIdFromSPS;
-                                                result.Status = SUCCESS;
-                                            }
-                                            catch (Exception ex)
-                                            {
-                                                result.Status = FAILED;
-                                                result.Errors.Add(ex.Message);
-                                            }
-                                        }
-
-                                        input.ItemID = newItemIdFromSPS;
+                                        if (string.IsNullOrWhiteSpace(newItemIdFromSPS)) result.Errors.Add("Insufficient Pool Item ID");
+                                        else input.ItemID = newItemIdFromSPS;
                                     }
                                 }
                                 #endregion
@@ -452,13 +427,9 @@ namespace SND.SMP.ItemTrackingReviews
                                 newItem.ItemValue = newItem.ItemValue is null ? 0m + itemTopupValue : (decimal)newItem.ItemValue + itemTopupValue;
                                 #endregion
 
-
+                                newItem = await _itemRepository.UpdateAsync(newItem);
                             }
 
-                            // var item = await _itemRepository.FirstOrDefaultAsync(u => u.Id == newItem.Id);
-
-                            // if (item != null)
-                            // {
                             string apiItemId = newItem.Id;
 
                             if (!string.IsNullOrWhiteSpace(apiItemId))
@@ -467,8 +438,6 @@ namespace SND.SMP.ItemTrackingReviews
 
                                 result.Status = SUCCESS;
                                 result.Errors.Clear();
-
-                                //Log.Add($"PreReg-KG GetExisting for { input.RefNo } - { input.ItemID }", $"input [{ input.ItemID } - { input.ItemDesc } - { input.RecipientName } - { input.Weight }] get { result.APIItemID }");
                             }
                             else
                             {
@@ -480,8 +449,6 @@ namespace SND.SMP.ItemTrackingReviews
 
                                 result.Status = SUCCESS;
                                 result.Errors.Clear();
-
-                                //Log.Add($"PreReg-KG Success for { input.RefNo } - { input.ItemID }", $"input [{ input.ItemID } - { input.ItemDesc } - { input.RecipientName } - { input.Weight }] get { result.APIItemID }");
                             }
                         }
                         else
@@ -499,10 +466,7 @@ namespace SND.SMP.ItemTrackingReviews
                     result.Errors.Add("Client key is invalid");
                 }
             }
-            else
-            {
-                result.Errors.Add("Postal not supported");
-            }
+            else result.Errors.Add("Postal not supported");
 
             string signHashRespRaw = string.Format("{0}-{1}-{2}-{3}-{4}", result.ResponseID, result.RefNo, result.APIItemID, input.ClientKey, clientSecret);
             string signHashRespServer = GenerateMD5Hash(signHashRespRaw);
@@ -510,10 +474,9 @@ namespace SND.SMP.ItemTrackingReviews
             result.SignatureHash = signHashRespServer;
 
             #region Pool Item ID - Don't return API Item ID output
-            if (!string.IsNullOrWhiteSpace(input.PoolItemId))
-            {
-                result.APIItemID = null;
-            }
+
+            if (!string.IsNullOrWhiteSpace(input.PoolItemId)) result.APIItemID = null;
+
             #endregion
 
             return result;
@@ -565,19 +528,35 @@ namespace SND.SMP.ItemTrackingReviews
             return dataTable;
         }
 
-        public async Task<bool> IsTrackingNoOwner(string accNo, string trackingNo, string productCode)
+        public async Task<bool> IsTrackingNoOwner(string customerCode, string trackingNo, string productCode)
         {
+            //---- Checks if Item Tracking Id is already used, retrieves from used table. ----//
             var itemtrackingid = await _itemTrackingRepository.FirstOrDefaultAsync(x =>
-                                                                                x.TrackingNo.Equals(trackingNo) &&
-                                                                                x.ProductCode.Equals(productCode) &&
-                                                                                x.CustomerCode.Equals(accNo)
-                                                                             );
+                                                                                        x.TrackingNo.Equals(trackingNo) &&
+                                                                                        x.ProductCode.Equals(productCode) &&
+                                                                                        x.CustomerCode.Equals(customerCode)
+                                                                                  );
 
-            return itemtrackingid != null;
+
+            //---- If exists then means already used, and returns false. ----//
+            if (itemtrackingid is not null) return false;
+
+            //---- Checks if Item Tracking Id exists in the System ----//
+            var trackingIds = await GetItemTrackingFile(customerCode, trackingNo);
+
+            //---- If returns null, means cannot find tracking no in the system, so returns false. ----//
+            if (trackingIds is null) return false;
+
+            //---- Found Item Tracking Id generated by system and unused. ----//
+            return true;
+
         }
+
         public async Task<ItemIds> GetItemTrackingFile(string customerCode, string trackingNo = "", string postalCode = null, string productCode = null)
         {
             List<ItemTrackingReview> reviews = [];
+
+            //---- Gets the reviews using Tracking No. Prefix, PrefixNo, Suffix and CustomerCode ----//
             if (!string.IsNullOrWhiteSpace(trackingNo))
             {
                 string prefix = trackingNo[..2];
@@ -591,68 +570,74 @@ namespace SND.SMP.ItemTrackingReviews
                                                                                     x.CustomerCode.Equals(customerCode)
                                                                                  );
             }
+            //---- Gets all reviews tied to Customer Code using optional parameters of Postal or Product Code ----//
             else
             {
-                reviews = await _itemTrackingReviewRepository.GetAllListAsync();
+                reviews = await _itemTrackingReviewRepository.GetAllListAsync(x => x.CustomerCode.Equals(customerCode));
                 reviews = [.. reviews.WhereIf(!string.IsNullOrWhiteSpace(postalCode), x => x.PostalCode.Equals(postalCode))];
                 reviews = [.. reviews.WhereIf(!string.IsNullOrWhiteSpace(productCode), x => x.ProductCode.Equals(productCode))];
             }
 
+            //---- If reviews does not exist, means either Tracking No. is not in system ----//
+            //---- or there is no records for reviews with the provided Postal or Product Code ----//
+            if (reviews.Count == 0) return null;
+
             List<string> paths = [];
             List<ItemTrackingWithPath> ItemWithPath = [];
+
             string itemIdFilePath = "";
 
+            //---- First gets all applications ----//
             var applications = await _itemTrackingApplicationRepository.GetAllListAsync();
 
-            if (reviews.Count > 0)
+            //---- Gets all excel paths with the reviews ----//
+            foreach (var review in reviews)
             {
-                foreach (var review in reviews)
-                {
-                    var application = applications.FirstOrDefault(x => x.Id.Equals(review.ApplicationId));
+                var application = applications.FirstOrDefault(x => x.Id.Equals(review.ApplicationId));
 
-                    if (application is not null) paths.Add(application.Path);
-                }
+                if (application is not null) paths.Add(application.Path);
+            }
 
-                if (!paths.Count.Equals(0))
+            if (!paths.Count.Equals(0))
+            {
+                //---- Gets all Excel files and retrieves its info to create the object ItemIds ----//
+                foreach (var path in paths)
                 {
-                    foreach (var path in paths)
+                    ItemTrackingWithPath itemWithPath = new();
+                    Stream excel_stream = await GetFileStream(path);
+                    DataTable dataTable = ConvertToDatatable(excel_stream);
+
+                    List<ItemTrackingIdDto> items = [];
+                    foreach (DataRow dr in dataTable.Rows)
                     {
-                        ItemTrackingWithPath itemWithPath = new();
-                        Stream excel_stream = await GetFileStream(path);
-                        DataTable dataTable = ConvertToDatatable(excel_stream);
-
-                        List<ItemTrackingIdDto> items = [];
-                        foreach (DataRow dr in dataTable.Rows)
+                        if (dr.ItemArray[0].ToString() != "")
                         {
-                            if (dr.ItemArray[0].ToString() != "")
+                            items.Add(new ItemTrackingIdDto()
                             {
-                                items.Add(new ItemTrackingIdDto()
-                                {
-                                    TrackingNo = dr.ItemArray[0].ToString(),
-                                    DateCreated = dr.ItemArray[1].ToString(),
-                                    DateUsed = dr.ItemArray[2].ToString(),
-                                    DispatchNo = dr.ItemArray[3].ToString(),
-                                });
+                                TrackingNo = dr.ItemArray[0].ToString(),
+                                DateCreated = dr.ItemArray[1].ToString(),
+                                DateUsed = dr.ItemArray[2].ToString(),
+                                DispatchNo = dr.ItemArray[3].ToString(),
+                            });
 
-                                if (dr.ItemArray[0].ToString().Equals(trackingNo)) itemIdFilePath = path;
-                            }
+                            if (dr.ItemArray[0].ToString().Equals(trackingNo)) itemIdFilePath = path;
                         }
-
-
-                        var application = applications.FirstOrDefault(x => x.Path.Equals(path));
-                        var review = reviews.FirstOrDefault(x => x.ApplicationId.Equals(application.Id));
-
-                        itemWithPath.ItemIds = items;
-                        itemWithPath.ExcelPath = path;
-                        itemWithPath.ApplicationId = application.Id;
-                        itemWithPath.ReviewId = review.Id;
-                        itemWithPath.CustomerId = application.CustomerId;
-                        itemWithPath.CustomerCode = application.CustomerCode;
-                        itemWithPath.DateCreated = application.DateCreated;
-                        itemWithPath.ProductCode = application.ProductCode;
-
-                        ItemWithPath.Add(itemWithPath);
                     }
+
+
+                    var application = applications.FirstOrDefault(x => x.Path.Equals(path));
+                    var review = reviews.FirstOrDefault(x => x.ApplicationId.Equals(application.Id));
+
+                    itemWithPath.ItemIds = items;
+                    itemWithPath.ExcelPath = path;
+                    itemWithPath.ApplicationId = application.Id;
+                    itemWithPath.ReviewId = review.Id;
+                    itemWithPath.CustomerId = application.CustomerId;
+                    itemWithPath.CustomerCode = application.CustomerCode;
+                    itemWithPath.DateCreated = application.DateCreated;
+                    itemWithPath.ProductCode = application.ProductCode;
+
+                    ItemWithPath.Add(itemWithPath);
                 }
             }
 
@@ -667,12 +652,21 @@ namespace SND.SMP.ItemTrackingReviews
         {
             var anyAccountItemIds = await GetItemTrackingFile("Any Account", trackingNo, postalCode, productCode);
 
+            if (anyAccountItemIds is null) return null;
+
             var usedTrackingIdList = await _itemTrackingRepository.GetAllListAsync();
 
-            usedTrackingIdList.Where(x => anyAccountItemIds.ItemWithPath.Any(y => y.ItemIds.Any(z => z.TrackingNo.Equals(x.TrackingNo, StringComparison.Ordinal)))).ToList();
+            usedTrackingIdList = usedTrackingIdList.Where(x =>
+                                        anyAccountItemIds.ItemWithPath.Any(y =>
+                                                y.ItemIds.Any(z =>
+                                                        z.TrackingNo.Equals(x.TrackingNo, StringComparison.Ordinal)
+                                                )
+                                        )
+                                ).ToList();
 
             List<ItemTrackingWithPath> itemWithPath = [];
             List<string> unusedList = [];
+
             foreach (var itemIdWithPath in anyAccountItemIds.ItemWithPath)
             {
                 List<ItemTrackingIdDto> ItemIds = [];
@@ -701,6 +695,8 @@ namespace SND.SMP.ItemTrackingReviews
             string result = null;
 
             var anyAccountLists = await GetUnusedAnyAccountTrackingId("", postalCode, productCode);
+
+            if (anyAccountLists is null) return null;
 
             var randomIndex = 0;
             var count = anyAccountLists.UnusedList.Count;
@@ -756,7 +752,7 @@ namespace SND.SMP.ItemTrackingReviews
         {
             var item = await _itemTrackingRepository.FirstOrDefaultAsync(x => x.TrackingNo.Equals(trackingNo));
 
-            if (item != null)
+            if (item is not null)
             {
                 item.CustomerCode = customerCode;
                 item.CustomerId = customerId;
@@ -765,18 +761,23 @@ namespace SND.SMP.ItemTrackingReviews
             else
             {
                 var itemIdDetails = await GetItemTrackingFile(customerCode, trackingNo);
-                var matched = itemIdDetails.ItemWithPath.FirstOrDefault(x => x.ExcelPath.Equals(itemIdDetails.Path));
 
-                await _itemTrackingRepository.InsertAsync(new ItemTracking()
+                if (itemIdDetails is not null)
                 {
-                    TrackingNo = trackingNo,
-                    ApplicationId = matched.ApplicationId,
-                    ReviewId = matched.ReviewId,
-                    CustomerId = matched.CustomerId,
-                    CustomerCode = matched.CustomerCode,
-                    DateCreated = matched.DateCreated,
-                    ProductCode = matched.ProductCode,
-                });
+                    var matched = itemIdDetails.ItemWithPath.FirstOrDefault(x => x.ExcelPath.Equals(itemIdDetails.Path));
+
+                    await _itemTrackingRepository.InsertAsync(new ItemTracking()
+                    {
+                        TrackingNo = trackingNo,
+                        ApplicationId = matched.ApplicationId,
+                        ReviewId = matched.ReviewId,
+                        CustomerId = matched.CustomerId,
+                        CustomerCode = matched.CustomerCode,
+                        DateCreated = matched.DateCreated,
+                        ProductCode = matched.ProductCode,
+                        DispatchNo = ""
+                    });
+                }
             }
         }
 
