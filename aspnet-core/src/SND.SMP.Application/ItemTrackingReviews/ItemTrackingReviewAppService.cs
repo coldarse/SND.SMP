@@ -317,7 +317,7 @@ namespace SND.SMP.ItemTrackingReviews
 
                                 try
                                 {
-                                    await InsertUpdateTrackingNumber(newItemIdFromSPS, customerCode, cust.Id, input.PostalCode);
+                                    await InsertUpdateTrackingNumber(newItemIdFromSPS, customerCode, cust.Id, input.PostalCode, false);
 
                                     await AlertIfLowThreshold(postalCode, threshold);
 
@@ -782,7 +782,7 @@ namespace SND.SMP.ItemTrackingReviews
             return postal is not null ? postal.ItemTopUpValue : 0m;
         }
 
-        public async Task InsertUpdateTrackingNumber(string trackingNo, string customerCode, long customerId, string postalCode)
+        public async Task InsertUpdateTrackingNumber(string trackingNo, string customerCode, long customerId, string postalCode, bool isAnyAccount = true)
         {
             var item = await _itemTrackingRepository.FirstOrDefaultAsync(x => x.TrackingNo.Equals(trackingNo));
 
@@ -794,7 +794,7 @@ namespace SND.SMP.ItemTrackingReviews
             }
             else
             {
-                var itemIdDetails = await GetItemTrackingFile(customerCode, trackingNo);
+                var itemIdDetails = await GetItemTrackingFile(isAnyAccount ? "Any Account" : customerCode, trackingNo);
 
                 if (itemIdDetails is not null)
                 {
@@ -805,8 +805,8 @@ namespace SND.SMP.ItemTrackingReviews
                         TrackingNo = trackingNo,
                         ApplicationId = matched.ApplicationId,
                         ReviewId = matched.ReviewId,
-                        CustomerId = matched.CustomerId,
-                        CustomerCode = matched.CustomerCode,
+                        CustomerId = customerId,
+                        CustomerCode = customerCode,
                         DateCreated = matched.DateCreated,
                         ProductCode = matched.ProductCode,
                         DispatchNo = ""
