@@ -13,6 +13,7 @@ using Newtonsoft.Json;
 using System.Net.Http.Headers;
 using SND.SMP.Chibis;
 using SND.SMP.CustomerTransactions;
+using SND.SMP.DispatchUsedAmounts;
 
 namespace SND.SMP.DispatchConsole
 {
@@ -212,7 +213,7 @@ namespace SND.SMP.DispatchConsole
                     {
                         if (rowTouched > 0)
                         {
-                            if(reader[0] is null) break;
+                            if (reader[0] is null) break;
                             var strPostalCode = reader[0].ToString()!;
                             var dispatchDate = DateOnly.ParseExact(reader[1].ToString()!, "dd/MM/yyyy", CultureInfo.InvariantCulture);
                             var strServiceCode = reader[2].ToString()!;
@@ -251,7 +252,7 @@ namespace SND.SMP.DispatchConsole
                             totalPrice += price;
 
                             listItemIds.Add(itemId);
-                            if(!listBagNos.Contains(bagNo)) listBagNos.Add(bagNo);
+                            if (!listBagNos.Contains(bagNo)) listBagNos.Add(bagNo);
                             listCountryCodes.Add(new DispatchValidateCountryDto { Id = itemId, CountryCode = countryCode });
                             listParticulars.Add(new DispatchValidateParticularsDto { Id = itemId, DispatchNo = strDispatchNo, PostalCode = strPostalCode, ServiceCode = strServiceCode, ProductCode = strProductCode });
 
@@ -479,7 +480,17 @@ namespace SND.SMP.DispatchConsole
                             Description = $"Initial Balance: {Currency} {initialBalance}. Deducted {Currency} {decimal.Round(totalPrice, 2, MidpointRounding.AwayFromZero)} from {wallet.Customer}'s {wallet.Id} Wallet. Remaining {Currency} {decimal.Round(wallet.Balance, 2, MidpointRounding.AwayFromZero)}.",
                             TransactionDate = cstDateTime
                         });
-                        
+
+                        await dbconn.DispatchUsedAmounts.AddAsync(new DispatchUsedAmount()
+                        {
+                            CustomerCode = wallet.Customer,
+                            Wallet = wallet.Id,
+                            Amount = totalPrice,
+                            DispatchNo = DispatchProfile.DispatchNo,
+                            DateTime = cstDateTime,
+                            Description = "Pre-Alert"
+                        });
+
                         await dbconn.SaveChangesAsync();
                     }
 
@@ -736,7 +747,7 @@ namespace SND.SMP.DispatchConsole
                                   ).Select(u => $"{u.Id} [{u.DispatchNo} / {u.PostalCode} / {u.ServiceCode} / {u.ProductCode}]").ToList();
 
             validationResult.ItemIds.AddRange(list);
-            if(list.Count != 0) validationResult.Message = $"Dispatch Particulars [{DispatchProfile.DispatchNo} / {DispatchProfile.PostalCode} / {DispatchProfile.ServiceCode} / {DispatchProfile.ProductCode}]";
+            if (list.Count != 0) validationResult.Message = $"Dispatch Particulars [{DispatchProfile.DispatchNo} / {DispatchProfile.PostalCode} / {DispatchProfile.ServiceCode} / {DispatchProfile.ProductCode}]";
 
             result = list.Count != 0;
 

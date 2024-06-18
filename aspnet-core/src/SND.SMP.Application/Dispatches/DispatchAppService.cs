@@ -37,6 +37,7 @@ using System.Net.Http.Headers;
 using SND.SMP.CustomerTransactions;
 using SND.SMP.EWalletTypes;
 using SND.SMP.Currencies;
+using SND.SMP.DispatchUsedAmounts;
 
 namespace SND.SMP.Dispatches
 {
@@ -56,7 +57,8 @@ namespace SND.SMP.Dispatches
         IRepository<IMPC, int> impcRepository,
         IRepository<CustomerTransaction, long> customerTransactionRepository,
         IRepository<EWalletType, long> ewalletTypeRepository,
-        IRepository<Currency, long> currencyRepository
+        IRepository<Currency, long> currencyRepository,
+        IRepository<DispatchUsedAmount, int> dispatchUsedAmountRepository
     ) : AsyncCrudAppService<Dispatch, DispatchDto, int, PagedDispatchResultRequestDto>(repository)
     {
 
@@ -75,6 +77,7 @@ namespace SND.SMP.Dispatches
         private readonly IRepository<CustomerTransaction, long> _customerTransactionRepository = customerTransactionRepository;
         private readonly IRepository<EWalletType, long> _ewalletTypeRepository = ewalletTypeRepository;
         private readonly IRepository<Currency, long> _currencyRepository = currencyRepository;
+        private readonly IRepository<DispatchUsedAmount, int> _dispatchUsedAmountRepository = dispatchUsedAmountRepository;
 
         [System.Text.RegularExpressions.GeneratedRegex(@"[a-zA-Z]")]
         private static partial System.Text.RegularExpressions.Regex MyRegex();
@@ -1317,7 +1320,7 @@ namespace SND.SMP.Dispatches
                 TimeZoneInfo cstZone = TimeZoneInfo.FindSystemTimeZoneById("Singapore Standard Time");
                 DateTime cstDateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTimeUTC, cstZone);
 
-                await _customerTransactionRepository.InsertAsync(new CustomerTransaction()
+                var custTransaction = await _customerTransactionRepository.InsertAsync(new CustomerTransaction()
                 {
                     Wallet = wallet.Id,
                     Customer = wallet.Customer,
@@ -1329,6 +1332,18 @@ namespace SND.SMP.Dispatches
                     Description = $"Credited {currency.Abbr} {decimal.Round(Math.Abs(refundAmount), 2, MidpointRounding.AwayFromZero)} to {wallet.Customer}'s {wallet.Id} Wallet. Remaining {currency.Abbr} {decimal.Round(wallet.Balance, 2, MidpointRounding.AwayFromZero)}.",
                     TransactionDate = cstDateTime
                 });
+
+                var dispatchUsedAmount = await _dispatchUsedAmountRepository.FirstOrDefaultAsync(x => x.DispatchNo.Equals(dispatch.DispatchNo));
+
+                if (dispatchUsedAmount is not null)
+                {
+                    dispatchUsedAmount.Amount -= Math.Abs(refundAmount);
+                    dispatchUsedAmount.DateTime = cstDateTime;
+                    dispatchUsedAmount.Description = custTransaction.TransactionType;
+
+                    await _dispatchUsedAmountRepository.UpdateAsync(dispatchUsedAmount);
+                }
+
             }
             else
             {
@@ -1336,7 +1351,7 @@ namespace SND.SMP.Dispatches
                                                          x.ReferenceNo.Equals(dispatch.DispatchNo) &&
                                                          x.Description.Contains("Over Declare")
                                                 );
-                
+
                 dispatch.TotalWeight += wa_od is null ? 0 : Math.Abs(wa_od.Weight);
             }
 
@@ -1436,6 +1451,37 @@ namespace SND.SMP.Dispatches
                         wallet.Balance += totalRefund;
                         await _walletRepository.UpdateAsync(wallet);
                         await _walletRepository.GetDbContext().SaveChangesAsync();
+
+                        var eWallet = await _ewalletTypeRepository.FirstOrDefaultAsync(x => x.Id.Equals(wallet.EWalletType));
+                        var currency = await _currencyRepository.FirstOrDefaultAsync(x => x.Id.Equals(wallet.Currency));
+
+                        DateTime DateTimeUTC = DateTime.UtcNow;
+                        TimeZoneInfo cstZone = TimeZoneInfo.FindSystemTimeZoneById("Singapore Standard Time");
+                        DateTime cstDateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTimeUTC, cstZone);
+
+                        var custTransaction = await _customerTransactionRepository.InsertAsync(new CustomerTransaction()
+                        {
+                            Wallet = wallet.Id,
+                            Customer = wallet.Customer,
+                            PaymentMode = eWallet.Type,
+                            Currency = currency.Abbr,
+                            TransactionType = "Refund Amount",
+                            Amount = Math.Abs(totalRefund),
+                            ReferenceNo = dispatch.DispatchNo,
+                            Description = $"Credited {currency.Abbr} {decimal.Round(Math.Abs(totalRefund), 2, MidpointRounding.AwayFromZero)} to {wallet.Customer}'s {wallet.Id} Wallet. Current Balance is {currency.Abbr} {decimal.Round(wallet.Balance, 2, MidpointRounding.AwayFromZero)}.",
+                            TransactionDate = cstDateTime
+                        });
+
+                        var dispatchUsedAmount = await _dispatchUsedAmountRepository.FirstOrDefaultAsync(x => x.DispatchNo.Equals(dispatch.DispatchNo));
+
+                        if (dispatchUsedAmount is not null)
+                        {
+                            dispatchUsedAmount.Amount -= Math.Abs(totalRefund);
+                            dispatchUsedAmount.DateTime = cstDateTime;
+                            dispatchUsedAmount.Description = custTransaction.TransactionType;
+
+                            await _dispatchUsedAmountRepository.UpdateAsync(dispatchUsedAmount);
+                        }
                     }
                 }
 
@@ -1505,7 +1551,7 @@ namespace SND.SMP.Dispatches
                         TimeZoneInfo cstZone = TimeZoneInfo.FindSystemTimeZoneById("Singapore Standard Time");
                         DateTime cstDateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTimeUTC, cstZone);
 
-                        await _customerTransactionRepository.InsertAsync(new CustomerTransaction()
+                        var custTransaction = await _customerTransactionRepository.InsertAsync(new CustomerTransaction()
                         {
                             Wallet = wallet.Id,
                             Customer = wallet.Customer,
@@ -1517,6 +1563,17 @@ namespace SND.SMP.Dispatches
                             Description = $"Deducted {currency.Abbr} {decimal.Round(Math.Abs(totalSurchargePrice), 2, MidpointRounding.AwayFromZero)} from {wallet.Customer}'s {wallet.Id} Wallet. Remaining {currency.Abbr} {decimal.Round(wallet.Balance, 2, MidpointRounding.AwayFromZero)}.",
                             TransactionDate = cstDateTime
                         });
+
+                        var dispatchUsedAmount = await _dispatchUsedAmountRepository.FirstOrDefaultAsync(x => x.DispatchNo.Equals(dispatch.DispatchNo));
+
+                        if (dispatchUsedAmount is not null)
+                        {
+                            dispatchUsedAmount.Amount += Math.Abs(totalSurchargePrice);
+                            dispatchUsedAmount.DateTime = cstDateTime;
+                            dispatchUsedAmount.Description = custTransaction.TransactionType;
+
+                            await _dispatchUsedAmountRepository.UpdateAsync(dispatchUsedAmount);
+                        }
                     }
 
 
@@ -1545,7 +1602,7 @@ namespace SND.SMP.Dispatches
                         TimeZoneInfo cstZone = TimeZoneInfo.FindSystemTimeZoneById("Singapore Standard Time");
                         DateTime cstDateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTimeUTC, cstZone);
 
-                        await _customerTransactionRepository.InsertAsync(new CustomerTransaction()
+                        var custTransaction = await _customerTransactionRepository.InsertAsync(new CustomerTransaction()
                         {
                             Wallet = wallet.Id,
                             Customer = wallet.Customer,
@@ -1557,6 +1614,17 @@ namespace SND.SMP.Dispatches
                             Description = $"Credited {currency.Abbr} {decimal.Round(Math.Abs(totalRefundPrice), 2, MidpointRounding.AwayFromZero)} to {wallet.Customer}'s {wallet.Id} Wallet. Current Balance is {currency.Abbr} {decimal.Round(wallet.Balance, 2, MidpointRounding.AwayFromZero)}.",
                             TransactionDate = cstDateTime
                         });
+
+                        var dispatchUsedAmount = await _dispatchUsedAmountRepository.FirstOrDefaultAsync(x => x.DispatchNo.Equals(dispatch.DispatchNo));
+
+                        if (dispatchUsedAmount is not null)
+                        {
+                            dispatchUsedAmount.Amount -= Math.Abs(totalRefundPrice);
+                            dispatchUsedAmount.DateTime = cstDateTime;
+                            dispatchUsedAmount.Description = custTransaction.TransactionType;
+
+                            await _dispatchUsedAmountRepository.UpdateAsync(dispatchUsedAmount);
+                        }
                     }
                 }
                 return true;
@@ -1666,7 +1734,7 @@ namespace SND.SMP.Dispatches
                 TimeZoneInfo cstZone = TimeZoneInfo.FindSystemTimeZoneById("Singapore Standard Time");
                 DateTime cstDateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTimeUTC, cstZone);
 
-                await _customerTransactionRepository.InsertAsync(new CustomerTransaction()
+                var custTransaction = await _customerTransactionRepository.InsertAsync(new CustomerTransaction()
                 {
                     Wallet = wallet.Id,
                     Customer = wallet.Customer,
@@ -1678,6 +1746,17 @@ namespace SND.SMP.Dispatches
                     Description = $"Deducted {currency.Abbr} {decimal.Round(Math.Abs(totalSurchargePrice), 2, MidpointRounding.AwayFromZero)} from {wallet.Customer}'s {wallet.Id} Wallet. Remaining {currency.Abbr} {decimal.Round(wallet.Balance, 2, MidpointRounding.AwayFromZero)}.",
                     TransactionDate = cstDateTime
                 });
+
+                var dispatchUsedAmount = await _dispatchUsedAmountRepository.FirstOrDefaultAsync(x => x.DispatchNo.Equals(dispatch.DispatchNo));
+
+                if (dispatchUsedAmount is not null)
+                {
+                    dispatchUsedAmount.Amount += Math.Abs(totalSurchargePrice);
+                    dispatchUsedAmount.DateTime = cstDateTime;
+                    dispatchUsedAmount.Description = custTransaction.TransactionType;
+
+                    await _dispatchUsedAmountRepository.UpdateAsync(dispatchUsedAmount);
+                }
             }
 
             if (totalRefundPrice < 0)
@@ -1705,7 +1784,7 @@ namespace SND.SMP.Dispatches
                 TimeZoneInfo cstZone = TimeZoneInfo.FindSystemTimeZoneById("Singapore Standard Time");
                 DateTime cstDateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTimeUTC, cstZone);
 
-                await _customerTransactionRepository.InsertAsync(new CustomerTransaction()
+                var custTransaction = await _customerTransactionRepository.InsertAsync(new CustomerTransaction()
                 {
                     Wallet = wallet.Id,
                     Customer = wallet.Customer,
@@ -1717,6 +1796,17 @@ namespace SND.SMP.Dispatches
                     Description = $"Credited {currency.Abbr} {decimal.Round(Math.Abs(totalRefundPrice), 2, MidpointRounding.AwayFromZero)} to {wallet.Customer}'s {wallet.Id} Wallet. Current Balance is {currency.Abbr} {decimal.Round(wallet.Balance, 2, MidpointRounding.AwayFromZero)}.",
                     TransactionDate = cstDateTime
                 });
+
+                var dispatchUsedAmount = await _dispatchUsedAmountRepository.FirstOrDefaultAsync(x => x.DispatchNo.Equals(dispatch.DispatchNo));
+
+                if (dispatchUsedAmount is not null)
+                {
+                    dispatchUsedAmount.Amount -= Math.Abs(totalRefundPrice);
+                    dispatchUsedAmount.DateTime = cstDateTime;
+                    dispatchUsedAmount.Description = custTransaction.TransactionType;
+
+                    await _dispatchUsedAmountRepository.UpdateAsync(dispatchUsedAmount);
+                }
             }
 
             return true;
@@ -2302,6 +2392,37 @@ namespace SND.SMP.Dispatches
                     wallet.Balance += totalRefund;
                     await _walletRepository.UpdateAsync(wallet);
                     await _walletRepository.GetDbContext().SaveChangesAsync();
+
+                    var eWallet = await _ewalletTypeRepository.FirstOrDefaultAsync(x => x.Id.Equals(wallet.EWalletType));
+                    var currency = await _currencyRepository.FirstOrDefaultAsync(x => x.Id.Equals(wallet.Currency));
+
+                    DateTime DateTimeUTC = DateTime.UtcNow;
+                    TimeZoneInfo cstZone = TimeZoneInfo.FindSystemTimeZoneById("Singapore Standard Time");
+                    DateTime cstDateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTimeUTC, cstZone);
+
+                    var custTransaction = await _customerTransactionRepository.InsertAsync(new CustomerTransaction()
+                    {
+                        Wallet = wallet.Id,
+                        Customer = wallet.Customer,
+                        PaymentMode = eWallet.Type,
+                        Currency = currency.Abbr,
+                        TransactionType = "Refund Amount",
+                        Amount = Math.Abs(totalRefund),
+                        ReferenceNo = dispatch.DispatchNo,
+                        Description = $"Credited {currency.Abbr} {decimal.Round(Math.Abs(totalRefund), 2, MidpointRounding.AwayFromZero)} to {wallet.Customer}'s {wallet.Id} Wallet. Current Balance is {currency.Abbr} {decimal.Round(wallet.Balance, 2, MidpointRounding.AwayFromZero)}.",
+                        TransactionDate = cstDateTime
+                    });
+
+                    var dispatchUsedAmount = await _dispatchUsedAmountRepository.FirstOrDefaultAsync(x => x.DispatchNo.Equals(dispatch.DispatchNo));
+
+                    if (dispatchUsedAmount is not null)
+                    {
+                        dispatchUsedAmount.Amount -= Math.Abs(totalRefund);
+                        dispatchUsedAmount.DateTime = cstDateTime;
+                        dispatchUsedAmount.Description = custTransaction.TransactionType;
+
+                        await _dispatchUsedAmountRepository.UpdateAsync(dispatchUsedAmount);
+                    }
                 }
             }
 
@@ -2370,7 +2491,7 @@ namespace SND.SMP.Dispatches
                     TimeZoneInfo cstZone = TimeZoneInfo.FindSystemTimeZoneById("Singapore Standard Time");
                     DateTime cstDateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTimeUTC, cstZone);
 
-                    await _customerTransactionRepository.InsertAsync(new CustomerTransaction()
+                    var custTransaction = await _customerTransactionRepository.InsertAsync(new CustomerTransaction()
                     {
                         Wallet = wallet.Id,
                         Customer = wallet.Customer,
@@ -2382,6 +2503,17 @@ namespace SND.SMP.Dispatches
                         Description = $"Deducted {currency.Abbr} {decimal.Round(Math.Abs(totalSurchargePrice), 2, MidpointRounding.AwayFromZero)} from {wallet.Customer}'s {wallet.Id} Wallet. Remaining {currency.Abbr} {decimal.Round(wallet.Balance, 2, MidpointRounding.AwayFromZero)}.",
                         TransactionDate = cstDateTime
                     });
+
+                    var dispatchUsedAmount = await _dispatchUsedAmountRepository.FirstOrDefaultAsync(x => x.DispatchNo.Equals(dispatch.DispatchNo));
+
+                    if (dispatchUsedAmount is not null)
+                    {
+                        dispatchUsedAmount.Amount += Math.Abs(totalSurchargePrice);
+                        dispatchUsedAmount.DateTime = cstDateTime;
+                        dispatchUsedAmount.Description = custTransaction.TransactionType;
+
+                        await _dispatchUsedAmountRepository.UpdateAsync(dispatchUsedAmount);
+                    }
                 }
 
 
@@ -2410,7 +2542,7 @@ namespace SND.SMP.Dispatches
                     TimeZoneInfo cstZone = TimeZoneInfo.FindSystemTimeZoneById("Singapore Standard Time");
                     DateTime cstDateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTimeUTC, cstZone);
 
-                    await _customerTransactionRepository.InsertAsync(new CustomerTransaction()
+                    var custTransaction = await _customerTransactionRepository.InsertAsync(new CustomerTransaction()
                     {
                         Wallet = wallet.Id,
                         Customer = wallet.Customer,
@@ -2422,6 +2554,17 @@ namespace SND.SMP.Dispatches
                         Description = $"Credited {currency.Abbr} {decimal.Round(Math.Abs(totalRefundPrice), 2, MidpointRounding.AwayFromZero)} to {wallet.Customer}'s {wallet.Id} Wallet. Current Balance is {currency.Abbr} {decimal.Round(wallet.Balance, 2, MidpointRounding.AwayFromZero)}.",
                         TransactionDate = cstDateTime
                     });
+
+                    var dispatchUsedAmount = await _dispatchUsedAmountRepository.FirstOrDefaultAsync(x => x.DispatchNo.Equals(dispatch.DispatchNo));
+
+                    if (dispatchUsedAmount is not null)
+                    {
+                        dispatchUsedAmount.Amount -= Math.Abs(totalRefundPrice);
+                        dispatchUsedAmount.DateTime = cstDateTime;
+                        dispatchUsedAmount.Description = custTransaction.TransactionType;
+
+                        await _dispatchUsedAmountRepository.UpdateAsync(dispatchUsedAmount);
+                    }
                 }
             }
             return true;

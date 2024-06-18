@@ -32,6 +32,11 @@ using SND.SMP.ItemTrackings;
 using SND.SMP.Items;
 using SND.SMP.ItemMins;
 using SND.SMP.Bags;
+using SND.SMP.DispatchUsedAmounts;
+using SND.SMP.Wallets;
+using SND.SMP.CustomerTransactions;
+using SND.SMP.EWalletTypes;
+using SND.SMP.Currencies;
 
 namespace SND.SMP.Chibis
 {
@@ -46,7 +51,12 @@ namespace SND.SMP.Chibis
         IRepository<ItemMin, string> itemMinsRepository,
         IRepository<Dispatch, int> dispatchRepository,
         IRepository<Bag, int> bagsRepository,
-        IMemoryCache memoryCache
+        IMemoryCache memoryCache,
+        IRepository<Wallet, string> walletRepository,
+        IRepository<DispatchUsedAmount, int> dispatchUsedAmountRepository,
+        IRepository<CustomerTransaction, long> customerTransactionRepository,
+        IRepository<EWalletType, long> ewalletTypeRepository,
+        IRepository<Currency, long> currencyRepository
     ) : AsyncCrudAppService<Chibi, ChibiDto, long, PagedChibiResultRequestDto>(repository)
     {
         private readonly IRepository<Queue, long> _queueRepository = queueRepository;
@@ -59,6 +69,11 @@ namespace SND.SMP.Chibis
         private readonly IRepository<Bag, int> _bagsRepository = bagsRepository;
         private readonly IRepository<Dispatch, int> _dispatchRepository = dispatchRepository;
         private readonly IMemoryCache _memoryCache = memoryCache;
+        private readonly IRepository<DispatchUsedAmount, int> _dispatchUsedAmountRepository = dispatchUsedAmountRepository;
+        private readonly IRepository<Wallet, string> _walletRepository = walletRepository;
+        private readonly IRepository<CustomerTransaction, long> _customerTransactionRepository = customerTransactionRepository;
+        private readonly IRepository<EWalletType, long> _ewalletTypeRepository = ewalletTypeRepository;
+        private readonly IRepository<Currency, long> _currencyRepository = currencyRepository;
 
         private static async Task<string> GetFileStreamAsString(string url)
         {
@@ -448,7 +463,44 @@ namespace SND.SMP.Chibis
 
             await _dispatchValidationRepository.DeleteAsync(dispatchValidation);
 
+            var dispatchUsedAmount = await _dispatchUsedAmountRepository.FirstOrDefaultAsync(x => x.DispatchNo.Equals(dispatch.DispatchNo));
+
+            if (dispatchUsedAmount is not null)
+            {
+                var wallet = await _walletRepository.FirstOrDefaultAsync(x => x.Id.Equals(dispatchUsedAmount.Wallet));
+
+                if (wallet is not null)
+                {
+                    var refundAmount = dispatchUsedAmount.Amount;
+                    wallet.Balance += refundAmount;
+                    await _walletRepository.UpdateAsync(wallet);
+
+                    var eWallet = await _ewalletTypeRepository.FirstOrDefaultAsync(x => x.Id.Equals(wallet.EWalletType));
+                    var currency = await _currencyRepository.FirstOrDefaultAsync(x => x.Id.Equals(wallet.Currency));
+
+                    DateTime DateTimeUTC = DateTime.UtcNow;
+                    TimeZoneInfo cstZone = TimeZoneInfo.FindSystemTimeZoneById("Singapore Standard Time");
+                    DateTime cstDateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTimeUTC, cstZone);
+
+                    await _customerTransactionRepository.InsertAsync(new CustomerTransaction()
+                    {
+                        Wallet = wallet.Id,
+                        Customer = wallet.Customer,
+                        PaymentMode = eWallet.Type,
+                        Currency = currency.Abbr,
+                        TransactionType = "Refund Amount after Delete Dispatch",
+                        Amount = Math.Abs(refundAmount),
+                        ReferenceNo = dispatch.DispatchNo,
+                        Description = $"Credited {currency.Abbr} {decimal.Round(Math.Abs(refundAmount), 2, MidpointRounding.AwayFromZero)} to {wallet.Customer}'s {wallet.Id} Wallet. Remaining {currency.Abbr} {decimal.Round(wallet.Balance, 2, MidpointRounding.AwayFromZero)}.",
+                        TransactionDate = cstDateTime
+                    });
+                }
+                await _dispatchUsedAmountRepository.DeleteAsync(dispatchUsedAmount);
+            }
+
             await _dispatchRepository.DeleteAsync(dispatch);
+
+
 
             return true;
         }
