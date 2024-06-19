@@ -10,6 +10,7 @@ namespace SND.SMP.DispatchConsole
         public static async Task<Stream> GetFileStream(string url)
         {
             using var httpClient = new HttpClient();
+            httpClient.Timeout = Timeout.InfiniteTimeSpan;
             using var response = await httpClient.GetAsync(url);
             if (response.IsSuccessStatusCode)
             {

@@ -724,19 +724,21 @@ namespace SND.SMP.Chibis
             if (result != null)
             {
                 result.originalName = originalName is null ? uploadFile.file.FileName.Replace(".xlsx", "") + $"_{result.name}" : originalName;
-                //Insert to DB
-                Chibi entity = new()
+                
+                var existingChibis = await Repository.GetAllListAsync(x => x.URL.Equals(result.url));
+
+                foreach (var chibi in existingChibis) await Repository.DeleteAsync(chibi);
+
+                await Repository.InsertAsync(new Chibi()
                 {
                     FileName = result.name == null ? "" : DateTime.Now.ToString("yyyyMMdd") + "_" + result.name,
                     UUID = result.uuid ?? "",
                     URL = result.url ?? "",
                     OriginalName = originalName is null ? result.originalName : originalName,
                     GeneratedName = result.name ?? ""
-                };
+                });
 
-                await Repository.InsertAsync(entity);
                 await Repository.GetDbContext().SaveChangesAsync();
-
 
             }
 
@@ -762,6 +764,10 @@ namespace SND.SMP.Chibis
 
                 await InsertFileToAlbum(xlsxFile.uuid, false, uploadPreCheck.Details.PostalCode, uploadPreCheck.Details.ServiceCode, uploadPreCheck.Details.ProductCode);
                 await InsertFileToAlbum(jsonFile.uuid, false, uploadPreCheck.Details.PostalCode, uploadPreCheck.Details.ServiceCode, uploadPreCheck.Details.ProductCode);
+
+                var existingQueuesByPath = await _queueRepository.GetAllListAsync(x => x.FilePath.Equals(xlsxFile.url));
+
+                foreach (var queue in existingQueuesByPath) await _queueRepository.DeleteAsync(queue);
 
                 await _queueRepository.InsertAsync(new Queue()
                 {
