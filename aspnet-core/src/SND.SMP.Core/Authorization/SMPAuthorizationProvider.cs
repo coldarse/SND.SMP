@@ -16,6 +16,11 @@ namespace SND.SMP.Authorization
             context.CreatePermission(PermissionNames.Pages_Tenants, L("Tenants"), multiTenancySides: MultiTenancySides.Host);
 
             /* Define your permissions here */
+            context.CreatePermission(PermissionNames.Pages_EmailContent, L("EmailContents"));
+            context.CreatePermission(PermissionNames.Pages_EmailContent_Create, L("EmailContentsCreate"));
+            context.CreatePermission(PermissionNames.Pages_EmailContent_Edit, L("EmailContentsEdit"));
+            context.CreatePermission(PermissionNames.Pages_EmailContent_Delete, L("EmailContentsDelete"));
+
             context.CreatePermission(PermissionNames.Pages_DispatchUsedAmount, L("DispatchUsedAmounts"));
             context.CreatePermission(PermissionNames.Pages_DispatchUsedAmount_Create, L("DispatchUsedAmountsCreate"));
             context.CreatePermission(PermissionNames.Pages_DispatchUsedAmount_Edit, L("DispatchUsedAmountsEdit"));

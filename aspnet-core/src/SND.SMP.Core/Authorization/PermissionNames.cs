@@ -12,6 +12,11 @@ namespace SND.SMP.Authorization
         public const string Pages_Roles = "Pages.Roles";
 
         /* Define your permissions here */
+        public const string Pages_EmailContent = "Pages.EmailContent";
+        public const string Pages_EmailContent_Create = "Pages.EmailContent.Create";
+        public const string Pages_EmailContent_Edit = "Pages.EmailContent.Edit";
+        public const string Pages_EmailContent_Delete = "Pages.EmailContent.Delete";
+
         public const string Pages_DispatchUsedAmount = "Pages.DispatchUsedAmount";
         public const string Pages_DispatchUsedAmount_Create = "Pages.DispatchUsedAmount.Create";
         public const string Pages_DispatchUsedAmount_Edit = "Pages.DispatchUsedAmount.Edit";

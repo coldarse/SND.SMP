@@ -1,0 +1,81 @@
+<form
+    class='form-horizontal'
+    autocomplete='off'
+    #createEmailContentModal='ngForm'
+    (ngSubmit)='save()'
+>
+    <abp-modal-header
+        [title]='isCreate == true? ("Add EmailContent" | localize) : ("Edit EmailContent" | localize)'
+        (onCloseClick)='bsModalRef.hide()'
+    ></abp-modal-header>
+    <div class='modal-body'>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='name'>
+            {{ 'Name' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='text'
+                class='form-control'
+                name='name'
+                id='name'
+                required
+                [(ngModel)]='emailcontent.name'
+                #nameModel='ngModel'
+                #nameEl
+            />
+            <abp-validation-summary
+                [control]='nameModel'
+                [controlEl]='nameEl'
+            ></abp-validation-summary>
+            </div>
+        </div>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='subject'>
+            {{ 'Subject' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='text'
+                class='form-control'
+                name='subject'
+                id='subject'
+                required
+                [(ngModel)]='emailcontent.subject'
+                #subjectModel='ngModel'
+                #subjectEl
+            />
+            <abp-validation-summary
+                [control]='subjectModel'
+                [controlEl]='subjectEl'
+            ></abp-validation-summary>
+            </div>
+        </div>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='content'>
+            {{ 'Content' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='text'
+                class='form-control'
+                name='content'
+                id='content'
+                required
+                [(ngModel)]='emailcontent.content'
+                #contentModel='ngModel'
+                #contentEl
+            />
+            <abp-validation-summary
+                [control]='contentModel'
+                [controlEl]='contentEl'
+            ></abp-validation-summary>
+            </div>
+        </div>
+    </div>
+    <abp-modal-footer
+    [cancelDisabled]='saving'
+    [saveDisabled]='!createEmailContentModal.form.valid || saving'
+    (onCancelClick)='bsModalRef.hide()'
+    ></abp-modal-footer>
+</form>
