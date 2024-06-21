@@ -75,42 +75,38 @@ export class SidebarMenuComponent extends AppComponentBase implements OnInit {
         "Pages.UsersPage"
       ),
       /* Insert Menu Path */
-            new MenuItem(
-                this.l('EmailContents'),
-                '/app/emailcontents',
-                'far fa-circle',
-                'Pages.EmailContent'
-            ),
-      
       new MenuItem(
-        this.l("Customers"), 
-        '', 
-        'fas fa-user', 
-        'Pages.Customer', [
-          new MenuItem(
-            this.l("Info"),
-            "/app/customers",
-            "fas fa-info",
-            "Pages.Customer"
-          ),
-          new MenuItem(
-            this.l("Wallets"),
-            "/app/wallets",
-            "fas fa-wallet",
-            "Pages.Wallet"
-          ),
-          new MenuItem(
-            this.l("Transactions"),
-            "/app/customer-transactions",
-            "fas fa-square-poll-horizontal",
-            "Pages.CustomerTransaction"
-          ),
+        this.l("EmailContents"),
+        "/app/emailcontents",
+        "fas fa-mail-bulk",
+        "Pages.EmailContent"
+      ),
+      new MenuItem(this.l("Customers"), "", "fas fa-user", "Pages.Customer", [
+        new MenuItem(
+          this.l("Info"),
+          "/app/customers",
+          "fas fa-info",
+          "Pages.Customer"
+        ),
+        new MenuItem(
+          this.l("Wallets"),
+          "/app/wallets",
+          "fas fa-wallet",
+          "Pages.Wallet"
+        ),
+        new MenuItem(
+          this.l("Transactions"),
+          "/app/customer-transactions",
+          "fas fa-square-poll-horizontal",
+          "Pages.CustomerTransaction"
+        ),
       ]),
       new MenuItem(
-        this.l("Rate Maintenance"), 
-        '', 
-        'fas fa-percentage', 
-        'Pages.Rate', [
+        this.l("Rate Maintenance"),
+        "",
+        "fas fa-percentage",
+        "Pages.Rate",
+        [
           new MenuItem(
             this.l("TS Rates"),
             "/app/ts-rates",
@@ -123,42 +119,39 @@ export class SidebarMenuComponent extends AppComponentBase implements OnInit {
             "fa fa-angle-right",
             "Pages.RateWeightBreak"
           ),
-      ]),
-      new MenuItem(
-        this.l("System"), 
-        '', 
-        'fas fa-desktop', 
-        'Pages.Rate', [
-          new MenuItem(
-            this.l("Application Settings"),
-            "/app/applicationsettings",
-            "fas fa-toolbox",
-            "Pages.ApplicationSetting"
-          ),
-          new MenuItem(
-            this.l("Currencies"),
-            "/app/currencies",
-            "fas fa-dollar-sign",
-            "Pages.Currency"
-          ),
-          new MenuItem(
-            this.l("Airports"),
-            "/app/airports",
-            "fas fa-plane-arrival",
-            "Pages.Airport"
-          ),
-          new MenuItem(
-            this.l("IMPCS"),
-            "/app/impcs",
-            "fas fa-magnifying-glass-location",
-            "Pages.IMPC"
-          ),
-          new MenuItem(
-            this.l("EWalletTypes"),
-            "/app/ewallettypes",
-            "fas fa-comment-dollar",
-            "Pages.EWalletType"
-          ),
+        ]
+      ),
+      new MenuItem(this.l("System"), "", "fas fa-desktop", "Pages.Rate", [
+        new MenuItem(
+          this.l("Application Settings"),
+          "/app/applicationsettings",
+          "fas fa-toolbox",
+          "Pages.ApplicationSetting"
+        ),
+        new MenuItem(
+          this.l("Currencies"),
+          "/app/currencies",
+          "fas fa-dollar-sign",
+          "Pages.Currency"
+        ),
+        new MenuItem(
+          this.l("Airports"),
+          "/app/airports",
+          "fas fa-plane-arrival",
+          "Pages.Airport"
+        ),
+        new MenuItem(
+          this.l("IMPCS"),
+          "/app/impcs",
+          "fas fa-magnifying-glass-location",
+          "Pages.IMPC"
+        ),
+        new MenuItem(
+          this.l("EWalletTypes"),
+          "/app/ewallettypes",
+          "fas fa-comment-dollar",
+          "Pages.EWalletType"
+        ),
       ]),
       new MenuItem(
         this.l("Item Tracking"),
@@ -178,7 +171,7 @@ export class SidebarMenuComponent extends AppComponentBase implements OnInit {
         "fas fa-boxes-packing",
         "Pages.Dispatch"
       ),
-      
+
       new MenuItem(
         this.l("Pre-Check Upload"),
         "/app/pre-alerts",
@@ -208,7 +201,7 @@ export class SidebarMenuComponent extends AppComponentBase implements OnInit {
       //   "far fa-circle",
       //   "Pages.WeightAdjustment"
       // ),
-      
+
       // new MenuItem(
       //   this.l("ItemMins"),
       //   "/app/itemmins",

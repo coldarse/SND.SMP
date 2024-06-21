@@ -50,7 +50,7 @@
                             <tr>
                                 <th>{{ 'Name' | localize }}</th>
                                 <th>{{ 'Subject' | localize }}</th>
-                                <th>{{ 'Content' | localize }}</th>
+                                <!-- <th>{{ 'Content' | localize }}</th> -->
                                 <th style='width: 310px;' *ngIf='isButtonVisible("Edit") && isButtonVisible("Delete")'>{{ 'Actions' | localize }}</th>
                             </tr>
                             </thead>
@@ -69,7 +69,7 @@
                             >
                                 <td>{{ emailcontent.name }}</td>
                                 <td>{{ emailcontent.subject }}</td>
-                                <td>{{ emailcontent.content }}</td>
+                                <!-- <td>{{ emailcontent.content }}</td> -->
                                 <td *ngIf='isButtonVisible("Edit") || isButtonVisible("Delete")'>
                                     <button
                                             type='button'

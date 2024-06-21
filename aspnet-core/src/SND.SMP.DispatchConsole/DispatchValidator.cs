@@ -14,6 +14,7 @@ using System.Net.Http.Headers;
 using SND.SMP.Chibis;
 using SND.SMP.CustomerTransactions;
 using SND.SMP.DispatchUsedAmounts;
+using System.Text;
 
 namespace SND.SMP.DispatchConsole
 {
@@ -449,6 +450,31 @@ namespace SND.SMP.DispatchConsole
 
                             await FileServer.InsertFileToAlbum(result.uuid, true, dbconn);
                         }
+
+                        var apiUrl = await dbconn.ApplicationSettings.FirstOrDefaultAsync(x => x.Name.Equals("APIURL"));
+
+                        if (apiUrl != null)
+                        {
+                            var emailclient = new HttpClient();
+                            emailclient.DefaultRequestHeaders.Clear();
+
+                            PreAlertFailureEmail preAlertFailureEmail = new()
+                            {
+                                customerCode = CustomerCode,
+                                dispatchNo = DispatchProfile.DispatchNo,
+                                validations = validations
+                            };
+
+                            var content = new StringContent(JsonConvert.SerializeObject(preAlertFailureEmail), Encoding.UTF8, "application/json");
+                            var emailrequest = new HttpRequestMessage
+                            {
+                                Method = HttpMethod.Post,
+                                RequestUri = new Uri(apiUrl.Value + "services/app/EmailContent/SendPreAlertFailureEmail"),
+                                Content = content,
+                            };
+                            using var emailresponse = await emailclient.SendAsync(emailrequest);
+                        }
+
                     }
                     else //---- Deduct Amount If Valid ----//
                     {

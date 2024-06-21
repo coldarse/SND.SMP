@@ -83,7 +83,7 @@
                   class="custom-control-input"
                   [id]="'permission_' + i"
                   [checked]="isPermissionChecked(permission.name)"
-                  [disabled]="role.isStatic"
+                  
                   (change)="onPermissionChange(permission, $event)"
                 />
                 <label class="custom-control-label" [for]="'permission_' + i">

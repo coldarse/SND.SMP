@@ -148,6 +148,8 @@ import { CardsComponent } from "./cards/cards.component";
 import { CreateItemTrackingApplicationComponent } from "./item-tracking-applications/create-item-tracking-application/create-item-tracking-application.component";
 import { ReviewItemTrackingApplicationComponent } from "./item-tracking-applications/review-item-tracking-application/review-item-tracking-application.component";
 
+import { AngularEditorModule } from '@kolkov/angular-editor';
+
 @NgModule({
   declarations: [
     AppComponent,
@@ -178,10 +180,10 @@ import { ReviewItemTrackingApplicationComponent } from "./item-tracking-applicat
     SidebarUserPanelComponent,
     SidebarMenuComponent,
     /* Insert Component */
-        EmailContentsComponent,
-        CreateUpdateEmailContentComponent,
-        AirportsComponent,
-        CreateUpdateAirportComponent,
+    EmailContentsComponent,
+    CreateUpdateEmailContentComponent,
+    AirportsComponent,
+    CreateUpdateAirportComponent,
     ItemTrackingApplicationsComponent,
     CreateUpdateItemTrackingApplicationComponent,
     IMPCSComponent,
@@ -250,6 +252,7 @@ import { ReviewItemTrackingApplicationComponent } from "./item-tracking-applicat
     SharedModule,
     NgxPaginationModule,
     CardsComponent,
+    AngularEditorModule,
   ],
   providers: [
     /* Insert Service */
