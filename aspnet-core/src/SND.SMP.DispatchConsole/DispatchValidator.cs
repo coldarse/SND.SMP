@@ -216,7 +216,8 @@ namespace SND.SMP.DispatchConsole
                         {
                             if (reader[0] is null) break;
                             var strPostalCode = reader[0].ToString()!;
-                            var dispatchDate = DateOnly.ParseExact(reader[1].ToString()!, "dd/MM/yyyy", CultureInfo.InvariantCulture);
+                            DateTime.TryParseExact(reader[1].ToString()!, "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime dateTimeCell);
+                            var dispatchDate = DateOnly.FromDateTime(dateTimeCell);
                             var strServiceCode = reader[2].ToString()!;
                             var strProductCode = reader[3].ToString()!;
                             var bagNo = reader[4].ToString()!;
@@ -583,14 +584,11 @@ namespace SND.SMP.DispatchConsole
             }
             catch (Exception ex)
             {
-                if (ex.InnerException is not null)
+                await LogQueueError(new QueueErrorEventArg
                 {
-                    await LogQueueError(new QueueErrorEventArg
-                    {
-                        FilePath = FilePath,
-                        ErrorMsg = ex.InnerException.Message
-                    });
-                }
+                    FilePath = FilePath,
+                    ErrorMsg = ex.InnerException != null ? ex.InnerException.Message : ex.Message
+                });
             }
         }
 
