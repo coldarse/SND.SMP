@@ -193,8 +193,11 @@ namespace SND.SMP.Wallets
                 x.Currency.Equals(input.OGCurrency)
             )) ?? throw new UserFriendlyException("No E-Wallet Found");
 
-            /* Remove Exisiting E-Wallet */
-            await Repository.DeleteAsync(ewallet);
+            var transactions = input.OGCurrency != input.Currency ? await customerTransactionRepository.FirstOrDefaultAsync(x => x.Wallet.Equals(input.Id)) : new CustomerTransaction();
+
+            /* Remove Existing E-Wallet if no transactions are made with said wallet. */
+            if (transactions is null) await Repository.DeleteAsync(ewallet);
+            else throw new UserFriendlyException("Wallet has been used. Unable to Update.");
 
             /* Insert New E-Wallet */
             var insert = await Repository.InsertAsync(new Wallet()
@@ -217,7 +220,11 @@ namespace SND.SMP.Wallets
                 x.Currency.Equals(input.Currency)
             )) ?? throw new UserFriendlyException("No E-Wallet Found");
 
-            await Repository.DeleteAsync(ewallet);
+            var transactions = await customerTransactionRepository.FirstOrDefaultAsync(x => x.Wallet.Equals(input.Id));
+
+            /* Remove Existing E-Wallet if no transactions are made with said wallet. */
+            if (transactions is null) await Repository.DeleteAsync(ewallet);
+            else throw new UserFriendlyException("Wallet has been used. Unable to Delete.");
         }
 
         public async Task<EWalletDto> GetEWalletAsync(WalletDto input)

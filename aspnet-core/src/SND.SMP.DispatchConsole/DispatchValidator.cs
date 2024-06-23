@@ -373,6 +373,12 @@ namespace SND.SMP.DispatchConsole
                         validations.Add(validationResult_id_IsDuplicate);
                     }
 
+                    if (validationResult_bag_IsDuplicate.ItemIds.Count != 0 || !string.IsNullOrWhiteSpace(validationResult_bag_IsDuplicate.Message))
+                    {
+                        isValid = false;
+                        validations.Add(validationResult_bag_IsDuplicate);
+                    }
+
                     if (validationResult_id_HasInvalidLength.ItemIds.Count != 0 || !string.IsNullOrWhiteSpace(validationResult_id_HasInvalidLength.Message))
                     {
                         isValid = false;
@@ -785,11 +791,13 @@ namespace SND.SMP.DispatchConsole
             using db db = new();
             db.ChangeTracker.AutoDetectChangesEnabled = false;
 
-            var existingBagNo = db.Bags.Where(u => bags.Contains(u.BagNo.ToUpper().Trim())).Select(u => u.Id + " (" + u.Dispatch.DispatchNo + ")").ToList();
+            var existingBagNo = db.Bags.FirstOrDefault(u => bags.Contains(u.BagNo));
+            var dispatch = db.Dispatches.FirstOrDefault(u => u.Id.Equals(existingBagNo.DispatchId));
 
-            if (existingBagNo is not null)
+            if (existingBagNo is not null) 
             {
-                validationResult.ItemIds.AddRange(existingBagNo);
+                validationResult.Message = $"Bag No. {existingBagNo.BagNo} already exists in the dispatch {dispatch.DispatchNo}";
+                result = true;
             }
 
             return result;

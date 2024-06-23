@@ -16,10 +16,18 @@ using SND.SMP.PostalOrgs;
 using Abp.EntityFrameworkCore.Repositories;
 using Microsoft.EntityFrameworkCore;
 using System.IO;
+using Abp.Application.Services.Dto;
+using SND.SMP.Dispatches;
+using Abp.UI;
+using SND.SMP.Authorization.Users;
 
 namespace SND.SMP.Postals
 {
-    public class PostalAppService(IRepository<Postal, long> repository, IRepository<PostalOrg, string> postalOrgRepository) : AsyncCrudAppService<Postal, PostalDto, long, PagedPostalResultRequestDto>(repository)
+    public class PostalAppService(
+        IRepository<Postal, long> repository, 
+        IRepository<PostalOrg, string> postalOrgRepository,
+        IRepository<Dispatch, int> dispatchRepository
+    ) : AsyncCrudAppService<Postal, PostalDto, long, PagedPostalResultRequestDto>(repository)
     {
         protected override IQueryable<Postal> CreateFilteredQuery(PagedPostalResultRequestDto input)
         {
@@ -31,6 +39,15 @@ namespace SND.SMP.Postals
                     x.ServiceDesc.Contains(input.Keyword) ||
                     x.ProductCode.Contains(input.Keyword) ||
                     x.ProductDesc.Contains(input.Keyword));
+        }
+
+        public override async Task DeleteAsync(EntityDto<long> input)
+        {
+            var postal = await Repository.FirstOrDefaultAsync(x => x.Id.Equals(input.Id)) ?? throw new UserFriendlyException("Postal does not exist.");
+            var dispatch = await dispatchRepository.FirstOrDefaultAsync(x => x.PostalCode.Equals(postal.PostalCode));
+
+            if(dispatch is null) await Repository.DeleteAsync(input.Id);
+            else throw new UserFriendlyException("Postal has been used, unable to delete.");
         }
 
         private static DataTable ConvertToDatatable(Stream ms)

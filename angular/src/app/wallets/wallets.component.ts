@@ -14,6 +14,8 @@ import { CurrencyService } from "@shared/service-proxies/currencies/currency.ser
 import { CustomerDto } from "@shared/service-proxies/customers/model";
 import { CustomerService } from "@shared/service-proxies/customers/customer.service";
 import { TopUpWalletComponent } from "./topup-wallet/topup-wallet.component";
+import { HttpErrorResponse } from "@angular/common/http";
+import { ErrorModalComponent } from "@shared/components/error-modal/error-modal.component";
 
 class PagedWalletsRequestDto extends PagedRequestDto {
   keyword: string;
@@ -147,6 +149,20 @@ export class WalletsComponent extends PagedListingComponentBase<WalletDto> {
         this._walletService.deleteEWalletAsync(entity).subscribe(() => {
           abp.notify.success(this.l("SuccessfullyDeleted"));
           this.refresh();
+        },
+        (error: HttpErrorResponse) => {
+          //Handle error
+          let cc: BsModalRef;
+          cc = this._modalService.show(
+            ErrorModalComponent,
+            {
+              class: 'modal-lg',
+              initialState: {
+                title: "",
+                errorMessage: error.message,
+              },
+            }
+          )
         });
       }
     });
