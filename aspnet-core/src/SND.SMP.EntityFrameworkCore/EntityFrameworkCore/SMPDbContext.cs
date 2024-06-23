@@ -99,7 +99,7 @@ namespace SND.SMP.EntityFrameworkCore
                 b.Property(x => x.Amount).HasColumnName(nameof(DispatchUsedAmount.Amount)).HasPrecision(18, 2);
                 b.Property(x => x.DispatchNo).HasColumnName(nameof(DispatchUsedAmount.DispatchNo)).HasMaxLength(128);
                 b.Property(x => x.DateTime).HasColumnName(nameof(DispatchUsedAmount.DateTime));
-                b.Property(x => x.Description).HasColumnName(nameof(DispatchUsedAmount.Description)).HasMaxLength(256);
+                b.Property(x => x.Description).HasColumnName(nameof(DispatchUsedAmount.Description)).HasMaxLength(512);
                 b.HasKey(x => x.Id);
             });
 
@@ -639,7 +639,7 @@ namespace SND.SMP.EntityFrameworkCore
                 b.Property(x => x.TransactionType).HasColumnName(nameof(CustomerTransaction.TransactionType)).HasMaxLength(100);
                 b.Property(x => x.Amount).HasColumnName(nameof(CustomerTransaction.Amount)).HasPrecision(18, 2);
                 b.Property(x => x.ReferenceNo).HasColumnName(nameof(CustomerTransaction.ReferenceNo)).HasMaxLength(100);
-                b.Property(x => x.Description).HasColumnName(nameof(CustomerTransaction.Description)).HasMaxLength(100);
+                b.Property(x => x.Description).HasColumnName(nameof(CustomerTransaction.Description)).HasMaxLength(521);
                 b.Property(x => x.TransactionDate).HasColumnName(nameof(CustomerTransaction.TransactionDate));
             });
         }

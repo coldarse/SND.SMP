@@ -57,30 +57,42 @@ export class SidebarMenuComponent extends AppComponentBase implements OnInit {
     return [
       new MenuItem(this.l("HomePage"), "/app/home", "fas fa-home"),
       new MenuItem(
-        this.l("Roles"),
-        "/app/roles",
-        "fas fa-theater-masks",
-        "Pages.RolesPage"
+        this.l("Postals"),
+        "/app/postals",
+        "fas fa-parachute-box",
+        "Pages.Postal"
       ),
       new MenuItem(
-        this.l("Tenants"),
-        "/app/tenants",
-        "fas fa-building",
-        "Pages.Tenants"
+        this.l("Postal Countries"),
+        "/app/postal-countries",
+        "fas fa-earth-asia",
+        "Pages.PostalCountry"
       ),
       new MenuItem(
-        this.l("Users"),
-        "/app/users",
-        "fas fa-users",
-        "Pages.UsersPage"
+        this.l("Dispatch Validations"),
+        "/app/dispatch-validations",
+        "fas fa-tasks",
+        "Pages.DispatchValidation"
       ),
+      new MenuItem(
+        this.l("Dispatches"),
+        "/app/dispatches",
+        "fas fa-boxes-packing",
+        "Pages.Dispatch"
+      ),
+      new MenuItem(
+        this.l("Item Tracking"),
+        "/app/item-tracking-applications",
+        "fas fa-barcode",
+        "Pages.ItemTrackingApplication"
+      ),
+      new MenuItem(
+        this.l("Pre-Check Upload"),
+        "/app/pre-alerts",
+        "fas fa-bell"
+      ),
+
       /* Insert Menu Path */
-      new MenuItem(
-        this.l("EmailContents"),
-        "/app/emailcontents",
-        "fas fa-mail-bulk",
-        "Pages.EmailContent"
-      ),
       new MenuItem(this.l("Customers"), "", "fas fa-user", "Pages.Customer", [
         new MenuItem(
           this.l("Info"),
@@ -152,42 +164,31 @@ export class SidebarMenuComponent extends AppComponentBase implements OnInit {
           "fas fa-comment-dollar",
           "Pages.EWalletType"
         ),
+        new MenuItem(
+          this.l("Email Contents"),
+          "/app/emailcontents",
+          "fas fa-mail-bulk",
+          "Pages.EmailContent"
+        ),
       ]),
-      new MenuItem(
-        this.l("Item Tracking"),
-        "/app/item-tracking-applications",
-        "fas fa-barcode",
-        "Pages.ItemTrackingApplication"
-      ),
-      new MenuItem(
-        this.l("Dispatch Validations"),
-        "/app/dispatch-validations",
-        "fas fa-tasks",
-        "Pages.DispatchValidation"
-      ),
-      new MenuItem(
-        this.l("Dispatches"),
-        "/app/dispatches",
-        "fas fa-boxes-packing",
-        "Pages.Dispatch"
-      ),
 
       new MenuItem(
-        this.l("Pre-Check Upload"),
-        "/app/pre-alerts",
-        "fas fa-bell"
+        this.l("Roles"),
+        "/app/roles",
+        "fas fa-theater-masks",
+        "Pages.RolesPage"
       ),
       new MenuItem(
-        this.l("Postal Countries"),
-        "/app/postal-countries",
-        "fas fa-earth-asia",
-        "Pages.PostalCountry"
+        this.l("Tenants"),
+        "/app/tenants",
+        "fas fa-building",
+        "Pages.Tenants"
       ),
       new MenuItem(
-        this.l("Postals"),
-        "/app/postals",
-        "fas fa-parachute-box",
-        "Pages.Postal"
+        this.l("Users"),
+        "/app/users",
+        "fas fa-users",
+        "Pages.UsersPage"
       ),
       // new MenuItem(
       //   this.l("Refunds"),

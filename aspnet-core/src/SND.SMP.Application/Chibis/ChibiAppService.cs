@@ -779,7 +779,7 @@ namespace SND.SMP.Chibis
 
                 return true;
             }
-            return false;
+            else throw new UserFriendlyException("Dispatch Number already exists.");
         }
 
 
