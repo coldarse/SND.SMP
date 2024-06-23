@@ -39,6 +39,10 @@ import { SidebarLogoComponent } from "./layout/sidebar-logo.component";
 import { SidebarUserPanelComponent } from "./layout/sidebar-user-panel.component";
 import { SidebarMenuComponent } from "./layout/sidebar-menu.component";
 /* Insert Import */
+import { EmailContentsComponent } from './emailcontents/emailcontents.component';
+import { CreateUpdateEmailContentComponent } from './emailcontents/create-update-emailcontent/create-update-emailcontent.component';
+import { EmailContentService } from '@shared/service-proxies/emailcontents/emailcontent.service';
+
 import { AirportsComponent } from './airports/airports.component';
 import { CreateUpdateAirportComponent } from './airports/create-update-airport/create-update-airport.component';
 import { AirportService } from '@shared/service-proxies/airports/airport.service';
@@ -144,6 +148,8 @@ import { CardsComponent } from "./cards/cards.component";
 import { CreateItemTrackingApplicationComponent } from "./item-tracking-applications/create-item-tracking-application/create-item-tracking-application.component";
 import { ReviewItemTrackingApplicationComponent } from "./item-tracking-applications/review-item-tracking-application/review-item-tracking-application.component";
 
+import { AngularEditorModule } from '@kolkov/angular-editor';
+
 @NgModule({
   declarations: [
     AppComponent,
@@ -174,8 +180,10 @@ import { ReviewItemTrackingApplicationComponent } from "./item-tracking-applicat
     SidebarUserPanelComponent,
     SidebarMenuComponent,
     /* Insert Component */
-        AirportsComponent,
-        CreateUpdateAirportComponent,
+    EmailContentsComponent,
+    CreateUpdateEmailContentComponent,
+    AirportsComponent,
+    CreateUpdateAirportComponent,
     ItemTrackingApplicationsComponent,
     CreateUpdateItemTrackingApplicationComponent,
     IMPCSComponent,
@@ -244,9 +252,11 @@ import { ReviewItemTrackingApplicationComponent } from "./item-tracking-applicat
     SharedModule,
     NgxPaginationModule,
     CardsComponent,
+    AngularEditorModule,
   ],
   providers: [
     /* Insert Service */
+        EmailContentService,
         AirportService,
     ItemTrackingReviewService,
     ItemTrackingApplicationService,

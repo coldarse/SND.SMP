@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SND.SMP.EntityFrameworkCore;
 
@@ -10,9 +11,11 @@ using SND.SMP.EntityFrameworkCore;
 namespace SND.SMP.Migrations
 {
     [DbContext(typeof(SMPDbContext))]
-    partial class SMPDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240620134346_AddedEmailContent")]
+    partial class AddedEmailContent
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1730,8 +1733,8 @@ namespace SND.SMP.Migrations
                         .HasColumnName("Customer");
 
                     b.Property<string>("Description")
-                        .HasMaxLength(521)
-                        .HasColumnType("varchar(521)")
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)")
                         .HasColumnName("Description");
 
                     b.Property<string>("PaymentMode")
@@ -1866,8 +1869,8 @@ namespace SND.SMP.Migrations
                         .HasColumnName("DateTime");
 
                     b.Property<string>("Description")
-                        .HasMaxLength(512)
-                        .HasColumnType("varchar(512)")
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)")
                         .HasColumnName("Description");
 
                     b.Property<string>("DispatchNo")

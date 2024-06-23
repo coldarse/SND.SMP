@@ -17,6 +17,8 @@ import { PostalDDL } from "@shared/service-proxies/postals/model";
 import { RateDDL } from "@shared/service-proxies/rates/model";
 import { RateService } from "@shared/service-proxies/rates/rate.service";
 import { PostalService } from "@shared/service-proxies/postals/postal.service";
+import { HttpErrorResponse } from "@angular/common/http";
+import { ErrorModalComponent } from "@shared/components/error-modal/error-modal.component";
 
 class PagedCustomersRequestDto extends PagedRequestDto {
   keyword: string;
@@ -112,6 +114,20 @@ export class CustomersComponent extends PagedListingComponentBase<CustomerDto> {
         this._customerService.delete(entity.id).subscribe(() => {
           abp.notify.success(this.l("SuccessfullyDeleted"));
           this.refresh();
+        },
+        (error: HttpErrorResponse) => {
+          //Handle error
+          let cc: BsModalRef;
+          cc = this._modalService.show(
+            ErrorModalComponent,
+            {
+              class: 'modal-lg',
+              initialState: {
+                title: "",
+                errorMessage: error.message,
+              },
+            }
+          )
         });
       }
     });

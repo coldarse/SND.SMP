@@ -1,10 +1,13 @@
+import { HttpErrorResponse } from "@angular/common/http";
 import { Component, Injector, OnInit } from "@angular/core";
 import { Router } from "@angular/router";
 import { AppComponentBase } from "@shared/app-component-base";
+import { ErrorModalComponent } from "@shared/components/error-modal/error-modal.component";
 import { ChibiService } from "@shared/service-proxies/chibis/chibis.service";
 import { CustomerPostalService } from "@shared/service-proxies/customer-postals/customer-postal.service";
 import { CustomerService } from "@shared/service-proxies/customers/customer.service";
 import { PostalService } from "@shared/service-proxies/postals/postal.service";
+import { BsModalRef, BsModalService } from "ngx-bootstrap/modal";
 import * as XLSX from "xlsx";
 
 @Component({
@@ -39,7 +42,9 @@ export class PreAlertComponent extends AppComponentBase implements OnInit {
     private customerService: CustomerService,
     private customerPostalService: CustomerPostalService,
     private postalService: PostalService,
-    private chibiService: ChibiService
+    private chibiService: ChibiService,
+    public bsModalRef: BsModalRef,
+    private _modalService: BsModalService
   ) {
     super(injector);
     if (
@@ -174,6 +179,21 @@ export class PreAlertComponent extends AppComponentBase implements OnInit {
 
 
       this.router.navigate(['/app/home']);
+    },
+    (error: HttpErrorResponse) => {
+      this.isSaving = false;
+      //Handle error
+      let cc: BsModalRef;
+      cc = this._modalService.show(
+        ErrorModalComponent,
+        {
+          class: 'modal-lg',
+          initialState: {
+            title: "",
+            errorMessage: error.message,
+          },
+        }
+      )
     });
   }
 

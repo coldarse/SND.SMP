@@ -144,8 +144,8 @@ export class DispatchValidationsComponent
       {
         class: "modal-lg",
         initialState: {
-          dispatchNo: dispatchNo
-        }
+          dispatchNo: dispatchNo,
+        },
       }
     );
 
@@ -154,28 +154,36 @@ export class DispatchValidationsComponent
     });
   }
 
-  retryDispatchValidation(filepath: string, dispatchNo: string, customerCode: string) {
+  retryDispatchValidation(
+    filepath: string,
+    dispatchNo: string,
+    customerCode: string
+  ) {
     let uploadRetryDialog: BsModalRef;
-    uploadRetryDialog = this._modalService.show(
-      UploadRetryComponent,
-      {
-        class: "modal-lg",
-        initialState: {
-          filepath: filepath,
-          dispatchNo: dispatchNo,
-          selectedCustomerCode: customerCode,
-        },
-      }
-    );
+    uploadRetryDialog = this._modalService.show(UploadRetryComponent, {
+      class: "modal-lg",
+      initialState: {
+        filepath: filepath,
+        dispatchNo: dispatchNo,
+        selectedCustomerCode: customerCode,
+      },
+    });
 
     uploadRetryDialog.content.onSave.subscribe(() => {
       this.refresh();
     });
   }
 
-  deleteDispatch(filepath: string, dispatchNo: string){
-    this._chibiService.deleteDispatch(filepath, dispatchNo).subscribe(() => {
-        this.notify.info(this.l('Deleted Successfully'));
+  deleteDispatch(filepath: string, dispatchNo: string) {
+    abp.message.confirm("", undefined, (result: boolean) => {
+      if (result) {
+        this._chibiService
+          .deleteDispatch(filepath, dispatchNo)
+          .subscribe(() => {
+            abp.notify.success(this.l("SuccessfullyDeleted"));
+            this.refresh();
+          });
+      }
     });
   }
 

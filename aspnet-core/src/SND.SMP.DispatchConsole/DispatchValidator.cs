@@ -14,6 +14,7 @@ using System.Net.Http.Headers;
 using SND.SMP.Chibis;
 using SND.SMP.CustomerTransactions;
 using SND.SMP.DispatchUsedAmounts;
+using System.Text;
 
 namespace SND.SMP.DispatchConsole
 {
@@ -215,7 +216,8 @@ namespace SND.SMP.DispatchConsole
                         {
                             if (reader[0] is null) break;
                             var strPostalCode = reader[0].ToString()!;
-                            var dispatchDate = DateOnly.ParseExact(reader[1].ToString()!, "dd/MM/yyyy", CultureInfo.InvariantCulture);
+                            DateTime.TryParseExact(reader[1].ToString()!, "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime dateTimeCell);
+                            var dispatchDate = DateOnly.FromDateTime(dateTimeCell);
                             var strServiceCode = reader[2].ToString()!;
                             var strProductCode = reader[3].ToString()!;
                             var bagNo = reader[4].ToString()!;
@@ -371,6 +373,12 @@ namespace SND.SMP.DispatchConsole
                         validations.Add(validationResult_id_IsDuplicate);
                     }
 
+                    if (validationResult_bag_IsDuplicate.ItemIds.Count != 0 || !string.IsNullOrWhiteSpace(validationResult_bag_IsDuplicate.Message))
+                    {
+                        isValid = false;
+                        validations.Add(validationResult_bag_IsDuplicate);
+                    }
+
                     if (validationResult_id_HasInvalidLength.ItemIds.Count != 0 || !string.IsNullOrWhiteSpace(validationResult_id_HasInvalidLength.Message))
                     {
                         isValid = false;
@@ -449,6 +457,31 @@ namespace SND.SMP.DispatchConsole
 
                             await FileServer.InsertFileToAlbum(result.uuid, true, dbconn);
                         }
+
+                        var apiUrl = await dbconn.ApplicationSettings.FirstOrDefaultAsync(x => x.Name.Equals("APIURL"));
+
+                        if (apiUrl != null)
+                        {
+                            var emailclient = new HttpClient();
+                            emailclient.DefaultRequestHeaders.Clear();
+
+                            PreAlertFailureEmail preAlertFailureEmail = new()
+                            {
+                                customerCode = CustomerCode,
+                                dispatchNo = DispatchProfile.DispatchNo,
+                                validations = validations
+                            };
+
+                            var content = new StringContent(JsonConvert.SerializeObject(preAlertFailureEmail), Encoding.UTF8, "application/json");
+                            var emailrequest = new HttpRequestMessage
+                            {
+                                Method = HttpMethod.Post,
+                                RequestUri = new Uri(apiUrl.Value + "services/app/EmailContent/SendPreAlertFailureEmail"),
+                                Content = content,
+                            };
+                            using var emailresponse = await emailclient.SendAsync(emailrequest);
+                        }
+
                     }
                     else //---- Deduct Amount If Valid ----//
                     {
@@ -557,14 +590,11 @@ namespace SND.SMP.DispatchConsole
             }
             catch (Exception ex)
             {
-                if (ex.InnerException is not null)
+                await LogQueueError(new QueueErrorEventArg
                 {
-                    await LogQueueError(new QueueErrorEventArg
-                    {
-                        FilePath = FilePath,
-                        ErrorMsg = ex.InnerException.Message
-                    });
-                }
+                    FilePath = FilePath,
+                    ErrorMsg = ex.InnerException != null ? ex.InnerException.Message : ex.Message
+                });
             }
         }
 
@@ -761,11 +791,13 @@ namespace SND.SMP.DispatchConsole
             using db db = new();
             db.ChangeTracker.AutoDetectChangesEnabled = false;
 
-            var existingBagNo = db.Bags.Where(u => bags.Contains(u.BagNo.ToUpper().Trim())).Select(u => u.Id + " (" + u.Dispatch.DispatchNo + ")").ToList();
+            var existingBagNo = db.Bags.FirstOrDefault(u => bags.Contains(u.BagNo));
+            var dispatch = db.Dispatches.FirstOrDefault(u => u.Id.Equals(existingBagNo.DispatchId));
 
-            if (existingBagNo is not null)
+            if (existingBagNo is not null) 
             {
-                validationResult.ItemIds.AddRange(existingBagNo);
+                validationResult.Message = $"Bag No. {existingBagNo.BagNo} already exists in the dispatch {dispatch.DispatchNo}";
+                result = true;
             }
 
             return result;

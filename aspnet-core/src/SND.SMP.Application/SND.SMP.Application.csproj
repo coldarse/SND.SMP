@@ -21,5 +21,6 @@
     <ProjectReference Include="..\SND.SMP.Core\SND.SMP.Core.csproj" />
     <ProjectReference Include="..\SND.SMP.EntityFrameworkCore\SND.SMP.EntityFrameworkCore.csproj" />
     <PackageReference Include="EPPlus" Version="7.0.9" />
+    <PackageReference Include="NETCore.MailKit" Version="2.0.3" />
   </ItemGroup>
 </Project>

@@ -7,6 +7,8 @@ using SND.SMP.DispatchConsole.Dto;
 //using SND.SMP.Shared.Modules.Dispatch;
 using Humanizer;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
+using System.Text;
 
 namespace SND.SMP.DispatchConsole
 {
@@ -22,7 +24,7 @@ namespace SND.SMP.DispatchConsole
 
         private string _currency { get; set; }
 
-        public DispatchImporter(){}
+        public DispatchImporter() { }
 
         public async Task DiscoverAndImport(string fileType, int batchSize = 750)
         {
@@ -95,6 +97,7 @@ namespace SND.SMP.DispatchConsole
                 {
                     #region By Chunk
                     dateImportStart = DateTime.Now;
+                    decimal avgItemValue = 0m;
 
                     var stream = await FileServer.GetFileStream(_filePath);
                     using var reader = ExcelReaderFactory.CreateReader(stream);
@@ -147,9 +150,10 @@ namespace SND.SMP.DispatchConsole
                         {
                             if (rowTouched > 0)
                             {
-                                if(reader[0] is null) break;
+                                if (reader[0] is null) break;
                                 var strPostalCode = reader[0].ToString()!;
-                                var dispatchDate = DateOnly.ParseExact(reader[1].ToString()!, "dd/MM/yyyy", CultureInfo.InvariantCulture);
+                                DateTime.TryParseExact(reader[1].ToString()!, "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime dateTimeCell);
+                                var dispatchDate = DateOnly.FromDateTime(dateTimeCell);
                                 var strServiceCode = reader[2].ToString()!;
                                 var strProductCode = reader[3].ToString()!;
                                 var bagNo = reader[4].ToString()!;
@@ -178,6 +182,8 @@ namespace SND.SMP.DispatchConsole
                                 var qty = reader[28] == null ? 0 : Convert.ToInt32(reader[28]);
 
                                 var price = pricer.CalculatePrice(countryCode: countryCode, weight: weight);
+
+                                avgItemValue += price;
 
                                 listItems.Add(new DispatchItemDto
                                 {
@@ -396,6 +402,32 @@ namespace SND.SMP.DispatchConsole
                         queueTask.EndTime = dateImportCompleted;
                     }
 
+                    var apiUrl = await db.ApplicationSettings.FirstOrDefaultAsync(x => x.Name.Equals("APIURL"));
+
+                    if (apiUrl != null)
+                    {
+                        var emailclient = new HttpClient();
+                        emailclient.DefaultRequestHeaders.Clear();
+
+                        PreAlertSuccessEmail preAlertFailureEmail = new()
+                        {
+                            customerCode = dispatch.CustomerCode,
+                            dispatchNo = dispatch.DispatchNo,
+                            totalWeight = dispatch.TotalWeight ?? 0m,
+                            totalBags = dispatch.NoofBag ?? 0,
+                            avgItemValue = Math.Round(avgItemValue / dispatch.ItemCount ?? 0, 2, MidpointRounding.AwayFromZero).ToString()
+                        };
+
+                        var content = new StringContent(JsonConvert.SerializeObject(preAlertFailureEmail), Encoding.UTF8, "application/json");
+                        var emailrequest = new HttpRequestMessage
+                        {
+                            Method = HttpMethod.Post,
+                            RequestUri = new Uri(apiUrl.Value + "services/app/EmailContent/SendPreAlertSuccessEmail"),
+                            Content = content,
+                        };
+                        using var emailresponse = await emailclient.SendAsync(emailrequest);
+                    }
+
                     await db.SaveChangesAsync();
                     #endregion
                 }
@@ -403,12 +435,20 @@ namespace SND.SMP.DispatchConsole
                 {
                     await DeleteDispatch(dispatchNo: _dispatchProfile.DispatchNo);
 
-                    if (ex.InnerException != null)
+                    if (ex.InnerException is not null)
                     {
                         await LogQueueError(new QueueErrorEventArg
                         {
                             FilePath = _filePath,
                             ErrorMsg = ex.InnerException.Message
+                        });
+                    }
+                    else
+                    {
+                        await LogQueueError(new QueueErrorEventArg
+                        {
+                            FilePath = _filePath,
+                            ErrorMsg = ex.Message
                         });
                     }
                 }

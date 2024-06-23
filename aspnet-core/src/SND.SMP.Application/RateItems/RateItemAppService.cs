@@ -200,7 +200,12 @@ namespace SND.SMP.RateItems
             var distinctedByRateCards = rateItemExcel.DistinctBy(x => x.RateCard);
 
             var ts_rates = await _rateRepository.GetAllListAsync(x => x.Service.Equals("TS"));
-            foreach (var rate in ts_rates) await _rateRepository.DeleteAsync(rate);
+            foreach (var rate in ts_rates)
+            {
+                rate.Count = 0;
+                rate.Service = "";
+                await _rateRepository.UpdateAsync(rate);
+            }
             await _rateRepository.GetDbContext().SaveChangesAsync();
 
             List<Rate> rateCard = [];
@@ -251,6 +256,7 @@ namespace SND.SMP.RateItems
                 {
                     var rateCardForUpdate = await _rateRepository.FirstOrDefaultAsync(x => x.Id.Equals(rc.Id));
                     rateCardForUpdate.Count = rc.Count;
+                    rateCardForUpdate.Service = "TS";
                     var rateCardUpdate = await _rateRepository.UpdateAsync(rateCardForUpdate);
                 }
             }

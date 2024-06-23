@@ -57,6 +57,122 @@ export class SidebarMenuComponent extends AppComponentBase implements OnInit {
     return [
       new MenuItem(this.l("HomePage"), "/app/home", "fas fa-home"),
       new MenuItem(
+        this.l("Postals"),
+        "/app/postals",
+        "fas fa-parachute-box",
+        "Pages.Postal"
+      ),
+      new MenuItem(
+        this.l("Postal Countries"),
+        "/app/postal-countries",
+        "fas fa-earth-asia",
+        "Pages.PostalCountry"
+      ),
+      new MenuItem(
+        this.l("Dispatch Validations"),
+        "/app/dispatch-validations",
+        "fas fa-tasks",
+        "Pages.DispatchValidation"
+      ),
+      new MenuItem(
+        this.l("Dispatches"),
+        "/app/dispatches",
+        "fas fa-boxes-packing",
+        "Pages.Dispatch"
+      ),
+      new MenuItem(
+        this.l("Item Tracking"),
+        "/app/item-tracking-applications",
+        "fas fa-barcode",
+        "Pages.ItemTrackingApplication"
+      ),
+      new MenuItem(
+        this.l("Pre-Check Upload"),
+        "/app/pre-alerts",
+        "fas fa-bell"
+      ),
+
+      /* Insert Menu Path */
+      new MenuItem(this.l("Customers"), "", "fas fa-user", "Pages.Customer", [
+        new MenuItem(
+          this.l("Info"),
+          "/app/customers",
+          "fas fa-info",
+          "Pages.Customer"
+        ),
+        new MenuItem(
+          this.l("Wallets"),
+          "/app/wallets",
+          "fas fa-wallet",
+          "Pages.Wallet"
+        ),
+        new MenuItem(
+          this.l("Transactions"),
+          "/app/customer-transactions",
+          "fas fa-square-poll-horizontal",
+          "Pages.CustomerTransaction"
+        ),
+      ]),
+      new MenuItem(
+        this.l("Rate Maintenance"),
+        "",
+        "fas fa-percentage",
+        "Pages.Rate",
+        [
+          new MenuItem(
+            this.l("TS Rates"),
+            "/app/ts-rates",
+            "fas fa-angle-right",
+            "Pages.RateItem"
+          ),
+          new MenuItem(
+            this.l("DE Rates"),
+            "/app/de-rates",
+            "fa fa-angle-right",
+            "Pages.RateWeightBreak"
+          ),
+        ]
+      ),
+      new MenuItem(this.l("System"), "", "fas fa-desktop", "Pages.Rate", [
+        new MenuItem(
+          this.l("Application Settings"),
+          "/app/applicationsettings",
+          "fas fa-toolbox",
+          "Pages.ApplicationSetting"
+        ),
+        new MenuItem(
+          this.l("Currencies"),
+          "/app/currencies",
+          "fas fa-dollar-sign",
+          "Pages.Currency"
+        ),
+        new MenuItem(
+          this.l("Airports"),
+          "/app/airports",
+          "fas fa-plane-arrival",
+          "Pages.Airport"
+        ),
+        new MenuItem(
+          this.l("IMPCS"),
+          "/app/impcs",
+          "fas fa-magnifying-glass-location",
+          "Pages.IMPC"
+        ),
+        new MenuItem(
+          this.l("EWalletTypes"),
+          "/app/ewallettypes",
+          "fas fa-comment-dollar",
+          "Pages.EWalletType"
+        ),
+        new MenuItem(
+          this.l("Email Contents"),
+          "/app/emailcontents",
+          "fas fa-mail-bulk",
+          "Pages.EmailContent"
+        ),
+      ]),
+
+      new MenuItem(
         this.l("Roles"),
         "/app/roles",
         "fas fa-theater-masks",
@@ -74,123 +190,7 @@ export class SidebarMenuComponent extends AppComponentBase implements OnInit {
         "fas fa-users",
         "Pages.UsersPage"
       ),
-      /* Insert Menu Path */
       
-      new MenuItem(
-        this.l("Customers"), 
-        '', 
-        'fas fa-user', 
-        'Pages.Customer', [
-          new MenuItem(
-            this.l("Info"),
-            "/app/customers",
-            "fas fa-info",
-            "Pages.Customer"
-          ),
-          new MenuItem(
-            this.l("Wallets"),
-            "/app/wallets",
-            "fas fa-wallet",
-            "Pages.Wallet"
-          ),
-          new MenuItem(
-            this.l("Transactions"),
-            "/app/customer-transactions",
-            "fas fa-square-poll-horizontal",
-            "Pages.CustomerTransaction"
-          ),
-      ]),
-      new MenuItem(
-        this.l("Rate Maintenance"), 
-        '', 
-        'fas fa-percentage', 
-        'Pages.Rate', [
-          new MenuItem(
-            this.l("TS Rates"),
-            "/app/ts-rates",
-            "fas fa-angle-right",
-            "Pages.RateItem"
-          ),
-          new MenuItem(
-            this.l("DE Rates"),
-            "/app/de-rates",
-            "fa fa-angle-right",
-            "Pages.RateWeightBreak"
-          ),
-      ]),
-      new MenuItem(
-        this.l("System"), 
-        '', 
-        'fas fa-desktop', 
-        'Pages.Rate', [
-          new MenuItem(
-            this.l("Application Settings"),
-            "/app/applicationsettings",
-            "fas fa-toolbox",
-            "Pages.ApplicationSetting"
-          ),
-          new MenuItem(
-            this.l("Currencies"),
-            "/app/currencies",
-            "fas fa-dollar-sign",
-            "Pages.Currency"
-          ),
-          new MenuItem(
-            this.l("Airports"),
-            "/app/airports",
-            "fas fa-plane-arrival",
-            "Pages.Airport"
-          ),
-          new MenuItem(
-            this.l("IMPCS"),
-            "/app/impcs",
-            "fas fa-magnifying-glass-location",
-            "Pages.IMPC"
-          ),
-          new MenuItem(
-            this.l("EWalletTypes"),
-            "/app/ewallettypes",
-            "fas fa-comment-dollar",
-            "Pages.EWalletType"
-          ),
-      ]),
-      new MenuItem(
-        this.l("Item Tracking"),
-        "/app/item-tracking-applications",
-        "fas fa-barcode",
-        "Pages.ItemTrackingApplication"
-      ),
-      new MenuItem(
-        this.l("Dispatch Validations"),
-        "/app/dispatch-validations",
-        "fas fa-tasks",
-        "Pages.DispatchValidation"
-      ),
-      new MenuItem(
-        this.l("Dispatches"),
-        "/app/dispatches",
-        "fas fa-boxes-packing",
-        "Pages.Dispatch"
-      ),
-      
-      new MenuItem(
-        this.l("Pre-Check Upload"),
-        "/app/pre-alerts",
-        "fas fa-bell",
-        "Pages.Dispatch"
-      ),
-      new MenuItem(
-        this.l("Postal Countries"),
-        "/app/postal-countries",
-        "fas fa-earth-asia",
-        "Pages.PostalCountry"
-      ),
-      new MenuItem(
-        this.l("Postals"),
-        "/app/postals",
-        "fas fa-parachute-box",
-        "Pages.Postal"
-      ),
       // new MenuItem(
       //   this.l("Refunds"),
       //   "/app/refunds",
@@ -203,7 +203,7 @@ export class SidebarMenuComponent extends AppComponentBase implements OnInit {
       //   "far fa-circle",
       //   "Pages.WeightAdjustment"
       // ),
-      
+
       // new MenuItem(
       //   this.l("ItemMins"),
       //   "/app/itemmins",
