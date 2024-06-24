@@ -2,12 +2,116 @@
   class="row row-cols-1 g-4"
   [ngClass]="isAdmin ? 'row-cols-md-3' : 'row-cols-md-2'"
 >
+  @if (isAdmin) {
   <div class="col" style="cursor: pointer" (click)="selectItem('1')">
     <div class="card h-100">
       <div class="card-body">
         <h5
           class="card-title badge"
-          [ngClass]="selected == '1' ? 'badge-info' : 'badge-light'"
+          [ngClass]="selected == '1' ? 'badge-danger' : 'badge-light'"
+        >
+          <strong>Dispatches</strong>
+        </h5>
+        <br />
+        <br />
+        <div class="row" *ngFor="let dispatch of dispatches">
+          <div class="col-sm-6">
+            <h6>{{ dispatch.customerName }}</h6>
+          </div>
+          <div class="col-sm-6 text-right">
+            <span class="badge badge-pill badge-light">
+              {{ dispatch.totalBags }} <i class="fas fa-briefcase"></i>
+            </span>
+            <span class="badge badge-pill badge-light">
+              {{ dispatch.totalWeight | number : "1.3-3" }}
+              <i class="fas fa-weight-hanging"></i>
+            </span>
+            <span class="badge badge-pill badge-light">
+              {{ dispatch.totalCountry }} <i class="fas fa-globe-asia"></i>
+            </span>
+          </div>
+          <div class="col-sm-12 mb-3">
+            <span class="badge badge-pill badge-info ml-1">{{
+              dispatch.postalDesc
+            }}</span>
+            <span class="badge badge-pill badge-info ml-1">{{
+              dispatch.serviceDesc
+            }}</span>
+            <span class="badge badge-pill badge-info ml-1">{{
+              dispatch.productDesc
+            }}</span>
+          </div>
+          <hr />
+        </div>
+      </div>
+    </div>
+  </div>
+  }
+  <div class="col" style="cursor: pointer" (click)="selectItem('2')">
+    <div class="card h-100">
+      <div class="card-body">
+        <h5
+          class="card-title badge"
+          [ngClass]="selected == '2' ? 'badge-danger' : 'badge-light'"
+        >
+          <strong>Dispatch Validation</strong>
+        </h5>
+        <br />
+        <br />
+        <div class="row" *ngFor="let validation of validations">
+          <div class="col-sm-2">
+            <h6>{{ validation.customerCode }}</h6>
+          </div>
+          <div class="col-sm-4">
+            <h6>{{ validation.dispatchNo }}</h6>
+          </div>
+          <div class="col-sm-6">
+            <div class="progress">
+              <div
+                class="progress-bar progress-bar-striped"
+                [class.bg-success]="validation.validationProgress == 100"
+                [class.progress-bar-animated]="
+                  validation.validationProgress < 100
+                "
+                role="progressbar"
+                aria-valuenow="dispatchvalidation.validationProgress"
+                aria-valuemin="0"
+                aria-valuemax="100"
+                style="width: {{ validation.validationProgress }}%"
+              >
+                {{ validation.validationProgress }}%
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-12 mb-3">
+            @if (validation.isFundLack) {
+            <span class="badge badge-pill badge-danger ml-1"
+              >Insufficient Fund</span
+            >
+            } @else if (!validation.isFundLack) {
+            <span class="badge badge-pill badge-success ml-1"
+              >Sufficient Fund</span
+            >
+            } @if (validation.isValid) {
+            <span class="badge badge-pill badge-success ml-1">Valid</span>
+            } @else if (!validation.isValid) {
+            <span class="badge badge-pill badge-danger ml-1">Invalid</span>
+            }
+            <span class="badge badge-pill badge-info ml-1">
+              {{ validation.tookInSec }}s <i class="fas fa-stopwatch"></i>
+            </span>
+          </div>
+          <hr />
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col" style="cursor: pointer" (click)="selectItem('3')">
+    <div class="card h-100">
+      <div class="card-body">
+        <h5
+          class="card-title badge"
+          [ngClass]="selected == '3' ? 'badge-danger' : 'badge-light'"
         >
           <strong>Fund Monitoring</strong>
         </h5>
@@ -49,108 +153,4 @@
       </div>
     </div>
   </div>
-  <div class="col" style="cursor: pointer" (click)="selectItem('2')">
-    <div class="card h-100">
-      <div class="card-body">
-        <h5
-          class="card-title badge"
-          [ngClass]="selected == '2' ? 'badge-info' : 'badge-light'"
-        >
-          <strong>Dispatch Validation</strong>
-        </h5>
-        <br />
-        <br />
-        <div class="row" *ngFor="let validation of validations">
-          <div class="col-sm-2">
-            <h6>{{ validation.customerCode }}</h6>
-          </div>
-          <div class="col-sm-4">
-            <h6>{{ validation.dispatchNo }}</h6>
-          </div>
-          <div class="col-sm-6 text-right">
-            @if (validation.isFundLack) {
-            <span class="badge badge-pill badge-danger ml-1"
-              >Insufficient Fund</span
-            >
-            } @else if (!validation.isFundLack) {
-            <span class="badge badge-pill badge-success ml-1"
-              >Sufficient Fund</span
-            >
-            } @if (validation.isValid) {
-            <span class="badge badge-pill badge-success ml-1">Valid</span>
-            } @else if (!validation.isValid) {
-            <span class="badge badge-pill badge-danger ml-1">Invalid</span>
-            }
-            <span class="badge badge-pill badge-info ml-1">
-              {{ validation.tookInSec }}s <i class="fas fa-stopwatch"></i>
-            </span>
-          </div>
-          <div class="col-sm-12 mb-3 mt-2">
-            <div class="progress">
-              <div
-                class="progress-bar"
-                [class.bg-success]="validation.validationProgress == 100"
-                [class.progress-bar-animated]="
-                  validation.validationProgress < 100
-                "
-                role="progressbar"
-                aria-valuenow="dispatchvalidation.validationProgress"
-                aria-valuemin="0"
-                aria-valuemax="100"
-                style="width: {{ validation.validationProgress }}%"
-              >
-                {{ validation.validationProgress }}%
-              </div>
-            </div>
-          </div>
-          <hr />
-        </div>
-      </div>
-    </div>
-  </div>
-  @if (isAdmin) {
-  <div class="col" style="cursor: pointer" (click)="selectItem('3')">
-    <div class="card h-100">
-      <div class="card-body">
-        <h5
-          class="card-title badge"
-          [ngClass]="selected == '3' ? 'badge-info' : 'badge-light'"
-        >
-          <strong>Dispatches</strong>
-        </h5>
-        <br />
-        <br />
-        <div class="row" *ngFor="let dispatch of dispatches">
-          <div class="col-sm-6">
-            <h6>{{ dispatch.customerName }}</h6>
-          </div>
-          <div class="col-sm-6 text-right">
-            <span class="badge badge-pill badge-light">
-              {{ dispatch.totalBags }} <i class="fas fa-briefcase"></i>
-            </span>
-            <span class="badge badge-pill badge-light">
-              {{ dispatch.totalWeight | number : "1.3-3" }}
-              <i class="fas fa-weight-hanging"></i>
-            </span>
-            <span class="badge badge-pill badge-light">
-              {{ dispatch.totalCountry }} <i class="fas fa-globe-asia"></i>
-            </span>
-          </div>
-          <div class="col-sm-12 mb-3">
-            <span class="badge badge-pill badge-primary ml-1">{{
-              dispatch.postalDesc
-            }}</span>
-            <span class="badge badge-pill badge-primary ml-1">{{
-              dispatch.serviceDesc
-            }}</span>
-            <span class="badge badge-pill badge-info ml-1">{{
-              dispatch.productDesc
-            }}</span>
-          </div>
-          <hr />
-        </div>
-      </div>
-    </div>
-  </div>
-  }
 </div>

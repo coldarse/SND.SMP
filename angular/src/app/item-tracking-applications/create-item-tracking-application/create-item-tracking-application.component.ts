@@ -7,11 +7,13 @@ import {
 } from "@angular/core";
 import { AppComponentBase } from "../../../shared/app-component-base";
 import { ItemTrackingApplicationService } from "../../../shared/service-proxies/item-tracking-applications/item-tracking-application.service";
-import { BsModalRef } from "ngx-bootstrap/modal";
+import { BsModalRef, BsModalService } from "ngx-bootstrap/modal";
 import { PostalService } from "@shared/service-proxies/postals/postal.service";
 import { CustomerPostalService } from "@shared/service-proxies/customer-postals/customer-postal.service";
 import { ProductDDL } from "@shared/service-proxies/postals/model";
 import { GroupedCustomerPostal } from "@shared/service-proxies/customer-postals/model";
+import { HttpErrorResponse } from "@angular/common/http";
+import { ErrorModalComponent } from "@shared/components/error-modal/error-modal.component";
 
 @Component({
   selector: "app-create-item-tracking-application",
@@ -43,7 +45,8 @@ export class CreateItemTrackingApplicationComponent
     public _itemtrackingapplicationService: ItemTrackingApplicationService,
     public _postalService: PostalService,
     public _customerPostalService: CustomerPostalService,
-    public bsModalRef: BsModalRef
+    public bsModalRef: BsModalRef,
+    private _modalService: BsModalService
   ) {
     super(injector);
   }
@@ -77,8 +80,6 @@ export class CreateItemTrackingApplicationComponent
   save(): void {
     this.saving = true;
 
-
-
     this._itemtrackingapplicationService
       .createTrackingApplication(
         this.customerCode,
@@ -93,6 +94,19 @@ export class CreateItemTrackingApplicationComponent
           this.notify.info(this.l("SavedSuccessfully"));
           this.bsModalRef.hide();
           this.onSave.emit();
+        },
+        (error: HttpErrorResponse) => {
+          this.saving = false;
+          //Handle error
+          this.bsModalRef.hide();
+          let cc: BsModalRef;
+          cc = this._modalService.show(ErrorModalComponent, {
+            class: "modal-lg",
+            initialState: {
+              title: "",
+              errorMessage: error.message,
+            },
+          });
         },
         () => {
           this.saving = false;
