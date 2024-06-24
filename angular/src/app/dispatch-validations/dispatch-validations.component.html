@@ -166,7 +166,7 @@
                   <td>
                     <button
                       class="btn btn-danger mx-auto"
-                      [disabled]="dispatchvalidation.isValid"
+                      [disabled]="dispatchvalidation.isValid || dispatchvalidation.validationProgress != 100"
                       (click)="
                         selectedErrorDetails(dispatchvalidation.dispatchNo)
                       "
@@ -354,7 +354,7 @@
                   <td>
                     <button
                       class="btn btn-danger mx-auto"
-                      [disabled]="dispatchvalidation.isValid"
+                      [disabled]="dispatchvalidation.isValid || dispatchvalidation.validationProgress != 100"
                       (click)="
                         selectedErrorDetails(dispatchvalidation.dispatchNo)
                       "

@@ -193,7 +193,7 @@ namespace SND.SMP.Wallets
                 x.Currency.Equals(input.OGCurrency)
             )) ?? throw new UserFriendlyException("No E-Wallet Found");
 
-            var transactions = input.OGCurrency != input.Currency ? await customerTransactionRepository.FirstOrDefaultAsync(x => x.Wallet.Equals(input.Id)) : new CustomerTransaction();
+            var transactions = input.OGCurrency != input.Currency ? await customerTransactionRepository.FirstOrDefaultAsync(x => x.Wallet.Equals(ewallet.Id)) : new CustomerTransaction();
 
             /* Remove Existing E-Wallet if no transactions are made with said wallet. */
             if (transactions is null) await Repository.DeleteAsync(ewallet);
@@ -220,7 +220,7 @@ namespace SND.SMP.Wallets
                 x.Currency.Equals(input.Currency)
             )) ?? throw new UserFriendlyException("No E-Wallet Found");
 
-            var transactions = await customerTransactionRepository.FirstOrDefaultAsync(x => x.Wallet.Equals(input.Id));
+            var transactions = await customerTransactionRepository.FirstOrDefaultAsync(x => x.Wallet.Equals(ewallet.Id));
 
             /* Remove Existing E-Wallet if no transactions are made with said wallet. */
             if (transactions is null) await Repository.DeleteAsync(ewallet);
