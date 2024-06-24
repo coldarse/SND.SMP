@@ -792,10 +792,9 @@ namespace SND.SMP.DispatchConsole
             db.ChangeTracker.AutoDetectChangesEnabled = false;
 
             var existingBagNo = db.Bags.FirstOrDefault(u => bags.Contains(u.BagNo));
-            var dispatch = db.Dispatches.FirstOrDefault(u => u.Id.Equals(existingBagNo.DispatchId));
-
             if (existingBagNo is not null) 
             {
+                var dispatch = db.Dispatches.FirstOrDefault(u => u.Id.Equals(existingBagNo.DispatchId));
                 validationResult.Message = $"Bag No. {existingBagNo.BagNo} already exists in the dispatch {dispatch.DispatchNo}";
                 result = true;
             }
