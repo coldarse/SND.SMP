@@ -17,7 +17,7 @@
           <div class="row">
             <div class="col-md-6">
               @if (!showPagination) {
-              <h5 class="mt-2">Showing Latest 3 Records</h5>
+              <h5 class="mt-2">Showing Latest {{maxItems}} Records</h5>
               }
             </div>
             <div class="col-md-6">
@@ -55,7 +55,7 @@
                   <th>{{ "Service" | localize }}</th>
                   <th>{{ "Product" | localize }}</th>
                   <th>{{ "Total Bags" | localize }}</th>
-                  <th>{{ "Total Weight" | localize }}</th>
+                  <th>{{ "Total Weight" | localize }} (KG)</th>
                   <th>{{ "Total Countries" | localize }}</th>
                   <th>{{ "Status" | localize }}</th>
                   <th
@@ -78,6 +78,7 @@
                             totalItems: totalItems
                           }
                   "
+                  [ngClass]="dispatch.status == 'Upload Completed' ? 'pink' : 'green'"
                 >
                   <td>{{ dispatch.customerName }}</td>
                   <td>{{ dispatch.postalDesc }}</td>

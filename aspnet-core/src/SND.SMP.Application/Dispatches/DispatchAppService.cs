@@ -208,6 +208,28 @@ namespace SND.SMP.Dispatches
             }
             return package.GetAsByteArray();
         }
+        private static byte[] CreateDOManifestExcelFile(List<DOManifest> dataList)
+        {
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+            using ExcelPackage package = new();
+            ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("Sheet 1");
+
+            var properties = typeof(DOManifest).GetProperties();
+
+            for (int col = 0; col < properties.Length; col++)
+            {
+                worksheet.Cells[1, col + 1].Value = properties[col].Name;
+            }
+
+            for (int row = 0; row < dataList.Count; row++)
+            {
+                for (int col = 0; col < properties.Length; col++)
+                {
+                    worksheet.Cells[row + 2, col + 1].Value = properties[col].GetValue(dataList[row]);
+                }
+            }
+            return package.GetAsByteArray();
+        }
         private static byte[] CreateSLBagExcelFile(List<SLBag> dataList)
         {
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
@@ -257,6 +279,28 @@ namespace SND.SMP.Dispatches
             ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("Sheet 1");
 
             var properties = typeof(KGBag).GetProperties();
+
+            for (int col = 0; col < properties.Length; col++)
+            {
+                worksheet.Cells[1, col + 1].Value = properties[col].Name;
+            }
+
+            for (int row = 0; row < dataList.Count; row++)
+            {
+                for (int col = 0; col < properties.Length; col++)
+                {
+                    worksheet.Cells[row + 2, col + 1].Value = properties[col].GetValue(dataList[row]);
+                }
+            }
+            return package.GetAsByteArray();
+        }
+        private static byte[] CreateDOBagExcelFile(List<DOBag> dataList)
+        {
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+            using ExcelPackage package = new();
+            ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("Sheet 1");
+
+            var properties = typeof(DOBag).GetProperties();
 
             for (int col = 0; col < properties.Length; col++)
             {
@@ -858,6 +902,75 @@ namespace SND.SMP.Dispatches
             }
             return slManifest;
         }
+        private async Task<List<DOManifest>> GetDOManifest(int dispatchId, Dispatch dispatch, string countryCode = null)
+        {
+            List<DOManifest> doManifest = [];
+
+            var items = await _itemRepository.GetAllListAsync(x => x.DispatchID.Equals(dispatchId));
+
+            var bags = items.GroupBy(x => x.BagNo).Select(x => x.Key).ToList();
+
+            if (!string.IsNullOrWhiteSpace(countryCode))
+                items = items.Where(x => x.CountryCode.Equals(countryCode)).ToList();
+
+            var shippers = new List<Shipper>
+            {
+                new() { name = "CM Coordinadora Mercantil, SRL", addr = "Calle Wenceslao Alvarez No. 201, Apto.203", zip = "10153", city = "Distrito Naacional", country = "República Dominicana" },
+                new() { name = "SG7 Servicios Generales SRL", addr = "Juan Sanchez Ramirez No. 41", zip = "10103", city = "Distrito Naacional", country = "República Dominicana" },
+                new() { name = "Dasom Areun", addr = "Juan Sanchez Ramirez No. 41, Local 1-B", zip = "10103", city = "Distrito Naacional", country = "República Dominicana" },
+                new() { name = "Inversiones Tahiti", addr = "Calle Wenceslao Alvarez No. 201, Apto.203", zip = "10153", city = "Distrito Naacional", country = "República Dominicana" }
+            };
+
+            foreach (var u in items)
+            {
+                doManifest.Add(new DOManifest()
+                {
+                    MAWB = "",
+                    BagNo = u.BagNo,
+                    ETD = "",
+                    ETA = "",
+                    OrderNo = dispatch.DispatchNo,
+                    TrackingNo = u.Id,
+                    Origin = dispatch.PostalCode == "DO01" ? "TPE" : "SDQ",
+                    Destination = dispatch.PostalCode == "DO01" ? "SDQ" : "LAX",
+                    ConsigneeAccNo = "",
+                    Consignee = u.RecpName,
+                    ConsigneeAddress1 = u.Address,
+                    ConsigneeAddress2 = "",
+                    ConsigneeAddress3 = "",
+                    ConsigneeNeighbourhood = "",
+                    ConsigneeCity = u.City,
+                    ConsigneeState = "",
+                    ConsigneeZip = u.Postcode,
+                    ConsigneeCountry = u.CountryCode,
+                    ConsigneeEmail = u.Email,
+                    ConsigneePhone = u.TelNo,
+                    ConsigneeMobile = "",
+                    ConsigneeTaxId = "",
+                    Pieces = 1,
+                    Gweight = u.Weight.GetValueOrDefault(),
+                    Cweight = "",
+                    WeightType = "KG",
+                    Height = (int)u.Height.GetValueOrDefault(),
+                    Length = (int)u.Length.GetValueOrDefault(),
+                    Width = (int)u.Width.GetValueOrDefault(),
+                    Commodity = u.ItemDesc,
+                    Value = u.Price.GetValueOrDefault(),
+                    Freight = "",
+                    Currency = "USD",
+                    ServiceType = dispatch.PostalCode == "DO01" ? "PP105" : "PP101",
+                    ServiceLevel = "DDU",
+                    ShipperAccNo = "",
+                    ShipperName = u.AddressNo, //shippers[ran.Next(0, shippers.Count-1)].name,
+                    ShipperAddress1 = shippers.Where(p => p.name == u.AddressNo).Select(p => p.addr).FirstOrDefault(), //shippers[ran.Next(0, shippers.Count - 1)].addr,
+                    ShipperCity = shippers.Where(p => p.name == u.AddressNo).Select(p => p.city).FirstOrDefault(), //shippers[ran.Next(0, shippers.Count - 1)].city,
+                    ShipperZip = shippers.Where(p => p.name == u.AddressNo).Select(p => p.zip).FirstOrDefault(), //shippers[ran.Next(0, shippers.Count - 1)].zip,
+                    ShipperCountry = "DO"
+                });
+            }
+
+            return doManifest;
+        }
         private async Task<List<KGBag>> GetKGBag(int dispatchId, Dispatch dispatch, bool isPreCheckWeight, string countryCode = null)
         {
             List<KGBag> kgBag = [];
@@ -1030,6 +1143,67 @@ namespace SND.SMP.Dispatches
                 });
             }
             return slBag;
+        }
+        private async Task<List<DOBag>> GetDOBag(int dispatchId, Dispatch dispatch, bool isPreCheckWeight, string countryCode = null)
+        {
+            List<DOBag> doBag = [];
+
+            var items = await _itemRepository.GetAllListAsync(x => x.DispatchID.Equals(dispatchId));
+
+            if (!string.IsNullOrWhiteSpace(countryCode)) items = items.Where(x => x.CountryCode.Equals(countryCode)).ToList();
+
+            var dispatchDate = dispatch.DispatchDate.GetValueOrDefault().ToString("yyyy-MM-dd");
+
+            List<BagWeights> bagList = [];
+
+            if (isPreCheckWeight)
+            {
+                bagList = items
+                            .Where(u => u.Weight is not null)
+                            .GroupBy(u => u.BagNo)
+                            .Select(u => new BagWeights
+                            {
+                                BagNo = u.Key,
+                                Weight = Math.Round(u.Sum(p => Convert.ToDecimal(p.Weight) * 1000), 0)
+                            })
+                            .ToList();
+            }
+            else
+            {
+                var _bags = await _bagRepository.GetAllListAsync(x => x.DispatchId.Equals(dispatch.Id));
+                bagList = _bags
+                            .Where(u => u.DispatchId.Equals(dispatch.Id))
+                            .Select(u => new BagWeights
+                            {
+                                BagNo = u.BagNo,
+                                Weight = u.WeightPost == null ? 0 : u.WeightPost.Value * 1000
+                            })
+                            .ToList();
+            }
+
+            var bags = items.GroupBy(u => u.BagNo).ToList();
+
+            var destination = "";
+
+            var listKGCos = await _impcRepository.GetAllListAsync(x => x.Type.Equals("KG"));
+            var kgc = listKGCos.FirstOrDefault(u => u.CountryCode.Equals(countryCode));
+            if (kgc is not null) destination = kgc.AirportCode;
+
+            for (int i = 0; i < bags.Count; i++)
+            {
+                var bagNo = bags[i].Key;
+                doBag.Add(new DOBag
+                {
+                    RunningNo = i + 1,
+                    BagNo = bagNo.ToString(),
+                    Destination = destination,
+                    Qty = bags[i].Count(),
+                    Weight = bagList.FirstOrDefault(p => p.BagNo.Equals(bags[i].Key)).Weight,
+                    DispatchDate = dispatchDate
+                });
+            }
+
+            return doBag;
         }
         private async Task<List<DeductTare>> GetDeductTare(int dispatchId, decimal deductAmount, bool usePostCheckWeight = true, decimal minWeight = 3, decimal deductFactor = 1)
         {
@@ -1937,7 +2111,7 @@ namespace SND.SMP.Dispatches
                     _ => $"Stage {status}",
                 };
 
-                
+
                 dispatchInfo.Path = dispatchValidation.FirstOrDefault(x => x.DispatchNo.Equals(entity.DispatchNo)).FilePath;
 
                 result.Add(dispatchInfo);
@@ -2087,6 +2261,47 @@ namespace SND.SMP.Dispatches
                     };
                 }
             }
+            else if (code == "DO")
+            {
+                List<Dictionary<string, List<DOManifest>>> manifestList = [];
+
+                foreach (var country in countries)
+                {
+                    var model = await GetDOManifest(dispatch.Id, dispatch, country);
+
+                    if (model.Count != 0)
+                    {
+                        manifestList.Add(new Dictionary<string, List<DOManifest>>() { { $"{country}", model } });
+                    }
+                }
+
+                using (MemoryStream zipStream = new())
+                {
+                    using (ZipArchive archive = new(zipStream, ZipArchiveMode.Create, true))
+                    {
+                        var countryDicts = manifestList.SelectMany(u => u.Keys).ToList().Distinct().ToList();
+                        foreach (var countryDict in countryDicts)
+                        {
+                            using (var entryStream = new MemoryStream())
+                            {
+                                using (var entry = archive.CreateEntry($"SMGTS-{date}-{batchNo}-{countryDict}-Manifest.xlsx", System.IO.Compression.CompressionLevel.Optimal).Open())
+                                {
+                                    byte[] excelBytes = CreateDOManifestExcelFile(manifestList.First(item => item.ContainsKey(countryDict)).First().Value);
+                                    entryStream.Write(excelBytes, 0, excelBytes.Length);
+                                    entryStream.Position = 0;
+                                    entryStream.CopyTo(entry);
+                                }
+                            }
+                        }
+                    }
+
+                    byte[] zipFileBytes = zipStream.ToArray();
+                    return new FileContentResult(zipFileBytes, "application/zip")
+                    {
+                        FileDownloadName = $"{code}Manifest_{sessionID}.zip"
+                    };
+                }
+            }
             else
             {
                 var model = await GetSLManifest(dispatch.Id, dispatch, isPreCheckWeight);
@@ -2206,8 +2421,8 @@ namespace SND.SMP.Dispatches
                     {
                         var airportCode = "";
 
-                        var kgc = Cos.FirstOrDefault(u => u.CountryCode.Equals(country));
-                        if (kgc != null) airportCode = kgc.AirportCode;
+                        var gqc = Cos.FirstOrDefault(u => u.CountryCode.Equals(country));
+                        if (gqc != null) airportCode = gqc.AirportCode;
 
                         if (postalCode.Equals($"{code}02"))
                         {
@@ -2232,6 +2447,59 @@ namespace SND.SMP.Dispatches
                                 using (var entry = archive.CreateEntry($"XY-{dispatch.ProductCode}-{date}-{batchNo}-{airport}-Bag.xlsx", System.IO.Compression.CompressionLevel.Optimal).Open())
                                 {
                                     byte[] excelBytes = CreateGQBagExcelFile(bagList.First(item => item.ContainsKey(airport)).First().Value);
+                                    entryStream.Write(excelBytes, 0, excelBytes.Length);
+                                    entryStream.Position = 0;
+                                    entryStream.CopyTo(entry);
+                                }
+                            }
+                        }
+                    }
+
+                    byte[] zipFileBytes = zipStream.ToArray();
+                    return new FileContentResult(zipFileBytes, "application/zip")
+                    {
+                        FileDownloadName = $"{code}Bag_{sessionID}.zip"
+                    };
+                }
+            }
+            else if (code == "DO")
+            {
+                List<Dictionary<string, List<DOBag>>> bagList = [];
+
+                foreach (var country in countries)
+                {
+                    var model = await GetDOBag(dispatch.Id, dispatch, isPreCheckWeight, country);
+
+                    if (model.Count != 0)
+                    {
+                        var airportCode = "";
+
+                        var doc = Cos.FirstOrDefault(u => u.CountryCode.Equals(country));
+                        if (doc != null) airportCode = doc.AirportCode;
+
+                        if (postalCode.Equals($"{code}02"))
+                        {
+                            bagList.Add(new Dictionary<string, List<DOBag>>() { { $"{airportCode}-{country}", model } });
+                        }
+                        else
+                        {
+                            bagList.Add(new Dictionary<string, List<DOBag>>() { { airportCode, model } });
+                        }
+                    }
+                }
+
+                using (MemoryStream zipStream = new())
+                {
+                    using (ZipArchive archive = new(zipStream, ZipArchiveMode.Create, true))
+                    {
+                        var airports = bagList.SelectMany(u => u.Keys).ToList().Distinct().ToList();
+                        foreach (var airport in airports)
+                        {
+                            using (var entryStream = new MemoryStream())
+                            {
+                                using (var entry = archive.CreateEntry($"XY-{dispatch.ProductCode}-{date}-{batchNo}-{airport}-Bag.xlsx", System.IO.Compression.CompressionLevel.Optimal).Open())
+                                {
+                                    byte[] excelBytes = CreateDOBagExcelFile(bagList.First(item => item.ContainsKey(airport)).First().Value);
                                     entryStream.Write(excelBytes, 0, excelBytes.Length);
                                     entryStream.Position = 0;
                                     entryStream.CopyTo(entry);

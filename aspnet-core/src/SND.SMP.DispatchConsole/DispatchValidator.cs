@@ -149,6 +149,7 @@ namespace SND.SMP.DispatchConsole
             DispatchValidateDto validationResult_id_HasInvalidCheckDigit = new() { Category = "Invalid Check Digit" };
             DispatchValidateDto validationResult_country_HasInvalidCountry = new() { Category = "Invalid Country Code" };
             DispatchValidateDto validationResult_wallet_InsufficientBalance = new() { Category = "Insufficient Wallet Balance" };
+            DispatchValidateDto validationResult_Others = new() { Category = "Caught Error" };
 
             using db db = new();
             try
@@ -190,6 +191,8 @@ namespace SND.SMP.DispatchConsole
                                 productCode: DispatchProfile.ProductCode,
                                 rateOptionId: DispatchProfile.RateOptionId,
                                 paymentMode: DispatchProfile.PaymentMode);
+
+                if (pricer.ErrorMsg != "") throw new Exception(pricer.ErrorMsg);
 
                 var currency = await db.Currencies.FirstOrDefaultAsync(c => c.Id == pricer.CurrencyId);
                 CurrencyId = currency.Id;
@@ -411,77 +414,7 @@ namespace SND.SMP.DispatchConsole
 
                     if (!isValid)
                     {
-                        string validationJSON = JsonConvert.SerializeObject(validations);
-
-                        using var dbconn = new db();
-                        var ChibiKey = await dbconn.ApplicationSettings.FirstOrDefaultAsync(x => x.Name.Equals("ChibiKey"));
-                        var ChibiURL = await dbconn.ApplicationSettings.FirstOrDefaultAsync(x => x.Name.Equals("ChibiURL"));
-                        var client = new HttpClient();
-                        client.DefaultRequestHeaders.Clear();
-                        client.DefaultRequestHeaders.Add("x-api-key", ChibiKey.Value);
-                        var formData = new MultipartFormDataContent();
-
-                        var jsonContent = new StringContent(validationJSON);
-                        jsonContent.Headers.ContentType = MediaTypeHeaderValue.Parse("multipart/form-data");
-                        formData.Add(jsonContent, "file", DispatchProfile.DispatchNo + ".json");
-
-                        var request = new HttpRequestMessage
-                        {
-                            Method = HttpMethod.Post,
-                            RequestUri = new Uri(ChibiURL.Value + "upload"),
-                            Content = formData,
-                        };
-
-                        using var response = await client.SendAsync(request);
-
-                        response.EnsureSuccessStatusCode();
-                        var body = await response.Content.ReadAsStringAsync();
-                        var result = System.Text.Json.JsonSerializer.Deserialize<ChibiUpload>(body);
-                        filePath = result.url;
-
-                        if (result != null)
-                        {
-                            result.originalName = DispatchProfile.DispatchNo;
-                            //Insert to DB
-                            Chibi entity = new()
-                            {
-                                FileName = result.name == null ? "" : DateTime.Now.ToString("yyyyMMdd") + "_" + result.name,
-                                UUID = result.uuid ?? "",
-                                URL = result.url ?? "",
-                                OriginalName = result.originalName,
-                                GeneratedName = result.name ?? ""
-                            };
-
-                            await dbconn.Chibis.AddAsync(entity);
-                            await dbconn.SaveChangesAsync();
-
-                            await FileServer.InsertFileToAlbum(result.uuid, true, dbconn);
-                        }
-
-                        var apiUrl = await dbconn.ApplicationSettings.FirstOrDefaultAsync(x => x.Name.Equals("APIURL"));
-
-                        if (apiUrl != null)
-                        {
-                            var emailclient = new HttpClient();
-                            emailclient.DefaultRequestHeaders.Clear();
-
-                            PreAlertFailureEmail preAlertFailureEmail = new()
-                            {
-                                customerCode = CustomerCode,
-                                dispatchNo = DispatchProfile.DispatchNo,
-                                validations = validations
-                            };
-
-                            var content = new StringContent(JsonConvert.SerializeObject(preAlertFailureEmail), Encoding.UTF8, "application/json");
-                            var emailrequest = new HttpRequestMessage
-                            {
-                                Method = HttpMethod.Post,
-                                RequestUri = new Uri(apiUrl.Value + "services/app/EmailContent/SendPreAlertFailureEmail"),
-                                Content = content,
-                            };
-                            using var emailresponse = await emailclient.SendAsync(emailrequest);
-                        }
-
+                        await ValidationsHandling(validations, DispatchProfile.DispatchNo, CustomerCode);
                     }
                     else //---- Deduct Amount If Valid ----//
                     {
@@ -590,11 +523,88 @@ namespace SND.SMP.DispatchConsole
             }
             catch (Exception ex)
             {
+                validationResult_Others.Message = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
+                validations.Add(validationResult_Others);
+
                 await LogQueueError(new QueueErrorEventArg
                 {
                     FilePath = FilePath,
-                    ErrorMsg = ex.InnerException != null ? ex.InnerException.Message : ex.Message
+                    ErrorMsg = ex.InnerException != null ? ex.InnerException.Message : ex.Message,
+                    Validations = validations,
                 });
+            }
+        }
+
+        private static async Task ValidationsHandling(List<DispatchValidateDto> validations, string dispatchNo, string customerCode)
+        {
+            string validationJSON = JsonConvert.SerializeObject(validations);
+
+            using var dbconn = new db();
+            var ChibiKey = await dbconn.ApplicationSettings.FirstOrDefaultAsync(x => x.Name.Equals("ChibiKey"));
+            var ChibiURL = await dbconn.ApplicationSettings.FirstOrDefaultAsync(x => x.Name.Equals("ChibiURL"));
+            var client = new HttpClient();
+            client.DefaultRequestHeaders.Clear();
+            client.DefaultRequestHeaders.Add("x-api-key", ChibiKey.Value);
+            var formData = new MultipartFormDataContent();
+
+            var jsonContent = new StringContent(validationJSON);
+            jsonContent.Headers.ContentType = MediaTypeHeaderValue.Parse("multipart/form-data");
+            formData.Add(jsonContent, "file", dispatchNo + ".json");
+
+            var request = new HttpRequestMessage
+            {
+                Method = HttpMethod.Post,
+                RequestUri = new Uri(ChibiURL.Value + "upload"),
+                Content = formData,
+            };
+
+            using var response = await client.SendAsync(request);
+
+            response.EnsureSuccessStatusCode();
+            var body = await response.Content.ReadAsStringAsync();
+            var result = System.Text.Json.JsonSerializer.Deserialize<ChibiUpload>(body);
+
+            if (result != null)
+            {
+                result.originalName = dispatchNo;
+                //Insert to DB
+                Chibi entity = new()
+                {
+                    FileName = result.name == null ? "" : DateTime.Now.ToString("yyyyMMdd") + "_" + result.name,
+                    UUID = result.uuid ?? "",
+                    URL = result.url ?? "",
+                    OriginalName = result.originalName,
+                    GeneratedName = result.name ?? ""
+                };
+
+                await dbconn.Chibis.AddAsync(entity);
+                await dbconn.SaveChangesAsync();
+
+                await FileServer.InsertFileToAlbum(result.uuid, true, dbconn);
+            }
+
+            var apiUrl = await dbconn.ApplicationSettings.FirstOrDefaultAsync(x => x.Name.Equals("APIURL"));
+
+            if (apiUrl != null)
+            {
+                var emailclient = new HttpClient();
+                emailclient.DefaultRequestHeaders.Clear();
+
+                PreAlertFailureEmail preAlertFailureEmail = new()
+                {
+                    customerCode = customerCode,
+                    dispatchNo = dispatchNo,
+                    validations = validations
+                };
+
+                var content = new StringContent(JsonConvert.SerializeObject(preAlertFailureEmail), Encoding.UTF8, "application/json");
+                var emailrequest = new HttpRequestMessage
+                {
+                    Method = HttpMethod.Post,
+                    RequestUri = new Uri(apiUrl.Value + "services/app/EmailContent/SendPreAlertFailureEmail"),
+                    Content = content,
+                };
+                using var emailresponse = await emailclient.SendAsync(emailrequest);
             }
         }
 
@@ -614,6 +624,27 @@ namespace SND.SMP.DispatchConsole
                 q.TookInSec = 0;
 
                 await db.SaveChangesAsync();
+            }
+            #endregion
+
+            #region DispatchValidation
+            var dv = db.Dispatchvalidations
+                .Where(u => u.FilePath == arg.FilePath)
+                .Where(u => u.Status == DispatchValidationEnumConst.STATUS_RUNNING)
+                .FirstOrDefault();
+
+            if (dv != null)
+            {
+                dv.Status = DispatchValidationEnumConst.STATUS_FINISH;
+                dv.IsValid = 0u;
+                dv.DateCompleted = DateTime.Now;
+                dv.ValidationProgress = 100;
+                dv.IsFundLack = 0u;
+                dv.TookInSec = 0;
+
+                await db.SaveChangesAsync();
+
+                await ValidationsHandling(arg.Validations, dv.DispatchNo, dv.CustomerCode);
             }
             #endregion
         }
@@ -792,7 +823,7 @@ namespace SND.SMP.DispatchConsole
             db.ChangeTracker.AutoDetectChangesEnabled = false;
 
             var existingBagNo = db.Bags.FirstOrDefault(u => bags.Contains(u.BagNo));
-            if (existingBagNo is not null) 
+            if (existingBagNo is not null)
             {
                 var dispatch = db.Dispatches.FirstOrDefault(u => u.Id.Equals(existingBagNo.DispatchId));
                 validationResult.Message = $"Bag No. {existingBagNo.BagNo} already exists in the dispatch {dispatch.DispatchNo}";
