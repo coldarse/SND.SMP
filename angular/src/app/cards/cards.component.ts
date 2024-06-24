@@ -38,16 +38,16 @@ export class CardsComponent implements OnInit{
   }
 
   ngOnInit(): void {
-    this._customerTransactionService.getDashboardTransaction(this.isAdmin, 3, this.Customer).subscribe((data: any) => {
-      this.transactions = data.result;
+    this._dispatchService.getDashboardDispatchInfo(this.isAdmin, 3, this.Customer).subscribe((data: any) => {
+      this.dispatches = data.result;
     });
-
+    
     this._dispatchValidationService.getDashboardDispatchValidation(this.isAdmin, 3, this.Customer).subscribe((data: any) => {
       this.validations = data.result;
     });
 
-    this._dispatchService.getDashboardDispatchInfo(this.isAdmin, 3, this.Customer).subscribe((data: any) => {
-      this.dispatches = data.result;
+    this._customerTransactionService.getDashboardTransaction(this.isAdmin, 3, this.Customer).subscribe((data: any) => {
+      this.transactions = data.result;
     });
   }
 }

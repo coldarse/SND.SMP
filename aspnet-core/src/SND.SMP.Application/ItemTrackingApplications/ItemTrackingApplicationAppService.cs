@@ -39,7 +39,12 @@ namespace SND.SMP.ItemTrackingApplications
         {
             var postals = await _postalRepository.GetAllListAsync();
 
-            var postal = postals.FirstOrDefault(x => x.PostalCode[..2].Equals(PostalCode[..2]) && x.ProductCode.Equals(ProductCode));
+            var postal = 
+                postals.FirstOrDefault(x => 
+                                            x.PostalCode[..2].Equals(PostalCode[..2]) && 
+                                            x.ProductCode.Equals(ProductCode)
+                    ) 
+                ?? throw new UserFriendlyException($"Postal Code {PostalCode} or Product Code {ProductCode} combination not found.");
 
             await Repository.InsertAsync(new ItemTrackingApplication()
             {
@@ -59,6 +64,6 @@ namespace SND.SMP.ItemTrackingApplications
             return true;
         }
 
-        
+
     }
 }
