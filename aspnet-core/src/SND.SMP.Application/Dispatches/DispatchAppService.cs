@@ -2366,7 +2366,19 @@ namespace SND.SMP.Dispatches
 
                     if (model.Count != 0)
                     {
-                        bagList.Add(new Dictionary<string, List<KGBag>>() { { country, model } });
+                        var airportCode = "";
+
+                        var kgc = Cos.FirstOrDefault(u => u.CountryCode.Equals(country));
+                        if (kgc != null) airportCode = kgc.AirportCode;
+
+                        if (postalCode.Equals($"{code}02"))
+                        {
+                            bagList.Add(new Dictionary<string, List<KGBag>>() { { $"{airportCode}-{country}", model } });
+                        }
+                        else
+                        {
+                            bagList.Add(new Dictionary<string, List<KGBag>>() { { airportCode, model } });
+                        }
                     }
                 }
 
@@ -2374,14 +2386,14 @@ namespace SND.SMP.Dispatches
                 {
                     using (ZipArchive archive = new(zipStream, ZipArchiveMode.Create, true))
                     {
-                        var countryDict = bagList.SelectMany(u => u.Keys).ToList().Distinct().ToList();
-                        foreach (var country in countryDict)
+                        var airports = bagList.SelectMany(u => u.Keys).ToList().Distinct().ToList();
+                        foreach (var airport in airports)
                         {
                             using (var entryStream = new MemoryStream())
                             {
-                                using (var entry = archive.CreateEntry($"XY-{dispatch.ProductCode}-{date}-{batchNo}-{country}-Bag.xlsx", System.IO.Compression.CompressionLevel.Optimal).Open())
+                                using (var entry = archive.CreateEntry($"XY-{dispatch.ProductCode}-{date}-{batchNo}-{airport}-Bag.xlsx", System.IO.Compression.CompressionLevel.Optimal).Open())
                                 {
-                                    byte[] excelBytes = CreateKGBagExcelFile(bagList.First(item => item.ContainsKey(country)).First().Value);
+                                    byte[] excelBytes = CreateKGBagExcelFile(bagList.First(item => item.ContainsKey(airport)).First().Value);
                                     entryStream.Write(excelBytes, 0, excelBytes.Length);
                                     entryStream.Position = 0;
                                     entryStream.CopyTo(entry);
@@ -2460,19 +2472,7 @@ namespace SND.SMP.Dispatches
 
                     if (model.Count != 0)
                     {
-                        var airportCode = "";
-
-                        var doc = Cos.FirstOrDefault(u => u.CountryCode.Equals(country));
-                        if (doc != null) airportCode = doc.AirportCode;
-
-                        if (postalCode.Equals($"{code}02"))
-                        {
-                            bagList.Add(new Dictionary<string, List<DOBag>>() { { $"{airportCode}-{country}", model } });
-                        }
-                        else
-                        {
-                            bagList.Add(new Dictionary<string, List<DOBag>>() { { airportCode, model } });
-                        }
+                        bagList.Add(new Dictionary<string, List<DOBag>>() { { country, model } });
                     }
                 }
 
@@ -2480,14 +2480,14 @@ namespace SND.SMP.Dispatches
                 {
                     using (ZipArchive archive = new(zipStream, ZipArchiveMode.Create, true))
                     {
-                        var airports = bagList.SelectMany(u => u.Keys).ToList().Distinct().ToList();
-                        foreach (var airport in airports)
+                        var countryList = bagList.SelectMany(u => u.Keys).ToList().Distinct().ToList();
+                        foreach (var country in countryList)
                         {
                             using (var entryStream = new MemoryStream())
                             {
-                                using (var entry = archive.CreateEntry($"XY-{dispatch.ProductCode}-{date}-{batchNo}-{airport}-Bag.xlsx", System.IO.Compression.CompressionLevel.Optimal).Open())
+                                using (var entry = archive.CreateEntry($"XY-{dispatch.ProductCode}-{date}-{batchNo}-{country}-Bag.xlsx", System.IO.Compression.CompressionLevel.Optimal).Open())
                                 {
-                                    byte[] excelBytes = CreateDOBagExcelFile(bagList.First(item => item.ContainsKey(airport)).First().Value);
+                                    byte[] excelBytes = CreateDOBagExcelFile(bagList.First(item => item.ContainsKey(country)).First().Value);
                                     entryStream.Write(excelBytes, 0, excelBytes.Length);
                                     entryStream.Position = 0;
                                     entryStream.CopyTo(entry);
