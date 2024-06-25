@@ -390,8 +390,8 @@ namespace SND.SMP.DispatchConsole
                     dispatch.IsActive = 1;
                     dispatch.NoofBag = listBags.Count;
                     dispatch.ItemCount = itemCount;
-                    dispatch.TotalWeight = totalWeight;
-                    dispatch.TotalPrice = totalPrice;
+                    dispatch.TotalWeight = Math.Round(totalWeight, 3);
+                    dispatch.TotalPrice = Math.Round(totalPrice, 2);
                     dispatch.ImportProgress = 100;
 
                     var queueTask = db.Queues.Find(_queueId);
