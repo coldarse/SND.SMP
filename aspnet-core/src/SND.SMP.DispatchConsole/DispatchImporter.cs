@@ -111,6 +111,8 @@ namespace SND.SMP.DispatchConsole
                                     rateOptionId: _dispatchProfile.RateOptionId,
                                     paymentMode: _dispatchProfile.PaymentMode);
 
+                    if (pricer.ErrorMsg != "") throw new Exception(pricer.ErrorMsg);
+
                     var currency = await db.Currencies.FirstOrDefaultAsync(c => c.Id == pricer.CurrencyId);
                     _currencyId = currency.Id;
                     _currency = currency.Abbr;
@@ -127,7 +129,8 @@ namespace SND.SMP.DispatchConsole
                         PaymentMode = _dispatchProfile.PaymentMode,
                         CurrencyId = _currency,
                         IsActive = 0,
-                        ImportProgress = 0
+                        ImportProgress = 0,
+                        Status = (int)DispatchEnumConst.Status.Stage1,
                     };
 
                     await db.Dispatches.AddAsync(dispatch);
@@ -435,22 +438,11 @@ namespace SND.SMP.DispatchConsole
                 {
                     await DeleteDispatch(dispatchNo: _dispatchProfile.DispatchNo);
 
-                    if (ex.InnerException is not null)
+                    await LogQueueError(new QueueErrorEventArg
                     {
-                        await LogQueueError(new QueueErrorEventArg
-                        {
-                            FilePath = _filePath,
-                            ErrorMsg = ex.InnerException.Message
-                        });
-                    }
-                    else
-                    {
-                        await LogQueueError(new QueueErrorEventArg
-                        {
-                            FilePath = _filePath,
-                            ErrorMsg = ex.Message
-                        });
-                    }
+                        FilePath = _filePath,
+                        ErrorMsg = ex.InnerException != null ? ex.InnerException.Message : ex.Message,
+                    });
                 }
             }
         }
