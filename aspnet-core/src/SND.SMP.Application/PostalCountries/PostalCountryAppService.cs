@@ -108,7 +108,7 @@ namespace SND.SMP.PostalCountries
                 }
             }
 
-            await Repository.GetDbContext().Database.ExecuteSqlRawAsync("TRUNCATE TABLE tfsdb.postalcountries");
+            await Repository.GetDbContext().Database.ExecuteSqlRawAsync("TRUNCATE TABLE tfsdb.postalcountries").ConfigureAwait(false);
 
             List<PostalCountry> postalCountries = [];
             foreach (PostalCountryExcel excelItem in postalCountryExcel)

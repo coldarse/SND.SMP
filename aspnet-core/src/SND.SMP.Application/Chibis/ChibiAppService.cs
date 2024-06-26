@@ -144,7 +144,7 @@ namespace SND.SMP.Chibis
                 if (albums.Count == 0)
                 {
                     var album = await CreateAlbumAsync("ErrorDetails");
-                    await AddFileToAlbum(album.album.uuid, file_uuid);
+                    await AddFileToAlbum(album.album.uuid, file_uuid).ConfigureAwait(false);
                 }
                 else
                 {
@@ -152,38 +152,38 @@ namespace SND.SMP.Chibis
                     if (error_album == null)
                     {
                         var album = await CreateAlbumAsync("ErrorDetails");
-                        await AddFileToAlbum(album.album.uuid, file_uuid);
+                        await AddFileToAlbum(album.album.uuid, file_uuid).ConfigureAwait(false);
                     }
-                    else await AddFileToAlbum(error_album.uuid, file_uuid);
+                    else await AddFileToAlbum(error_album.uuid, file_uuid).ConfigureAwait(false);
                 }
             }
             else
             {
                 if (albums.Count == 0)
                 {
-                    if (postalCode != null) await CreateInsertPostalAlbum(postalCode[..2], file_uuid);
-                    if (serviceCode != null) await CreateInsertServiceAlbum(serviceCode, file_uuid);
-                    if (productCode != null) await CreateInsertProductAlbum(productCode, file_uuid);
+                    if (postalCode != null) await CreateInsertPostalAlbum(postalCode[..2], file_uuid).ConfigureAwait(false);
+                    if (serviceCode != null) await CreateInsertServiceAlbum(serviceCode, file_uuid).ConfigureAwait(false);
+                    if (productCode != null) await CreateInsertProductAlbum(productCode, file_uuid).ConfigureAwait(false);
                 }
                 else
                 {
                     if (postalCode != null)
                     {
                         var postal_album = albums.FirstOrDefault(a => a.name == "Postal_" + postalCode[..2]);
-                        if (postal_album == null) await CreateInsertPostalAlbum(postalCode[..2], file_uuid);
-                        else await AddFileToAlbum(postal_album.uuid, file_uuid);
+                        if (postal_album == null) await CreateInsertPostalAlbum(postalCode[..2], file_uuid).ConfigureAwait(false);
+                        else await AddFileToAlbum(postal_album.uuid, file_uuid).ConfigureAwait(false);
                     }
                     if (serviceCode != null)
                     {
                         var service_album = albums.FirstOrDefault(a => a.name == "Service_" + serviceCode);
-                        if (service_album == null) await CreateInsertServiceAlbum(serviceCode, file_uuid);
-                        else await AddFileToAlbum(service_album.uuid, file_uuid);
+                        if (service_album == null) await CreateInsertServiceAlbum(serviceCode, file_uuid).ConfigureAwait(false);
+                        else await AddFileToAlbum(service_album.uuid, file_uuid).ConfigureAwait(false);
                     }
                     if (productCode != null)
                     {
                         var product_album = albums.FirstOrDefault(a => a.name == "Product_" + productCode);
-                        if (product_album == null) await CreateInsertProductAlbum(productCode, file_uuid);
-                        else await AddFileToAlbum(product_album.uuid, file_uuid);
+                        if (product_album == null) await CreateInsertProductAlbum(productCode, file_uuid).ConfigureAwait(false);
+                        else await AddFileToAlbum(product_album.uuid, file_uuid).ConfigureAwait(false);
                     }
                 }
             }
@@ -431,19 +431,25 @@ namespace SND.SMP.Chibis
                         if (itemTracking is not null) itemTrackingsList.Add(itemTracking);
                     }
                     _itemTrackingsRepository.RemoveRange(itemTrackingsList);
+                    await _itemTrackingsRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
+
                     _itemsRepository.RemoveRange(items);
+                    await _itemsRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
+                    
                 }
 
                 var itemMins = await _itemMinsRepository.GetAllListAsync(x => x.DispatchID.Equals(dispatch.Id));
                 if (itemMins.Count > 0)
                 {
                     _itemMinsRepository.RemoveRange(itemMins);
+                    await _itemMinsRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
                 }
 
                 var bags = await _bagsRepository.GetAllListAsync(x => x.DispatchId.Equals(dispatch.Id));
                 if (bags.Count > 0)
                 {
                     _bagsRepository.RemoveRange(bags);
+                    await _bagsRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
                 }
 
                 var dispatchUsedAmount = await _dispatchUsedAmountRepository.FirstOrDefaultAsync(x => x.DispatchNo.Equals(dispatch.DispatchNo));
@@ -456,7 +462,7 @@ namespace SND.SMP.Chibis
                     {
                         var refundAmount = dispatchUsedAmount.Amount;
                         wallet.Balance += refundAmount;
-                        await _walletRepository.UpdateAsync(wallet);
+                        await _walletRepository.UpdateAsync(wallet).ConfigureAwait(false);
 
                         var eWallet = await _ewalletTypeRepository.FirstOrDefaultAsync(x => x.Id.Equals(wallet.EWalletType));
                         var currency = await _currencyRepository.FirstOrDefaultAsync(x => x.Id.Equals(wallet.Currency));
@@ -476,36 +482,36 @@ namespace SND.SMP.Chibis
                             ReferenceNo = dispatch.DispatchNo,
                             Description = $"Credited {currency.Abbr} {decimal.Round(Math.Abs(refundAmount), 2, MidpointRounding.AwayFromZero)} to {wallet.Customer}'s {wallet.Id} Wallet. Remaining {currency.Abbr} {decimal.Round(wallet.Balance, 2, MidpointRounding.AwayFromZero)}.",
                             TransactionDate = cstDateTime
-                        });
+                        }).ConfigureAwait(false);
                     }
-                    await _dispatchUsedAmountRepository.DeleteAsync(dispatchUsedAmount);
+                    await _dispatchUsedAmountRepository.DeleteAsync(dispatchUsedAmount).ConfigureAwait(false);
                 }
 
-                await _dispatchRepository.DeleteAsync(dispatch);
+                await _dispatchRepository.DeleteAsync(dispatch).ConfigureAwait(false);
             }
 
             var queues = await _queueRepository.GetAllListAsync(x => x.FilePath.Equals(excelDispatchFile.URL));
             if (queues.Count > 0)
             {
-                foreach (var queue in queues) await _queueRepository.DeleteAsync(queue);
+                foreach (var queue in queues) await _queueRepository.DeleteAsync(queue).ConfigureAwait(false);
             }
 
             foreach (var pair in dispatchFilePair)
             {
                 var uuid = await GetFileUUIDByPath(pair.URL);
-                await Repository.DeleteAsync(pair);
-                if (!uuid.Equals("")) await DeleteFile(uuid);
+                await Repository.DeleteAsync(pair).ConfigureAwait(false);
+                if (!uuid.Equals("")) await DeleteFile(uuid).ConfigureAwait(false);
             }
 
             var errorDetailsForDispatch = await Repository.GetAllListAsync(x => x.OriginalName.Equals(dispatchNo));
             foreach (var error in errorDetailsForDispatch)
             {
                 var uuid = await GetFileUUIDByPath(error.URL);
-                await Repository.DeleteAsync(error);
-                if (!uuid.Equals("")) await DeleteFile(uuid);
+                await Repository.DeleteAsync(error).ConfigureAwait(false);
+                if (!uuid.Equals("")) await DeleteFile(uuid).ConfigureAwait(false);
             }
 
-            await _dispatchValidationRepository.DeleteAsync(dispatchValidation);
+            await _dispatchValidationRepository.DeleteAsync(dispatchValidation).ConfigureAwait(false);
 
             return true;
         }
@@ -598,7 +604,7 @@ namespace SND.SMP.Chibis
                 foreach (var pair in dispatchFilePair)
                 {
                     var uuid = await GetFileUUIDByPath(pair.URL);
-                    await Repository.DeleteAsync(pair);
+                    await Repository.DeleteAsync(pair).ConfigureAwait(false);
                     if (!uuid.Equals("")) await DeleteFile(uuid);
                 }
 
@@ -614,8 +620,8 @@ namespace SND.SMP.Chibis
 
                 var deserializedFileString = Newtonsoft.Json.JsonConvert.DeserializeObject<PreCheckDetails>(fileString);
 
-                await InsertFileToAlbum(xlsxFile.uuid, false, deserializedFileString.PostalCode, deserializedFileString.ServiceCode, deserializedFileString.ProductCode);
-                await InsertFileToAlbum(jsonFile.uuid, false, deserializedFileString.PostalCode, deserializedFileString.ServiceCode, deserializedFileString.ProductCode);
+                await InsertFileToAlbum(xlsxFile.uuid, false, deserializedFileString.PostalCode, deserializedFileString.ServiceCode, deserializedFileString.ProductCode).ConfigureAwait(false);
+                await InsertFileToAlbum(jsonFile.uuid, false, deserializedFileString.PostalCode, deserializedFileString.ServiceCode, deserializedFileString.ProductCode).ConfigureAwait(false);
 
                 var queue = await _queueRepository.FirstOrDefaultAsync(x => (x.FilePath == uploadRetryPreCheck.path) && (x.EventType == "Validate Dispatch"));
 
@@ -624,7 +630,7 @@ namespace SND.SMP.Chibis
                 queue.FilePath = xlsxFile.url;
 
                 await _queueRepository.UpdateAsync(queue);
-                await _queueRepository.GetDbContext().SaveChangesAsync();
+                await _queueRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
             }
             else
             {
@@ -650,7 +656,7 @@ namespace SND.SMP.Chibis
                     fileString = Newtonsoft.Json.JsonConvert.SerializeObject(dispatchProfile);
                 }
 
-                await Repository.DeleteAsync(jsonDispatchFile);
+                await Repository.DeleteAsync(jsonDispatchFile).ConfigureAwait(false);
 
                 uploadRetryPreCheck.UploadFile = new()
                 {
@@ -662,7 +668,7 @@ namespace SND.SMP.Chibis
 
                 var deserializedFileString = Newtonsoft.Json.JsonConvert.DeserializeObject<PreCheckDetails>(fileString);
 
-                await InsertFileToAlbum(jsonFile.uuid, false, deserializedFileString.PostalCode, deserializedFileString.ServiceCode, deserializedFileString.ProductCode);
+                await InsertFileToAlbum(jsonFile.uuid, false, deserializedFileString.PostalCode, deserializedFileString.ServiceCode, deserializedFileString.ProductCode).ConfigureAwait(false);
 
                 var queue = await _queueRepository.FirstOrDefaultAsync(x => (x.FilePath == uploadRetryPreCheck.path) && (x.EventType == "Validate Dispatch"));
 
@@ -670,7 +676,7 @@ namespace SND.SMP.Chibis
                 queue.TookInSec = 0;
 
                 await _queueRepository.UpdateAsync(queue);
-                await _queueRepository.GetDbContext().SaveChangesAsync();
+                await _queueRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
             }
 
             if (uploadRetryPreCheck.dispatchNo is not null)
@@ -679,8 +685,8 @@ namespace SND.SMP.Chibis
                 foreach (var error in errorDetailsForDispatch)
                 {
                     var uuid = await GetFileUUIDByPath(error.URL);
-                    await Repository.DeleteAsync(error);
-                    if (!uuid.Equals("")) await DeleteFile(uuid);
+                    await Repository.DeleteAsync(error).ConfigureAwait(false);
+                    if (!uuid.Equals("")) await DeleteFile(uuid).ConfigureAwait(false);
                 }
             }
 
@@ -741,7 +747,7 @@ namespace SND.SMP.Chibis
                     GeneratedName = result.name ?? ""
                 });
 
-                await Repository.GetDbContext().SaveChangesAsync();
+                await Repository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
 
             }
 
@@ -765,8 +771,8 @@ namespace SND.SMP.Chibis
                 uploadPreCheck.UploadFile.fileType = "json";
                 var jsonFile = await UploadFile(uploadPreCheck.UploadFile, xlsxFile.originalName);
 
-                await InsertFileToAlbum(xlsxFile.uuid, false, uploadPreCheck.Details.PostalCode, uploadPreCheck.Details.ServiceCode, uploadPreCheck.Details.ProductCode);
-                await InsertFileToAlbum(jsonFile.uuid, false, uploadPreCheck.Details.PostalCode, uploadPreCheck.Details.ServiceCode, uploadPreCheck.Details.ProductCode);
+                await InsertFileToAlbum(xlsxFile.uuid, false, uploadPreCheck.Details.PostalCode, uploadPreCheck.Details.ServiceCode, uploadPreCheck.Details.ProductCode).ConfigureAwait(false);
+                await InsertFileToAlbum(jsonFile.uuid, false, uploadPreCheck.Details.PostalCode, uploadPreCheck.Details.ServiceCode, uploadPreCheck.Details.ProductCode).ConfigureAwait(false);
 
                 var existingQueuesByPath = await _queueRepository.GetAllListAsync(x => x.FilePath.Equals(xlsxFile.url));
 
@@ -778,7 +784,7 @@ namespace SND.SMP.Chibis
                     FilePath = xlsxFile.url,
                     DateCreated = DateTime.Now,
                     Status = "New"
-                });
+                }).ConfigureAwait(false);
 
                 return true;
             }
