@@ -39,6 +39,7 @@ using SND.SMP.EWalletTypes;
 using SND.SMP.Currencies;
 using SND.SMP.DispatchUsedAmounts;
 using SND.SMP.DispatchValidations;
+using System.Reflection;
 
 namespace SND.SMP.Dispatches
 {
@@ -153,7 +154,8 @@ namespace SND.SMP.Dispatches
 
             for (int col = 0; col < properties.Length; col++)
             {
-                worksheet.Cells[1, col + 1].Value = properties[col].Name;
+                System.ComponentModel.DisplayNameAttribute displayName = properties[col].GetCustomAttribute<System.ComponentModel.DisplayNameAttribute>();
+                worksheet.Cells[1, col + 1].Value = displayName is not null ? displayName.DisplayName : properties[col].Name;
             }
 
             for (int row = 0; row < dataList.Count; row++)
@@ -174,7 +176,8 @@ namespace SND.SMP.Dispatches
 
             for (int col = 0; col < properties.Length; col++)
             {
-                worksheet.Cells[1, col + 1].Value = properties[col].Name;
+                System.ComponentModel.DisplayNameAttribute displayName = properties[col].GetCustomAttribute<System.ComponentModel.DisplayNameAttribute>();
+                worksheet.Cells[1, col + 1].Value = displayName is not null ? displayName.DisplayName : properties[col].Name;
             }
 
             for (int row = 0; row < dataList.Count; row++)
@@ -196,7 +199,8 @@ namespace SND.SMP.Dispatches
 
             for (int col = 0; col < properties.Length; col++)
             {
-                worksheet.Cells[1, col + 1].Value = properties[col].Name;
+                System.ComponentModel.DisplayNameAttribute displayName = properties[col].GetCustomAttribute<System.ComponentModel.DisplayNameAttribute>();
+                worksheet.Cells[1, col + 1].Value = displayName is not null ? displayName.DisplayName : properties[col].Name;
             }
 
             for (int row = 0; row < dataList.Count; row++)
@@ -218,7 +222,8 @@ namespace SND.SMP.Dispatches
 
             for (int col = 0; col < properties.Length; col++)
             {
-                worksheet.Cells[1, col + 1].Value = properties[col].Name;
+                System.ComponentModel.DisplayNameAttribute displayName = properties[col].GetCustomAttribute<System.ComponentModel.DisplayNameAttribute>();
+                worksheet.Cells[1, col + 1].Value = displayName is not null ? displayName.DisplayName : properties[col].Name;
             }
 
             for (int row = 0; row < dataList.Count; row++)
@@ -239,7 +244,8 @@ namespace SND.SMP.Dispatches
 
             for (int col = 0; col < properties.Length; col++)
             {
-                worksheet.Cells[1, col + 1].Value = properties[col].Name;
+                System.ComponentModel.DisplayNameAttribute displayName = properties[col].GetCustomAttribute<System.ComponentModel.DisplayNameAttribute>();
+                worksheet.Cells[1, col + 1].Value = displayName is not null ? displayName.DisplayName : properties[col].Name;
             }
 
             for (int row = 0; row < dataList.Count; row++)
@@ -260,7 +266,8 @@ namespace SND.SMP.Dispatches
 
             for (int col = 0; col < properties.Length; col++)
             {
-                worksheet.Cells[1, col + 1].Value = properties[col].Name;
+                System.ComponentModel.DisplayNameAttribute displayName = properties[col].GetCustomAttribute<System.ComponentModel.DisplayNameAttribute>();
+                worksheet.Cells[1, col + 1].Value = displayName is not null ? displayName.DisplayName : properties[col].Name;
             }
 
             for (int row = 0; row < dataList.Count; row++)
@@ -282,7 +289,8 @@ namespace SND.SMP.Dispatches
 
             for (int col = 0; col < properties.Length; col++)
             {
-                worksheet.Cells[1, col + 1].Value = properties[col].Name;
+                System.ComponentModel.DisplayNameAttribute displayName = properties[col].GetCustomAttribute<System.ComponentModel.DisplayNameAttribute>();
+                worksheet.Cells[1, col + 1].Value = displayName is not null ? displayName.DisplayName : properties[col].Name;
             }
 
             for (int row = 0; row < dataList.Count; row++)
@@ -304,7 +312,8 @@ namespace SND.SMP.Dispatches
 
             for (int col = 0; col < properties.Length; col++)
             {
-                worksheet.Cells[1, col + 1].Value = properties[col].Name;
+                System.ComponentModel.DisplayNameAttribute displayName = properties[col].GetCustomAttribute<System.ComponentModel.DisplayNameAttribute>();
+                worksheet.Cells[1, col + 1].Value = displayName is not null ? displayName.DisplayName : properties[col].Name;
             }
 
             for (int row = 0; row < dataList.Count; row++)
@@ -908,7 +917,10 @@ namespace SND.SMP.Dispatches
 
             var items = await _itemRepository.GetAllListAsync(x => x.DispatchID.Equals(dispatchId));
 
-            var bags = items.GroupBy(x => x.BagNo).Select(x => x.Key).ToList();
+            var bags = items
+                            .GroupBy(x => x.BagNo)
+                            .Select((g, index) => new { BagNo = g.Key, index = index + 1 })
+                            .ToList();
 
             if (!string.IsNullOrWhiteSpace(countryCode))
                 items = items.Where(x => x.CountryCode.Equals(countryCode)).ToList();
@@ -921,18 +933,31 @@ namespace SND.SMP.Dispatches
                 new() { name = "Inversiones Tahiti", addr = "Calle Wenceslao Alvarez No. 201, Apto.203", zip = "10153", city = "Distrito Naacional", country = "República Dominicana" }
             };
 
+            var mapping = new List<DOMapping>
+            {
+                new() { CountryCode = "PR", Origin = "TPE", Destination = "SDQ", Service = "PP-105"},
+                new() { CountryCode = "US", Origin = "TPE", Destination = "SDQ", Service = "PP-105"},
+                new() { CountryCode = "VI", Origin = "TPE", Destination = "SDQ", Service = "PP-105"},
+                new() { CountryCode = "CA", Origin = "TPE", Destination = "SDQ", Service = "PP-105"},
+                new() { CountryCode = "MU", Origin = "SDQ", Destination = "MRU", Service = "PP-101"},
+                new() { CountryCode = "MV", Origin = "SDQ", Destination = "MLE", Service = "PP-101"},
+            };
+
             foreach (var u in items)
             {
+                var map = mapping.FirstOrDefault(x => x.CountryCode.Equals(u.CountryCode));
+                var foundBag = bags.FirstOrDefault(x => x.BagNo.Equals(u.BagNo));
+
                 doManifest.Add(new DOManifest()
                 {
                     MAWB = "",
-                    BagNo = u.BagNo,
+                    BagNo = foundBag.index.ToString(),
                     ETD = "",
                     ETA = "",
                     OrderNo = dispatch.DispatchNo,
                     TrackingNo = u.Id,
-                    Origin = dispatch.PostalCode == "DO01" ? "TPE" : "SDQ",
-                    Destination = dispatch.PostalCode == "DO01" ? "SDQ" : "LAX",
+                    Origin = map.Origin,
+                    Destination = map.Destination,
                     ConsigneeAccNo = "",
                     Consignee = u.RecpName,
                     ConsigneeAddress1 = u.Address,
@@ -958,13 +983,13 @@ namespace SND.SMP.Dispatches
                     Value = u.Price.GetValueOrDefault(),
                     Freight = "",
                     Currency = "USD",
-                    ServiceType = dispatch.PostalCode == "DO01" ? "PP105" : "PP101",
+                    ServiceType = map.Service,
                     ServiceLevel = "DDU",
                     ShipperAccNo = "",
-                    ShipperName = u.AddressNo, //shippers[ran.Next(0, shippers.Count-1)].name,
-                    ShipperAddress1 = shippers.Where(p => p.name == u.AddressNo).Select(p => p.addr).FirstOrDefault(), //shippers[ran.Next(0, shippers.Count - 1)].addr,
-                    ShipperCity = shippers.Where(p => p.name == u.AddressNo).Select(p => p.city).FirstOrDefault(), //shippers[ran.Next(0, shippers.Count - 1)].city,
-                    ShipperZip = shippers.Where(p => p.name == u.AddressNo).Select(p => p.zip).FirstOrDefault(), //shippers[ran.Next(0, shippers.Count - 1)].zip,
+                    ShipperName = u.Address2,
+                    ShipperAddress1 = shippers.Where(p => p.name == u.Address2).Select(p => p.addr).FirstOrDefault(),
+                    ShipperCity = shippers.Where(p => p.name == u.Address2).Select(p => p.city).FirstOrDefault(),
+                    ShipperZip = shippers.Where(p => p.name == u.Address2).Select(p => p.zip).FirstOrDefault(),
                     ShipperCountry = "DO"
                 });
             }
@@ -1144,6 +1169,16 @@ namespace SND.SMP.Dispatches
             }
             return slBag;
         }
+        /// <summary>
+        /// Function to prepare DO Bag list. Keep in mind that DO bag weights are in KG
+        /// </summary>
+        /// <param name="dispatchId"></param>
+        /// <param name="dispatch">Entire Dispatch Object</param>
+        /// <param name="isPreCheckWeight">indicator to get pre-check / post-check weight</param>
+        /// <param name="countryCode">nullable countryCode</param>
+        /// <returns>
+        /// Returns a list of DOBag Object
+        /// </returns>
         private async Task<List<DOBag>> GetDOBag(int dispatchId, Dispatch dispatch, bool isPreCheckWeight, string countryCode = null)
         {
             List<DOBag> doBag = [];
@@ -1164,7 +1199,7 @@ namespace SND.SMP.Dispatches
                             .Select(u => new BagWeights
                             {
                                 BagNo = u.Key,
-                                Weight = Math.Round(u.Sum(p => Convert.ToDecimal(p.Weight) * 1000), 0)
+                                Weight = u.Sum(p => Convert.ToDecimal(p.Weight))
                             })
                             .ToList();
             }
@@ -1176,18 +1211,14 @@ namespace SND.SMP.Dispatches
                             .Select(u => new BagWeights
                             {
                                 BagNo = u.BagNo,
-                                Weight = u.WeightPost == null ? 0 : u.WeightPost.Value * 1000
+                                Weight = u.WeightPost == null ? 0 : u.WeightPost.Value
                             })
                             .ToList();
             }
 
             var bags = items.GroupBy(u => u.BagNo).ToList();
 
-            var destination = "";
-
-            var listKGCos = await _impcRepository.GetAllListAsync(x => x.Type.Equals("KG"));
-            var kgc = listKGCos.FirstOrDefault(u => u.CountryCode.Equals(countryCode));
-            if (kgc is not null) destination = kgc.AirportCode;
+            var destination = countryCode ?? "";
 
             for (int i = 0; i < bags.Count; i++)
             {
@@ -1198,7 +1229,7 @@ namespace SND.SMP.Dispatches
                     BagNo = bagNo.ToString(),
                     Destination = destination,
                     Qty = bags[i].Count(),
-                    Weight = bagList.FirstOrDefault(p => p.BagNo.Equals(bags[i].Key)).Weight,
+                    Weight = Math.Round(bagList.FirstOrDefault(p => p.BagNo.Equals(bags[i].Key)).Weight, 3),
                     DispatchDate = dispatchDate
                 });
             }
@@ -1822,30 +1853,29 @@ namespace SND.SMP.Dispatches
 
             var remainingItems = await _itemRepository.GetAllListAsync(x => x.DispatchID.Equals(dispatch.Id) && x.DateStage2.Equals(null)) ?? throw new UserFriendlyException("No Items with this Dispatch");
 
-            foreach (var item in remainingItems)
+            for (int i = 0; i < remainingItems.Count; i++)
             {
-                item.DateStage2 = DateTime.Now.AddMilliseconds(random.Next(5000, 60000));
-                await _itemRepository.UpdateAsync(item);
-                await _itemRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
+                remainingItems[i].DateStage2 = DateTime.Now.AddMilliseconds(random.Next(5000, 60000));
             }
+            _itemRepository.GetDbContext().UpdateRange(remainingItems);
+            await _itemRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
 
             var remainingBags = await _bagRepository.GetAllListAsync(x => x.DispatchId.Equals(dispatch.Id)) ?? throw new UserFriendlyException("No Bags with this Dispatch");
 
-            foreach (var bag in remainingBags)
+            for (int i = 0; i < remainingBags.Count; i++)
             {
-                bag.WeightPost = (bag.WeightPre == null ? 0 : bag.WeightPre) + averageWeight;
-                bag.WeightVariance = averageWeight;
-                await _bagRepository.UpdateAsync(bag);
-                await _bagRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
+                remainingBags[i].WeightPost = (remainingBags[i].WeightPre == null ? 0 : remainingBags[i].WeightPre) + averageWeight;
+                remainingBags[i].WeightVariance = averageWeight;
             }
+            _bagRepository.GetDbContext().UpdateRange(remainingBags);
+            await _bagRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
 
             dispatch.WeightGap = weightGap;
             dispatch.WeightAveraged = averageWeight;
             dispatch.Status = 2;
             dispatch.PostCheckTotalBags = dispatch.NoofBag;
             dispatch.PostCheckTotalWeight = (dispatch.TotalWeight.Equals(null) ? 0 : dispatch.TotalWeight) + weightGap;
-            await Repository.UpdateAsync(dispatch);
-            await Repository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
+            await Repository.UpdateAsync(dispatch).ConfigureAwait(false);
 
             var weightAdjustmentBags = await _bagRepository.GetAllListAsync(x => x.DispatchId.Equals(dispatch.Id) && !x.WeightVariance.Equals(null)) ?? throw new UserFriendlyException("No Bags without WeightVariance");
 
@@ -1896,13 +1926,11 @@ namespace SND.SMP.Dispatches
                     ReferenceNo = dispatch.DispatchNo,
                     UserId = 0,
                     Weight = totalSurchargeWeight
-                });
-                await _weightAdjustmentRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
+                }).ConfigureAwait(false);
 
                 var wallet = await _walletRepository.FirstOrDefaultAsync(x => x.Customer.Equals(customer.Code) && x.Currency.Equals(rateItem.CurrencyId));
                 wallet.Balance -= totalSurchargePrice;
-                await _walletRepository.UpdateAsync(wallet);
-                await _walletRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
+                await _walletRepository.UpdateAsync(wallet).ConfigureAwait(false);
 
                 var eWallet = await _ewalletTypeRepository.FirstOrDefaultAsync(x => x.Id.Equals(wallet.EWalletType));
                 var currency = await _currencyRepository.FirstOrDefaultAsync(x => x.Id.Equals(wallet.Currency));
@@ -1946,13 +1974,11 @@ namespace SND.SMP.Dispatches
                     ReferenceNo = dispatch.DispatchNo,
                     UserId = 0,
                     Weight = totalRefundWeight
-                });
-                await _weightAdjustmentRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
+                }).ConfigureAwait(false);
 
                 var wallet = await _walletRepository.FirstOrDefaultAsync(x => x.Customer.Equals(customer.Code) && x.Currency.Equals(rateItem.CurrencyId));
                 wallet.Balance += Math.Abs(totalRefundPrice);
-                await _walletRepository.UpdateAsync(wallet);
-                await _walletRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
+                await _walletRepository.UpdateAsync(wallet).ConfigureAwait(false);
 
                 var eWallet = await _ewalletTypeRepository.FirstOrDefaultAsync(x => x.Id.Equals(wallet.EWalletType));
                 var currency = await _currencyRepository.FirstOrDefaultAsync(x => x.Id.Equals(wallet.Currency));
@@ -2284,7 +2310,7 @@ namespace SND.SMP.Dispatches
                         {
                             using (var entryStream = new MemoryStream())
                             {
-                                using (var entry = archive.CreateEntry($"SMGTS-{date}-{batchNo}-{countryDict}-Manifest.xlsx", System.IO.Compression.CompressionLevel.Optimal).Open())
+                                using (var entry = archive.CreateEntry($"XY-{dispatch.ProductCode}-{date}-{batchNo}-{countryDict}-Manifest.xlsx", System.IO.Compression.CompressionLevel.Optimal).Open())
                                 {
                                     byte[] excelBytes = CreateDOManifestExcelFile(manifestList.First(item => item.ContainsKey(countryDict)).First().Value);
                                     entryStream.Write(excelBytes, 0, excelBytes.Length);
