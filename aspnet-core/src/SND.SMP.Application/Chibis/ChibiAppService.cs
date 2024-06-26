@@ -420,27 +420,30 @@ namespace SND.SMP.Chibis
             if (dispatch is not null)
             {
                 var items = await _itemsRepository.GetAllListAsync(x => x.DispatchID.Equals(dispatch.Id));
+                var itemTrackings = await _itemTrackingsRepository.GetAllListAsync();
 
                 if (items.Count > 0)
                 {
+                    List<ItemTracking> itemTrackingsList = [];
                     foreach (var item in items)
                     {
-                        var itemTracking = await _itemTrackingsRepository.FirstOrDefaultAsync(x => x.TrackingNo.Equals(item.Id));
-                        if (itemTracking is not null) await _itemTrackingsRepository.DeleteAsync(itemTracking);
-                        await _itemsRepository.DeleteAsync(item);
+                        var itemTracking = itemTrackings.FirstOrDefault(x => x.TrackingNo.Equals(item.Id));
+                        if (itemTracking is not null) itemTrackingsList.Add(itemTracking);
                     }
+                    _itemTrackingsRepository.RemoveRange(itemTrackingsList);
+                    _itemsRepository.RemoveRange(items);
                 }
 
                 var itemMins = await _itemMinsRepository.GetAllListAsync(x => x.DispatchID.Equals(dispatch.Id));
                 if (itemMins.Count > 0)
                 {
-                    foreach (var itemMin in itemMins) await _itemMinsRepository.DeleteAsync(itemMin);
+                    _itemMinsRepository.RemoveRange(itemMins);
                 }
 
                 var bags = await _bagsRepository.GetAllListAsync(x => x.DispatchId.Equals(dispatch.Id));
                 if (bags.Count > 0)
                 {
-                    foreach (var bag in bags) await _bagsRepository.DeleteAsync(bag);
+                    _bagsRepository.RemoveRange(bags);
                 }
 
                 var dispatchUsedAmount = await _dispatchUsedAmountRepository.FirstOrDefaultAsync(x => x.DispatchNo.Equals(dispatch.DispatchNo));
