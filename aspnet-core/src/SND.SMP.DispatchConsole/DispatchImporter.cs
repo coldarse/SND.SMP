@@ -164,7 +164,7 @@ namespace SND.SMP.DispatchConsole
                                 var strProductCode = reader[3].ToString()!;
                                 var bagNo = reader[4].ToString()!;
                                 var countryCode = reader[5].ToString()!;
-                                var weight = Math.Round(Convert.ToDecimal(reader[6]), 3);
+                                var weight = Convert.ToDecimal(reader[6]);
                                 var itemId = reader[7].ToString()!;
                                 var sealNo = reader[8].ToString()!;
                                 var itemValue = Convert.ToDecimal(reader[10]);
