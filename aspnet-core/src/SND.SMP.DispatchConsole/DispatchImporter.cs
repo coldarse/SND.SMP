@@ -58,7 +58,7 @@ namespace SND.SMP.DispatchConsole
                     newTask.ErrorMsg = null;
                     newTask.TookInSec = 0;
 
-                    await db.SaveChangesAsync();
+                    await db.SaveChangesAsync().ConfigureAwait(false);
                 }
             }
 
@@ -137,7 +137,7 @@ namespace SND.SMP.DispatchConsole
                     };
 
                     await db.Dispatches.AddAsync(dispatch);
-                    await db.SaveChangesAsync();
+                    await db.SaveChangesAsync().ConfigureAwait(false);
 
                     var rowTouched = 0;
                     var listItems = new List<DispatchItemDto>();
@@ -249,7 +249,7 @@ namespace SND.SMP.DispatchConsole
                                 var blockMilestone = rowTouched % BlockSize;
                                 if (blockMilestone == 0)
                                 {
-                                    await db.Bags.AddRangeAsync(listBags.Where(u => u.Id == 0));
+                                    await db.Bags.AddRangeAsync(listBags.Where(u => u.Id == 0)).ConfigureAwait(false);
                                     await db.SaveChangesAsync();
 
                                     await db.Items.AddRangeAsync(listItems.Select(u => new EF.Item
@@ -288,7 +288,7 @@ namespace SND.SMP.DispatchConsole
                                         PassportNo = u.IdentityNo,
                                         DateStage1 = DateTime.Now,
                                         Status = (int)DispatchEnumConst.Status.Stage1
-                                    }));
+                                    })).ConfigureAwait(false);
 
                                     await db.Itemmins.AddRangeAsync(listItems.Select(u => new EF.Itemmin
                                     {
@@ -306,7 +306,7 @@ namespace SND.SMP.DispatchConsole
                                         Address = u.Address.Truncate(100, ".."),
                                         City = u.City.Truncate(30, ".."),
                                         Status = (int)DispatchEnumConst.Status.Stage1
-                                    }));
+                                    })).ConfigureAwait(false);
 
                                     dispatch.ImportProgress = Convert.ToInt32(Convert.ToDecimal(itemCount / Convert.ToDecimal(rowCount)) * 100);
 
@@ -323,7 +323,7 @@ namespace SND.SMP.DispatchConsole
                     #region Remaining
                     if (listItems.Count != 0)
                     {
-                        await db.Bags.AddRangeAsync(listBags.Where(u => u.Id == 0));
+                        await db.Bags.AddRangeAsync(listBags.Where(u => u.Id == 0)).ConfigureAwait(false);
                         await db.SaveChangesAsync();
 
                         await db.Items.AddRangeAsync(listItems.Select(u => new EF.Item
@@ -362,7 +362,7 @@ namespace SND.SMP.DispatchConsole
                             PassportNo = u.IdentityNo,
                             DateStage1 = DateTime.Now,
                             Status = (int)DispatchEnumConst.Status.Stage1
-                        }));
+                        })).ConfigureAwait(false);
 
                         await db.Itemmins.AddRangeAsync(listItems.Select(u => new EF.Itemmin
                         {
@@ -380,7 +380,7 @@ namespace SND.SMP.DispatchConsole
                             Address = u.Address.Truncate(100, ".."),
                             City = u.City.Truncate(30, ".."),
                             Status = (int)DispatchEnumConst.Status.Stage1
-                        }));
+                        })).ConfigureAwait(false);
 
                         await db.SaveChangesAsync();
                     }
@@ -430,7 +430,7 @@ namespace SND.SMP.DispatchConsole
                             RequestUri = new Uri(apiUrl.Value + "services/app/EmailContent/SendPreAlertSuccessEmail"),
                             Content = content,
                         };
-                        using var emailresponse = await emailclient.SendAsync(emailrequest);
+                        await emailclient.SendAsync(emailrequest).ConfigureAwait(false);
                     }
 
                     await db.SaveChangesAsync();
@@ -438,7 +438,7 @@ namespace SND.SMP.DispatchConsole
                 }
                 catch (Exception ex)
                 {
-                    await DeleteDispatch(dispatchNo: _dispatchProfile.DispatchNo);
+                    await DeleteDispatch(dispatchNo: _dispatchProfile.DispatchNo).ConfigureAwait(false);
 
                     await LogQueueError(new QueueErrorEventArg
                     {
@@ -465,7 +465,7 @@ namespace SND.SMP.DispatchConsole
                     q.ErrorMsg = arg.ErrorMsg;
                     q.TookInSec = null;
 
-                    await db.SaveChangesAsync();
+                    await db.SaveChangesAsync().ConfigureAwait(false);
                 }
                 #endregion
             }
@@ -477,7 +477,7 @@ namespace SND.SMP.DispatchConsole
             {
                 db.Dispatches.RemoveRange(db.Dispatches.Where(u => u.DispatchNo == dispatchNo).Where(u => u.IsActive == 0).ToList());
 
-                await db.SaveChangesAsync();
+                await db.SaveChangesAsync().ConfigureAwait(false);
             }
         }
     }

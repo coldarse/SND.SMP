@@ -1481,12 +1481,12 @@ namespace SND.SMP.Dispatches
                 wa_ud.Description = $"Undid Post Check for Dispatch {dispatchNo}";
 
                 wa_ud = await _weightAdjustmentRepository.UpdateAsync(wa_ud);
-                await _weightAdjustmentRepository.GetDbContext().SaveChangesAsync();
+                await _weightAdjustmentRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
 
                 var wallet = await _walletRepository.FirstOrDefaultAsync(x => x.Customer.Equals(customer.Code) && x.Currency.Equals(rateItem.CurrencyId));
                 wallet.Balance += refundAmount;
                 await _walletRepository.UpdateAsync(wallet);
-                await _walletRepository.GetDbContext().SaveChangesAsync();
+                await _walletRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
 
                 dispatch.TotalWeight -= Math.Abs(wa_ud.Weight);
 
@@ -1518,7 +1518,7 @@ namespace SND.SMP.Dispatches
                     dispatchUsedAmount.DateTime = cstDateTime;
                     dispatchUsedAmount.Description = custTransaction.TransactionType;
 
-                    await _dispatchUsedAmountRepository.UpdateAsync(dispatchUsedAmount);
+                    await _dispatchUsedAmountRepository.UpdateAsync(dispatchUsedAmount).ConfigureAwait(false);
                 }
 
             }
@@ -1532,7 +1532,7 @@ namespace SND.SMP.Dispatches
                 dispatch.TotalWeight += wa_od is null ? 0 : Math.Abs(wa_od.Weight);
             }
 
-            await _dispatchRepository.UpdateAsync(dispatch);
+            await _dispatchRepository.UpdateAsync(dispatch).ConfigureAwait(false);
 
             return true;
         }
@@ -1558,7 +1558,7 @@ namespace SND.SMP.Dispatches
                 dispatch.Status = 2;
 
                 await _dispatchRepository.UpdateAsync(dispatch);
-                await _dispatchRepository.GetDbContext().SaveChangesAsync();
+                await _dispatchRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
 
 
                 var customerPostal = await _customerPostalRepository.FirstOrDefaultAsync(x => x.AccountNo.Equals(customer.Id) && x.Postal.Equals(dispatch.PostalCode)) ?? throw new UserFriendlyException("No Customer Postal Found with this Customer and Postal Code");
@@ -1579,11 +1579,11 @@ namespace SND.SMP.Dispatches
                         {
                             bagItem.DateStage2 = DateTime.Now.AddMilliseconds(random.Next(5000, 60000));
                             await _itemRepository.UpdateAsync(bagItem);
-                            await _itemRepository.GetDbContext().SaveChangesAsync();
+                            await _itemRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
                         }
 
                         await _bagRepository.UpdateAsync(bag);
-                        await _bagRepository.GetDbContext().SaveChangesAsync();
+                        await _bagRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
                     }
                 }
 
@@ -1622,12 +1622,12 @@ namespace SND.SMP.Dispatches
                             UserId = 0,
                             Weight = missingWeight
                         });
-                        await _refundRepository.GetDbContext().SaveChangesAsync();
+                        await _refundRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
 
                         var wallet = await _walletRepository.FirstOrDefaultAsync(x => x.Customer.Equals(customer.Code) && x.Currency.Equals(rateItem.CurrencyId));
                         wallet.Balance += totalRefund;
                         await _walletRepository.UpdateAsync(wallet);
-                        await _walletRepository.GetDbContext().SaveChangesAsync();
+                        await _walletRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
 
                         var eWallet = await _ewalletTypeRepository.FirstOrDefaultAsync(x => x.Id.Equals(wallet.EWalletType));
                         var currency = await _currencyRepository.FirstOrDefaultAsync(x => x.Id.Equals(wallet.Currency));
@@ -1657,7 +1657,7 @@ namespace SND.SMP.Dispatches
                             dispatchUsedAmount.DateTime = cstDateTime;
                             dispatchUsedAmount.Description = custTransaction.TransactionType;
 
-                            await _dispatchUsedAmountRepository.UpdateAsync(dispatchUsedAmount);
+                            await _dispatchUsedAmountRepository.UpdateAsync(dispatchUsedAmount).ConfigureAwait(false);
                         }
                     }
                 }
@@ -1714,12 +1714,12 @@ namespace SND.SMP.Dispatches
                             UserId = 0,
                             Weight = totalSurchargeWeight
                         });
-                        await _weightAdjustmentRepository.GetDbContext().SaveChangesAsync();
+                        await _weightAdjustmentRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
 
                         var wallet = await _walletRepository.FirstOrDefaultAsync(x => x.Customer.Equals(customer.Code) && x.Currency.Equals(rateItem.CurrencyId));
                         wallet.Balance -= totalSurchargePrice;
                         await _walletRepository.UpdateAsync(wallet);
-                        await _walletRepository.GetDbContext().SaveChangesAsync();
+                        await _walletRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
 
                         var eWallet = await _ewalletTypeRepository.FirstOrDefaultAsync(x => x.Id.Equals(wallet.EWalletType));
                         var currency = await _currencyRepository.FirstOrDefaultAsync(x => x.Id.Equals(wallet.Currency));
@@ -1749,7 +1749,7 @@ namespace SND.SMP.Dispatches
                             dispatchUsedAmount.DateTime = cstDateTime;
                             dispatchUsedAmount.Description = custTransaction.TransactionType;
 
-                            await _dispatchUsedAmountRepository.UpdateAsync(dispatchUsedAmount);
+                            await _dispatchUsedAmountRepository.UpdateAsync(dispatchUsedAmount).ConfigureAwait(false);
                         }
                     }
 
@@ -1765,12 +1765,12 @@ namespace SND.SMP.Dispatches
                             UserId = 0,
                             Weight = totalRefundWeight
                         });
-                        await _weightAdjustmentRepository.GetDbContext().SaveChangesAsync();
+                        await _weightAdjustmentRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
 
                         var wallet = await _walletRepository.FirstOrDefaultAsync(x => x.Customer.Equals(customer.Code) && x.Currency.Equals(rateItem.CurrencyId));
                         wallet.Balance += Math.Abs(totalRefundPrice);
                         await _walletRepository.UpdateAsync(wallet);
-                        await _walletRepository.GetDbContext().SaveChangesAsync();
+                        await _walletRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
 
                         var eWallet = await _ewalletTypeRepository.FirstOrDefaultAsync(x => x.Id.Equals(wallet.EWalletType));
                         var currency = await _currencyRepository.FirstOrDefaultAsync(x => x.Id.Equals(wallet.Currency));
@@ -1800,7 +1800,7 @@ namespace SND.SMP.Dispatches
                             dispatchUsedAmount.DateTime = cstDateTime;
                             dispatchUsedAmount.Description = custTransaction.TransactionType;
 
-                            await _dispatchUsedAmountRepository.UpdateAsync(dispatchUsedAmount);
+                            await _dispatchUsedAmountRepository.UpdateAsync(dispatchUsedAmount).ConfigureAwait(false);
                         }
                     }
                 }
@@ -1826,7 +1826,7 @@ namespace SND.SMP.Dispatches
             {
                 item.DateStage2 = DateTime.Now.AddMilliseconds(random.Next(5000, 60000));
                 await _itemRepository.UpdateAsync(item);
-                await _itemRepository.GetDbContext().SaveChangesAsync();
+                await _itemRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
             }
 
             var remainingBags = await _bagRepository.GetAllListAsync(x => x.DispatchId.Equals(dispatch.Id)) ?? throw new UserFriendlyException("No Bags with this Dispatch");
@@ -1836,7 +1836,7 @@ namespace SND.SMP.Dispatches
                 bag.WeightPost = (bag.WeightPre == null ? 0 : bag.WeightPre) + averageWeight;
                 bag.WeightVariance = averageWeight;
                 await _bagRepository.UpdateAsync(bag);
-                await _bagRepository.GetDbContext().SaveChangesAsync();
+                await _bagRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
             }
 
             dispatch.WeightGap = weightGap;
@@ -1845,7 +1845,7 @@ namespace SND.SMP.Dispatches
             dispatch.PostCheckTotalBags = dispatch.NoofBag;
             dispatch.PostCheckTotalWeight = (dispatch.TotalWeight.Equals(null) ? 0 : dispatch.TotalWeight) + weightGap;
             await Repository.UpdateAsync(dispatch);
-            await Repository.GetDbContext().SaveChangesAsync();
+            await Repository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
 
             var weightAdjustmentBags = await _bagRepository.GetAllListAsync(x => x.DispatchId.Equals(dispatch.Id) && !x.WeightVariance.Equals(null)) ?? throw new UserFriendlyException("No Bags without WeightVariance");
 
@@ -1897,12 +1897,12 @@ namespace SND.SMP.Dispatches
                     UserId = 0,
                     Weight = totalSurchargeWeight
                 });
-                await _weightAdjustmentRepository.GetDbContext().SaveChangesAsync();
+                await _weightAdjustmentRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
 
                 var wallet = await _walletRepository.FirstOrDefaultAsync(x => x.Customer.Equals(customer.Code) && x.Currency.Equals(rateItem.CurrencyId));
                 wallet.Balance -= totalSurchargePrice;
                 await _walletRepository.UpdateAsync(wallet);
-                await _walletRepository.GetDbContext().SaveChangesAsync();
+                await _walletRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
 
                 var eWallet = await _ewalletTypeRepository.FirstOrDefaultAsync(x => x.Id.Equals(wallet.EWalletType));
                 var currency = await _currencyRepository.FirstOrDefaultAsync(x => x.Id.Equals(wallet.Currency));
@@ -1932,7 +1932,7 @@ namespace SND.SMP.Dispatches
                     dispatchUsedAmount.DateTime = cstDateTime;
                     dispatchUsedAmount.Description = custTransaction.TransactionType;
 
-                    await _dispatchUsedAmountRepository.UpdateAsync(dispatchUsedAmount);
+                    await _dispatchUsedAmountRepository.UpdateAsync(dispatchUsedAmount).ConfigureAwait(false);
                 }
             }
 
@@ -1947,12 +1947,12 @@ namespace SND.SMP.Dispatches
                     UserId = 0,
                     Weight = totalRefundWeight
                 });
-                await _weightAdjustmentRepository.GetDbContext().SaveChangesAsync();
+                await _weightAdjustmentRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
 
                 var wallet = await _walletRepository.FirstOrDefaultAsync(x => x.Customer.Equals(customer.Code) && x.Currency.Equals(rateItem.CurrencyId));
                 wallet.Balance += Math.Abs(totalRefundPrice);
                 await _walletRepository.UpdateAsync(wallet);
-                await _walletRepository.GetDbContext().SaveChangesAsync();
+                await _walletRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
 
                 var eWallet = await _ewalletTypeRepository.FirstOrDefaultAsync(x => x.Id.Equals(wallet.EWalletType));
                 var currency = await _currencyRepository.FirstOrDefaultAsync(x => x.Id.Equals(wallet.Currency));
@@ -1982,7 +1982,7 @@ namespace SND.SMP.Dispatches
                     dispatchUsedAmount.DateTime = cstDateTime;
                     dispatchUsedAmount.Description = custTransaction.TransactionType;
 
-                    await _dispatchUsedAmountRepository.UpdateAsync(dispatchUsedAmount);
+                    await _dispatchUsedAmountRepository.UpdateAsync(dispatchUsedAmount).ConfigureAwait(false);
                 }
             }
 
@@ -2588,7 +2588,7 @@ namespace SND.SMP.Dispatches
                     bagItem.DateStage2 = DateTime.Now.AddMilliseconds(random.Next(5000, 60000));
 
                     await _itemRepository.UpdateAsync(bagItem);
-                    await _itemRepository.GetDbContext().SaveChangesAsync();
+                    await _itemRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
                 }
 
                 var dipatchBag = dispatchBags.FirstOrDefault(x => x.BagNo.Equals(bag.BagNo)) ?? throw new UserFriendlyException("Bag not found");
@@ -2598,7 +2598,7 @@ namespace SND.SMP.Dispatches
                 dipatchBag.WeightPost = bag.WeightPost.Value >= bagPrecheckWeight ? bag.WeightPost.Value : bagPrecheckWeight;
 
                 await _bagRepository.UpdateAsync(dipatchBag);
-                await _bagRepository.GetDbContext().SaveChangesAsync();
+                await _bagRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
             }
 
             var missingBags = await _bagRepository.GetAllListAsync(x =>
@@ -2636,12 +2636,12 @@ namespace SND.SMP.Dispatches
                         UserId = 0,
                         Weight = missingWeight
                     });
-                    await _refundRepository.GetDbContext().SaveChangesAsync();
+                    await _refundRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
 
                     var wallet = await _walletRepository.FirstOrDefaultAsync(x => x.Customer.Equals(customer.Code) && x.Currency.Equals(rateItem.CurrencyId));
                     wallet.Balance += totalRefund;
                     await _walletRepository.UpdateAsync(wallet);
-                    await _walletRepository.GetDbContext().SaveChangesAsync();
+                    await _walletRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
 
                     var eWallet = await _ewalletTypeRepository.FirstOrDefaultAsync(x => x.Id.Equals(wallet.EWalletType));
                     var currency = await _currencyRepository.FirstOrDefaultAsync(x => x.Id.Equals(wallet.Currency));
@@ -2671,7 +2671,7 @@ namespace SND.SMP.Dispatches
                         dispatchUsedAmount.DateTime = cstDateTime;
                         dispatchUsedAmount.Description = custTransaction.TransactionType;
 
-                        await _dispatchUsedAmountRepository.UpdateAsync(dispatchUsedAmount);
+                        await _dispatchUsedAmountRepository.UpdateAsync(dispatchUsedAmount).ConfigureAwait(false);
                     }
                 }
             }
@@ -2727,12 +2727,12 @@ namespace SND.SMP.Dispatches
                         UserId = 0,
                         Weight = totalSurchargeWeight
                     });
-                    await _weightAdjustmentRepository.GetDbContext().SaveChangesAsync();
+                    await _weightAdjustmentRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
 
                     var wallet = await _walletRepository.FirstOrDefaultAsync(x => x.Customer.Equals(customer.Code) && x.Currency.Equals(rateItem.CurrencyId));
                     wallet.Balance -= totalSurchargePrice;
                     await _walletRepository.UpdateAsync(wallet);
-                    await _walletRepository.GetDbContext().SaveChangesAsync();
+                    await _walletRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
 
                     var eWallet = await _ewalletTypeRepository.FirstOrDefaultAsync(x => x.Id.Equals(wallet.EWalletType));
                     var currency = await _currencyRepository.FirstOrDefaultAsync(x => x.Id.Equals(wallet.Currency));
@@ -2762,7 +2762,7 @@ namespace SND.SMP.Dispatches
                         dispatchUsedAmount.DateTime = cstDateTime;
                         dispatchUsedAmount.Description = custTransaction.TransactionType;
 
-                        await _dispatchUsedAmountRepository.UpdateAsync(dispatchUsedAmount);
+                        await _dispatchUsedAmountRepository.UpdateAsync(dispatchUsedAmount).ConfigureAwait(false);
                     }
                 }
 
@@ -2778,12 +2778,12 @@ namespace SND.SMP.Dispatches
                         UserId = 0,
                         Weight = totalRefundWeight
                     });
-                    await _weightAdjustmentRepository.GetDbContext().SaveChangesAsync();
+                    await _weightAdjustmentRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
 
                     var wallet = await _walletRepository.FirstOrDefaultAsync(x => x.Customer.Equals(customer.Code) && x.Currency.Equals(rateItem.CurrencyId));
                     wallet.Balance += Math.Abs(totalRefundPrice);
                     await _walletRepository.UpdateAsync(wallet);
-                    await _walletRepository.GetDbContext().SaveChangesAsync();
+                    await _walletRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
 
                     var eWallet = await _ewalletTypeRepository.FirstOrDefaultAsync(x => x.Id.Equals(wallet.EWalletType));
                     var currency = await _currencyRepository.FirstOrDefaultAsync(x => x.Id.Equals(wallet.Currency));
@@ -2813,7 +2813,7 @@ namespace SND.SMP.Dispatches
                         dispatchUsedAmount.DateTime = cstDateTime;
                         dispatchUsedAmount.Description = custTransaction.TransactionType;
 
-                        await _dispatchUsedAmountRepository.UpdateAsync(dispatchUsedAmount);
+                        await _dispatchUsedAmountRepository.UpdateAsync(dispatchUsedAmount).ConfigureAwait(false);
                     }
                 }
             }

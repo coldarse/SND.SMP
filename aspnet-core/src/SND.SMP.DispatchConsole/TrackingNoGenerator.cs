@@ -46,7 +46,7 @@ namespace SND.SMP.DispatchConsole
 
                 application.Status = GenerateConst.Status_Generating;
 
-                await db.SaveChangesAsync();
+                await db.SaveChangesAsync().ConfigureAwait(false);
             }
 
             var review = db.ItemTrackingReviews.FirstOrDefault(x => x.ApplicationId.Equals(ApplicationId));
@@ -79,7 +79,7 @@ namespace SND.SMP.DispatchConsole
                         PrefixNo = PrefixNo.ToString(),
                         Suffix = Suffix,
                         RunningNo = 0,
-                    });
+                    }).ConfigureAwait(false);
 
                     await db.SaveChangesAsync();
 
@@ -180,7 +180,7 @@ namespace SND.SMP.DispatchConsole
                 DateTime endTime = DateTime.Now;
                 application.TookInSec = (endTime - startTime).Seconds;
 
-                await db.SaveChangesAsync();
+                await db.SaveChangesAsync().ConfigureAwait(false);
 
             }
         }
@@ -255,7 +255,7 @@ namespace SND.SMP.DispatchConsole
                     GeneratedName = result.name ?? ""
                 };
 
-                await dbconn.Chibis.AddAsync(entity);
+                await dbconn.Chibis.AddAsync(entity).ConfigureAwait(false);
                 await dbconn.SaveChangesAsync();
 
                 await FileServer.InsertFileToAlbum(result.uuid, false, dbconn, postalCode, null, productCode);

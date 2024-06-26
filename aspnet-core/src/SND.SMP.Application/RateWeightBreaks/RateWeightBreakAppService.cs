@@ -51,7 +51,7 @@ namespace SND.SMP.RateWeightBreaks
                 Abbr = currency,
                 Description = ""
             });
-            await _currencyRepository.GetDbContext().SaveChangesAsync();
+            await _currencyRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
             return currencyCreateId.Id;
         }
         private async Task<string> InsertAndGetIdForPostalOrg(string postal)
@@ -62,7 +62,7 @@ namespace SND.SMP.RateWeightBreaks
             {
                 existingPostalOrg.Name = "";
                 await _postalOrgRepository.UpdateAsync(existingPostalOrg);
-                await _postalOrgRepository.GetDbContext().SaveChangesAsync();
+                await _postalOrgRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
 
                 return existingPostalOrg.Id;
             }
@@ -76,7 +76,7 @@ namespace SND.SMP.RateWeightBreaks
 
                 await _postalOrgRepository.InsertAsync(newPostalOrg);
 
-                await _postalOrgRepository.GetDbContext().SaveChangesAsync();
+                await _postalOrgRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
 
                 return newPostalOrg.Id;
             }
@@ -92,7 +92,7 @@ namespace SND.SMP.RateWeightBreaks
                 rate.Service = "";
                 await _rateRepository.UpdateAsync(rate);
             }
-            await _rateRepository.GetDbContext().SaveChangesAsync();  
+            await _rateRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);  
 
             foreach (var distinctedRateCard in rateCards)
             {
