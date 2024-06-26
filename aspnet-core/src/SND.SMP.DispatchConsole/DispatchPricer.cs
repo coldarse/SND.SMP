@@ -118,7 +118,7 @@ namespace SND.SMP.DispatchConsole
 
 					if (rate != null)
 					{
-						price = Math.Round(rate.Total.GetValueOrDefault() * weight, 2) + rate.RegisteredFee.GetValueOrDefault();
+						price = rate.Total.GetValueOrDefault() * weight + rate.RegisteredFee.GetValueOrDefault();
 					}
 				}
 			}
@@ -133,7 +133,7 @@ namespace SND.SMP.DispatchConsole
 
 				if (rate != null)
 				{
-					price = rate.ItemRate.GetValueOrDefault() + Math.Round(rate.WeightRate.GetValueOrDefault() * weight, 2);
+					price = rate.ItemRate.GetValueOrDefault() + rate.WeightRate.GetValueOrDefault() * weight;
 				}
 				else
 				{
@@ -155,10 +155,10 @@ namespace SND.SMP.DispatchConsole
 
 							if (rateExceed != null)
 							{
-								var weightExceed = Math.Round(weight - rateHeaviest.WeightMax.GetValueOrDefault(), 3);
+								var weightExceed = weight - rateHeaviest.WeightMax.GetValueOrDefault();
 
-								price = rateHeaviest.ItemRate.GetValueOrDefault() + Math.Round(rateHeaviest.WeightRate.GetValueOrDefault() * Math.Round(rateHeaviest.WeightMax.GetValueOrDefault(), 3), 2);
-								price += rateExceed.ItemRate.GetValueOrDefault() + Math.Round(rateExceed.WeightRate.GetValueOrDefault() * weightExceed, 2);
+								price = rateHeaviest.ItemRate.GetValueOrDefault() + rateHeaviest.WeightRate.GetValueOrDefault() * rateHeaviest.WeightMax.GetValueOrDefault();
+								price += rateExceed.ItemRate.GetValueOrDefault() + rateExceed.WeightRate.GetValueOrDefault() * weightExceed;
 							}
 						}
 					}

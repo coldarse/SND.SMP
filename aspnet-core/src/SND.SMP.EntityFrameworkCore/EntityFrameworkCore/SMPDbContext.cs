@@ -277,7 +277,7 @@ namespace SND.SMP.EntityFrameworkCore
                 b.Property(x => x.RateCategory                  ).HasColumnName(nameof(Item.RateCategory                  )).HasMaxLength(10);
                 b.Property(x => x.City                          ).HasColumnName(nameof(Item.City                          )).HasMaxLength(100);
                 b.Property(x => x.Address2                      ).HasColumnName(nameof(Item.Address2                      )).HasMaxLength(300);
-                b.Property(x => x.AddressNo                     ).HasColumnName(nameof(Item.AddressNo                     )).HasMaxLength(40);
+                b.Property(x => x.AddressNo                     ).HasColumnName(nameof(Item.AddressNo                     )).HasMaxLength(300);
                 b.Property(x => x.State                         ).HasColumnName(nameof(Item.State                         )).HasMaxLength(100);
                 b.Property(x => x.Length                        ).HasColumnName(nameof(Item.Length                        )).HasPrecision(18, 3);
                 b.Property(x => x.Width                         ).HasColumnName(nameof(Item.Width                         )).HasPrecision(18, 3);

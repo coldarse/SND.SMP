@@ -37,6 +37,7 @@ public class WorkerDispatchImport : BackgroundService
             var pollInMs = _configuration.GetValue<int>("Import:DispatchImportPollInSec") * 1000;
             string fileType = _configuration.GetValue<string>("Import:FileType");
             int batchSize = _configuration.GetValue<int>("Import:BatchSize");
+            int blockSize = _configuration.GetValue<int>("Import:BlockSize");
 
             DispatchImporter dispatchImporter = new DispatchImporter();
 
