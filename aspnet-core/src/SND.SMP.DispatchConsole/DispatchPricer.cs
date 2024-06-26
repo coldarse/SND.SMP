@@ -54,6 +54,7 @@ namespace SND.SMP.DispatchConsole
 
 					_rates = [.. db.Rateitems
 							.Where(u => u.RateId == _customerPostal.Rate)
+							.Where(u => u.ProductCode == _productCode)
 							.Where(u => u.ServiceCode == _serviceCode)];
 
 					if (_rates.Count > 0)
@@ -84,11 +85,11 @@ namespace SND.SMP.DispatchConsole
 										.Where(u => u.RateId == _customerPostal.Rate)
 										.Where(u => u.ProductCode == _productCode)];
 
-					if (_rates.Count > 0)
+					if (_rateWeightBreaks.Count > 0)
 					{
 						CurrencyId = _rateWeightBreaks.Select(u => u.CurrencyId).FirstOrDefault();
 
-						if (CurrencyId == 0) ErrorMsg = $"Unable to find Currency with the Id of {_rates.First().CurrencyId}";
+						if (CurrencyId == 0) ErrorMsg = $"Unable to find Currency with the Id of {_rateWeightBreaks.First().CurrencyId}";
 					}
 					else
 					{
