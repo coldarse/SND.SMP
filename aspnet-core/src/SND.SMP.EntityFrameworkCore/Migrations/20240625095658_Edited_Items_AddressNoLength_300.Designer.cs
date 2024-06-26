@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SND.SMP.EntityFrameworkCore;
 
@@ -10,9 +11,11 @@ using SND.SMP.EntityFrameworkCore;
 namespace SND.SMP.Migrations
 {
     [DbContext(typeof(SMPDbContext))]
-    partial class SMPDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240625095658_Edited_Items_AddressNoLength_300")]
+    partial class Edited_Items_AddressNoLength_300
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

@@ -121,7 +121,8 @@
                           *ngIf="
                             dispatch.dispatchNo.slice(0, 2) == 'KG' ||
                             dispatch.dispatchNo.slice(0, 2) == 'GQ' ||
-                            dispatch.dispatchNo.slice(0, 2) == 'SL'
+                            dispatch.dispatchNo.slice(0, 2) == 'SL' ||
+                            dispatch.dispatchNo.slice(0, 2) == 'DO'
                           "
                         >
                           @if (!isDownloadingManifest) { Download
@@ -146,7 +147,8 @@
                           *ngIf="
                             dispatch.dispatchNo.slice(0, 2) == 'KG' ||
                             dispatch.dispatchNo.slice(0, 2) == 'GQ' ||
-                            dispatch.dispatchNo.slice(0, 2) == 'SL'
+                            dispatch.dispatchNo.slice(0, 2) == 'SL' ||
+                            dispatch.dispatchNo.slice(0, 2) == 'DO'
                           "
                         >
                           @if (!isDownloadingBag) { Download

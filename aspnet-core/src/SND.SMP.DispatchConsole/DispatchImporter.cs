@@ -24,12 +24,15 @@ namespace SND.SMP.DispatchConsole
 
         private string _currency { get; set; }
 
+        private int BlockSize { get; set; } = 50;
+
         public DispatchImporter() { }
 
-        public async Task DiscoverAndImport(string fileType, int batchSize = 750)
+        public async Task DiscoverAndImport(string fileType, int batchSize = 750, int blockSize = 50)
         {
             _fileType = fileType;
             _batchSize = batchSize;
+            BlockSize = blockSize;
 
             using (EF.db db = new())
             {
@@ -111,6 +114,8 @@ namespace SND.SMP.DispatchConsole
                                     rateOptionId: _dispatchProfile.RateOptionId,
                                     paymentMode: _dispatchProfile.PaymentMode);
 
+                    if (pricer.ErrorMsg != "") throw new Exception(pricer.ErrorMsg);
+
                     var currency = await db.Currencies.FirstOrDefaultAsync(c => c.Id == pricer.CurrencyId);
                     _currencyId = currency.Id;
                     _currency = currency.Abbr;
@@ -127,7 +132,8 @@ namespace SND.SMP.DispatchConsole
                         PaymentMode = _dispatchProfile.PaymentMode,
                         CurrencyId = _currency,
                         IsActive = 0,
-                        ImportProgress = 0
+                        ImportProgress = 0,
+                        Status = (int)DispatchEnumConst.Status.Stage1,
                     };
 
                     await db.Dispatches.AddAsync(dispatch);
@@ -239,79 +245,78 @@ namespace SND.SMP.DispatchConsole
                                         DispatchId = dispatch.Id
                                     });
                                 }
-                            }
 
+                                var blockMilestone = rowTouched % BlockSize;
+                                if (blockMilestone == 0)
+                                {
+                                    await db.Bags.AddRangeAsync(listBags.Where(u => u.Id == 0));
+                                    await db.SaveChangesAsync();
+
+                                    await db.Items.AddRangeAsync(listItems.Select(u => new EF.Item
+                                    {
+                                        Id = u.TrackingNo,
+                                        DispatchId = dispatch.Id,
+                                        BagId = listBags.Find(p => p.BagNo == u.BagNo).Id,
+                                        DispatchDate = dispatch.DispatchDate,
+                                        Month = month,
+                                        PostalCode = u.PostalCode,
+                                        ServiceCode = u.ServiceCode,
+                                        ProductCode = u.ProductCode,
+                                        CountryCode = u.CountryCode,
+                                        Weight = u.Weight,
+                                        BagNo = u.BagNo,
+                                        SealNo = u.SealNo,
+                                        Price = u.Price,
+                                        ItemValue = u.ItemValue,
+                                        ItemDesc = u.ItemDesc,
+                                        RecpName = u.RecipientName,
+                                        TelNo = u.TelNo,
+                                        Email = u.Email,
+                                        Address = u.Address,
+                                        Postcode = u.Postcode,
+                                        City = u.City,
+                                        Address2 = u.AddressLine2,
+                                        AddressNo = u.AddressNo,
+                                        State = u.State,
+                                        Length = u.Length,
+                                        Width = u.Width,
+                                        Height = u.Height,
+                                        Hscode = u.HSCode,
+                                        Qty = u.Qty,
+                                        TaxPayMethod = u.TaxPaymentMethod,
+                                        IdentityType = u.IdentityType,
+                                        PassportNo = u.IdentityNo,
+                                        DateStage1 = DateTime.Now,
+                                        Status = (int)DispatchEnumConst.Status.Stage1
+                                    }));
+
+                                    await db.Itemmins.AddRangeAsync(listItems.Select(u => new EF.Itemmin
+                                    {
+                                        Id = u.TrackingNo,
+                                        DispatchId = dispatch.Id,
+                                        BagId = listBags.Find(p => p.BagNo == u.BagNo).Id,
+                                        DispatchDate = dispatch.DispatchDate,
+                                        Month = month,
+                                        CountryCode = u.CountryCode,
+                                        Weight = u.Weight,
+                                        ItemValue = u.ItemValue,
+                                        ItemDesc = u.ItemDesc.Truncate(60, ".."),
+                                        RecpName = u.RecipientName.Truncate(30, ".."),
+                                        TelNo = u.TelNo.Truncate(15, ".."),
+                                        Address = u.Address.Truncate(100, ".."),
+                                        City = u.City.Truncate(30, ".."),
+                                        Status = (int)DispatchEnumConst.Status.Stage1
+                                    }));
+
+                                    dispatch.ImportProgress = Convert.ToInt32(Convert.ToDecimal(itemCount / Convert.ToDecimal(rowCount)) * 100);
+
+                                    await db.SaveChangesAsync();
+
+                                    //reset and next batch
+                                    listItems.Clear();
+                                }
+                            }
                             rowTouched++;
-
-                            if ((rowTouched + 1) == _batchSize)
-                            {
-                                await db.Bags.AddRangeAsync(listBags.Where(u => u.Id == 0));
-                                await db.SaveChangesAsync();
-
-                                await db.Items.AddRangeAsync(listItems.Select(u => new EF.Item
-                                {
-                                    Id = u.TrackingNo,
-                                    DispatchId = dispatch.Id,
-                                    BagId = listBags.Find(p => p.BagNo == u.BagNo).Id,
-                                    DispatchDate = dispatch.DispatchDate,
-                                    Month = month,
-                                    PostalCode = u.PostalCode,
-                                    ServiceCode = u.ServiceCode,
-                                    ProductCode = u.ProductCode,
-                                    CountryCode = u.CountryCode,
-                                    Weight = u.Weight,
-                                    BagNo = u.BagNo,
-                                    SealNo = u.SealNo,
-                                    Price = u.Price,
-                                    ItemValue = u.ItemValue,
-                                    ItemDesc = u.ItemDesc,
-                                    RecpName = u.RecipientName,
-                                    TelNo = u.TelNo,
-                                    Email = u.Email,
-                                    Address = u.Address,
-                                    Postcode = u.Postcode,
-                                    City = u.City,
-                                    Address2 = u.AddressLine2,
-                                    AddressNo = u.AddressNo,
-                                    State = u.State,
-                                    Length = u.Length,
-                                    Width = u.Width,
-                                    Height = u.Height,
-                                    Hscode = u.HSCode,
-                                    Qty = u.Qty,
-                                    TaxPayMethod = u.TaxPaymentMethod,
-                                    IdentityType = u.IdentityType,
-                                    PassportNo = u.IdentityNo,
-                                    DateStage1 = DateTime.Now,
-                                    Status = (int)DispatchEnumConst.Status.Stage1
-                                }));
-
-                                await db.Itemmins.AddRangeAsync(listItems.Select(u => new EF.Itemmin
-                                {
-                                    Id = u.TrackingNo,
-                                    DispatchId = dispatch.Id,
-                                    BagId = listBags.Find(p => p.BagNo == u.BagNo).Id,
-                                    DispatchDate = dispatch.DispatchDate,
-                                    Month = month,
-                                    CountryCode = u.CountryCode,
-                                    Weight = u.Weight,
-                                    ItemValue = u.ItemValue,
-                                    ItemDesc = u.ItemDesc.Truncate(60, ".."),
-                                    RecpName = u.RecipientName.Truncate(30, ".."),
-                                    TelNo = u.TelNo.Truncate(15, ".."),
-                                    Address = u.Address.Truncate(100, ".."),
-                                    City = u.City.Truncate(30, ".."),
-                                    Status = (int)DispatchEnumConst.Status.Stage1
-                                }));
-
-                                dispatch.ImportProgress = Convert.ToInt32(Convert.ToDecimal(itemCount / Convert.ToDecimal(rowCount)) * 100);
-
-                                await db.SaveChangesAsync();
-
-                                //reset and next batch
-                                rowTouched = 0;
-                                listItems = [];
-                            }
                         }
                     } while (reader.NextResult());
 
@@ -385,8 +390,8 @@ namespace SND.SMP.DispatchConsole
                     dispatch.IsActive = 1;
                     dispatch.NoofBag = listBags.Count;
                     dispatch.ItemCount = itemCount;
-                    dispatch.TotalWeight = totalWeight;
-                    dispatch.TotalPrice = totalPrice;
+                    dispatch.TotalWeight = Math.Round(totalWeight, 3);
+                    dispatch.TotalPrice = Math.Round(totalPrice, 2);
                     dispatch.ImportProgress = 100;
 
                     var queueTask = db.Queues.Find(_queueId);
@@ -435,22 +440,11 @@ namespace SND.SMP.DispatchConsole
                 {
                     await DeleteDispatch(dispatchNo: _dispatchProfile.DispatchNo);
 
-                    if (ex.InnerException is not null)
+                    await LogQueueError(new QueueErrorEventArg
                     {
-                        await LogQueueError(new QueueErrorEventArg
-                        {
-                            FilePath = _filePath,
-                            ErrorMsg = ex.InnerException.Message
-                        });
-                    }
-                    else
-                    {
-                        await LogQueueError(new QueueErrorEventArg
-                        {
-                            FilePath = _filePath,
-                            ErrorMsg = ex.Message
-                        });
-                    }
+                        FilePath = _filePath,
+                        ErrorMsg = ex.InnerException != null ? ex.InnerException.Message : ex.Message,
+                    });
                 }
             }
         }
