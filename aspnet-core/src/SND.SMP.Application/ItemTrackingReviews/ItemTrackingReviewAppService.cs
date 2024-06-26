@@ -70,12 +70,12 @@ namespace SND.SMP.ItemTrackingReviews
             var entity = MapToEntity(input);
 
             await Repository.InsertAsync(entity);
-            await CurrentUnitOfWork.SaveChangesAsync();
+            await CurrentUnitOfWork.SaveChangesAsync().ConfigureAwait(false);
 
             var application = await _itemTrackingApplicationRepository.FirstOrDefaultAsync(x => x.Id.Equals(input.ApplicationId));
             application.Status = input.Status;
             await _itemTrackingApplicationRepository.UpdateAsync(application);
-            await _itemTrackingApplicationRepository.GetDbContext().SaveChangesAsync();
+            await _itemTrackingApplicationRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
 
             return MapToEntityDto(entity);
         }
@@ -88,7 +88,7 @@ namespace SND.SMP.ItemTrackingReviews
             application.TookInSec = 0;
             application.Range = "";
 
-            await _itemTrackingApplicationRepository.UpdateAsync(application);
+            await _itemTrackingApplicationRepository.UpdateAsync(application).ConfigureAwait(false);
 
             var review = await _itemTrackingReviewRepository.FirstOrDefaultAsync(x => x.ApplicationId.Equals(applicationId));
             var runningNo = await _itemIdRunningNoRepository.FirstOrDefaultAsync(x =>
@@ -100,9 +100,9 @@ namespace SND.SMP.ItemTrackingReviews
 
             runningNo.RunningNo = 0;
 
-            await _itemIdRunningNoRepository.UpdateAsync(runningNo);
+            await _itemIdRunningNoRepository.UpdateAsync(runningNo).ConfigureAwait(false);
 
-            await Repository.DeleteAsync(review);
+            await Repository.DeleteAsync(review).ConfigureAwait(false);
 
             return true;
         }
@@ -304,7 +304,7 @@ namespace SND.SMP.ItemTrackingReviews
                                     TransactionDateTime = DateTime.Now
                                 });
 
-                                await _dispatchRepository.GetDbContext().SaveChangesAsync();
+                                await _dispatchRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
                             }
 
                             string newItemIdFromSPS = null;
@@ -764,7 +764,7 @@ namespace SND.SMP.ItemTrackingReviews
                         CustomerCode = itemPath.CustomerCode,
                         DateCreated = itemPath.DateCreated,
                         ProductCode = itemPath.ProductCode,
-                    });
+                    }).ConfigureAwait(false);
                 }
             }
 
@@ -810,7 +810,7 @@ namespace SND.SMP.ItemTrackingReviews
                         DateCreated = matched.DateCreated,
                         ProductCode = matched.ProductCode,
                         DispatchNo = ""
-                    });
+                    }).ConfigureAwait(false);
                 }
             }
         }

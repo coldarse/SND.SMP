@@ -206,7 +206,7 @@ namespace SND.SMP.RateItems
                 rate.Service = "";
                 await _rateRepository.UpdateAsync(rate);
             }
-            await _rateRepository.GetDbContext().SaveChangesAsync();
+            await _rateRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
 
             List<Rate> rateCard = [];
             foreach (var distinctedRateCard in distinctedByRateCards)
@@ -273,7 +273,7 @@ namespace SND.SMP.RateItems
                 updatedCurrency.Id = currencyCreateId;
             }
 
-            await Repository.GetDbContext().Database.ExecuteSqlRawAsync("TRUNCATE TABLE tfsdb.rateitems");
+            await Repository.GetDbContext().Database.ExecuteSqlRawAsync("TRUNCATE TABLE tfsdb.rateitems").ConfigureAwait(false);
 
             List<RateItem> rateItems = [];
             foreach (RateItemExcel excelItem in rateItemExcel.ToList())

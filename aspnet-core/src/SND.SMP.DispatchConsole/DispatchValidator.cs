@@ -73,7 +73,7 @@ namespace SND.SMP.DispatchConsole
                 newTask.ErrorMsg = null;
                 newTask.TookInSec = 0;
 
-                await db.SaveChangesAsync();
+                await db.SaveChangesAsync().ConfigureAwait(false);
             }
 
             if (!string.IsNullOrWhiteSpace(FilePath))
@@ -118,7 +118,7 @@ namespace SND.SMP.DispatchConsole
                             Status = DispatchValidationEnumConst.STATUS_RUNNING,
                             TookInSec = 0,
                             ValidationProgress = 0
-                        });
+                        }).ConfigureAwait(false);
 
                         await db.SaveChangesAsync();
 
@@ -310,7 +310,7 @@ namespace SND.SMP.DispatchConsole
                                         dispatchValidation.ValidationProgress = perc;
                                     }
 
-                                    await db.SaveChangesAsync();
+                                    await db.SaveChangesAsync().ConfigureAwait(false);
                                 });
                             }
                         }
@@ -445,7 +445,7 @@ namespace SND.SMP.DispatchConsole
                             ReferenceNo = DispatchProfile.DispatchNo,
                             Description = $"Initial Balance: {Currency} {initialBalance}. Deducted {Currency} {decimal.Round(totalPrice, 2, MidpointRounding.AwayFromZero)} from {wallet.Customer}'s {wallet.Id} Wallet. Remaining {Currency} {decimal.Round(wallet.Balance, 2, MidpointRounding.AwayFromZero)}.",
                             TransactionDate = cstDateTime
-                        });
+                        }).ConfigureAwait(false);
 
                         await dbconn.DispatchUsedAmounts.AddAsync(new DispatchUsedAmount()
                         {
@@ -455,7 +455,7 @@ namespace SND.SMP.DispatchConsole
                             DispatchNo = DispatchProfile.DispatchNo,
                             DateTime = cstDateTime,
                             Description = "Pre-Alert"
-                        });
+                        }).ConfigureAwait(false);
 
                         await dbconn.SaveChangesAsync();
                     }
@@ -480,7 +480,7 @@ namespace SND.SMP.DispatchConsole
                         dispatchValidation.IsFundLack = isFundLack ? 1u : 0u;
                     }
 
-                    await db.SaveChangesAsync();
+                    await db.SaveChangesAsync().ConfigureAwait(false);
                 });
                 #endregion
 
@@ -513,7 +513,7 @@ namespace SND.SMP.DispatchConsole
                                 StartTime = DateTime.Now,
                                 EndTime = DateTime.MinValue,
                                 TookInSec = 0,
-                            });
+                            }).ConfigureAwait(false);
                         }
                     }
                 }
@@ -577,7 +577,7 @@ namespace SND.SMP.DispatchConsole
                     GeneratedName = result.name ?? ""
                 };
 
-                await dbconn.Chibis.AddAsync(entity);
+                await dbconn.Chibis.AddAsync(entity).ConfigureAwait(false);
                 await dbconn.SaveChangesAsync();
 
                 await FileServer.InsertFileToAlbum(result.uuid, true, dbconn);
@@ -604,7 +604,7 @@ namespace SND.SMP.DispatchConsole
                     RequestUri = new Uri(apiUrl.Value + "services/app/EmailContent/SendPreAlertFailureEmail"),
                     Content = content,
                 };
-                using var emailresponse = await emailclient.SendAsync(emailrequest);
+                await emailclient.SendAsync(emailrequest).ConfigureAwait(false);
             }
         }
 
@@ -623,7 +623,7 @@ namespace SND.SMP.DispatchConsole
                 q.ErrorMsg = arg.ErrorMsg;
                 q.TookInSec = 0;
 
-                await db.SaveChangesAsync();
+                await db.SaveChangesAsync().ConfigureAwait(false);
             }
             #endregion
 
@@ -642,7 +642,7 @@ namespace SND.SMP.DispatchConsole
                 dv.IsFundLack = 0u;
                 dv.TookInSec = 0;
 
-                await db.SaveChangesAsync();
+                await db.SaveChangesAsync().ConfigureAwait(false);
 
                 await ValidationsHandling(arg.Validations, dv.DispatchNo, dv.CustomerCode);
             }

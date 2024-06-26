@@ -35,7 +35,7 @@ namespace SND.SMP.Queues
             queue.TookInSec = 0;
 
             await Repository.UpdateAsync(queue);
-            await Repository.GetDbContext().SaveChangesAsync();
+            await Repository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
 
             return true;
         }

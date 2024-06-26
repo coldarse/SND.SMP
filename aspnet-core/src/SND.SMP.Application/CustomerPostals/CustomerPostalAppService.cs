@@ -211,7 +211,7 @@ namespace SND.SMP.CustomerPostals
                         Currency = (long)input.CreateWallet.Currency,
                         Balance = (decimal)input.CreateWallet.Balance,
                         Id = walletName
-                    });
+                    }).ConfigureAwait(false);
                 }
             }
 

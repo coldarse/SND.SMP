@@ -59,7 +59,7 @@ namespace SND.SMP.ItemTrackingApplications
                 Status = "Pending",
                 Range = "",
                 Path = ""
-            });
+            }).ConfigureAwait(false);
 
             return true;
         }
