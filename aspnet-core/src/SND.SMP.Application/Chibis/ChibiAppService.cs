@@ -467,10 +467,6 @@ namespace SND.SMP.Chibis
                         var eWallet = await _ewalletTypeRepository.FirstOrDefaultAsync(x => x.Id.Equals(wallet.EWalletType));
                         var currency = await _currencyRepository.FirstOrDefaultAsync(x => x.Id.Equals(wallet.Currency));
 
-                        DateTime DateTimeUTC = DateTime.UtcNow;
-                        TimeZoneInfo cstZone = TimeZoneInfo.FindSystemTimeZoneById("Singapore Standard Time");
-                        DateTime cstDateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTimeUTC, cstZone);
-
                         await _customerTransactionRepository.InsertAsync(new CustomerTransaction()
                         {
                             Wallet = wallet.Id,
@@ -481,7 +477,7 @@ namespace SND.SMP.Chibis
                             Amount = Math.Abs(refundAmount),
                             ReferenceNo = dispatch.DispatchNo,
                             Description = $"Credited {currency.Abbr} {decimal.Round(Math.Abs(refundAmount), 2, MidpointRounding.AwayFromZero)} to {wallet.Customer}'s {wallet.Id} Wallet. Remaining {currency.Abbr} {decimal.Round(wallet.Balance, 2, MidpointRounding.AwayFromZero)}.",
-                            TransactionDate = cstDateTime
+                            TransactionDate = DateTime.Now,
                         }).ConfigureAwait(false);
                     }
                     await _dispatchUsedAmountRepository.DeleteAsync(dispatchUsedAmount).ConfigureAwait(false);

@@ -428,10 +428,6 @@ namespace SND.SMP.DispatchConsole
 
                         wallet.Balance -= totalPrice;
 
-                        DateTime DateTimeUTC = DateTime.UtcNow;
-                        TimeZoneInfo cstZone = TimeZoneInfo.FindSystemTimeZoneById("Singapore Standard Time");
-                        DateTime cstDateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTimeUTC, cstZone);
-
                         var eWallet = await dbconn.EWalletTypes.FirstOrDefaultAsync(x => x.Id.Equals(wallet.EWalletType));
 
                         await dbconn.CustomerTransactions.AddAsync(new CustomerTransaction()
@@ -444,7 +440,7 @@ namespace SND.SMP.DispatchConsole
                             Amount = -totalPrice,
                             ReferenceNo = DispatchProfile.DispatchNo,
                             Description = $"Initial Balance: {Currency} {initialBalance}. Deducted {Currency} {decimal.Round(totalPrice, 2, MidpointRounding.AwayFromZero)} from {wallet.Customer}'s {wallet.Id} Wallet. Remaining {Currency} {decimal.Round(wallet.Balance, 2, MidpointRounding.AwayFromZero)}.",
-                            TransactionDate = cstDateTime
+                            TransactionDate = DateTime.Now
                         }).ConfigureAwait(false);
 
                         await dbconn.DispatchUsedAmounts.AddAsync(new DispatchUsedAmount()
@@ -453,7 +449,7 @@ namespace SND.SMP.DispatchConsole
                             Wallet = wallet.Id,
                             Amount = totalPrice,
                             DispatchNo = DispatchProfile.DispatchNo,
-                            DateTime = cstDateTime,
+                            DateTime = DateTime.Now,
                             Description = "Pre-Alert"
                         }).ConfigureAwait(false);
 

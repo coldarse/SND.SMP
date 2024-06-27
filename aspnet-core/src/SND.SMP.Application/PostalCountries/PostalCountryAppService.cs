@@ -68,7 +68,10 @@ namespace SND.SMP.PostalCountries
         {
             CheckCreatePermission();
 
-            var postalCountry = await Repository.FirstOrDefaultAsync(x => x.CountryCode.Equals(input.CountryCode));
+            var postalCountry = await Repository.FirstOrDefaultAsync(x => 
+                                                                        x.CountryCode.Equals(input.CountryCode) && 
+                                                                        x.PostalCode.Equals(input.PostalCode)
+                                                                    );
 
             if (postalCountry is not null) throw new UserFriendlyException("Postal Country Exists");
 
