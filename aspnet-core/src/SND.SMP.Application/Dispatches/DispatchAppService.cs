@@ -917,10 +917,22 @@ namespace SND.SMP.Dispatches
 
             var items = await _itemRepository.GetAllListAsync(x => x.DispatchID.Equals(dispatchId));
 
-            var bags = items
-                            .GroupBy(x => x.BagNo)
-                            .Select((g, index) => new { BagNo = g.Key, index = index + 1 })
-                            .ToList();
+            var bags = await _bagRepository.GetAllListAsync(x => x.DispatchId.Equals(dispatchId));
+
+            var bagsGroupedByCountry = bags
+                                        .GroupBy(b => b.CountryCode)
+                                        .Select(g => new
+                                        {
+                                            CountryCode = g.Key,
+                                            Bags = g.OrderBy(b => b.BagNo)
+                                                    .Select((b, index) => new
+                                                    {
+                                                        b.BagNo,
+                                                        BagIndex = index + 1
+                                                    })
+                                                    .ToList()
+                                        })
+                                        .ToList();
 
             if (!string.IsNullOrWhiteSpace(countryCode))
                 items = items.Where(x => x.CountryCode.Equals(countryCode)).ToList();
@@ -946,12 +958,15 @@ namespace SND.SMP.Dispatches
             foreach (var u in items)
             {
                 var map = mapping.FirstOrDefault(x => x.CountryCode.Equals(u.CountryCode));
-                var foundBag = bags.FirstOrDefault(x => x.BagNo.Equals(u.BagNo));
+
+                var itemCountryBags = bagsGroupedByCountry.FirstOrDefault(x => x.CountryCode.Equals(u.CountryCode)).Bags;
+
+                var foundBag = itemCountryBags.FirstOrDefault(x => x.BagNo.Equals(u.BagNo));
 
                 doManifest.Add(new DOManifest()
                 {
                     MAWB = "",
-                    BagNo = foundBag.index.ToString(),
+                    BagNo = foundBag.BagIndex.ToString(),
                     ETD = "",
                     ETA = "",
                     OrderNo = dispatch.DispatchNo,
@@ -980,7 +995,7 @@ namespace SND.SMP.Dispatches
                     Length = (int)u.Length.GetValueOrDefault(),
                     Width = (int)u.Width.GetValueOrDefault(),
                     Commodity = u.ItemDesc,
-                    Value = u.Price.GetValueOrDefault(),
+                    Value = u.ItemValue.GetValueOrDefault(),
                     Freight = "",
                     Currency = "USD",
                     ServiceType = map.Service,

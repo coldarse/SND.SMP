@@ -21,12 +21,12 @@ $SMP_DISPATCH="dannychen98/tfs_dispatch_console:v1.0.6"
 # echo ""
 # echo ""
 
-# cd ..
-# echo " Building docker image $ABP_HOST..."
-# docker build -t $ABP_HOST -f $ABP_HOST_DOCKERFILE_PATH . 
-# echo " Done. -- Building docker image $ABP_HOST..."
-# echo ""
-# echo ""
+cd ..
+echo " Building docker image $ABP_HOST..."
+docker build -t $ABP_HOST -f $ABP_HOST_DOCKERFILE_PATH . 
+echo " Done. -- Building docker image $ABP_HOST..."
+echo ""
+echo ""
 
 # echo " Pushing docker image $ABP_HOST..."
 # docker push $ABP_HOST
