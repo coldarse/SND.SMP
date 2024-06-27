@@ -163,10 +163,6 @@ namespace SND.SMP.Wallets
                 ewallet.Balance += input.Amount;
                 var update = await Repository.UpdateAsync(ewallet);
 
-                DateTime DateTimeUTC = DateTime.UtcNow;
-                TimeZoneInfo cstZone = TimeZoneInfo.FindSystemTimeZoneById("Singapore Standard Time");
-                DateTime cstDateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTimeUTC, cstZone);
-
                 var addTransaction = await customerTransactionRepository.InsertAsync(new CustomerTransaction()
                 {
                     Wallet = ewallet.Id,
@@ -177,7 +173,7 @@ namespace SND.SMP.Wallets
                     Amount = input.Amount,
                     ReferenceNo = input.ReferenceNo,
                     Description = input.Description,
-                    TransactionDate = cstDateTime
+                    TransactionDate = DateTime.Now
                 });
                 return true;
             }
