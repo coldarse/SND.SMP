@@ -43,9 +43,9 @@
                   <button
                     class="btn btn-danger"
                     (click)="BypassPostCheck()"
-                    [disabled]="isLoading"
+                    [disabled]="isBypassing"
                   >
-                    @if (!isLoading) { Bypass Post Check } @else{
+                    @if (!isBypassing) { Bypass Post Check } @else{
                     <div class="spinner-border spinner-border-sm" role="status">
                       <span class="sr-only">Loading...</span>
                     </div>
@@ -93,10 +93,14 @@
                 <div class="col-md-12 text-right">
                   <button
                     class="btn btn-primary"
-                    [disabled]="fileUpload == undefined"
+                    [disabled]="fileUpload == undefined || isUploading"
                     (click)="UploadPostCheck()"
                   >
-                    Upload
+                    @if (!isUploading) { Upload } @else{
+                      <div class="spinner-border spinner-border-sm" role="status">
+                        <span class="sr-only">Loading...</span>
+                      </div>
+                      Uploading }
                   </button>
                 </div>
               </div>
@@ -120,10 +124,15 @@
                     (click)="SubmitPostCheck()"
                     [disabled]="
                       postchecks == undefined ||
-                      postchecks.companyName == undefined
+                      postchecks.companyName == undefined ||
+                      isSaving
                     "
                   >
-                    Save Changes
+                    @if (!isSaving) { Save Changes } @else{
+                      <div class="spinner-border spinner-border-sm" role="status">
+                        <span class="sr-only">Loading...</span>
+                      </div>
+                      Saving Changes }
                   </button>
                 </div>
               </div>

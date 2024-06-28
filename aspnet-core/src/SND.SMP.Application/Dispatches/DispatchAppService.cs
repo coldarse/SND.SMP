@@ -1612,20 +1612,19 @@ namespace SND.SMP.Dispatches
                 await _dispatchRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
 
                 var dispatchBags = await _bagRepository.GetAllListAsync(x => x.DispatchId.Equals(dispatch.Id));
-
                 var customerPostal = await _customerPostalRepository.FirstOrDefaultAsync(x => x.AccountNo.Equals(customer.Id) && x.Postal.Equals(dispatch.PostalCode)) ?? throw new UserFriendlyException("No Customer Postal Found with this Customer and Postal Code");
-
                 var rate = await _rateRepository.FirstOrDefaultAsync(x => x.Id.Equals(customerPostal.Rate)) ?? throw new UserFriendlyException("No Rate Found");
-
                 var rateItem = await _rateItemRepository.FirstOrDefaultAsync(x => x.Id.Equals(customerPostal.Rate) && x.ServiceCode.Equals(dispatch.ServiceCode));
-
                 var items = await _itemRepository.GetAllListAsync(u => u.DispatchID.Equals(dispatchId));
 
-                for (int i = 0; i < getPostCheck.Bags.Count; i++)
+                var bags = getPostCheck.Bags;
+
+                for (int i = 0; i < dispatchBags.Count; i++)
                 {
-                    if (getPostCheck.Bags[i].WeightPost is not null)
+                    if (dispatchBags[i].WeightPost is null)
                     {
-                        var bagItems = items.Where(x => x.BagNo.Equals(getPostCheck.Bags[i].BagNo)).ToList();
+                        var bag = bags.FirstOrDefault(x => x.BagNo.Equals(dispatchBags[i].BagNo)); 
+                        var bagItems = items.Where(x => x.BagNo.Equals(dispatchBags[i].BagNo)).ToList();
 
                         for (int j = 0; j < bagItems.Count; j++)
                         {
@@ -1633,9 +1632,12 @@ namespace SND.SMP.Dispatches
                         }
                         _itemRepository.GetDbContext().UpdateRange(bagItems);
                         await _itemRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
+
+                        dispatchBags[i].WeightPost = bag.WeightPost;
+                        dispatchBags[i].WeightVariance = bag.WeightVariance;
                     }
                 }
-                _bagRepository.GetDbContext().UpdateRange(getPostCheck.Bags);
+                _bagRepository.GetDbContext().UpdateRange(dispatchBags);
                 await _bagRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
 
 
