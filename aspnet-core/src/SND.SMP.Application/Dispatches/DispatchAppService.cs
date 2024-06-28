@@ -939,10 +939,10 @@ namespace SND.SMP.Dispatches
 
             var shippers = new List<Shipper>
             {
-                new() { name = "CM Coordinadora Mercantil, SRL", addr = "Calle Wenceslao Alvarez No. 201, Apto.203", zip = "10153", city = "Distrito Naacional", country = "República Dominicana" },
-                new() { name = "SG7 Servicios Generales SRL", addr = "Juan Sanchez Ramirez No. 41", zip = "10103", city = "Distrito Naacional", country = "República Dominicana" },
-                new() { name = "Dasom Areun", addr = "Juan Sanchez Ramirez No. 41, Local 1-B", zip = "10103", city = "Distrito Naacional", country = "República Dominicana" },
-                new() { name = "Inversiones Tahiti", addr = "Calle Wenceslao Alvarez No. 201, Apto.203", zip = "10153", city = "Distrito Naacional", country = "República Dominicana" }
+                new() { name = "CM Coordinadora Mercantil, SRL", addr = "Calle Wenceslao Alvarez No. 201, Apto.203", zip = "10153", city = "Distrito Nacional", country = "República Dominicana" },
+                new() { name = "SG7 Servicios Generales SRL", addr = "Juan Sanchez Ramirez No. 41", zip = "10103", city = "Distrito Nacional", country = "República Dominicana" },
+                new() { name = "Dasom Areun", addr = "Juan Sanchez Ramirez No. 41, Local 1-B", zip = "10103", city = "Distrito Nacional", country = "República Dominicana" },
+                new() { name = "Inversiones Tahiti", addr = "Calle Wenceslao Alvarez No. 201, Apto.203", zip = "10153", city = "Distrito Nacional", country = "República Dominicana" }
             };
 
             var mapping = new List<DOMapping>
@@ -1231,7 +1231,16 @@ namespace SND.SMP.Dispatches
                             .ToList();
             }
 
-            var bags = items.GroupBy(u => u.BagNo).ToList();
+            var bags = items
+                            .GroupBy(u => u.BagNo)
+                            .Select(g => new
+                            {
+                                g.Key,
+                                Items = g
+                            })
+                            .OrderBy(u => u.Key)
+                            .ToList();
+
 
             var destination = countryCode ?? "";
 
@@ -1243,7 +1252,7 @@ namespace SND.SMP.Dispatches
                     RunningNo = i + 1,
                     BagNo = bagNo.ToString(),
                     Destination = destination,
-                    Qty = bags[i].Count(),
+                    Qty = bags[i].Items.Count(),
                     Weight = Math.Round(bagList.FirstOrDefault(p => p.BagNo.Equals(bags[i].Key)).Weight, 3),
                     DispatchDate = dispatchDate
                 });
@@ -1585,7 +1594,7 @@ namespace SND.SMP.Dispatches
             {
                 var random = new Random();
 
-                int? dispatchId = getPostCheck.Bags[0].DispatchId is null ? 0 : getPostCheck.Bags[0].DispatchId;
+                int dispatchId = getPostCheck.Bags[0].DispatchId is null ? 0 : (int)getPostCheck.Bags[0].DispatchId;
                 Dispatch dispatch = await _dispatchRepository.FirstOrDefaultAsync(x => x.Id.Equals(dispatchId)) ?? throw new UserFriendlyException("No dispatch found");
 
                 string productCode = dispatch.ProductCode;
@@ -1602,6 +1611,7 @@ namespace SND.SMP.Dispatches
                 await _dispatchRepository.UpdateAsync(dispatch);
                 await _dispatchRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
 
+                var dispatchBags = await _bagRepository.GetAllListAsync(x => x.DispatchId.Equals(dispatch.Id));
 
                 var customerPostal = await _customerPostalRepository.FirstOrDefaultAsync(x => x.AccountNo.Equals(customer.Id) && x.Postal.Equals(dispatch.PostalCode)) ?? throw new UserFriendlyException("No Customer Postal Found with this Customer and Postal Code");
 
@@ -1611,23 +1621,23 @@ namespace SND.SMP.Dispatches
 
                 var items = await _itemRepository.GetAllListAsync(u => u.DispatchID.Equals(dispatchId));
 
-                foreach (var bag in getPostCheck.Bags)
+                for (int i = 0; i < getPostCheck.Bags.Count; i++)
                 {
-                    if (bag.WeightPost is not null)
+                    if (getPostCheck.Bags[i].WeightPost is not null)
                     {
-                        var bagItems = items.Where(x => x.BagNo.Equals(bag.BagNo)).ToList();
+                        var bagItems = items.Where(x => x.BagNo.Equals(getPostCheck.Bags[i].BagNo)).ToList();
 
-                        foreach (var bagItem in bagItems)
+                        for (int j = 0; j < bagItems.Count; j++)
                         {
-                            bagItem.DateStage2 = DateTime.Now.AddMilliseconds(random.Next(5000, 60000));
-                            await _itemRepository.UpdateAsync(bagItem);
-                            await _itemRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
+                            bagItems[j].DateStage2 = DateTime.Now.AddMilliseconds(random.Next(5000, 60000));
                         }
-
-                        await _bagRepository.UpdateAsync(bag);
-                        await _bagRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
+                        _itemRepository.GetDbContext().UpdateRange(bagItems);
+                        await _itemRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
                     }
                 }
+                _bagRepository.GetDbContext().UpdateRange(getPostCheck.Bags);
+                await _bagRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
+
 
                 var missingBags = await _bagRepository.GetAllListAsync(x =>
                                                     x.DispatchId.Equals(dispatchId) &&
@@ -1701,7 +1711,6 @@ namespace SND.SMP.Dispatches
                 }
 
                 var waBags = await _bagRepository.GetAllListAsync(x => x.DispatchId.Equals(dispatchId) && !x.WeightVariance.Equals(null));
-
 
                 decimal totalWeightAdjustmentPrice = 0;
                 decimal totalWeightAdjustment = 0;
@@ -1787,7 +1796,6 @@ namespace SND.SMP.Dispatches
                         }
                     }
 
-
                     if (totalRefundPrice < 0)
                     {
                         await _weightAdjustmentRepository.InsertAsync(new WeightAdjustment()
@@ -1836,10 +1844,7 @@ namespace SND.SMP.Dispatches
                 }
                 return true;
             }
-
             return false;
-
-
         }
 
         public async Task<bool> ByPassPostCheck(string dispatchNo, decimal weightGap)
@@ -2549,6 +2554,64 @@ namespace SND.SMP.Dispatches
             }
         }
 
+
+        [Consumes("multipart/form-data")]
+        public async Task<GetPostCheck> UploadPostCheckForDisplay([FromForm] UploadPostCheck input)
+        {
+            if (input.file == null || input.file.Length == 0) throw new UserFriendlyException("File is no uploaded.");
+
+            DataTable dataTable = ConvertToDatatable(input.file.OpenReadStream());
+
+            if (dataTable.Rows.Count == 0) throw new UserFriendlyException("No Rows in the Uploaded Excel");
+
+            var random = new Random();
+
+            var dispatch = await Repository.FirstOrDefaultAsync(x => x.DispatchNo.Equals(input.dispatchNo)) ?? throw new UserFriendlyException("Dispatch Not Found.");
+            
+            var customer = await _customerRepository.FirstOrDefaultAsync(x => x.Code.Equals(dispatch.CustomerCode)) ?? throw new UserFriendlyException("Customer Not Found.");
+
+            var bags = await _bagRepository.GetAllListAsync(x => x.DispatchId.Equals(dispatch.Id)) ?? throw new UserFriendlyException("No Bags Found.");
+
+            List<Bag> bagList = [];
+            decimal postCheckWeight = 0m;
+            foreach (DataRow dr in dataTable.Rows)
+            {
+                if (dr.ItemArray[4].ToString() != "")
+                {
+                    var foundBag = bags.FirstOrDefault(x => x.BagNo.Equals(dr.ItemArray[4].ToString()));
+                    decimal weightPost = dr.ItemArray[6] is null ? 0 : Convert.ToDecimal(dr.ItemArray[6]);
+                    decimal variance = weightPost - (decimal)foundBag.WeightPre;
+                    bagList.Add(new Bag()
+                    {
+                        BagNo = dr.ItemArray[4].ToString(),
+                        DispatchId = dispatch.Id,
+                        CountryCode = dr.ItemArray[5].ToString(),
+                        WeightPre = foundBag.WeightPre,
+                        WeightPost = weightPost,
+                        ItemCountPre = foundBag.ItemCountPre,
+                        ItemCountPost = dr.ItemArray[7] is null ? 0 : Convert.ToInt32(dr.ItemArray[7]),
+                        WeightVariance = variance,
+                    });
+                    postCheckWeight += weightPost;
+                }
+            }
+
+            return new GetPostCheck()
+            {
+                CompanyName = customer.CompanyName ?? "",
+                CompanyCode = customer.Code ?? "",
+                DispatchNo = input.dispatchNo ?? "",
+                FlightTrucking = dispatch.FlightTrucking ?? "",
+                ETA = dispatch.ETAtoHKG ?? DateOnly.FromDateTime(DateTime.Now),
+                ATA = dispatch.ATA ?? DateTime.MinValue,
+                PreCheckNoOfBag =  dispatch.NoofBag ?? 0,
+                PostCheckNoOfBag = bagList.Count,
+                PreCheckWeight = dispatch.TotalWeight ?? Convert.ToDecimal(0),
+                PostCheckWeight = postCheckWeight,
+                Bags = bagList ?? []
+            };
+        }
+
         [Consumes("multipart/form-data")]
         public async Task<bool> UploadPostCheck([FromForm] UploadPostCheck input)
         {
@@ -2596,27 +2659,28 @@ namespace SND.SMP.Dispatches
             dispatch.PostCheckTotalWeight = postCheckTotalWeight;
             dispatch.Status = 2;
 
-            foreach (Bag bag in bags)
+            for (int i = 0; i < bags.Count; i++)
             {
-                var listItems = dispatchItems.Where(x => x.BagNo.Equals(bag.BagNo)).ToList();
+                var listItems = dispatchItems.Where(x => x.BagNo.Equals(bags[i].BagNo)).ToList();
 
-                foreach (var bagItem in listItems)
+                for (int j = 0; j < listItems.Count; j++)
                 {
-                    bagItem.DateStage2 = DateTime.Now.AddMilliseconds(random.Next(5000, 60000));
-
-                    await _itemRepository.UpdateAsync(bagItem);
-                    await _itemRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
+                    listItems[j].DateStage2 = DateTime.Now.AddMilliseconds(random.Next(5000, 60000));
                 }
+                _itemRepository.GetDbContext().UpdateRange(listItems);
+                await _itemRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
 
-                var dipatchBag = dispatchBags.FirstOrDefault(x => x.BagNo.Equals(bag.BagNo)) ?? throw new UserFriendlyException("Bag not found");
-                decimal bagPrecheckWeight = dipatchBag.WeightPre == null ? 0 : dipatchBag.WeightPre.Value;
+                var dispatchBag = dispatchBags.FirstOrDefault(x => x.BagNo.Equals(bags[i].BagNo)) ?? throw new UserFriendlyException("Bag not found");
+                decimal bagPrecheckWeight = dispatchBag.WeightPre == null ? 0 : dispatchBag.WeightPre.Value;
 
-                dipatchBag.WeightVariance = bag.WeightPost >= bagPrecheckWeight ? (bag.WeightPost.Value - bagPrecheckWeight) : 0;
-                dipatchBag.WeightPost = bag.WeightPost.Value >= bagPrecheckWeight ? bag.WeightPost.Value : bagPrecheckWeight;
+                dispatchBag.WeightVariance = bags[i].WeightPost >= bagPrecheckWeight ? bags[i].WeightPost.Value - bagPrecheckWeight : 0;
+                dispatchBag.WeightPost = bags[i].WeightPost.Value >= bagPrecheckWeight ? bags[i].WeightPost.Value : bagPrecheckWeight;
 
-                await _bagRepository.UpdateAsync(dipatchBag);
-                await _bagRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
+                bags[i].WeightVariance = dispatchBag.WeightVariance;
+                bags[i].WeightPost = dispatchBag.WeightPost;
             }
+            _bagRepository.GetDbContext().UpdateRange(bags);
+            await _bagRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
 
             var missingBags = await _bagRepository.GetAllListAsync(x =>
                                                     x.DispatchId.Equals(dispatch.Id) &&

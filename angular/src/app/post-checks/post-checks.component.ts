@@ -193,14 +193,12 @@ export class PostChecksComponent extends AppComponentBase implements OnInit {
     form.append("file", this.fileUpload);
     form.append("dispatchNo", this.dispatchNo);
 
-    this._dispatchService.uploadPostCheck(form).subscribe(
+    this._dispatchService.uploadPostCheckForDisplay(form).subscribe(
       (result: any) => {
-        if (result.result) {
-          this.notify.info(this.l("UploadedSuccessfully"));
-          this.router.navigate(["/app/dispatches"]);
-        } else this.notify.error(this.l("UploadFailed"));
+        this.postchecks = result.result;
       },
       (error: HttpErrorResponse) => {
+        this.postchecks = {} as GetPostCheck;
         //Handle error
         let cc: BsModalRef;
         cc = this._modalService.show(ErrorModalComponent, {
@@ -212,5 +210,25 @@ export class PostChecksComponent extends AppComponentBase implements OnInit {
         });
       }
     );
+
+    // this._dispatchService.uploadPostCheck(form).subscribe(
+    //   (result: any) => {
+    //     if (result.result) {
+    //       this.notify.info(this.l("UploadedSuccessfully"));
+    //       this.router.navigate(["/app/dispatches"]);
+    //     } else this.notify.error(this.l("UploadFailed"));
+    //   },
+    //   (error: HttpErrorResponse) => {
+    //     //Handle error
+    //     let cc: BsModalRef;
+    //     cc = this._modalService.show(ErrorModalComponent, {
+    //       class: "modal-lg",
+    //       initialState: {
+    //         title: "",
+    //         errorMessage: error.message,
+    //       },
+    //     });
+    //   }
+    // );
   }
 }
