@@ -86,7 +86,7 @@ namespace SND.SMP.EmailContents
                     }
                 }
 
-                content += $"<br><h1><strong>Error(s)</strong></h1>";
+                content += $"<br /><h1><strong>Error(s)</strong></h1>";
 
                 int count = 1;
                 foreach (var validation in input.validations)
@@ -98,7 +98,7 @@ namespace SND.SMP.EmailContents
                     {
                         foreach (var item in validation.ItemIds)
                         {
-                            content += $"&nbsp;&nbsp;&nbsp;<h5>{item}</h5>";
+                            content += $"&nbsp;&nbsp;&nbsp;<p>{item}</p>";
                         }
                     }
 
