@@ -262,7 +262,7 @@ namespace SND.SMP.DispatchConsole
 
                             listItemIds.Add(itemId);
                             if (!listBagNos.Contains(bagNo)) listBagNos.Add(bagNo);
-                            listIOSSChecking.Add(new DispatchValidateIOSSDto { Row = rowTouched, TrackingNo = itemId, CountryCode = countryCode, IOSS = hsCode });
+                            listIOSSChecking.Add(new DispatchValidateIOSSDto { Row = rowTouched, TrackingNo = itemId, CountryCode = countryCode, IOSS = taxPaymentMethod });
                             listCountryCodes.Add(new DispatchValidateCountryDto { Id = itemId, CountryCode = countryCode });
                             listParticulars.Add(new DispatchValidateParticularsDto { Id = itemId, DispatchNo = strDispatchNo, PostalCode = strPostalCode, ServiceCode = strServiceCode, ProductCode = strProductCode });
 
@@ -274,7 +274,7 @@ namespace SND.SMP.DispatchConsole
                                 { MaxDegreeOfParallelism = Environment.ProcessorCount },
                                     () => Id_IsDuplicate(ref validationResult_id_IsDuplicate, listItemIds),
                                     () => Bag_IsDuplicate(ref validationResult_bag_IsDuplicate, listBagNos),
-                                    () => IOSS_Missing(ref validationResult_ioss_missing, listIOSSChecking),
+                                    () => IOSS_Missing(ref validationResult_ioss_missing, listIOSSChecking, DispatchProfile.PostalCode[..2]),
                                     () => Id_HasInvalidLength(ref validationResult_id_HasInvalidLength, listItemIds),
                                     () => Id_HasInvalidPrefixSuffix(ref validationResult_id_HasInvalidPrefixSuffix, listItemIds),
                                     () => Id_HasInvalidCheckDigit(ref validationResult_id_HasInvalidCheckDigit, listItemIds),
@@ -331,7 +331,7 @@ namespace SND.SMP.DispatchConsole
                     { MaxDegreeOfParallelism = Environment.ProcessorCount },
                         () => Id_IsDuplicate(ref validationResult_id_IsDuplicate, listItemIds),
                         () => Bag_IsDuplicate(ref validationResult_bag_IsDuplicate, listBagNos),
-                        () => IOSS_Missing(ref validationResult_ioss_missing, listIOSSChecking),
+                        () => IOSS_Missing(ref validationResult_ioss_missing, listIOSSChecking, DispatchProfile.PostalCode[..2]),
                         () => Id_HasInvalidLength(ref validationResult_id_HasInvalidLength, listItemIds),
                         () => Id_HasInvalidPrefixSuffix(ref validationResult_id_HasInvalidPrefixSuffix, listItemIds),
                         () => Id_HasInvalidCheckDigit(ref validationResult_id_HasInvalidCheckDigit, listItemIds),
@@ -362,7 +362,6 @@ namespace SND.SMP.DispatchConsole
                 {
                     var dateValidationEnd = DateTime.Now;
                     var tookInSec = Math.Round(dateValidationEnd.Subtract(dateValidationStart).TotalSeconds, 0);
-                    var filePath = "";
                     #region Validation Result JSON
 
                     if (!string.IsNullOrWhiteSpace(validationResult_dispatch_IsDuplicate.Message))
@@ -842,21 +841,24 @@ namespace SND.SMP.DispatchConsole
             return result;
         }
 
-        private static bool IOSS_Missing(ref Dto.DispatchValidateDto validationResult, List<DispatchValidateIOSSDto> model)
+        private static bool IOSS_Missing(ref Dto.DispatchValidateDto validationResult, List<DispatchValidateIOSSDto> model, string postalCode)
         {
             var result = false;
-            // List<string> listEuropeCountries = ["NO", "FR", "GR", "DE", "ES", "IT", "HU", "IE", "DK", "BE", "RO", "PL", "NL", "LU"];
-            List<string> listEuropeCountries = ["IE", "HR", "MT", "CZ"];
 
-            var list = model.Where(u =>
-                                        listEuropeCountries.Contains(u.CountryCode.Trim().ToUpper()) &&
-                                        string.IsNullOrWhiteSpace(u.IOSS)
-                                  ).Select(u => $"Row no {u.Row} IOSS Tax is empty ({u.TrackingNo} {u.CountryCode})").ToList();
+            if (postalCode == "KG" || postalCode == "GQ")
+            {
+                // List<string> listEuropeCountries = ["NO", "FR", "GR", "DE", "ES", "IT", "HU", "IE", "DK", "BE", "RO", "PL", "NL", "LU"];
+                List<string> listEuropeCountries = ["IE", "HR", "MT", "CZ"];
 
-            validationResult.ItemIds.AddRange(list);
+                var list = model.Where(u =>
+                                            listEuropeCountries.Contains(u.CountryCode.Trim().ToUpper()) &&
+                                            string.IsNullOrWhiteSpace(u.IOSS)
+                                      ).Select(u => $"Row no {u.Row} IOSS Tax is empty ({u.TrackingNo} {u.CountryCode})").ToList();
 
-            result = list.Count != 0;
+                validationResult.ItemIds.AddRange(list);
 
+                result = list.Count != 0;
+            }
             return result;
         }
     }
