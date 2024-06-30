@@ -2015,7 +2015,11 @@ namespace SND.SMP.Dispatches
 
         public async Task<List<DispatchInfoDto>> GetDashboardDispatchInfo(bool isAdmin, int top, string customerCode = null)
         {
-            var dispatches = isAdmin ? await Repository.GetAllListAsync() : await Repository.GetAllListAsync(x => x.CustomerCode.Equals(customerCode));
+            var dispatches = isAdmin ? 
+                        await Repository.GetAllListAsync() : 
+                        await Repository.GetAllListAsync(x => x.CustomerCode.Equals(customerCode));
+
+            dispatches = [.. dispatches.Where(x => !x.DispatchNo.Contains("temp", StringComparison.CurrentCultureIgnoreCase))];
 
             dispatches = [.. dispatches.OrderByDescending(x => x.Id).Take(top)];
 

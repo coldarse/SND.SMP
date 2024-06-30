@@ -65,7 +65,7 @@ namespace SND.SMP.DispatchConsole
 					}
 					else
 					{
-						var rateCard = db.Rates.FirstOrDefault(u => u.Id.Equals(_customerPostal.Rate));	
+						var rateCard = db.Rates.FirstOrDefault(u => u.Id.Equals(_customerPostal.Rate));
 						string rateValue = rateCard is null ? _customerPostal.Rate.ToString() : rateCard.CardName;
 						ErrorMsg = $"No rates found for this Rate Id of {rateValue}";
 					}
@@ -93,11 +93,11 @@ namespace SND.SMP.DispatchConsole
 					}
 					else
 					{
-						var rateCard = db.Rates.FirstOrDefault(u => u.Id.Equals(_customerPostal.Rate));	
+						var rateCard = db.Rates.FirstOrDefault(u => u.Id.Equals(_customerPostal.Rate));
 						string rateValue = rateCard is null ? _customerPostal.Rate.ToString() : rateCard.CardName;
 						ErrorMsg = $"No rates found for this Rate Id of {rateValue}";
 					}
-					
+
 				}
 			}
 			else ErrorMsg = "No Customer Postal exists for this Dispatch.";
@@ -121,6 +121,7 @@ namespace SND.SMP.DispatchConsole
 					{
 						price = rate.Total.GetValueOrDefault() * weight + rate.RegisteredFee.GetValueOrDefault();
 					}
+					else ErrorMsg = $"No Rate found for Country Code: {countryCode} with Service Code: {_serviceCode} and Product Code: {_productCode}. Please contact System Finance for further review.";
 				}
 			}
 
@@ -163,6 +164,7 @@ namespace SND.SMP.DispatchConsole
 							}
 						}
 					}
+					else ErrorMsg = $"No Rate found for Country Code: {countryCode} with Service Code: {_serviceCode} and Product Code: {_productCode}. Please contact System Finance for further review.";
 				}
 			}
 

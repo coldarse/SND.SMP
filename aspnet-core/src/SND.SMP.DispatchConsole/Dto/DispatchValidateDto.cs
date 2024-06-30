@@ -13,11 +13,11 @@ namespace SND.SMP.DispatchConsole.Dto
 		public string CountryCode { get; set; }
 	}
 
-    public class DispatchValidateCountryDto
-    {
+	public class DispatchValidateCountryDto
+	{
 		public string Id { get; set; }
-        public string CountryCode { get; set; }
-    }
+		public string CountryCode { get; set; }
+	}
 
 	public class DispatchValidateParticularsDto
 	{
@@ -26,6 +26,14 @@ namespace SND.SMP.DispatchConsole.Dto
 		public string PostalCode { get; set; }
 		public string ServiceCode { get; set; }
 		public string ProductCode { get; set; }
+	}
+
+	public class DispatchValidateIOSSDto
+	{
+		public int Row { get; set; }
+		public string TrackingNo { get; set; }
+		public string CountryCode { get; set; }
+		public string IOSS { get; set; }
 	}
 }
 

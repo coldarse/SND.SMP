@@ -728,6 +728,12 @@ namespace SND.SMP.Chibis
 
             if (result != null)
             {
+                if(uploadFile.fileType == "xlsx")
+                {
+                    string dispatchNo = await IsExcelFileUploadedBefore(result.name);
+                    if(dispatchNo != "") throw new UserFriendlyException($"This excel has been uploaded before with DispatchNo: {dispatchNo}");
+                }
+
                 result.originalName = originalName is null ? uploadFile.file.FileName.Replace(".xlsx", "") + $"_{result.name}" : originalName;
                 
                 var existingChibis = await Repository.GetAllListAsync(x => x.URL.Equals(result.url));
@@ -787,6 +793,15 @@ namespace SND.SMP.Chibis
             else throw new UserFriendlyException("Dispatch Number already exists.");
         }
 
+        private async Task<string> IsExcelFileUploadedBefore(string name)
+        {
+            var xlsxFile = await Repository.FirstOrDefaultAsync(x => x.GeneratedName.Equals(name));
 
+            if(xlsxFile is null) return "";
+            
+            var dispatchValidation = await _dispatchValidationRepository.FirstOrDefaultAsync(x => x.FilePath.Equals(xlsxFile.URL));
+
+            return dispatchValidation.DispatchNo;
+        }
     }
 }
