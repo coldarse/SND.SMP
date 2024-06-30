@@ -149,6 +149,7 @@ namespace SND.SMP.DispatchConsole
             DispatchValidateDto validationResult_id_HasInvalidCheckDigit = new() { Category = "Invalid Check Digit" };
             DispatchValidateDto validationResult_country_HasInvalidCountry = new() { Category = "Invalid Country Code" };
             DispatchValidateDto validationResult_wallet_InsufficientBalance = new() { Category = "Insufficient Wallet Balance" };
+            DispatchValidateDto validationResult_ioss_missing = new() { Category = "Missing IOSS" };
             DispatchValidateDto validationResult_Others = new() { Category = "Caught Error" };
 
             using db db = new();
@@ -208,6 +209,7 @@ namespace SND.SMP.DispatchConsole
                 var month = Convert.ToInt32($"{DispatchProfile.DateDispatch.Year}{DispatchProfile.DateDispatch.Month.ToString().PadLeft(2, '0')}");
                 var listItemIds = new List<string>();
                 var listBagNos = new List<string>();
+                var listIOSSChecking = new List<DispatchValidateIOSSDto>();
                 var listCountryCodes = new List<DispatchValidateCountryDto>();
                 var listParticulars = new List<DispatchValidateParticularsDto>();
 
@@ -251,6 +253,8 @@ namespace SND.SMP.DispatchConsole
 
                             var price = pricer.CalculatePrice(countryCode: countryCode, weight: weight);
 
+                            if (pricer.ErrorMsg != "") throw new Exception(pricer.ErrorMsg);
+
                             itemCount++;
 
                             totalWeight += weight;
@@ -258,6 +262,7 @@ namespace SND.SMP.DispatchConsole
 
                             listItemIds.Add(itemId);
                             if (!listBagNos.Contains(bagNo)) listBagNos.Add(bagNo);
+                            listIOSSChecking.Add(new DispatchValidateIOSSDto { Row = rowTouched, TrackingNo = itemId, CountryCode = countryCode, IOSS = hsCode });
                             listCountryCodes.Add(new DispatchValidateCountryDto { Id = itemId, CountryCode = countryCode });
                             listParticulars.Add(new DispatchValidateParticularsDto { Id = itemId, DispatchNo = strDispatchNo, PostalCode = strPostalCode, ServiceCode = strServiceCode, ProductCode = strProductCode });
 
@@ -269,6 +274,7 @@ namespace SND.SMP.DispatchConsole
                                 { MaxDegreeOfParallelism = Environment.ProcessorCount },
                                     () => Id_IsDuplicate(ref validationResult_id_IsDuplicate, listItemIds),
                                     () => Bag_IsDuplicate(ref validationResult_bag_IsDuplicate, listBagNos),
+                                    () => IOSS_Missing(ref validationResult_ioss_missing, listIOSSChecking),
                                     () => Id_HasInvalidLength(ref validationResult_id_HasInvalidLength, listItemIds),
                                     () => Id_HasInvalidPrefixSuffix(ref validationResult_id_HasInvalidPrefixSuffix, listItemIds),
                                     () => Id_HasInvalidCheckDigit(ref validationResult_id_HasInvalidCheckDigit, listItemIds),
@@ -325,6 +331,7 @@ namespace SND.SMP.DispatchConsole
                     { MaxDegreeOfParallelism = Environment.ProcessorCount },
                         () => Id_IsDuplicate(ref validationResult_id_IsDuplicate, listItemIds),
                         () => Bag_IsDuplicate(ref validationResult_bag_IsDuplicate, listBagNos),
+                        () => IOSS_Missing(ref validationResult_ioss_missing, listIOSSChecking),
                         () => Id_HasInvalidLength(ref validationResult_id_HasInvalidLength, listItemIds),
                         () => Id_HasInvalidPrefixSuffix(ref validationResult_id_HasInvalidPrefixSuffix, listItemIds),
                         () => Id_HasInvalidCheckDigit(ref validationResult_id_HasInvalidCheckDigit, listItemIds),
@@ -410,6 +417,12 @@ namespace SND.SMP.DispatchConsole
                     {
                         isValid = false;
                         validations.Add(validationResult_wallet_InsufficientBalance);
+                    }
+
+                    if (validationResult_ioss_missing.ItemIds.Count != 0 || !string.IsNullOrWhiteSpace(validationResult_ioss_missing.Message))
+                    {
+                        isValid = false;
+                        validations.Add(validationResult_ioss_missing);
                     }
 
                     if (!isValid)
@@ -825,6 +838,24 @@ namespace SND.SMP.DispatchConsole
                 validationResult.Message = $"Bag No. {existingBagNo.BagNo} already exists in the dispatch {dispatch.DispatchNo}";
                 result = true;
             }
+
+            return result;
+        }
+
+        private static bool IOSS_Missing(ref Dto.DispatchValidateDto validationResult, List<DispatchValidateIOSSDto> model)
+        {
+            var result = false;
+            // List<string> listEuropeCountries = ["NO", "FR", "GR", "DE", "ES", "IT", "HU", "IE", "DK", "BE", "RO", "PL", "NL", "LU"];
+            List<string> listEuropeCountries = ["IE", "HR", "MT", "CZ"];
+
+            var list = model.Where(u =>
+                                        listEuropeCountries.Contains(u.CountryCode.Trim().ToUpper()) &&
+                                        string.IsNullOrWhiteSpace(u.IOSS)
+                                  ).Select(u => $"Row no {u.Row} IOSS Tax is empty ({u.TrackingNo} {u.CountryCode})").ToList();
+
+            validationResult.ItemIds.AddRange(list);
+
+            result = list.Count != 0;
 
             return result;
         }

@@ -189,6 +189,8 @@ namespace SND.SMP.DispatchConsole
 
                                 var price = pricer.CalculatePrice(countryCode: countryCode, weight: weight);
 
+                                if (pricer.ErrorMsg != "") throw new Exception(pricer.ErrorMsg);
+
                                 avgItemValue += price;
 
                                 listItems.Add(new DispatchItemDto

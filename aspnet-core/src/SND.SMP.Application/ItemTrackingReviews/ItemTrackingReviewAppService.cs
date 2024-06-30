@@ -241,22 +241,6 @@ namespace SND.SMP.ItemTrackingReviews
                                 result.Errors.Add("Invalid product code");
                             }
                             #endregion
-
-                            #region IOSS Tax
-                            var willValidateIOSS = true;
-                            if (willValidateIOSS)
-                            {
-                                var countryListIOSS = new List<string> { "IE", "HU", "LU", "CZ" };
-
-                                if (countryListIOSS.Contains(input.RecipientCountry.ToUpper().Trim()))
-                                {
-                                    if (string.IsNullOrWhiteSpace(input.IOSSTax))
-                                    {
-                                        result.Errors.Add($"IOSSTax is mandatory for {input.RecipientCountry}");
-                                    }
-                                }
-                            }
-                            #endregion
                         }
                         else
                         {
@@ -266,6 +250,25 @@ namespace SND.SMP.ItemTrackingReviews
                                 if (!string.Equals(input.ProductCode.Trim(), "OMT", StringComparison.OrdinalIgnoreCase))
                                 {
                                     result.Errors.Add("Invalid product code");
+                                }
+                            }
+                            #endregion
+                        }
+
+                        if (postalSupported == "KG" || postalSupported == "GQ")
+                        {
+                            #region IOSS Tax
+                            var willValidateIOSS = true;
+                            if (willValidateIOSS)
+                            {
+                                var countryListIOSS = new List<string> { "IE", "HR", "MT", "CZ" };
+
+                                if (countryListIOSS.Contains(input.RecipientCountry.ToUpper().Trim()))
+                                {
+                                    if (string.IsNullOrWhiteSpace(input.IOSSTax))
+                                    {
+                                        result.Errors.Add($"IOSSTax is mandatory for {input.RecipientCountry}");
+                                    }
                                 }
                             }
                             #endregion
@@ -686,6 +689,8 @@ namespace SND.SMP.ItemTrackingReviews
                             }
                             else
                             {
+                                newItem.DispatchID = dispatchTemp.Id;
+                                newItem.DispatchDate = dispatchTemp.DispatchDate;
                                 newItem.Weight = input.Weight;
                                 newItem.ItemValue = input.ItemValue;
                                 newItem.ItemDesc = input.ItemDesc;
