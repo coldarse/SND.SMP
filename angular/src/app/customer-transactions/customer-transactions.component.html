@@ -100,7 +100,20 @@
                   <td>{{ customerTransaction.paymentMode }}</td>
                   <td>{{ customerTransaction.currency }}</td>
                   <td>{{ customerTransaction.transactionType }}</td>
-                  <td>{{ customerTransaction.amount | currency }}</td>
+                  <td>
+                    @if (customerTransaction.amount > 0) {
+                      <div class="text-success text-right">
+                        <i class="fas fa-plus-square"></i>
+                        {{ customerTransaction.amount | number : "1.2-2" }}
+                      </div>
+                    }
+                    @else {
+                      <div class="text-danger text-right">
+                        <i class="fas fa-minus-square"></i>
+                        {{ +customerTransaction.amount.toString().replace("-", "") | number : "1.2-2" }}
+                      </div>
+                    }
+                  </td>
                   <td>{{ customerTransaction.referenceNo }}</td>
                   <td>{{ customerTransaction.description }}</td>
                   <td>

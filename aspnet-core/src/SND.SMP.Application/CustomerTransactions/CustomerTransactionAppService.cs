@@ -46,7 +46,7 @@ namespace SND.SMP.CustomerTransactions
         {
             var transactions = isAdmin ? await Repository.GetAllListAsync() : await Repository.GetAllListAsync(x => x.Customer.Equals(customer));
 
-            return [.. transactions.OrderByDescending(x => x.TransactionDate).Take(top)];
+            return [.. transactions.OrderByDescending(x => x.Id).Take(top)];
         }
     }
 }
