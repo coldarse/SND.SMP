@@ -1121,7 +1121,7 @@ namespace SND.SMP.Dispatches
 
                 gqBag.Add(new GQBag
                 {
-                    RunningNo = i,
+                    RunningNo = i + 1,
                     BagNo = bagNo.ToString(),
                     Destination = destination,
                     Qty = bags[i].Count(),
@@ -1174,7 +1174,7 @@ namespace SND.SMP.Dispatches
 
                 slBag.Add(new SLBag
                 {
-                    RunningNo = i,
+                    RunningNo = i + 1,
                     BagNo = bagNo.ToString(),
                     Destination = "NRT",
                     Qty = bags[i].Count(),
