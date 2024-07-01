@@ -59,18 +59,14 @@ export class DispatchValidationsComponent
   }
 
   ngOnInit(): void {
-    if (!this.showPagination) {
-      this.startReloadInterval();
-    } else {
-      this.getDataPage(1);
-    }
+    this.startReloadInterval();
   }
 
   startReloadInterval() {
     this.getDataPage(1);
     this.reloadDispatchValidation = setInterval(() => {
       this.getDataPage(1);
-    }, 30000);
+    }, 5000);
   }
 
   ngOnDestroy(): void {

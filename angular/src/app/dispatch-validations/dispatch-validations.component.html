@@ -46,7 +46,7 @@
         <div class="card-body">
           <div class="table table-bordered table-responsive">
             @if (showPagination) {
-            <table class="table table-bordered" [busy]="isTableLoading">
+            <table class="table table-bordered">
               <thead>
                 <tr>
                   <th>{{ "Customer                    " | localize }}</th>
@@ -231,7 +231,7 @@
               </tbody>
             </table>
             }@else {
-            <table class="table table-bordered" [busy]="isTableLoading">
+            <table class="table table-bordered">
               <thead>
                 <tr>
                   <th>{{ "Customer                    " | localize }}</th>

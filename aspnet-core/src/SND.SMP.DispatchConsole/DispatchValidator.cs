@@ -15,6 +15,7 @@ using SND.SMP.Chibis;
 using SND.SMP.CustomerTransactions;
 using SND.SMP.DispatchUsedAmounts;
 using System.Text;
+using OfficeOpenXml;
 
 namespace SND.SMP.DispatchConsole
 {
@@ -323,6 +324,8 @@ namespace SND.SMP.DispatchConsole
                         #endregion
                     }
                 } while (reader.NextResult());
+
+                
 
                 if (listItemIds.Count != 0)
                 {
@@ -860,6 +863,41 @@ namespace SND.SMP.DispatchConsole
                 result = list.Count != 0;
             }
             return result;
+        }
+
+        private static DataTable ConvertToDatatable(Stream ms)
+        {
+            DataTable dataTable = new();
+
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
+            using (var package = new ExcelPackage(ms))
+            {
+                ExcelWorksheet worksheet = package.Workbook.Worksheets[0];
+
+                // Assuming the first row is the header
+                for (int i = 1; i <= worksheet.Dimension.End.Column; i++)
+                {
+                    string columnName = worksheet.Cells[1, i].Value?.ToString();
+                    if (!string.IsNullOrEmpty(columnName))
+                    {
+                        dataTable.Columns.Add(columnName);
+                    }
+                }
+
+                // Populate DataTable with data from Excel
+                for (int row = 2; row <= worksheet.Dimension.End.Row; row++)
+                {
+                    DataRow dataRow = dataTable.NewRow();
+                    for (int col = 1; col <= worksheet.Dimension.End.Column; col++)
+                    {
+                        dataRow[col - 1] = worksheet.Cells[row, col].Value;
+                    }
+                    dataTable.Rows.Add(dataRow);
+                }
+            }
+
+            return dataTable;
         }
     }
 }
