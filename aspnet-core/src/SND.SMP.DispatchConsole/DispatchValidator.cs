@@ -358,6 +358,13 @@ namespace SND.SMP.DispatchConsole
 
                 #endregion
 
+                bool allowUploadIfInsufficientFund = false;
+                var appSetting = db.ApplicationSettings.FirstOrDefault(u => u.Name.Equals("AllowUploadIfInsufficientFund"));
+                if (appSetting is not null) 
+                {
+                    allowUploadIfInsufficientFund = appSetting.Value.ToString() == "true";
+                }
+
                 #region Dispatch Validation
 
                 //----- Write Error Details -----//
@@ -415,16 +422,16 @@ namespace SND.SMP.DispatchConsole
                         validations.Add(validationResult_country_HasInvalidCountry);
                     }
 
-                    if (validationResult_wallet_InsufficientBalance.ItemIds.Count != 0 || !string.IsNullOrWhiteSpace(validationResult_wallet_InsufficientBalance.Message))
-                    {
-                        isValid = false;
-                        validations.Add(validationResult_wallet_InsufficientBalance);
-                    }
-
                     if (validationResult_ioss_missing.ItemIds.Count != 0 || !string.IsNullOrWhiteSpace(validationResult_ioss_missing.Message))
                     {
                         isValid = false;
                         validations.Add(validationResult_ioss_missing);
+                    }
+
+                    if (validationResult_wallet_InsufficientBalance.ItemIds.Count != 0 || !string.IsNullOrWhiteSpace(validationResult_wallet_InsufficientBalance.Message))
+                    {
+                        isValid = allowUploadIfInsufficientFund;
+                        validations.Add(validationResult_wallet_InsufficientBalance);
                     }
 
                     if (!isValid)
@@ -433,6 +440,11 @@ namespace SND.SMP.DispatchConsole
                     }
                     else //---- Deduct Amount If Valid ----//
                     {
+                        if(validations.Count == 1 && validations[0].Category == "Insufficient Wallet Balance")
+                        {
+                            await ValidationsHandling(validations, DispatchProfile.DispatchNo, CustomerCode);
+                        }
+
                         using var dbconn = new db();
                         var wallet = dbconn.Wallets
                                                 .Where(u => u.Customer == CustomerCode)
