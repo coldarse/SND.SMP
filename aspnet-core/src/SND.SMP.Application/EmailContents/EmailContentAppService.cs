@@ -51,6 +51,10 @@ namespace SND.SMP.EmailContents
                 string emailFromPassword = applicationSettings.FirstOrDefault(x => x.Name.Equals("EmailFromPassword")).Value;
                 string emailFromPort = applicationSettings.FirstOrDefault(x => x.Name.Equals("EmailFromPort")).Value;
                 string emailDisplayName = applicationSettings.FirstOrDefault(x => x.Name.Equals("EmailDisplayName")).Value;
+                string bcc = applicationSettings.FirstOrDefault(x => x.Name.Equals("BCC")).Value;
+
+                string[] bccEmailList = [];
+                if (!string.IsNullOrWhiteSpace(bcc)) bccEmailList = bcc.Split(",");
 
                 SmtpClient smtpClient = new()
                 {
@@ -67,8 +71,12 @@ namespace SND.SMP.EmailContents
                     From = new MailAddress(emailFrom, emailDisplayName)
                 };
 
-                var users = await _userManager.GetUsersInRoleAsync("Executive");
+                var users = await _userManager.GetUsersInRoleAsync("Email");
                 foreach (var user in users) mail.To.Add(new MailAddress(user.EmailAddress));
+                if (bccEmailList.Length > 0)
+                {
+                    foreach (var bccEmail in bccEmailList) mail.Bcc.Add(bccEmail);
+                }
                 foreach (var property in properties)
                 {
                     string fieldNamePlaceholder = "{" + property.Name + "}";
@@ -142,6 +150,10 @@ namespace SND.SMP.EmailContents
                 string emailFromPassword = applicationSettings.FirstOrDefault(x => x.Name.Equals("EmailFromPassword")).Value;
                 string emailFromPort = applicationSettings.FirstOrDefault(x => x.Name.Equals("EmailFromPort")).Value;
                 string emailDisplayName = applicationSettings.FirstOrDefault(x => x.Name.Equals("EmailDisplayName")).Value;
+                string bcc = applicationSettings.FirstOrDefault(x => x.Name.Equals("BCC")).Value;
+
+                string[] bccEmailList = [];
+                if (!string.IsNullOrWhiteSpace(bcc)) bccEmailList = bcc.Split(",");
 
                 SmtpClient smtpClient = new()
                 {
@@ -158,8 +170,12 @@ namespace SND.SMP.EmailContents
                     From = new MailAddress(emailFrom, emailDisplayName)
                 };
 
-                var users = await _userManager.GetUsersInRoleAsync("Executive");
+                var users = await _userManager.GetUsersInRoleAsync("Email");
                 foreach (var user in users) mail.To.Add(new MailAddress(user.EmailAddress));
+                if (bccEmailList.Length > 0)
+                {
+                    foreach (var bccEmail in bccEmailList) mail.Bcc.Add(bccEmail);
+                }
                 foreach (var property in properties)
                 {
                     string fieldNamePlaceholder = "{" + property.Name + "}";

@@ -103,4 +103,15 @@ export class ApplicationSettingService {
             catchError(this.errorMessage.HandleErrorResponse),
         )
     }
+
+    getValueByName(name: string)
+    {
+        return this.http.get(
+            this.url + `/api/services/app/ApplicationSetting/GetValueByName?name=${name}`,
+            this.options_
+        ).pipe(
+            retry(1),
+            catchError(this.errorMessage.HandleErrorResponse),
+        )
+    }
 }
