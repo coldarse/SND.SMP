@@ -16,14 +16,14 @@
           <div class="row">
             <div class="col-md-7">&emsp;</div>
             <div class="col-md-2">
-              <select 
-                name="country" 
-                id="country" 
+              <select
+                name="country"
+                id="country"
                 class="form-control"
                 (change)="selectCountry($event)"
               >
                 <option value="">Select Country</option>
-                <option *ngFor="let country of countries" value="{{country}}">
+                <option *ngFor="let country of countries" value="{{ country }}">
                   {{ country }}
                 </option>
               </select>
@@ -52,8 +52,8 @@
           </div>
         </div>
         <div class="card-body">
-          <div class="table table-bordered table-responsive">
-            <table class="table table-bordered" [busy]="isTableLoading">
+          <div class="table table-bordered table-responsive table-hover">
+            <table class="table table-bordered" [busy]="isTableLoading" style="table-layout: fixed;">
               <thead>
                 <tr>
                   <th>{{ "Dispatch" | localize }}</th>
@@ -71,282 +71,334 @@
                   <td>{{ dispatch.dispatchDate }}</td>
                   <td>{{ dispatch.customer }}</td>
                 </tr>
-                @if (dispatch.open) { 
-                    <tr>
-                        <td colspan="100%">
-                            <table class="table table-bordered">
-                                <thead>
-                                    <tr>
-                                        <th>Country</th>
-                                        <th>Stage 1</th>
-                                        <th>Stage 2</th>
-                                        <th>Stage 3</th>
-                                        <th>Stage 4</th>
-                                        <th>Stage 5</th>
-                                        <th>Stage 6</th>
-                                        <th>Airport</th>
-                                        <th>Stage 7</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @for (country of dispatch.dispatchCountries; track country; let indexB = $index)
-                                    {
-                                        <tr style="background-color: #ffe1e1">
-                                            <td
-                                                style="cursor: pointer"
-                                                (click)="openBag(indexC, indexB)"
-                                            >
-                                                <div class="row">
-                                                    <div class="col-4">
-                                                        <input type="checkbox" [(ngModel)]="country.open"/>
-                                                    </div>
-                                                    <div class="col-8">
-                                                        {{ country.countryCode }}
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <div class="row">
-                                                <input
-                                                    type="text"
-                                                    class="form-control"
-                                                    placeholder="Stage 1 Description"
-                                                />
-                                                </div>
-                                                <div class="row">
-                                                <input
-                                                    type="datetime-local"
-                                                    class="form-control"
-                                                />
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <div class="row">
-                                                <input
-                                                    type="text"
-                                                    class="form-control"
-                                                    placeholder="Stage 2 Description"
-                                                />
-                                                </div>
-                                                <div class="row">
-                                                <input
-                                                    type="datetime-local"
-                                                    class="form-control"
-                                                />
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <div class="row">
-                                                <input
-                                                    type="text"
-                                                    class="form-control"
-                                                    placeholder="Stage 3 Description"
-                                                />
-                                                </div>
-                                                <div class="row">
-                                                <input
-                                                    type="datetime-local"
-                                                    class="form-control"
-                                                />
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <div class="row">
-                                                <input
-                                                    type="text"
-                                                    class="form-control"
-                                                    placeholder="Stage 4 Description"
-                                                />
-                                                </div>
-                                                <div class="row">
-                                                <input
-                                                    type="datetime-local"
-                                                    class="form-control"
-                                                />
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <div class="row">
-                                                <input
-                                                    type="text"
-                                                    class="form-control"
-                                                    placeholder="Stage 5 Description"
-                                                />
-                                                </div>
-                                                <div class="row">
-                                                <input
-                                                    type="datetime-local"
-                                                    class="form-control"
-                                                />
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <div class="row">
-                                                <input
-                                                    type="text"
-                                                    class="form-control"
-                                                    placeholder="Stage 6 Description"
-                                                />
-                                                </div>
-                                                <div class="row">
-                                                <input
-                                                    type="datetime-local"
-                                                    class="form-control"
-                                                />
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <div class="row">
-                                                <select 
-                                                    name="airport" 
-                                                    id="airport"
-                                                    class="form-control"
-                                                >
-                                                    <option value="{{airport.name}}" *ngFor="let airport of airports">{{airport.name}}</option>
-                                                </select>
-                                                </div>
-                                                <div class="row">
-                                                <input
-                                                    type="datetime-local"
-                                                    class="form-control"
-                                                />
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <div class="row">
-                                                <input
-                                                    type="text"
-                                                    class="form-control"
-                                                    placeholder="Stage 7 Description"
-                                                />
-                                                </div>
-                                                <div class="row">
-                                                <input
-                                                    type="datetime-local"
-                                                    class="form-control"
-                                                />
-                                                </div>
-                                            </td>
-                                        </tr>  
-                                        @if(country.open) { 
-                                            @for (bag of country.dispatchBags; track bag; let indexS = $index) {
-                                                <tr style="background-color: #fff4f4">
-                                                    <td style="cursor: pointer" (click)="selectBag(indexC, indexB, indexS)">
-                                                        <div class="row">
-                                                            <div class="col-4">
-                                                                <input type="checkbox" [(ngModel)]="bag.select"/>
-                                                            </div>
-                                                            <div class="col-8">
-                                                                {{ bag.bagNo }}
-                                                            </div>
-                                                        </div>
-                                                    </td>
-                                                    <td>
-                                                        <div class="row">
-                                                        <input
-                                                            type="text"
-                                                            class="form-control"
-                                                            placeholder="Stage 1 Description"
-                                                        />
-                                                        </div>
-                                                        <div class="row">
-                                                        <input type="datetime-local" class="form-control" />
-                                                        </div>
-                                                    </td>
-                                                    <td>
-                                                        <div class="row">
-                                                        <input
-                                                            type="text"
-                                                            class="form-control"
-                                                            placeholder="Stage 2 Description"
-                                                        />
-                                                        </div>
-                                                        <div class="row">
-                                                        <input type="datetime-local" class="form-control" />
-                                                        </div>
-                                                    </td>
-                                                    <td>
-                                                        <div class="row">
-                                                        <input
-                                                            type="text"
-                                                            class="form-control"
-                                                            placeholder="Stage 3 Description"
-                                                        />
-                                                        </div>
-                                                        <div class="row">
-                                                        <input type="datetime-local" class="form-control" />
-                                                        </div>
-                                                    </td>
-                                                    <td>
-                                                        <div class="row">
-                                                        <input
-                                                            type="text"
-                                                            class="form-control"
-                                                            placeholder="Stage 4 Description"
-                                                        />
-                                                        </div>
-                                                        <div class="row">
-                                                        <input type="datetime-local" class="form-control" />
-                                                        </div>
-                                                    </td>
-                                                    <td>
-                                                        <div class="row">
-                                                        <input
-                                                            type="text"
-                                                            class="form-control"
-                                                            placeholder="Stage 5 Description"
-                                                        />
-                                                        </div>
-                                                        <div class="row">
-                                                        <input type="datetime-local" class="form-control" />
-                                                        </div>
-                                                    </td>
-                                                    <td>
-                                                        <div class="row">
-                                                        <input
-                                                            type="text"
-                                                            class="form-control"
-                                                            placeholder="Stage 6 Description"
-                                                        />
-                                                        </div>
-                                                        <div class="row">
-                                                        <input type="datetime-local" class="form-control" />
-                                                        </div>
-                                                    </td>
-                                                    <td>
-                                                        <div class="row">
-                                                        <input
-                                                            type="text"
-                                                            class="form-control"
-                                                            placeholder="Stage 7 Description"
-                                                        />
-                                                        </div>
-                                                        <div class="row">
-                                                        <input type="datetime-local" class="form-control" />
-                                                        </div>
-                                                    </td>
-                                                    <td>
-                                                        <div class="row">
-                                                        <input
-                                                            type="text"
-                                                            class="form-control"
-                                                            placeholder="Stage 7 Description"
-                                                        />
-                                                        </div>
-                                                        <div class="row">
-                                                        <input type="datetime-local" class="form-control" />
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            } 
-                                        } 
-                                    }
-                                </tbody>
-                            </table>
-                        </td>
-                    </tr>
-                }
-              }
+                @if (dispatch.open) {
+                <tr>
+                  <td
+                    colspan="4"
+                    style="padding: 0; margin: 0;"
+                  >
+                    <div
+                      style="
+                        overflow-x: auto;
+                        max-width: 100%;
+                        padding: 0;
+                        margin: 0;
+                      "
+                    >
+                      <table
+                        class="table table-bordered"
+                        style="margin-bottom: 0; width: 100%; white-space: nowrap; table-layout: auto;"
+                      >
+                        <thead>
+                          <tr>
+                            <th style="position: sticky; left: 0; z-index: 1; background-color: #dc3545; box-shadow: 0 0 10px black;">
+                                Country
+                            </th>
+                            <th>Stage 1</th>
+                            <th>Stage 2</th>
+                            <th>Stage 3</th>
+                            <th>Stage 4</th>
+                            <th>Stage 5</th>
+                            <th>Stage 6</th>
+                            <th>Airport</th>
+                            <th>Stage 7</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          @for (country of dispatch.dispatchCountries; track
+                          country; let indexB = $index) {
+                          <tr style="background-color: #ffe1e1">
+                            <td
+                              style="cursor: pointer; position: sticky; left: 0; z-index: 1; background-color: #ffaaaa;"
+                              (click)="openBag(indexC, indexB)"
+                            >
+                              <div class="row">
+                                <div class="col-4">
+                                  <input
+                                    type="checkbox"
+                                    [(ngModel)]="country.open"
+                                  />
+                                </div>
+                                <div class="col-8">
+                                  {{ country.countryCode }}
+                                </div>
+                              </div>
+                            </td>
+                            <td>
+                              <div class="row">
+                                <input
+                                  type="text"
+                                  class="form-control"
+                                  placeholder="Stage 1 Description"
+                                />
+                              </div>
+                              <div class="row">
+                                <input
+                                  type="datetime-local"
+                                  class="form-control"
+                                />
+                              </div>
+                            </td>
+                            <td>
+                              <div class="row">
+                                <input
+                                  type="text"
+                                  class="form-control"
+                                  placeholder="Stage 2 Description"
+                                />
+                              </div>
+                              <div class="row">
+                                <input
+                                  type="datetime-local"
+                                  class="form-control"
+                                />
+                              </div>
+                            </td>
+                            <td>
+                              <div class="row">
+                                <input
+                                  type="text"
+                                  class="form-control"
+                                  placeholder="Stage 3 Description"
+                                />
+                              </div>
+                              <div class="row">
+                                <input
+                                  type="datetime-local"
+                                  class="form-control"
+                                />
+                              </div>
+                            </td>
+                            <td>
+                              <div class="row">
+                                <input
+                                  type="text"
+                                  class="form-control"
+                                  placeholder="Stage 4 Description"
+                                />
+                              </div>
+                              <div class="row">
+                                <input
+                                  type="datetime-local"
+                                  class="form-control"
+                                />
+                              </div>
+                            </td>
+                            <td>
+                              <div class="row">
+                                <input
+                                  type="text"
+                                  class="form-control"
+                                  placeholder="Stage 5 Description"
+                                />
+                              </div>
+                              <div class="row">
+                                <input
+                                  type="datetime-local"
+                                  class="form-control"
+                                />
+                              </div>
+                            </td>
+                            <td>
+                              <div class="row">
+                                <input
+                                  type="text"
+                                  class="form-control"
+                                  placeholder="Stage 6 Description"
+                                />
+                              </div>
+                              <div class="row">
+                                <input
+                                  type="datetime-local"
+                                  class="form-control"
+                                />
+                              </div>
+                            </td>
+                            <td>
+                              <div class="row">
+                                <select
+                                  name="airport"
+                                  id="airport"
+                                  class="form-control"
+                                >
+                                  <option
+                                    value="{{ airport.name }}"
+                                    *ngFor="let airport of airports"
+                                  >
+                                    {{ airport.name }}
+                                  </option>
+                                </select>
+                              </div>
+                              <div class="row">
+                                <input
+                                  type="datetime-local"
+                                  class="form-control"
+                                />
+                              </div>
+                            </td>
+                            <td>
+                              <div class="row">
+                                <input
+                                  type="text"
+                                  class="form-control"
+                                  placeholder="Stage 7 Description"
+                                />
+                              </div>
+                              <div class="row">
+                                <input
+                                  type="datetime-local"
+                                  class="form-control"
+                                />
+                              </div>
+                            </td>
+                          </tr>
+                          @if(country.open) { @for (bag of country.dispatchBags;
+                          track bag; let indexS = $index) {
+                          <tr style="background-color: #fff4f4;">
+                            <td
+                              style="cursor: pointer; position: sticky; left: 0; z-index: 1; background-color: #ffcfcf; white-space: normal;"
+                              (click)="selectBag(indexC, indexB, indexS)"
+                            >
+                              <div class="row">
+                                <div class="col-4">
+                                  <input
+                                    type="checkbox"
+                                    [(ngModel)]="bag.select"
+                                  />
+                                </div>
+                                <div class="col-8">
+                                  {{ bag.bagNo }}
+                                </div>
+                              </div>
+                            </td>
+                            <td>
+                              <div class="row">
+                                <input
+                                  type="text"
+                                  class="form-control"
+                                  placeholder="Stage 1 Description"
+                                />
+                              </div>
+                              <div class="row">
+                                <input
+                                  type="datetime-local"
+                                  class="form-control"
+                                />
+                              </div>
+                            </td>
+                            <td>
+                              <div class="row">
+                                <input
+                                  type="text"
+                                  class="form-control"
+                                  placeholder="Stage 2 Description"
+                                />
+                              </div>
+                              <div class="row">
+                                <input
+                                  type="datetime-local"
+                                  class="form-control"
+                                />
+                              </div>
+                            </td>
+                            <td>
+                              <div class="row">
+                                <input
+                                  type="text"
+                                  class="form-control"
+                                  placeholder="Stage 3 Description"
+                                />
+                              </div>
+                              <div class="row">
+                                <input
+                                  type="datetime-local"
+                                  class="form-control"
+                                />
+                              </div>
+                            </td>
+                            <td>
+                              <div class="row">
+                                <input
+                                  type="text"
+                                  class="form-control"
+                                  placeholder="Stage 4 Description"
+                                />
+                              </div>
+                              <div class="row">
+                                <input
+                                  type="datetime-local"
+                                  class="form-control"
+                                />
+                              </div>
+                            </td>
+                            <td>
+                              <div class="row">
+                                <input
+                                  type="text"
+                                  class="form-control"
+                                  placeholder="Stage 5 Description"
+                                />
+                              </div>
+                              <div class="row">
+                                <input
+                                  type="datetime-local"
+                                  class="form-control"
+                                />
+                              </div>
+                            </td>
+                            <td>
+                              <div class="row">
+                                <input
+                                  type="text"
+                                  class="form-control"
+                                  placeholder="Stage 6 Description"
+                                />
+                              </div>
+                              <div class="row">
+                                <input
+                                  type="datetime-local"
+                                  class="form-control"
+                                />
+                              </div>
+                            </td>
+                            <td>
+                              <div class="row">
+                                <input
+                                  type="text"
+                                  class="form-control"
+                                  placeholder="Stage 7 Description"
+                                />
+                              </div>
+                              <div class="row">
+                                <input
+                                  type="datetime-local"
+                                  class="form-control"
+                                />
+                              </div>
+                            </td>
+                            <td>
+                              <div class="row">
+                                <input
+                                  type="text"
+                                  class="form-control"
+                                  placeholder="Stage 7 Description"
+                                />
+                              </div>
+                              <div class="row">
+                                <input
+                                  type="datetime-local"
+                                  class="form-control"
+                                />
+                              </div>
+                            </td>
+                          </tr>
+                          } } }
+                        </tbody>
+                      </table>
+                    </div>
+                  </td>
+                </tr>
+                } }
               </tbody>
             </table>
           </div>
