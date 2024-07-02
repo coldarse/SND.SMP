@@ -70,7 +70,7 @@
             >
               <thead class="bg-dark">
                 <tr>
-                  <th>{{ "Wallet" | localize }}</th>
+                  <!-- <th>{{ "Wallet" | localize }}</th> -->
                   <th>{{ "Customer" | localize }}</th>
                   <th>{{ "Payment Mode" | localize }}</th>
                   <th>{{ "Currency" | localize }}</th>
@@ -95,14 +95,14 @@
                           }
                   "
                 >
-                  <td>{{ customerTransaction.wallet }}</td>
+                  <!-- <td>{{ customerTransaction.wallet }}</td> -->
                   <td>{{ customerTransaction.customer }}</td>
                   <td>{{ customerTransaction.paymentMode }}</td>
                   <td>{{ customerTransaction.currency }}</td>
                   <td>{{ customerTransaction.transactionType }}</td>
-                  <td>
+                  <td style="white-space: nowrap;">
                     @if (customerTransaction.amount > 0) {
-                      <div class="text-success text-right">
+                      <div class="text-success text-left">
                         <i class="fas fa-plus-square"></i>
                         {{ customerTransaction.amount | number : "1.2-2" }}
                       </div>

@@ -40,6 +40,8 @@ using SND.SMP.Currencies;
 using SND.SMP.DispatchUsedAmounts;
 using SND.SMP.DispatchValidations;
 using System.Reflection;
+using System.Globalization;
+using System.Threading;
 
 namespace SND.SMP.Dispatches
 {
@@ -341,7 +343,7 @@ namespace SND.SMP.Dispatches
 
             return result;
         }
-        private async Task<List<KGManifest>> GetKGManifest(int dispatchId, Dispatch dispatch, bool isPreCheckWeight, string countryCode = null)
+        private async Task<List<KGManifest>> GetKGManifest(Dispatch dispatch, List<Bag> bags, List<Item> items, List<IMPC> impcs, bool isPreCheckWeight, string countryCode = null)
         {
             List<KGManifest> kgManifest = [];
             countryCode = countryCode.ToUpper().Trim();
@@ -349,108 +351,63 @@ namespace SND.SMP.Dispatches
 
             postalCode = dispatch.PostalCode;
 
-            var items = await _itemRepository.GetAllListAsync(x => x.DispatchID.Equals(dispatchId));
-
             if (!string.IsNullOrWhiteSpace(countryCode))
                 items = items.Where(x => x.CountryCode.Equals(countryCode)).ToList();
 
+            var groupedBags = items.GroupBy(x => x.BagNo).Select(x => x.Key).ToList();
+
             List<BagWeights> bagWeightsInGram = [];
 
-            if (isPreCheckWeight)
-            {
-                bagWeightsInGram = items
-                            .Where(u => u.Weight is not null)
-                            .GroupBy(u => u.BagNo)
-                            .Select(u => new BagWeights
-                            {
-                                BagNo = u.Key,
-                                Weight = Math.Round(u.Sum(p => Convert.ToDecimal(p.Weight) * 1000), 0)
-                            })
-                            .ToList();
-            }
-            else
-            {
-                var _bags = await _bagRepository.GetAllListAsync();
-                bagWeightsInGram = _bags
-                    .Where(u => u.DispatchId.Equals(dispatch.Id))
-                    .Select(u => new BagWeights
-                    {
-                        BagNo = u.BagNo,
-                        Weight = u.WeightPost == null ? 0 : u.WeightPost.Value * 1000
-                    })
-                    .ToList();
-            }
-
-            var bags = items.GroupBy(x => x.BagNo).Select(x => x.Key).ToList();
-
-            var tare = 110m;
+            bagWeightsInGram = isPreCheckWeight ?
+                items.Where(u => u.Weight is not null).GroupBy(u => u.BagNo).Select(u => new BagWeights
+                {
+                    BagNo = u.Key,
+                    Weight = Math.Round(u.Sum(p => Convert.ToDecimal(p.Weight) * 1000), 0)
+                }).ToList()
+                :
+                bags.Select(u => new BagWeights
+                {
+                    BagNo = u.BagNo,
+                    Weight = u.WeightPost == null ? u.WeightPre.Value * 1000 : u.WeightPost.Value * 1000
+                }).ToList();
 
             var random = new Random();
+            var tare = 110m;
 
-            var listDeductedTare = await GetDeductTare(dispatchId, tare, true, 3m, 1);
+            var listDeductedTare = GetDeductTare(bags, items, tare, !isPreCheckWeight, 3m, 1);
 
-            var listKGCos = await _impcRepository.GetAllListAsync(x => x.Type.Equals("KG"));
+            var kgc = impcs.FirstOrDefault(p => p.CountryCode.Equals(countryCode));
+            var impcToCode = kgc != null ? kgc.IMPCCode : "";
+            var logisticCode = kgc != null ? kgc.LogisticCode : "";
 
             foreach (var u in items)
             {
-                var bagNo = bags.IndexOf(u.BagNo) + 1;
+                var bagNo = groupedBags.IndexOf(u.BagNo) + 1;
 
                 var itemWeightInGram = Math.Round(Convert.ToDecimal(u.Weight) * 1000, 0);
                 var bagWeightInGram = bagWeightsInGram.FirstOrDefault(p => p.BagNo.Equals(u.BagNo)).Weight;
-                // u.PostalCode == "KG02" ?
-                // bagWeightsInGram.FirstOrDefault(p => p.BagNo.Equals(u.BagNo)).PreCheckWeight :
-                // bagWeightsInGram.FirstOrDefault(p => p.BagNo.Equals(u.BagNo)).Weight;
 
                 var itemAfterWeight = listDeductedTare.FirstOrDefault(p => p.TrackingNo.Equals(u.Id)).Weight;
 
-                var impcToCode = "";
-                var logisticCode = "";
-                var taxCode = "";
-                var chineseProductName = "";
-                var ioss = "";
-
-                var kgc = listKGCos.FirstOrDefault(p => p.CountryCode.Equals(countryCode));
-                if (kgc != null)
-                {
-                    impcToCode = kgc.IMPCCode;
-                    logisticCode = kgc.LogisticCode;
-                }
-
-                if (postalCode == "KG01")
-                {
-                    taxCode = u.Address2;
-                    chineseProductName = "";
-                    ioss = u.TaxPayMethod;
-                }
-
-                if (postalCode == "KG02")
-                {
-                    chineseProductName = u.TaxPayMethod;
-                }
+                var taxCode = postalCode == "KG01" ? u.Address2 : "";
+                var chineseProductName = postalCode == "KG01" ? "" : u.TaxPayMethod;
+                var ioss = postalCode == "KG01" ? u.TaxPayMethod : "";
+                var poBoxNo = random.Next(300001, 350000);
 
                 #region Tel
-                var telDefault = "36193912";
-                var tel = u.TelNo;
-                tel = MyRegex().Replace(tel, "");
-                tel = string.IsNullOrWhiteSpace(tel) ? telDefault : tel;
+                var TelDefault = "36193912";
+                var TelNo = u.TelNo;
+                var telephone = string.IsNullOrWhiteSpace(MyRegex().Replace(TelNo, "")) ? TelDefault : TelNo;
 
-                var parseTel = double.TryParse(tel, out double telNo);
-                if (parseTel)
-                {
-                    if (telNo == 0)
-                    {
-                        tel = telDefault;
-                    }
-                }
+                var parseTel = double.TryParse(telephone, out double telNo);
+                if (parseTel && telNo == 0) telephone = TelDefault;
 
                 int telMinLength = 8;
-                if (tel.Length < telMinLength)
+                if (telephone.Length < telMinLength)
                 {
-                    tel = tel.PadRight(telMinLength, '0');
+                    telephone = telephone.PadRight(telMinLength, '0');
                 }
                 #endregion
-
-                var poBoxNo = random.Next(300001, 350000);
 
                 kgManifest.Add(new KGManifest
                 {
@@ -469,7 +426,7 @@ namespace SND.SMP.Dispatches
                     Destination_City = u.City,
                     Destination_Province = u.State,
                     Destination_Zip = u.Postcode,
-                    Destination_Phone = tel,
+                    Destination_Phone = telephone,
                     Attachment_Description = RemoveKGForbiddenKeywords(u.ItemDesc),
                     ChineseProductName = chineseProductName,
                     Attachment_Quantity = u.Qty,
@@ -491,7 +448,7 @@ namespace SND.SMP.Dispatches
             }
             return kgManifest;
         }
-        private async Task<List<GQManifest>> GetGQManifest(int dispatchId, Dispatch dispatch, bool isPreCheckWeight, string countryCode = null)
+        private async Task<List<GQManifest>> GetGQManifest(Dispatch dispatch, List<Bag> bags, List<Item> items, List<IMPC> impcs, bool isPreCheckWeight, string countryCode = null)
         {
             List<GQManifest> gqManifest = [];
             countryCode = countryCode.ToUpper().Trim();
@@ -499,85 +456,54 @@ namespace SND.SMP.Dispatches
 
             postalCode = dispatch.PostalCode;
 
-            var items = await _itemRepository.GetAllListAsync(x => x.DispatchID.Equals(dispatchId));
-
             if (!string.IsNullOrWhiteSpace(countryCode))
                 items = items.Where(x => x.CountryCode.Equals(countryCode)).ToList();
 
-            var bags = items.GroupBy(x => x.BagNo).Select(x => x.Key).ToList();
+            var groupedBags = items.GroupBy(x => x.BagNo).Select(x => x.Key).ToList();
 
             List<BagWeights> bagWeightsInGram = [];
 
-            if (isPreCheckWeight)
-            {
-                bagWeightsInGram = items
-                            .Where(u => u.Weight is not null)
-                            .GroupBy(u => u.BagNo)
-                            .Select(u => new BagWeights
-                            {
-                                BagNo = u.Key,
-                                Weight = Math.Round(u.Sum(p => Convert.ToDecimal(p.Weight) * 1000), 0)
-                            })
-                            .ToList();
-            }
-            else
-            {
-                var _bags = await _bagRepository.GetAllListAsync();
-                bagWeightsInGram = _bags
-                    .Where(u => u.DispatchId.Equals(dispatch.Id))
-                    .Select(u => new BagWeights
-                    {
-                        BagNo = u.BagNo,
-                        Weight = u.WeightPost == null ? 0 : u.WeightPost.Value * 1000
-                    })
-                    .ToList();
-            }
-
-            var bagTareWeightInGram = 110;
+            bagWeightsInGram = isPreCheckWeight ?
+                items.Where(u => u.Weight is not null).GroupBy(u => u.BagNo).Select(u => new BagWeights
+                {
+                    BagNo = u.Key,
+                    Weight = Math.Round(u.Sum(p => Convert.ToDecimal(p.Weight) * 1000), 0)
+                }).ToList()
+                :
+                bags.Select(u => new BagWeights
+                {
+                    BagNo = u.BagNo,
+                    Weight = u.WeightPost == null ? u.WeightPre.Value * 1000 : u.WeightPost.Value * 1000
+                }).ToList();
 
             var random = new Random();
+            var tare = 110m;
 
-            var listDeducted = await GetDeductTare(dispatchId, bagTareWeightInGram, true, 3m, 1);
+            var listDeductedTare = GetDeductTare(bags, items, tare, !isPreCheckWeight, 3m, 1);
 
-            var listGQCos = await _impcRepository.GetAllListAsync(x => x.Type.Equals("GQ"));
-
-            string impcToCode = "";
-            string logisticCode = "";
-
-            var kgc = listGQCos.FirstOrDefault(p => p.CountryCode.Equals(countryCode));
-            if (kgc != null)
-            {
-                impcToCode = kgc.IMPCCode;
-                logisticCode = kgc.LogisticCode;
-            }
+            var gqc = impcs.FirstOrDefault(p => p.CountryCode.Equals(countryCode));
+            string impcToCode = gqc != null ? gqc.IMPCCode : "";
+            string logisticCode = gqc != null ? gqc.LogisticCode : "";
 
             foreach (var u in items)
             {
-                var bagNo = bags.IndexOf(u.BagNo) + 1;
+                var bagNo = groupedBags.IndexOf(u.BagNo) + 1;
 
                 var itemWeightInGram = Math.Round(Convert.ToDecimal(u.Weight) * 1000, 0);
                 var bagWeightInGram = bagWeightsInGram.FirstOrDefault(p => p.BagNo == u.BagNo).Weight;
-                var itemWeightPortionInGram = Math.Round(itemWeightInGram / bagWeightInGram * 100 * bagTareWeightInGram / 100, 0);
-                var itemAfterWeight = itemWeightInGram - itemWeightPortionInGram;
-                var bagWeightAfterInGram = bagWeightInGram - bagTareWeightInGram;
 
-                itemAfterWeight = listDeducted.FirstOrDefault(p => p.TrackingNo.Equals(u.Id)).Weight;
+                var itemAfterWeight = listDeductedTare.FirstOrDefault(p => p.TrackingNo.Equals(u.Id)).Weight;
 
-                var chineseProductName = "";
-
-                if (postalCode == "KG02")
-                {
-                    chineseProductName = u.TaxPayMethod;
-                }
-
-                var tel = string.IsNullOrWhiteSpace(u.TelNo) ? "87654321" : u.TelNo;
+                var telephone = string.IsNullOrWhiteSpace(u.TelNo) ? "87654321" : u.TelNo;
+                var chineseProductName = postalCode == "KG02" ? u.TaxPayMethod : "";
+                var ioss = string.IsNullOrWhiteSpace(u.TaxPayMethod) ? u.IOSSTax : u.TaxPayMethod;
 
                 #region Tel - Select Randomly
                 var willSelectRandomly = false;
 
                 if (!willSelectRandomly)
                 {
-                    if (MyRegex().IsMatch(tel))
+                    if (MyRegex().IsMatch(telephone))
                     {
                         willSelectRandomly = true;
                     }
@@ -586,13 +512,11 @@ namespace SND.SMP.Dispatches
                 if (!willSelectRandomly)
                 {
                     //covers 0, 1, 2, 3, 9, 000000, 111111, 222222, 999999, 18475, 1256, 591
-                    var parseResult = long.TryParse(tel, out long outTel);
+                    var parseResult = long.TryParse(telephone, out long outTel);
 
                     if (parseResult)
                     {
-                        var minLen = 6;
-
-                        if (outTel.ToString().Length < minLen)
+                        if (outTel.ToString().Length < 6)
                         {
                             willSelectRandomly = true;
                         }
@@ -602,16 +526,13 @@ namespace SND.SMP.Dispatches
                 if (!willSelectRandomly)
                 {
                     //covers 123456, 234567, 345678
-                    bool isSeq = "0123456789".Contains(tel);
+                    bool isSeq = "0123456789".Contains(telephone);
                     if (isSeq)
                     {
                         willSelectRandomly = true;
                     }
                 }
                 #endregion
-
-                var iossTax = u.TaxPayMethod;
-                iossTax = string.IsNullOrWhiteSpace(iossTax) ? u.IOSSTax : iossTax;
 
                 gqManifest.Add(new GQManifest
                 {
@@ -630,7 +551,7 @@ namespace SND.SMP.Dispatches
                     Destination_City = u.City,
                     Destination_Province = u.State,
                     Destination_Zip = u.Postcode,
-                    Destination_Phone = tel,
+                    Destination_Phone = telephone,
                     Attachment_Description = u.ItemDesc,
                     ChineseProductName = chineseProductName,
                     Attachment_Quantity = u.Qty,
@@ -642,16 +563,16 @@ namespace SND.SMP.Dispatches
                     Attachment_Length = u.Length == null ? 0 : Convert.ToInt32(Math.Round(u.Length.Value, 0)),
                     Bag_Number = bagNo,
                     Impc_To_Code = impcToCode,
-                    Bag_Tare_Weight = bagTareWeightInGram,
+                    Bag_Tare_Weight = tare,
                     Bag_Weight = bagWeightInGram,
                     Dispatch_Sent_Date = DateTime.Now.ToString("dd/MM/yyyy"),
                     Logistic_Code = logisticCode,
-                    IOSS = iossTax
+                    IOSS = ioss
                 });
             }
             return gqManifest;
         }
-        private async Task<List<SLManifest>> GetSLManifest(int dispatchId, Dispatch dispatch, bool isPreCheckWeight)
+        private async Task<List<SLManifest>> GetSLManifest(Dispatch dispatch, List<Bag> bags, List<Item> items, bool isPreCheckWeight)
         {
             List<SLManifest> slManifest = [];
 
@@ -659,181 +580,78 @@ namespace SND.SMP.Dispatches
 
             postalCode = dispatch.PostalCode;
 
-            var items = await _itemRepository.GetAllListAsync(x => x.DispatchID.Equals(dispatchId));
-
-            var bags = items.GroupBy(x => x.BagNo).Select(x => x.Key).ToList();
+            var groupedBags = items.GroupBy(x => x.BagNo).Select(x => x.Key).ToList();
 
             List<BagWeights> bagWeightsInGram = [];
 
-            if (isPreCheckWeight)
-            {
-                bagWeightsInGram = items
-                            .Where(u => u.Weight is not null)
-                            .GroupBy(u => u.BagNo)
-                            .Select(u => new BagWeights
-                            {
-                                BagNo = u.Key,
-                                Weight = Math.Round(u.Sum(p => Convert.ToDecimal(p.Weight) * 1000), 0)
-                            })
-                            .ToList();
-            }
-            else
-            {
-                var _bags = await _bagRepository.GetAllListAsync();
-                bagWeightsInGram = _bags
-                    .Where(u => u.DispatchId.Equals(dispatch.Id))
-                    .Select(u => new BagWeights
-                    {
-                        BagNo = u.BagNo,
-                        Weight = u.WeightPost == null ? 0 : u.WeightPost.Value * 1000
-                    })
-                    .ToList();
-            }
-
-            var bagTareWeightInGram = 110;
+            bagWeightsInGram = isPreCheckWeight ?
+                items.Where(u => u.Weight is not null).GroupBy(u => u.BagNo).Select(u => new BagWeights
+                {
+                    BagNo = u.Key,
+                    Weight = Math.Round(u.Sum(p => Convert.ToDecimal(p.Weight) * 1000), 0)
+                }).ToList()
+                :
+                bags.Select(u => new BagWeights
+                {
+                    BagNo = u.BagNo,
+                    Weight = u.WeightPost == null ? u.WeightPre.Value * 1000 : u.WeightPost.Value * 1000
+                }).ToList();
 
             var random = new Random();
 
-            Dictionary<string, decimal> listDeduct = [];
-
-            var totalDeducted = 0m;
-            var maxAttempt = 30;
-            var attempt = 0;
-            var itemMinWeightInGram = 3m;
-            var isMaxAttemptReached = false;
-            var lastBagUnable = "";
-
-            foreach (var b in bags)
-            {
-                attempt = 0;
-                totalDeducted = 0;
-
-                var bagItems = items.Where(p => p.BagNo.Equals(b)).ToList();
-                var bagWeightInGram = bagItems.Sum(p => p.Weight);
-
-                do
-                {
-                    if (attempt > maxAttempt)
-                    {
-                        isMaxAttemptReached = true;
-                        lastBagUnable = b;
-                        break;
-                    }
-
-                    attempt += 1;
-
-                    foreach (var u in bagItems)
-                    {
-                        if (totalDeducted < bagTareWeightInGram)
-                        {
-                            if (attempt == 1)
-                            {
-                                u.Weight = Math.Round(u.Weight.GetValueOrDefault() * 1000m, 2);
-                            }
-
-                            var itemWeightInGram = u.Weight;
-
-                            if (itemWeightInGram >= itemMinWeightInGram)
-                            {
-                                var deducted = 0m;
-
-                                if (itemWeightInGram - 1m >= itemMinWeightInGram)
-                                {
-                                    deducted = 1m;
-                                }
-
-                                if (deducted > 0m)
-                                {
-                                    totalDeducted += deducted;
-                                    u.Weight -= deducted;
-
-                                    if (!listDeduct.TryAdd(u.Id, deducted))
-                                    {
-                                        listDeduct[u.Id] += deducted;
-                                    }
-                                }
-                            }
-                        }
-                        else
-                        {
-                            break;
-                        }
-                    }
-                }
-                while ((totalDeducted < bagTareWeightInGram) && !isMaxAttemptReached);
-            }
-
-            if (isMaxAttemptReached)
-            {
-                throw new UserFriendlyException($"Not sufficient to deduct {bagTareWeightInGram.ToString()}g for bag {lastBagUnable} after {maxAttempt} attempts");
-            }
+            var tare = 110m;
+            var listDeductedTare = GetDeductTare(bags, items, tare, !isPreCheckWeight, 3m, 1);
 
             foreach (var u in items)
             {
-                var bagNo = bags.IndexOf(u.BagNo) + 1;
+                var bagNo = groupedBags.IndexOf(u.BagNo) + 1;
 
                 var itemWeightInGram = Math.Round(Convert.ToDecimal(u.Weight) * 1000, 0);
                 var bagWeightInGram = bagWeightsInGram.FirstOrDefault(p => p.BagNo == u.BagNo).Weight;
-                var itemWeightPortionInGram = Math.Round(itemWeightInGram / bagWeightInGram * 100 * bagTareWeightInGram / 100, 0);
-                var itemAfterWeight = itemWeightInGram - itemWeightPortionInGram;
-                var bagWeightAfterInGram = bagWeightInGram - bagTareWeightInGram;
 
-                itemAfterWeight = itemWeightInGram - (listDeduct.TryGetValue(u.Id, out decimal value) ? value : 0m);
+                var itemAfterWeight = listDeductedTare.FirstOrDefault(p => p.TrackingNo.Equals(u.Id)).Weight;
 
-                var chineseProductName = "";
-
-                if (postalCode == "KG02")
-                {
-                    chineseProductName = u.TaxPayMethod;
-                }
-
-                var tel = u.TelNo;
-                tel = string.IsNullOrWhiteSpace(tel) ? "87654321" : tel;
+                var chineseProductName = postalCode == "KG02" ? u.TaxPayMethod : "";
 
                 #region Tel - Select Randomly
-                if (true)
-                {
-                    var willSelectRandomly = false;
+                var telephone = string.IsNullOrWhiteSpace(u.TelNo) ? "87654321" : u.TelNo;
+                var willSelectRandomly = false;
 
-                    if (string.IsNullOrWhiteSpace(tel))
+                if (string.IsNullOrWhiteSpace(telephone))
+                {
+                    willSelectRandomly = true;
+                }
+
+                if (!willSelectRandomly)
+                {
+                    if (MyRegex().IsMatch(telephone))
                     {
                         willSelectRandomly = true;
                     }
+                }
 
-                    if (!willSelectRandomly)
+                if (!willSelectRandomly)
+                {
+                    //covers 0, 1, 2, 3, 9, 000000, 111111, 222222, 999999, 18475, 1256, 591
+                    var parseResult = long.TryParse(telephone, out long outTel);
+
+                    if (parseResult)
                     {
-                        if (MyRegex().IsMatch(tel))
+                        if (outTel.ToString().Length < 6)
                         {
                             willSelectRandomly = true;
                         }
                     }
+                }
 
-                    if (!willSelectRandomly)
+                if (!willSelectRandomly)
+                {
+                    //covers 123456, 234567, 345678
+                    bool isSeq = "0123456789".Contains(telephone);
+                    if (isSeq)
                     {
-                        //covers 0, 1, 2, 3, 9, 000000, 111111, 222222, 999999, 18475, 1256, 591
-                        var parseResult = long.TryParse(tel, out long outTel);
-
-                        if (parseResult)
-                        {
-                            var minLen = 6;
-
-                            if (outTel.ToString().Length < minLen)
-                            {
-                                willSelectRandomly = true;
-                            }
-                        }
+                        willSelectRandomly = true;
                     }
-
-                    if (!willSelectRandomly)
-                    {
-                        //covers 123456, 234567, 345678
-                        bool isSeq = "0123456789".Contains(tel);
-                        if (isSeq)
-                        {
-                            willSelectRandomly = true;
-                        }
-                    }
-
                 }
                 #endregion
 
@@ -890,7 +708,7 @@ namespace SND.SMP.Dispatches
                     Destination_City = u.City,
                     Destination_Province = u.State,
                     Destination_Zip = u.Postcode,
-                    Destination_Phone = tel,
+                    Destination_Phone = telephone,
                     Attachment_Description = u.ItemDesc,
                     ChineseProductName = chineseProductName,
                     Attachment_Quantity = u.Qty,
@@ -902,7 +720,7 @@ namespace SND.SMP.Dispatches
                     Attachment_Length = u.Length == null ? 0 : Convert.ToInt32(Math.Round(u.Length.Value, 0)),
                     Bag_Number = bagNo,
                     Impc_To_Code = "JPKWSA",
-                    Bag_Tare_Weight = bagTareWeightInGram,
+                    Bag_Tare_Weight = tare,
                     Bag_Weight = bagWeightInGram,
                     Dispatch_Sent_Date = DateTime.Now.ToString("dd/MM/yyyy"),
                     Logistic_Code = "KEPBKLGT001285",
@@ -911,13 +729,10 @@ namespace SND.SMP.Dispatches
             }
             return slManifest;
         }
-        private async Task<List<DOManifest>> GetDOManifest(int dispatchId, Dispatch dispatch, string countryCode = null)
+        private async Task<List<DOManifest>> GetDOManifest(Dispatch dispatch, List<Bag> bags, List<Item> items, bool isPreCheckWeight, string countryCode = null)
         {
             List<DOManifest> doManifest = [];
-
-            var items = await _itemRepository.GetAllListAsync(x => x.DispatchID.Equals(dispatchId));
-
-            var bags = await _bagRepository.GetAllListAsync(x => x.DispatchId.Equals(dispatchId));
+            countryCode = countryCode.ToUpper().Trim();
 
             var bagsGroupedByCountry = bags
                                         .GroupBy(b => b.CountryCode)
@@ -955,6 +770,8 @@ namespace SND.SMP.Dispatches
                 new() { CountryCode = "MV", Origin = "SDQ", Destination = "MLE", Service = "PP-101"},
             };
 
+            var listDeductedTare = GetManifestWeight(bags, items, isPreCheckWeight);
+
             foreach (var u in items)
             {
                 var map = mapping.FirstOrDefault(x => x.CountryCode.Equals(u.CountryCode));
@@ -962,6 +779,8 @@ namespace SND.SMP.Dispatches
                 var itemCountryBags = bagsGroupedByCountry.FirstOrDefault(x => x.CountryCode.Equals(u.CountryCode)).Bags;
 
                 var foundBag = itemCountryBags.FirstOrDefault(x => x.BagNo.Equals(u.BagNo));
+
+                var itemAfterWeight = Math.Round(listDeductedTare.FirstOrDefault(p => p.TrackingNo.Equals(u.Id)).Weight, 3);
 
                 doManifest.Add(new DOManifest()
                 {
@@ -988,7 +807,7 @@ namespace SND.SMP.Dispatches
                     ConsigneeMobile = "",
                     ConsigneeTaxId = "",
                     Pieces = 1,
-                    Gweight = u.Weight.GetValueOrDefault(),
+                    Gweight = itemAfterWeight, //u.Weight.GetValueOrDefault(),
                     Cweight = "",
                     WeightType = "KG",
                     Height = (int)u.Height.GetValueOrDefault(),
@@ -1011,13 +830,12 @@ namespace SND.SMP.Dispatches
 
             return doManifest;
         }
-        private async Task<List<KGBag>> GetKGBag(int dispatchId, Dispatch dispatch, bool isPreCheckWeight, string countryCode = null)
+        private async Task<List<KGBag>> GetKGBag(Dispatch dispatch, List<Bag> bags, List<Item> items, List<IMPC> impcs, bool isPreCheckWeight, string countryCode = null)
         {
             List<KGBag> kgBag = [];
 
-            var items = await _itemRepository.GetAllListAsync(x => x.DispatchID.Equals(dispatchId));
-
-            if (!string.IsNullOrWhiteSpace(countryCode)) items = items.Where(x => x.CountryCode.Equals(countryCode)).ToList();
+            if (!string.IsNullOrWhiteSpace(countryCode))
+                items = items.Where(x => x.CountryCode.Equals(countryCode)).ToList();
 
             var dispatchDate = dispatch.DispatchDate.GetValueOrDefault().ToString("yyyy-MM-dd");
 
@@ -1037,46 +855,40 @@ namespace SND.SMP.Dispatches
             }
             else
             {
-                var _bags = await _bagRepository.GetAllListAsync(x => x.DispatchId.Equals(dispatch.Id));
-                bagList = _bags
+                bagList = bags
                             .Where(u => u.DispatchId.Equals(dispatch.Id))
                             .Select(u => new BagWeights
                             {
                                 BagNo = u.BagNo,
-                                Weight = u.WeightPost == null ? 0 : u.WeightPost.Value * 1000
+                                Weight = u.WeightPost == null ? u.WeightPre.Value * 1000 : u.WeightPost.Value * 1000
                             })
                             .ToList();
             }
 
-            var bags = items.GroupBy(u => u.BagNo).ToList();
+            var groupedBags = items.GroupBy(u => u.BagNo).ToList();
 
-            var destination = "";
+            var kgc = impcs.FirstOrDefault(u => u.CountryCode.Equals(countryCode));
+            var destination = kgc is null ? "" : kgc.AirportCode;
 
-            var listKGCos = await _impcRepository.GetAllListAsync(x => x.Type.Equals("KG"));
-            var kgc = listKGCos.FirstOrDefault(u => u.CountryCode.Equals(countryCode));
-            if (kgc is not null) destination = kgc.AirportCode;
-
-            for (int i = 0; i < bags.Count; i++)
+            for (int i = 0; i < groupedBags.Count; i++)
             {
-                var bagNo = bags[i].Key;
+                var bagNo = groupedBags[i].Key;
                 kgBag.Add(new KGBag
                 {
                     RunningNo = i + 1,
                     BagNo = bagNo.ToString(),
                     Destination = destination,
-                    Qty = bags[i].Count(),
-                    Weight = bagList.FirstOrDefault(p => p.BagNo.Equals(bags[i].Key)).Weight,
+                    Qty = groupedBags[i].Count(),
+                    Weight = bagList.FirstOrDefault(p => p.BagNo.Equals(groupedBags[i].Key)).Weight,
                     DispatchDate = dispatchDate
                 });
             }
 
             return kgBag;
         }
-        private async Task<List<GQBag>> GetGQBag(int dispatchId, Dispatch dispatch, bool isPreCheckWeight, string countryCode = null)
+        private async Task<List<GQBag>> GetGQBag(Dispatch dispatch, List<Bag> bags, List<Item> items, List<IMPC> impcs, bool isPreCheckWeight, string countryCode = null)
         {
             List<GQBag> gqBag = [];
-
-            var items = await _itemRepository.GetAllListAsync(x => x.DispatchID.Equals(dispatchId));
 
             if (!string.IsNullOrWhiteSpace(countryCode)) items = items.Where(x => x.CountryCode.Equals(countryCode)).ToList();
 
@@ -1098,44 +910,39 @@ namespace SND.SMP.Dispatches
             }
             else
             {
-                var _bags = await _bagRepository.GetAllListAsync(x => x.DispatchId.Equals(dispatch.Id));
-                bagList = _bags
+                bagList = bags
                             .Where(u => u.DispatchId.Equals(dispatch.Id))
                             .Select(u => new BagWeights
                             {
                                 BagNo = u.BagNo,
-                                Weight = u.WeightPost == null ? 0 : u.WeightPost.Value * 1000
+                                Weight = u.WeightPost == null ? u.WeightPre.Value * 1000 : u.WeightPost.Value * 1000
                             })
                             .ToList();
             }
 
-            var destination = "";
-            var bags = items.GroupBy(u => u.BagNo).ToList();
-            var listGQCos = await _impcRepository.GetAllListAsync(x => x.Type.Equals("GQ"));
-            var kgc = listGQCos.FirstOrDefault(u => u.CountryCode.Equals(countryCode));
-            if (kgc != null) destination = kgc.AirportCode;
+            var groupedBags = items.GroupBy(u => u.BagNo).ToList();
+            var gqc = impcs.FirstOrDefault(u => u.CountryCode.Equals(countryCode));
+            var destination = gqc is null ? "" : gqc.AirportCode;
 
-            for (int i = 0; i < bags.Count; i++)
+            for (int i = 0; i < groupedBags.Count; i++)
             {
-                var bagNo = bags[i].Key;
+                var bagNo = groupedBags[i].Key;
 
                 gqBag.Add(new GQBag
                 {
-                    RunningNo = i,
+                    RunningNo = i + 1,
                     BagNo = bagNo.ToString(),
                     Destination = destination,
-                    Qty = bags[i].Count(),
-                    Weight = bagList.FirstOrDefault(p => p.BagNo.Equals(bags[i].Key)).Weight,
+                    Qty = groupedBags[i].Count(),
+                    Weight = bagList.FirstOrDefault(p => p.BagNo.Equals(groupedBags[i].Key)).Weight,
                     DispatchDate = dispatchDate
                 });
             }
             return gqBag;
         }
-        private async Task<List<SLBag>> GetSLBag(int dispatchId, Dispatch dispatch, bool isPreCheckWeight)
+        private List<SLBag> GetSLBag(Dispatch dispatch, List<Bag> bags, List<Item> items, bool isPreCheckWeight)
         {
             List<SLBag> slBag = [];
-
-            var items = await _itemRepository.GetAllListAsync(x => x.DispatchID.Equals(dispatchId));
 
             var dispatchDate = dispatch.DispatchDate.GetValueOrDefault().ToString("yyyy-MM-dd");
 
@@ -1155,50 +962,49 @@ namespace SND.SMP.Dispatches
             }
             else
             {
-                var _bags = await _bagRepository.GetAllListAsync(x => x.DispatchId.Equals(dispatch.Id));
-                bagList = _bags
+                bagList = bags
                             .Where(u => u.DispatchId.Equals(dispatch.Id))
                             .Select(u => new BagWeights
                             {
                                 BagNo = u.BagNo,
-                                Weight = u.WeightPost == null ? 0 : u.WeightPost.Value * 1000
+                                Weight = u.WeightPost == null ? u.WeightPre.Value * 1000 : u.WeightPost.Value * 1000
                             })
                             .ToList();
             }
 
-            var bags = items.GroupBy(u => u.BagNo).ToList();
+            var groupedBags = items.GroupBy(u => u.BagNo).ToList();
 
-            for (int i = 0; i < bags.Count; i++)
+            for (int i = 0; i < groupedBags.Count; i++)
             {
-                var bagNo = bags[i].Key;
+                var bagNo = groupedBags[i].Key;
 
                 slBag.Add(new SLBag
                 {
-                    RunningNo = i,
+                    RunningNo = i + 1,
                     BagNo = bagNo.ToString(),
                     Destination = "NRT",
-                    Qty = bags[i].Count(),
-                    Weight = bagList.FirstOrDefault(p => p.BagNo.Equals(bags[i].Key)).Weight,
+                    Qty = groupedBags[i].Count(),
+                    Weight = bagList.FirstOrDefault(p => p.BagNo.Equals(groupedBags[i].Key)).Weight,
                     DispatchDate = dispatchDate
                 });
             }
             return slBag;
         }
+
         /// <summary>
         /// Function to prepare DO Bag list. Keep in mind that DO bag weights are in KG
         /// </summary>
-        /// <param name="dispatchId"></param>
+        /// <param name="items"></param>
         /// <param name="dispatch">Entire Dispatch Object</param>
+        /// <param name="bags"></param>
         /// <param name="isPreCheckWeight">indicator to get pre-check / post-check weight</param>
         /// <param name="countryCode">nullable countryCode</param>
         /// <returns>
         /// Returns a list of DOBag Object
         /// </returns>
-        private async Task<List<DOBag>> GetDOBag(int dispatchId, Dispatch dispatch, bool isPreCheckWeight, string countryCode = null)
+        private List<DOBag> GetDOBag(Dispatch dispatch, List<Bag> bags, List<Item> items, bool isPreCheckWeight, string countryCode = null)
         {
             List<DOBag> doBag = [];
-
-            var items = await _itemRepository.GetAllListAsync(x => x.DispatchID.Equals(dispatchId));
 
             if (!string.IsNullOrWhiteSpace(countryCode)) items = items.Where(x => x.CountryCode.Equals(countryCode)).ToList();
 
@@ -1220,18 +1026,17 @@ namespace SND.SMP.Dispatches
             }
             else
             {
-                var _bags = await _bagRepository.GetAllListAsync(x => x.DispatchId.Equals(dispatch.Id));
-                bagList = _bags
+                bagList = bags
                             .Where(u => u.DispatchId.Equals(dispatch.Id))
                             .Select(u => new BagWeights
                             {
                                 BagNo = u.BagNo,
-                                Weight = u.WeightPost == null ? 0 : u.WeightPost.Value
+                                Weight = u.WeightPost == null ? u.WeightPre.Value * 1000 : u.WeightPost.Value
                             })
                             .ToList();
             }
 
-            var bags = items
+            var groupedBags = items
                             .GroupBy(u => u.BagNo)
                             .Select(g => new
                             {
@@ -1244,146 +1049,165 @@ namespace SND.SMP.Dispatches
 
             var destination = countryCode ?? "";
 
-            for (int i = 0; i < bags.Count; i++)
+            for (int i = 0; i < groupedBags.Count; i++)
             {
-                var bagNo = bags[i].Key;
+                var bagNo = groupedBags[i].Key;
                 doBag.Add(new DOBag
                 {
                     RunningNo = i + 1,
                     BagNo = bagNo.ToString(),
                     Destination = destination,
-                    Qty = bags[i].Items.Count(),
-                    Weight = Math.Round(bagList.FirstOrDefault(p => p.BagNo.Equals(bags[i].Key)).Weight, 3),
+                    Qty = groupedBags[i].Items.Count(),
+                    Weight = Math.Round(bagList.FirstOrDefault(p => p.BagNo.Equals(groupedBags[i].Key)).Weight, 3),
                     DispatchDate = dispatchDate
                 });
             }
 
             return doBag;
         }
-        private async Task<List<DeductTare>> GetDeductTare(int dispatchId, decimal deductAmount, bool usePostCheckWeight = true, decimal minWeight = 3, decimal deductFactor = 1)
+        private List<DeductTare> GetDeductTare(List<Bag> task_bags, List<Item> task_items, decimal deductAmount, bool usePostCheckWeight = true, decimal minWeight = 3, decimal deductFactor = 1)
         {
-            List<DeductTare> result = [];
-
-            var dispatch = await _dispatchRepository.FirstOrDefaultAsync(u => u.Id.Equals(dispatchId));
-            if (dispatch != null)
+            var bags = task_bags.Select(u => new
             {
-                var task_bags = await _bagRepository.GetAllListAsync(u => u.DispatchId.Equals(dispatchId));
-                var task_items = await _itemRepository.GetAllListAsync(u => u.DispatchID.Equals(dispatchId));
+                u.BagNo,
+                u.WeightPre,
+                u.WeightPost
+            }).ToList();
 
-                var bags = task_bags.Select(u => new { u.BagNo, u.WeightPre, u.WeightPost }).ToList();
-                var items = task_items.Select(u => new { u.Id, u.BagNo, u.Weight }).ToList();
+            var items = task_items.Select(u => new
+            {
+                u.Id,
+                u.BagNo,
+                u.Weight
+            }).ToList();
 
-                #region Pre-populate result
-                result = items.Select(u => new DeductTare
-                {
-                    TrackingNo = u.Id,
-                    BagNo = u.BagNo,
-                    Weight = u.Weight.GetValueOrDefault() * 1000
-                }).ToList();
+            var result = items.Select(u => new DeductTare
+            {
+                TrackingNo = u.Id,
+                BagNo = u.BagNo,
+                Weight = u.Weight.GetValueOrDefault() * 1000
+            }).ToList();
+
+            foreach (var bag in bags)
+            {
+                decimal weightBefore = usePostCheckWeight ? bag.WeightPost.GetValueOrDefault() * 1000 : bag.WeightPre.GetValueOrDefault() * 1000;
+                decimal weightAfter = usePostCheckWeight ? (bag.WeightPost.GetValueOrDefault() * 1000) - deductAmount : (bag.WeightPre.GetValueOrDefault() * 1000) - deductAmount;
+
+                #region Set bag weight after
+                _ = result.Where(u => u.BagNo == bag.BagNo).All(u => { u.BagWeightAfter = weightAfter; return true; });
                 #endregion
 
-                foreach (var bag in bags)
+                var bagItems = result.Where(u => u.BagNo.Equals(bag.BagNo));
+                var bagItemsWeight = bagItems.Sum(u => u.Weight);
+
+                decimal totalDeductionRequired = bagItemsWeight - weightAfter;
+                decimal totalAdditionRequired = weightAfter - bagItemsWeight;
+
+                var isEnough = false;
+
+                if (totalDeductionRequired > 0)
                 {
-                    decimal weightBefore = bag.WeightPre.GetValueOrDefault() * 1000;
-                    decimal weightAfter = (bag.WeightPre.GetValueOrDefault() * 1000) - deductAmount;
+                    decimal totalDeducted = 0m;
 
-                    if (usePostCheckWeight)
+                    do
                     {
-                        weightBefore = bag.WeightPost.GetValueOrDefault() * 1000;
-                        weightAfter = (bag.WeightPost.GetValueOrDefault() * 1000) - deductAmount;
-                    }
+                        decimal totalDeductedThisLoop = 0m;
 
-                    #region Set bag weight after
-                    _ = result.Where(u => u.BagNo == bag.BagNo).All(u => { u.BagWeightAfter = weightAfter; return true; });
-                    #endregion
-
-                    var bagItems = result.Where(u => u.BagNo.Equals(bag.BagNo));
-                    var bagItemsWeight = bagItems.Sum(u => u.Weight);
-
-                    var isEnough = false;
-                    decimal totalDeductionRequired = bagItemsWeight - weightAfter;
-                    decimal totalAdditionRequired = weightAfter - bagItemsWeight;
-
-                    if (totalDeductionRequired > 0)
-                    {
-                        decimal totalDeducted = 0m;
-
-                        do
+                        foreach (var item in bagItems)
                         {
-                            decimal totalDeductedThisLoop = 0m;
-
-                            foreach (var item in bagItems)
+                            if (item.Weight > minWeight)
                             {
-                                if (item.Weight > minWeight)
-                                {
-                                    item.Weight -= deductFactor;
+                                item.Weight -= deductFactor;
 
-                                    totalDeducted += deductFactor;
-                                    totalDeductedThisLoop += deductFactor;
-                                }
-
-                                if (totalDeducted >= totalDeductionRequired)
-                                {
-                                    isEnough = true;
-                                    break;
-                                }
+                                totalDeducted += deductFactor;
+                                totalDeductedThisLoop += deductFactor;
                             }
 
-                            if (totalDeductedThisLoop == 0)
+                            if (totalDeducted >= totalDeductionRequired)
                             {
                                 isEnough = true;
+                                break;
                             }
                         }
-                        while (!isEnough);
-                    }
-                    else
-                    {
-                        decimal totalAdded = 0m;
 
-                        do
+                        if (totalDeductedThisLoop == 0)
                         {
-                            decimal totalAddedThisLoop = 0m;
-
-                            foreach (var item in bagItems)
-                            {
-                                if (item.Weight > minWeight)
-                                {
-                                    item.Weight += deductFactor;
-
-                                    totalAdded += deductFactor;
-                                    totalAddedThisLoop += deductFactor;
-                                }
-
-                                if (totalAdded >= totalAdditionRequired)
-                                {
-                                    isEnough = true;
-                                    break;
-                                }
-                            }
-
-                            if (totalAddedThisLoop == 0)
-                            {
-                                isEnough = true;
-                            }
+                            isEnough = true;
                         }
-                        while (!isEnough);
                     }
-
-                    _ = result
-                            .GroupBy(u => new { u.BagNo, u.BagWeightAfter })
-                            .Where(u => u.Sum(p => p.Weight) != u.Key.BagWeightAfter)
-                            .All(u => { var s = u.Select(p => p.IsEnough).First(); s = false; return true; });
+                    while (!isEnough);
                 }
-            }
+                else
+                {
+                    decimal totalAdded = 0m;
 
-            var g = result
+                    do
+                    {
+                        decimal totalAddedThisLoop = 0m;
+
+                        foreach (var item in bagItems)
+                        {
+                            if (item.Weight > minWeight)
+                            {
+                                item.Weight += deductFactor;
+
+                                totalAdded += deductFactor;
+                                totalAddedThisLoop += deductFactor;
+                            }
+
+                            if (totalAdded >= totalAdditionRequired)
+                            {
+                                isEnough = true;
+                                break;
+                            }
+                        }
+
+                        if (totalAddedThisLoop == 0)
+                        {
+                            isEnough = true;
+                        }
+                    }
+                    while (!isEnough);
+                }
+
+                _ = result
                         .GroupBy(u => new { u.BagNo, u.BagWeightAfter })
-                        .Select(u => new { u.Key.BagNo, u.Key.BagWeightAfter, Sum = u.Sum(p => p.Weight) })
-                        .ToList();
+                        .Where(u => u.Sum(p => p.Weight) != u.Key.BagWeightAfter)
+                        .All(u => { var s = u.Select(p => p.IsEnough).First(); s = false; return true; });
+            }
 
             return result;
         }
+        private List<ManifestWeight> GetManifestWeight(List<Bag> bags, List<Item> items, bool isPreCheckWeight)
+        {
+            var result = items.Select(u => new ManifestWeight
+            {
+                TrackingNo = u.Id,
+                BagNo = u.BagNo,
+                Weight = u.Weight.GetValueOrDefault(),
+            }).ToList();
 
+            if (!isPreCheckWeight)
+            {
+                foreach (var bag in bags)
+                {
+                    decimal weightVariance = bag.WeightVariance ?? 0m;
+                    var bagItems = result.Where(u => u.BagNo.Equals(bag.BagNo));
+
+                    if (weightVariance > 0)
+                    {
+                        var itemCount = bag.ItemCountPost ?? bag.ItemCountPre;
+                        var averageWeight = weightVariance / itemCount;
+                        foreach (var item in bagItems)
+                        {
+                            item.Weight += averageWeight.GetValueOrDefault();
+                        }
+                    }
+                }
+            }
+
+            return result;
+        }
 
 
         protected override IQueryable<Dispatch> CreateFilteredQuery(PagedDispatchResultRequestDto input)
@@ -1471,7 +1295,6 @@ namespace SND.SMP.Dispatches
         }
 
 
-
         public async Task<GetPostCheck> GetPostCheckAsync(string dispatchNo)
         {
             var dispatch = await Repository.FirstOrDefaultAsync(x => x.DispatchNo.Equals(dispatchNo)) ?? throw new UserFriendlyException("Dispatch Not Found.");
@@ -1515,6 +1338,7 @@ namespace SND.SMP.Dispatches
             {
                 bag.WeightVariance = null;
                 bag.WeightPost = null;
+                bag.ItemCountPost = null;
             }
 
             var items = await _itemRepository.GetAllListAsync(x => x.DispatchID.Equals(dispatch.Id));
@@ -1608,8 +1432,7 @@ namespace SND.SMP.Dispatches
                 dispatch.TotalWeight = dispatch.PostCheckTotalWeight;
                 dispatch.Status = 2;
 
-                await _dispatchRepository.UpdateAsync(dispatch);
-                await _dispatchRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
+                await _dispatchRepository.UpdateAsync(dispatch).ConfigureAwait(false);
 
                 var dispatchBags = await _bagRepository.GetAllListAsync(x => x.DispatchId.Equals(dispatch.Id));
                 var customerPostal = await _customerPostalRepository.FirstOrDefaultAsync(x => x.AccountNo.Equals(customer.Id) && x.Postal.Equals(dispatch.PostalCode)) ?? throw new UserFriendlyException("No Customer Postal Found with this Customer and Postal Code");
@@ -1623,23 +1446,25 @@ namespace SND.SMP.Dispatches
                 {
                     if (dispatchBags[i].WeightPost is null)
                     {
-                        var bag = bags.FirstOrDefault(x => x.BagNo.Equals(dispatchBags[i].BagNo)); 
+                        var bag = bags.FirstOrDefault(x => x.BagNo.Equals(dispatchBags[i].BagNo));
                         var bagItems = items.Where(x => x.BagNo.Equals(dispatchBags[i].BagNo)).ToList();
 
                         for (int j = 0; j < bagItems.Count; j++)
                         {
                             bagItems[j].DateStage2 = DateTime.Now.AddMilliseconds(random.Next(5000, 60000));
                         }
+                        _itemRepository.GetDbContext().AttachRange(bagItems);
                         _itemRepository.GetDbContext().UpdateRange(bagItems);
                         await _itemRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
 
                         dispatchBags[i].WeightPost = bag.WeightPost;
                         dispatchBags[i].WeightVariance = bag.WeightVariance;
+                        dispatchBags[i].ItemCountPost = bag.ItemCountPre;
                     }
                 }
+                _bagRepository.GetDbContext().AttachRange(dispatchBags);
                 _bagRepository.GetDbContext().UpdateRange(dispatchBags);
                 await _bagRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
-
 
                 var missingBags = await _bagRepository.GetAllListAsync(x =>
                                                     x.DispatchId.Equals(dispatchId) &&
@@ -1654,8 +1479,8 @@ namespace SND.SMP.Dispatches
                     foreach (var missingBag in missingBags)
                     {
                         missingWeight = missingBag.WeightVariance.Value;
-
                         var missingItems = itemsUnderCurrenctDispatch.Where(x => x.BagNo.Equals(missingBag.BagNo)).ToList();
+
                         if (missingItems is not null)
                         {
                             foreach (var missingItem in missingItems)
@@ -1675,18 +1500,16 @@ namespace SND.SMP.Dispatches
                             ReferenceNo = dispatch.DispatchNo,
                             UserId = 0,
                             Weight = missingWeight
-                        });
-                        await _refundRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
+                        }).ConfigureAwait(false);
 
                         var wallet = await _walletRepository.FirstOrDefaultAsync(x => x.Customer.Equals(customer.Code) && x.Currency.Equals(rateItem.CurrencyId));
                         wallet.Balance += totalRefund;
-                        await _walletRepository.UpdateAsync(wallet);
-                        await _walletRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
+                        await _walletRepository.UpdateAsync(wallet).ConfigureAwait(false);
 
                         var eWallet = await _ewalletTypeRepository.FirstOrDefaultAsync(x => x.Id.Equals(wallet.EWalletType));
                         var currency = await _currencyRepository.FirstOrDefaultAsync(x => x.Id.Equals(wallet.Currency));
 
-                        var custTransaction = await _customerTransactionRepository.InsertAsync(new CustomerTransaction()
+                        await _customerTransactionRepository.InsertAsync(new CustomerTransaction()
                         {
                             Wallet = wallet.Id,
                             Customer = wallet.Customer,
@@ -1697,7 +1520,7 @@ namespace SND.SMP.Dispatches
                             ReferenceNo = dispatch.DispatchNo,
                             Description = $"Credited {currency.Abbr} {decimal.Round(Math.Abs(totalRefund), 2, MidpointRounding.AwayFromZero)} to {wallet.Customer}'s {wallet.Id} Wallet. Current Balance is {currency.Abbr} {decimal.Round(wallet.Balance, 2, MidpointRounding.AwayFromZero)}.",
                             TransactionDate = DateTime.Now
-                        });
+                        }).ConfigureAwait(false);
 
                         var dispatchUsedAmount = await _dispatchUsedAmountRepository.FirstOrDefaultAsync(x => x.DispatchNo.Equals(dispatch.DispatchNo));
 
@@ -1705,7 +1528,7 @@ namespace SND.SMP.Dispatches
                         {
                             dispatchUsedAmount.Amount -= Math.Abs(totalRefund);
                             dispatchUsedAmount.DateTime = DateTime.Now;
-                            dispatchUsedAmount.Description = custTransaction.TransactionType;
+                            dispatchUsedAmount.Description = "Refund Amount";
 
                             await _dispatchUsedAmountRepository.UpdateAsync(dispatchUsedAmount).ConfigureAwait(false);
                         }
@@ -1762,18 +1585,16 @@ namespace SND.SMP.Dispatches
                             ReferenceNo = dispatch.DispatchNo,
                             UserId = 0,
                             Weight = totalSurchargeWeight
-                        });
-                        await _weightAdjustmentRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
+                        }).ConfigureAwait(false);
 
                         var wallet = await _walletRepository.FirstOrDefaultAsync(x => x.Customer.Equals(customer.Code) && x.Currency.Equals(rateItem.CurrencyId));
                         wallet.Balance -= totalSurchargePrice;
-                        await _walletRepository.UpdateAsync(wallet);
-                        await _walletRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
+                        await _walletRepository.UpdateAsync(wallet).ConfigureAwait(false);
 
                         var eWallet = await _ewalletTypeRepository.FirstOrDefaultAsync(x => x.Id.Equals(wallet.EWalletType));
                         var currency = await _currencyRepository.FirstOrDefaultAsync(x => x.Id.Equals(wallet.Currency));
 
-                        var custTransaction = await _customerTransactionRepository.InsertAsync(new CustomerTransaction()
+                        await _customerTransactionRepository.InsertAsync(new CustomerTransaction()
                         {
                             Wallet = wallet.Id,
                             Customer = wallet.Customer,
@@ -1784,7 +1605,7 @@ namespace SND.SMP.Dispatches
                             ReferenceNo = dispatch.DispatchNo,
                             Description = $"Deducted {currency.Abbr} {decimal.Round(Math.Abs(totalSurchargePrice), 2, MidpointRounding.AwayFromZero)} from {wallet.Customer}'s {wallet.Id} Wallet. Remaining {currency.Abbr} {decimal.Round(wallet.Balance, 2, MidpointRounding.AwayFromZero)}.",
                             TransactionDate = DateTime.Now
-                        });
+                        }).ConfigureAwait(false);
 
                         var dispatchUsedAmount = await _dispatchUsedAmountRepository.FirstOrDefaultAsync(x => x.DispatchNo.Equals(dispatch.DispatchNo));
 
@@ -1792,7 +1613,7 @@ namespace SND.SMP.Dispatches
                         {
                             dispatchUsedAmount.Amount += Math.Abs(totalSurchargePrice);
                             dispatchUsedAmount.DateTime = DateTime.Now;
-                            dispatchUsedAmount.Description = custTransaction.TransactionType;
+                            dispatchUsedAmount.Description = "Surcharge Amount";
 
                             await _dispatchUsedAmountRepository.UpdateAsync(dispatchUsedAmount).ConfigureAwait(false);
                         }
@@ -1808,18 +1629,16 @@ namespace SND.SMP.Dispatches
                             ReferenceNo = dispatch.DispatchNo,
                             UserId = 0,
                             Weight = totalRefundWeight
-                        });
-                        await _weightAdjustmentRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
+                        }).ConfigureAwait(false);
 
                         var wallet = await _walletRepository.FirstOrDefaultAsync(x => x.Customer.Equals(customer.Code) && x.Currency.Equals(rateItem.CurrencyId));
                         wallet.Balance += Math.Abs(totalRefundPrice);
-                        await _walletRepository.UpdateAsync(wallet);
-                        await _walletRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
+                        await _walletRepository.UpdateAsync(wallet).ConfigureAwait(false);
 
                         var eWallet = await _ewalletTypeRepository.FirstOrDefaultAsync(x => x.Id.Equals(wallet.EWalletType));
                         var currency = await _currencyRepository.FirstOrDefaultAsync(x => x.Id.Equals(wallet.Currency));
 
-                        var custTransaction = await _customerTransactionRepository.InsertAsync(new CustomerTransaction()
+                        await _customerTransactionRepository.InsertAsync(new CustomerTransaction()
                         {
                             Wallet = wallet.Id,
                             Customer = wallet.Customer,
@@ -1830,7 +1649,7 @@ namespace SND.SMP.Dispatches
                             ReferenceNo = dispatch.DispatchNo,
                             Description = $"Credited {currency.Abbr} {decimal.Round(Math.Abs(totalRefundPrice), 2, MidpointRounding.AwayFromZero)} to {wallet.Customer}'s {wallet.Id} Wallet. Current Balance is {currency.Abbr} {decimal.Round(wallet.Balance, 2, MidpointRounding.AwayFromZero)}.",
                             TransactionDate = DateTime.Now
-                        });
+                        }).ConfigureAwait(false);
 
                         var dispatchUsedAmount = await _dispatchUsedAmountRepository.FirstOrDefaultAsync(x => x.DispatchNo.Equals(dispatch.DispatchNo));
 
@@ -1838,7 +1657,7 @@ namespace SND.SMP.Dispatches
                         {
                             dispatchUsedAmount.Amount -= Math.Abs(totalRefundPrice);
                             dispatchUsedAmount.DateTime = DateTime.Now;
-                            dispatchUsedAmount.Description = custTransaction.TransactionType;
+                            dispatchUsedAmount.Description = "Refund Amount";
 
                             await _dispatchUsedAmountRepository.UpdateAsync(dispatchUsedAmount).ConfigureAwait(false);
                         }
@@ -1863,6 +1682,7 @@ namespace SND.SMP.Dispatches
             {
                 remainingItems[i].DateStage2 = DateTime.Now.AddMilliseconds(random.Next(5000, 60000));
             }
+            _itemRepository.GetDbContext().AttachRange(remainingItems);
             _itemRepository.GetDbContext().UpdateRange(remainingItems);
             await _itemRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
 
@@ -1872,7 +1692,9 @@ namespace SND.SMP.Dispatches
             {
                 remainingBags[i].WeightPost = (remainingBags[i].WeightPre == null ? 0 : remainingBags[i].WeightPre) + averageWeight;
                 remainingBags[i].WeightVariance = averageWeight;
+                remainingBags[i].ItemCountPost = remainingBags[i].ItemCountPre;
             }
+            _bagRepository.GetDbContext().AttachRange(remainingBags);
             _bagRepository.GetDbContext().UpdateRange(remainingBags);
             await _bagRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
 
@@ -1894,14 +1716,13 @@ namespace SND.SMP.Dispatches
             PriceAndCurrencyId priceAndCurrencyId = new();
 
             var customer = await _customerRepository.FirstOrDefaultAsync(x => x.Code.Equals(dispatch.CustomerCode)) ?? throw new UserFriendlyException("No Customer Found");
-
             var customerPostal = await _customerPostalRepository.FirstOrDefaultAsync(x => x.AccountNo.Equals(customer.Id) && x.Postal.Equals(dispatch.PostalCode)) ?? throw new UserFriendlyException("No Customer Postal Found with this Customer and Postal Code");
-
             var rate = await _rateRepository.FirstOrDefaultAsync(x => x.Id.Equals(customerPostal.Rate)) ?? throw new UserFriendlyException("No Rate Found");
+            var items = await _itemRepository.GetAllListAsync(x => x.DispatchID.Equals(dispatch.Id));
 
             foreach (var bag in weightAdjustmentBags)
             {
-                var itemList = await _itemRepository.GetAllListAsync(x => x.BagNo == bag.BagNo) ?? throw new UserFriendlyException($"No Items found with Bag No of {bag.BagNo}");
+                var itemList = items.Where(x => x.BagNo == bag.BagNo).ToList();
                 int totalItems = itemList.Count;
 
                 priceAndCurrencyId = await CalculatePrice((decimal)bag.WeightVariance, bag.CountryCode, rate.Id, dispatch.ProductCode, dispatch.ServiceCode, totalItems, true);
@@ -1941,7 +1762,7 @@ namespace SND.SMP.Dispatches
                 var eWallet = await _ewalletTypeRepository.FirstOrDefaultAsync(x => x.Id.Equals(wallet.EWalletType));
                 var currency = await _currencyRepository.FirstOrDefaultAsync(x => x.Id.Equals(wallet.Currency));
 
-                var custTransaction = await _customerTransactionRepository.InsertAsync(new CustomerTransaction()
+                await _customerTransactionRepository.InsertAsync(new CustomerTransaction()
                 {
                     Wallet = wallet.Id,
                     Customer = wallet.Customer,
@@ -1952,7 +1773,7 @@ namespace SND.SMP.Dispatches
                     ReferenceNo = dispatch.DispatchNo,
                     Description = $"Deducted {currency.Abbr} {decimal.Round(Math.Abs(totalSurchargePrice), 2, MidpointRounding.AwayFromZero)} from {wallet.Customer}'s {wallet.Id} Wallet. Remaining {currency.Abbr} {decimal.Round(wallet.Balance, 2, MidpointRounding.AwayFromZero)}.",
                     TransactionDate = DateTime.Now
-                });
+                }).ConfigureAwait(false);
 
                 var dispatchUsedAmount = await _dispatchUsedAmountRepository.FirstOrDefaultAsync(x => x.DispatchNo.Equals(dispatch.DispatchNo));
 
@@ -1960,7 +1781,7 @@ namespace SND.SMP.Dispatches
                 {
                     dispatchUsedAmount.Amount += Math.Abs(totalSurchargePrice);
                     dispatchUsedAmount.DateTime = DateTime.Now;
-                    dispatchUsedAmount.Description = custTransaction.TransactionType;
+                    dispatchUsedAmount.Description = "Surcharge Amount";
 
                     await _dispatchUsedAmountRepository.UpdateAsync(dispatchUsedAmount).ConfigureAwait(false);
                 }
@@ -1985,7 +1806,7 @@ namespace SND.SMP.Dispatches
                 var eWallet = await _ewalletTypeRepository.FirstOrDefaultAsync(x => x.Id.Equals(wallet.EWalletType));
                 var currency = await _currencyRepository.FirstOrDefaultAsync(x => x.Id.Equals(wallet.Currency));
 
-                var custTransaction = await _customerTransactionRepository.InsertAsync(new CustomerTransaction()
+                await _customerTransactionRepository.InsertAsync(new CustomerTransaction()
                 {
                     Wallet = wallet.Id,
                     Customer = wallet.Customer,
@@ -1996,7 +1817,7 @@ namespace SND.SMP.Dispatches
                     ReferenceNo = dispatch.DispatchNo,
                     Description = $"Credited {currency.Abbr} {decimal.Round(Math.Abs(totalRefundPrice), 2, MidpointRounding.AwayFromZero)} to {wallet.Customer}'s {wallet.Id} Wallet. Current Balance is {currency.Abbr} {decimal.Round(wallet.Balance, 2, MidpointRounding.AwayFromZero)}.",
                     TransactionDate = DateTime.Now
-                });
+                }).ConfigureAwait(false);
 
                 var dispatchUsedAmount = await _dispatchUsedAmountRepository.FirstOrDefaultAsync(x => x.DispatchNo.Equals(dispatch.DispatchNo));
 
@@ -2004,7 +1825,7 @@ namespace SND.SMP.Dispatches
                 {
                     dispatchUsedAmount.Amount -= Math.Abs(totalRefundPrice);
                     dispatchUsedAmount.DateTime = DateTime.Now;
-                    dispatchUsedAmount.Description = custTransaction.TransactionType;
+                    dispatchUsedAmount.Description = "Refund Amount";
 
                     await _dispatchUsedAmountRepository.UpdateAsync(dispatchUsedAmount).ConfigureAwait(false);
                 }
@@ -2015,8 +1836,8 @@ namespace SND.SMP.Dispatches
 
         public async Task<List<DispatchInfoDto>> GetDashboardDispatchInfo(bool isAdmin, int top, string customerCode = null)
         {
-            var dispatches = isAdmin ? 
-                        await Repository.GetAllListAsync() : 
+            var dispatches = isAdmin ?
+                        await Repository.GetAllListAsync() :
                         await Repository.GetAllListAsync(x => x.CustomerCode.Equals(customerCode));
 
             dispatches = [.. dispatches.Where(x => !x.DispatchNo.Contains("temp", StringComparison.CurrentCultureIgnoreCase))];
@@ -2164,12 +1985,10 @@ namespace SND.SMP.Dispatches
             string sessionID = dateNowInMYT.ToString("yyyyMMddhhmmss");
 
             var dispatch = await _dispatchRepository.FirstOrDefaultAsync(x => x.DispatchNo.Equals(dispatchNo));
-
             var bags = await _bagRepository.GetAllListAsync(x => x.DispatchId.Equals(dispatch.Id));
-
+            var items = await _itemRepository.GetAllListAsync(x => x.DispatchID.Equals(dispatch.Id));
             var countries = bags.GroupBy(x => x.CountryCode).Select(u => u.Key).OrderBy(u => u).ToList();
-
-            var Cos = await _impcRepository.GetAllListAsync(x => x.Type.Equals($"{code}"));
+            var Cos = await _impcRepository.GetAllListAsync(x => x.Type.Equals(code));
 
             var customerCode = dispatch.CustomerCode;
             var productCode = dispatch.ProductCode;
@@ -2184,17 +2003,12 @@ namespace SND.SMP.Dispatches
 
                 foreach (var country in countries)
                 {
-                    var model = await GetKGManifest(dispatch.Id, dispatch, isPreCheckWeight, country);
+                    var model = await GetKGManifest(dispatch, bags, items, Cos, isPreCheckWeight, country);
 
                     if (model.Count != 0)
                     {
-                        var airportCode = "";
-
                         var kgc = Cos.FirstOrDefault(u => u.CountryCode.Equals(country));
-                        if (kgc != null)
-                        {
-                            airportCode = kgc.AirportCode;
-                        }
+                        var airportCode = kgc is null ? "" : kgc.AirportCode;
 
                         if (postalCode.Equals($"{code}02"))
                         {
@@ -2240,17 +2054,12 @@ namespace SND.SMP.Dispatches
 
                 foreach (var country in countries)
                 {
-                    var model = await GetGQManifest(dispatch.Id, dispatch, isPreCheckWeight, country);
+                    var model = await GetGQManifest(dispatch, bags, items, Cos, isPreCheckWeight, country);
 
                     if (model.Count != 0)
                     {
-                        var airportCode = "";
-
-                        var kgc = Cos.FirstOrDefault(u => u.CountryCode.Equals(country));
-                        if (kgc != null)
-                        {
-                            airportCode = kgc.AirportCode;
-                        }
+                        var gqc = Cos.FirstOrDefault(u => u.CountryCode.Equals(country));
+                        var airportCode = gqc is null ? "" : gqc.AirportCode;
 
                         if (postalCode.Equals($"{code}02"))
                         {
@@ -2295,7 +2104,7 @@ namespace SND.SMP.Dispatches
 
                 foreach (var country in countries)
                 {
-                    var model = await GetDOManifest(dispatch.Id, dispatch, country);
+                    var model = await GetDOManifest(dispatch, bags, items, isPreCheckWeight, country);
 
                     if (model.Count != 0)
                     {
@@ -2332,7 +2141,7 @@ namespace SND.SMP.Dispatches
             }
             else
             {
-                var model = await GetSLManifest(dispatch.Id, dispatch, isPreCheckWeight);
+                var model = await GetSLManifest(dispatch, bags, items, isPreCheckWeight);
 
                 using (MemoryStream zipStream = new())
                 {
@@ -2370,11 +2179,9 @@ namespace SND.SMP.Dispatches
             string sessionID = dateNowInMYT.ToString("yyyyMMddhhmmss");
 
             var dispatch = await _dispatchRepository.FirstOrDefaultAsync(x => x.DispatchNo.Equals(dispatchNo));
-
             var bags = await _bagRepository.GetAllListAsync(x => x.DispatchId.Equals(dispatch.Id));
-
+            var items = await _itemRepository.GetAllListAsync(x => x.DispatchID.Equals(dispatch.Id));
             var countries = bags.GroupBy(x => x.CountryCode).Select(u => u.Key).OrderBy(u => u).ToList();
-
             var Cos = await _impcRepository.GetAllListAsync(x => x.Type.Equals($"{code}"));
 
             var customerCode = dispatch.CustomerCode;
@@ -2390,14 +2197,12 @@ namespace SND.SMP.Dispatches
 
                 foreach (var country in countries)
                 {
-                    var model = await GetKGBag(dispatch.Id, dispatch, isPreCheckWeight, country);
+                    var model = await GetKGBag(dispatch, bags, items, Cos, isPreCheckWeight, country);
 
                     if (model.Count != 0)
                     {
-                        var airportCode = "";
-
                         var kgc = Cos.FirstOrDefault(u => u.CountryCode.Equals(country));
-                        if (kgc != null) airportCode = kgc.AirportCode;
+                        var airportCode = kgc is null ? "" : kgc.AirportCode;
 
                         if (postalCode.Equals($"{code}02"))
                         {
@@ -2443,14 +2248,12 @@ namespace SND.SMP.Dispatches
 
                 foreach (var country in countries)
                 {
-                    var model = await GetGQBag(dispatch.Id, dispatch, isPreCheckWeight, country);
+                    var model = await GetGQBag(dispatch, bags, items, Cos, isPreCheckWeight, country);
 
                     if (model.Count != 0)
                     {
-                        var airportCode = "";
-
                         var gqc = Cos.FirstOrDefault(u => u.CountryCode.Equals(country));
-                        if (gqc != null) airportCode = gqc.AirportCode;
+                        var airportCode = gqc is null ? "" : gqc.AirportCode;
 
                         if (postalCode.Equals($"{code}02"))
                         {
@@ -2496,7 +2299,7 @@ namespace SND.SMP.Dispatches
 
                 foreach (var country in countries)
                 {
-                    var model = await GetDOBag(dispatch.Id, dispatch, isPreCheckWeight, country);
+                    var model = GetDOBag(dispatch, bags, items, isPreCheckWeight, country);
 
                     if (model.Count != 0)
                     {
@@ -2533,7 +2336,7 @@ namespace SND.SMP.Dispatches
             }
             else
             {
-                var model = await GetSLBag(dispatch.Id, dispatch, isPreCheckWeight);
+                var model = GetSLBag(dispatch, bags, items, isPreCheckWeight);
 
                 using (MemoryStream zipStream = new())
                 {
@@ -2560,7 +2363,6 @@ namespace SND.SMP.Dispatches
             }
         }
 
-
         [Consumes("multipart/form-data")]
         public async Task<GetPostCheck> UploadPostCheckForDisplay([FromForm] UploadPostCheck input)
         {
@@ -2573,7 +2375,7 @@ namespace SND.SMP.Dispatches
             var random = new Random();
 
             var dispatch = await Repository.FirstOrDefaultAsync(x => x.DispatchNo.Equals(input.dispatchNo)) ?? throw new UserFriendlyException("Dispatch Not Found.");
-            
+
             var customer = await _customerRepository.FirstOrDefaultAsync(x => x.Code.Equals(dispatch.CustomerCode)) ?? throw new UserFriendlyException("Customer Not Found.");
 
             var bags = await _bagRepository.GetAllListAsync(x => x.DispatchId.Equals(dispatch.Id)) ?? throw new UserFriendlyException("No Bags Found.");
@@ -2610,7 +2412,7 @@ namespace SND.SMP.Dispatches
                 FlightTrucking = dispatch.FlightTrucking ?? "",
                 ETA = dispatch.ETAtoHKG ?? DateOnly.FromDateTime(DateTime.Now),
                 ATA = dispatch.ATA ?? DateTime.MinValue,
-                PreCheckNoOfBag =  dispatch.NoofBag ?? 0,
+                PreCheckNoOfBag = dispatch.NoofBag ?? 0,
                 PostCheckNoOfBag = bagList.Count,
                 PreCheckWeight = dispatch.TotalWeight ?? Convert.ToDecimal(0),
                 PostCheckWeight = postCheckWeight,

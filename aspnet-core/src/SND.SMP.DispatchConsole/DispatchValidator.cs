@@ -15,6 +15,7 @@ using SND.SMP.Chibis;
 using SND.SMP.CustomerTransactions;
 using SND.SMP.DispatchUsedAmounts;
 using System.Text;
+using OfficeOpenXml;
 
 namespace SND.SMP.DispatchConsole
 {
@@ -324,6 +325,8 @@ namespace SND.SMP.DispatchConsole
                     }
                 } while (reader.NextResult());
 
+                
+
                 if (listItemIds.Count != 0)
                 {
                     //Block validation
@@ -354,6 +357,13 @@ namespace SND.SMP.DispatchConsole
                 }
 
                 #endregion
+
+                bool allowUploadIfInsufficientFund = false;
+                var appSetting = db.ApplicationSettings.FirstOrDefault(u => u.Name.Equals("AllowUploadIfInsufficientFund"));
+                if (appSetting is not null) 
+                {
+                    allowUploadIfInsufficientFund = appSetting.Value.ToString() == "true";
+                }
 
                 #region Dispatch Validation
 
@@ -412,16 +422,16 @@ namespace SND.SMP.DispatchConsole
                         validations.Add(validationResult_country_HasInvalidCountry);
                     }
 
-                    if (validationResult_wallet_InsufficientBalance.ItemIds.Count != 0 || !string.IsNullOrWhiteSpace(validationResult_wallet_InsufficientBalance.Message))
-                    {
-                        isValid = false;
-                        validations.Add(validationResult_wallet_InsufficientBalance);
-                    }
-
                     if (validationResult_ioss_missing.ItemIds.Count != 0 || !string.IsNullOrWhiteSpace(validationResult_ioss_missing.Message))
                     {
                         isValid = false;
                         validations.Add(validationResult_ioss_missing);
+                    }
+
+                    if (validationResult_wallet_InsufficientBalance.ItemIds.Count != 0 || !string.IsNullOrWhiteSpace(validationResult_wallet_InsufficientBalance.Message))
+                    {
+                        isValid = allowUploadIfInsufficientFund;
+                        validations.Add(validationResult_wallet_InsufficientBalance);
                     }
 
                     if (!isValid)
@@ -430,6 +440,11 @@ namespace SND.SMP.DispatchConsole
                     }
                     else //---- Deduct Amount If Valid ----//
                     {
+                        if(validations.Count == 1 && validations[0].Category == "Insufficient Wallet Balance")
+                        {
+                            await ValidationsHandling(validations, DispatchProfile.DispatchNo, CustomerCode);
+                        }
+
                         using var dbconn = new db();
                         var wallet = dbconn.Wallets
                                                 .Where(u => u.Customer == CustomerCode)
@@ -860,6 +875,41 @@ namespace SND.SMP.DispatchConsole
                 result = list.Count != 0;
             }
             return result;
+        }
+
+        private static DataTable ConvertToDatatable(Stream ms)
+        {
+            DataTable dataTable = new();
+
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
+            using (var package = new ExcelPackage(ms))
+            {
+                ExcelWorksheet worksheet = package.Workbook.Worksheets[0];
+
+                // Assuming the first row is the header
+                for (int i = 1; i <= worksheet.Dimension.End.Column; i++)
+                {
+                    string columnName = worksheet.Cells[1, i].Value?.ToString();
+                    if (!string.IsNullOrEmpty(columnName))
+                    {
+                        dataTable.Columns.Add(columnName);
+                    }
+                }
+
+                // Populate DataTable with data from Excel
+                for (int row = 2; row <= worksheet.Dimension.End.Row; row++)
+                {
+                    DataRow dataRow = dataTable.NewRow();
+                    for (int col = 1; col <= worksheet.Dimension.End.Column; col++)
+                    {
+                        dataRow[col - 1] = worksheet.Cells[row, col].Value;
+                    }
+                    dataTable.Rows.Add(dataRow);
+                }
+            }
+
+            return dataTable;
         }
     }
 }

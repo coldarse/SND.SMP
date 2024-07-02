@@ -368,17 +368,18 @@ namespace SND.SMP.CustomerPostals
         public async Task<List<GroupedCustomerPostal>> GetGroupedCustomerPostal()
         {
             var customerPostals = await _customerPostalRepository.GetAllListAsync();
-
             var customers = await _customerRepository.GetAllListAsync();
+
+            var customerDictionary = customers.ToDictionary(c => c.Id);
 
             var grouped = customerPostals
                                 .GroupBy(g => g.AccountNo)
                                 .Select(u => new GroupedCustomerPostal()
                                 {
-                                    CustomerId = customers.FirstOrDefault(x => x.Id.Equals(u.Key)).Id,
-                                    CustomerCode = customers.FirstOrDefault(x => x.Id.Equals(u.Key)).Code,
-                                    CustomerName = customers.FirstOrDefault(x => x.Id.Equals(u.Key)).CompanyName,
-                                    CustomerPostal = [.. u]
+                                    CustomerId = u.Key,
+                                    CustomerCode = customerDictionary[u.Key]?.Code,
+                                    CustomerName = customerDictionary[u.Key]?.CompanyName,
+                                    CustomerPostal = [.. u.GroupBy(cp => cp.Postal[..2]).Select(group => group.First())]
                                 });
 
             return [.. grouped];
