@@ -12,18 +12,21 @@ using SND.SMP.ApplicationSettings.Dto;
 
 namespace SND.SMP.ApplicationSettings
 {
-    public class ApplicationSettingAppService : AsyncCrudAppService<ApplicationSetting, ApplicationSettingDto, int, PagedApplicationSettingResultRequestDto>
+    public class ApplicationSettingAppService(IRepository<ApplicationSetting, int> repository) : AsyncCrudAppService<ApplicationSetting, ApplicationSettingDto, int, PagedApplicationSettingResultRequestDto>(repository)
     {
-
-        public ApplicationSettingAppService(IRepository<ApplicationSetting, int> repository) : base(repository)
-        {
-        }
         protected override IQueryable<ApplicationSetting> CreateFilteredQuery(PagedApplicationSettingResultRequestDto input)
         {
             return Repository.GetAllIncluding()
                 .WhereIf(!input.Keyword.IsNullOrWhiteSpace(), x => 
                     x.Name.Contains(input.Keyword) ||
                     x.Value.Contains(input.Keyword));
+        }
+
+        public async Task<string> GetValueByName(string name)
+        {
+            var setting = await Repository.FirstOrDefaultAsync(x => x.Name.Equals(name));
+            if (setting == null) return string.Empty;
+            return setting.Value;
         }
     }
 }

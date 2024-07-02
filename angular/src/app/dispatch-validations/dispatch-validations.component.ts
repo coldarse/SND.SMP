@@ -17,6 +17,7 @@ import { ChibiService } from "@shared/service-proxies/chibis/chibis.service";
 import { DispatchValidationErrorComponent } from "./dipatch-validation-error/dispatch-validation-error.component";
 import { QueueService } from "@shared/service-proxies/queues/queue.service";
 import { UploadRetryComponent } from "./upload-retry/upload-retry.component";
+import { ApplicationSettingService } from "@shared/service-proxies/applicationsettings/applicationsetting.service";
 
 class PagedDispatchValidationsRequestDto extends PagedRequestDto {
   keyword: string;
@@ -53,24 +54,23 @@ export class DispatchValidationsComponent
     private _dispatchvalidationService: DispatchValidationService,
     private _chibiService: ChibiService,
     private _queueService: QueueService,
+    private _applicationSettingService: ApplicationSettingService,
     private _modalService: BsModalService
   ) {
     super(injector);
   }
 
   ngOnInit(): void {
-    if (!this.showPagination) {
-      this.startReloadInterval();
-    } else {
-      this.getDataPage(1);
-    }
+    this._applicationSettingService.getValueByName("AutoReloadPageSecs").subscribe((data: any) => {
+      this.startReloadInterval(data.result == "" ? 5 : +data.result);
+    });
   }
 
-  startReloadInterval() {
+  startReloadInterval(seconds: number) {
     this.getDataPage(1);
     this.reloadDispatchValidation = setInterval(() => {
       this.getDataPage(1);
-    }, 30000);
+    }, seconds * 1000);
   }
 
   ngOnDestroy(): void {
@@ -144,8 +144,8 @@ export class DispatchValidationsComponent
       {
         class: "modal-lg",
         initialState: {
-          dispatchNo: dispatchNo
-        }
+          dispatchNo: dispatchNo,
+        },
       }
     );
 
@@ -154,21 +154,36 @@ export class DispatchValidationsComponent
     });
   }
 
-  retryDispatchValidation(filepath: string, dispatchNo: string) {
+  retryDispatchValidation(
+    filepath: string,
+    dispatchNo: string,
+    customerCode: string
+  ) {
     let uploadRetryDialog: BsModalRef;
-    uploadRetryDialog = this._modalService.show(
-      UploadRetryComponent,
-      {
-        class: "modal-lg",
-        initialState: {
-          filepath: filepath,
-          dispatchNo: dispatchNo,
-        },
-      }
-    );
+    uploadRetryDialog = this._modalService.show(UploadRetryComponent, {
+      class: "modal-lg",
+      initialState: {
+        filepath: filepath,
+        dispatchNo: dispatchNo,
+        selectedCustomerCode: customerCode,
+      },
+    });
 
     uploadRetryDialog.content.onSave.subscribe(() => {
       this.refresh();
+    });
+  }
+
+  deleteDispatch(filepath: string, dispatchNo: string) {
+    abp.message.confirm("", undefined, (result: boolean) => {
+      if (result) {
+        this._chibiService
+          .deleteDispatch(filepath, dispatchNo)
+          .subscribe(() => {
+            abp.notify.success(this.l("SuccessfullyDeleted"));
+            this.refresh();
+          });
+      }
     });
   }
 

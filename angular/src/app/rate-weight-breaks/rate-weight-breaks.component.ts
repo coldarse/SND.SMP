@@ -105,7 +105,7 @@ export class RateWeightBreaksComponent extends PagedListingComponentBase<RateWei
     this.rateweightbreak = undefined;
     this.isTableLoading = true;
 
-    this._rateService.getRates().subscribe((rates: any) => {
+    this._rateService.getDERates().subscribe((rates: any) => {
       this.rates = rates.result;
 
       if (this.selectedRateCard !== 0) {

@@ -163,10 +163,6 @@ namespace SND.SMP.Wallets
                 ewallet.Balance += input.Amount;
                 var update = await Repository.UpdateAsync(ewallet);
 
-                DateTime DateTimeUTC = DateTime.UtcNow;
-                TimeZoneInfo cstZone = TimeZoneInfo.FindSystemTimeZoneById("Singapore Standard Time");
-                DateTime cstDateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTimeUTC, cstZone);
-
                 var addTransaction = await customerTransactionRepository.InsertAsync(new CustomerTransaction()
                 {
                     Wallet = ewallet.Id,
@@ -177,7 +173,7 @@ namespace SND.SMP.Wallets
                     Amount = input.Amount,
                     ReferenceNo = input.ReferenceNo,
                     Description = input.Description,
-                    TransactionDate = cstDateTime
+                    TransactionDate = DateTime.Now
                 });
                 return true;
             }
@@ -193,8 +189,11 @@ namespace SND.SMP.Wallets
                 x.Currency.Equals(input.OGCurrency)
             )) ?? throw new UserFriendlyException("No E-Wallet Found");
 
-            /* Remove Exisiting E-Wallet */
-            await Repository.DeleteAsync(ewallet);
+            var transactions = input.OGCurrency != input.Currency ? await customerTransactionRepository.FirstOrDefaultAsync(x => x.Wallet.Equals(ewallet.Id)) : new CustomerTransaction();
+
+            /* Remove Existing E-Wallet if no transactions are made with said wallet. */
+            if (transactions is null) await Repository.DeleteAsync(ewallet);
+            else throw new UserFriendlyException("Wallet has been used. Unable to Update.");
 
             /* Insert New E-Wallet */
             var insert = await Repository.InsertAsync(new Wallet()
@@ -217,7 +216,11 @@ namespace SND.SMP.Wallets
                 x.Currency.Equals(input.Currency)
             )) ?? throw new UserFriendlyException("No E-Wallet Found");
 
-            await Repository.DeleteAsync(ewallet);
+            var transactions = await customerTransactionRepository.FirstOrDefaultAsync(x => x.Wallet.Equals(ewallet.Id));
+
+            /* Remove Existing E-Wallet if no transactions are made with said wallet. */
+            if (transactions is null) await Repository.DeleteAsync(ewallet);
+            else throw new UserFriendlyException("Wallet has been used. Unable to Delete.");
         }
 
         public async Task<EWalletDto> GetEWalletAsync(WalletDto input)

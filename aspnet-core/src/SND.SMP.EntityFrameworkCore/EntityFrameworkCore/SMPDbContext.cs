@@ -4,6 +4,8 @@ using SND.SMP.Authorization.Roles;
 using SND.SMP.Authorization.Users;
 using SND.SMP.MultiTenancy;
 /* Using Definition */
+using SND.SMP.EmailContents;
+using SND.SMP.DispatchUsedAmounts;
 using SND.SMP.Airports;
 using SND.SMP.ItemTrackings;
 using SND.SMP.ItemIdRunningNos;
@@ -66,6 +68,8 @@ namespace SND.SMP.EntityFrameworkCore
         public DbSet<ItemIdRunningNo> ItemIdRunningNos { get; set; }
         public DbSet<ItemTracking> ItemTrackings { get; set; }
         public DbSet<Airport> Airports { get; set; }
+        public DbSet<DispatchUsedAmount> DispatchUsedAmounts { get; set; }
+        public DbSet<EmailContent> EmailContents { get; set; }
         /* Define a DbSet for each entity of the application */
 
         public SMPDbContext(DbContextOptions<SMPDbContext> options)
@@ -78,6 +82,27 @@ namespace SND.SMP.EntityFrameworkCore
             base.OnModelCreating(builder);
 
             /* Define Tables */
+            builder.Entity<EmailContent>(b =>
+            {
+                b.ToTable(SMPConsts.DbTablePrefix + "EmailContents");
+                b.Property(x => x.Name).HasColumnName(nameof(EmailContent.Name)).HasMaxLength(128);
+                b.Property(x => x.Subject).HasColumnName(nameof(EmailContent.Subject)).HasMaxLength(128);
+                b.Property(x => x.Content).HasColumnName(nameof(EmailContent.Content));
+                b.HasKey(x => x.Id);
+            });
+
+            builder.Entity<DispatchUsedAmount>(b =>
+            {
+                b.ToTable(SMPConsts.DbTablePrefix + "DispatchUsedAmounts");
+                b.Property(x => x.CustomerCode).HasColumnName(nameof(DispatchUsedAmount.CustomerCode)).HasMaxLength(255);
+                b.Property(x => x.Wallet).HasColumnName(nameof(DispatchUsedAmount.Wallet)).HasMaxLength(128);
+                b.Property(x => x.Amount).HasColumnName(nameof(DispatchUsedAmount.Amount)).HasPrecision(18, 2);
+                b.Property(x => x.DispatchNo).HasColumnName(nameof(DispatchUsedAmount.DispatchNo)).HasMaxLength(128);
+                b.Property(x => x.DateTime).HasColumnName(nameof(DispatchUsedAmount.DateTime));
+                b.Property(x => x.Description).HasColumnName(nameof(DispatchUsedAmount.Description)).HasMaxLength(512);
+                b.HasKey(x => x.Id);
+            });
+
             builder.Entity<Airport>(b =>
             {
                 b.ToTable(SMPConsts.DbTablePrefix + "Airports");
@@ -218,6 +243,11 @@ namespace SND.SMP.EntityFrameworkCore
                 b.HasOne<Dispatch>().WithMany().HasForeignKey(x => x.DispatchID);
                 b.HasOne<Bag>().WithMany().HasForeignKey(x => x.BagID);
                 b.HasKey(x => x.Id);
+                b.HasKey(x => new
+                {
+                    x.Id,
+                    x.DispatchID,
+                });
             });
 
             builder.Entity<Item>(b =>
@@ -247,7 +277,7 @@ namespace SND.SMP.EntityFrameworkCore
                 b.Property(x => x.RateCategory                  ).HasColumnName(nameof(Item.RateCategory                  )).HasMaxLength(10);
                 b.Property(x => x.City                          ).HasColumnName(nameof(Item.City                          )).HasMaxLength(100);
                 b.Property(x => x.Address2                      ).HasColumnName(nameof(Item.Address2                      )).HasMaxLength(300);
-                b.Property(x => x.AddressNo                     ).HasColumnName(nameof(Item.AddressNo                     )).HasMaxLength(40);
+                b.Property(x => x.AddressNo                     ).HasColumnName(nameof(Item.AddressNo                     )).HasMaxLength(300);
                 b.Property(x => x.State                         ).HasColumnName(nameof(Item.State                         )).HasMaxLength(100);
                 b.Property(x => x.Length                        ).HasColumnName(nameof(Item.Length                        )).HasPrecision(18, 3);
                 b.Property(x => x.Width                         ).HasColumnName(nameof(Item.Width                         )).HasPrecision(18, 3);
@@ -305,7 +335,11 @@ namespace SND.SMP.EntityFrameworkCore
                 b.Property(x => x.FinalOfficeId                 ).HasColumnName(nameof(Item.FinalOfficeId                 )).HasMaxLength(50);
                 b.HasOne<Dispatch>().WithMany().HasForeignKey(x => x.DispatchID);
                 b.HasOne<Bag>().WithMany().HasForeignKey(x => x.BagID);
-                b.HasKey(x => x.Id);
+                b.HasKey(x => new
+                {
+                    x.Id,
+                    x.DispatchID,
+                });
             });
 
             builder.Entity<Bag>(b =>
@@ -331,7 +365,7 @@ namespace SND.SMP.EntityFrameworkCore
                 b.Property(x => x.CustomerCode                    ).HasColumnName(nameof(DispatchValidation.CustomerCode                    )).HasMaxLength(10);
                 b.Property(x => x.DateStarted                     ).HasColumnName(nameof(DispatchValidation.DateStarted                     ));
                 b.Property(x => x.DateCompleted                   ).HasColumnName(nameof(DispatchValidation.DateCompleted                   ));
-                b.Property(x => x.DispatchNo                      ).HasColumnName(nameof(DispatchValidation.DispatchNo                      )).HasMaxLength(15);
+                b.Property(x => x.DispatchNo                      ).HasColumnName(nameof(DispatchValidation.DispatchNo                      )).HasMaxLength(128);
                 b.Property(x => x.FilePath                        ).HasColumnName(nameof(DispatchValidation.FilePath                        )).HasMaxLength(200);
                 b.Property(x => x.IsFundLack                      ).HasColumnName(nameof(DispatchValidation.IsFundLack                      ));
                 b.Property(x => x.IsValid                         ).HasColumnName(nameof(DispatchValidation.IsValid                         ));
@@ -354,7 +388,7 @@ namespace SND.SMP.EntityFrameworkCore
                 b.Property(x => x.ServiceCode                     ).HasColumnName(nameof(Dispatch.ServiceCode                     )).HasMaxLength(10);
                 b.Property(x => x.ProductCode                     ).HasColumnName(nameof(Dispatch.ProductCode                     )).HasMaxLength(10);
                 b.Property(x => x.DispatchDate                    ).HasColumnName(nameof(Dispatch.DispatchDate                    ));
-                b.Property(x => x.DispatchNo                      ).HasColumnName(nameof(Dispatch.DispatchNo                      )).HasMaxLength(15);
+                b.Property(x => x.DispatchNo                      ).HasColumnName(nameof(Dispatch.DispatchNo                      )).HasMaxLength(128);
                 b.Property(x => x.ETAtoHKG                        ).HasColumnName(nameof(Dispatch.ETAtoHKG                        ));
                 b.Property(x => x.FlightTrucking                  ).HasColumnName(nameof(Dispatch.FlightTrucking                  )).HasMaxLength(50);
                 b.Property(x => x.BatchId                         ).HasColumnName(nameof(Dispatch.BatchId                         )).HasMaxLength(35);
@@ -535,6 +569,7 @@ namespace SND.SMP.EntityFrameworkCore
                 b.ToTable(SMPConsts.DbTablePrefix + "Rates");
                 b.Property(x => x.CardName).HasColumnName(nameof(Rate.CardName)).HasMaxLength(50);
                 b.Property(x => x.Count).HasColumnName(nameof(Rate.Count));
+                b.Property(x => x.Service).HasColumnName(nameof(Rate.Service)).HasMaxLength(2);
                 b.HasKey(x => x.Id);
             });
 
@@ -587,6 +622,9 @@ namespace SND.SMP.EntityFrameworkCore
                 b.Property(x => x.EmailAddress2).HasColumnName(nameof(Customer.EmailAddress2));
                 b.Property(x => x.EmailAddress3).HasColumnName(nameof(Customer.EmailAddress3));
                 b.Property(x => x.IsActive).HasColumnName(nameof(Customer.IsActive));
+                b.Property(x => x.ClientSecret).HasColumnName(nameof(Customer.ClientSecret)).HasMaxLength(100);
+                b.Property(x => x.ClientKey).HasColumnName(nameof(Customer.ClientKey)).HasMaxLength(100);
+                b.Property(x => x.APIAccessToken).HasColumnName(nameof(Customer.APIAccessToken)).HasMaxLength(250);
                 b.HasKey(x => x.Id);
                 b.HasAlternateKey(x => x.Code);
             });
@@ -601,7 +639,7 @@ namespace SND.SMP.EntityFrameworkCore
                 b.Property(x => x.TransactionType).HasColumnName(nameof(CustomerTransaction.TransactionType)).HasMaxLength(100);
                 b.Property(x => x.Amount).HasColumnName(nameof(CustomerTransaction.Amount)).HasPrecision(18, 2);
                 b.Property(x => x.ReferenceNo).HasColumnName(nameof(CustomerTransaction.ReferenceNo)).HasMaxLength(100);
-                b.Property(x => x.Description).HasColumnName(nameof(CustomerTransaction.Description)).HasMaxLength(100);
+                b.Property(x => x.Description).HasColumnName(nameof(CustomerTransaction.Description)).HasMaxLength(521);
                 b.Property(x => x.TransactionDate).HasColumnName(nameof(CustomerTransaction.TransactionDate));
             });
         }

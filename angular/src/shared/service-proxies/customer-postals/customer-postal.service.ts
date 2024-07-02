@@ -115,6 +115,16 @@ export class CustomerPostalService {
       .pipe(retry(1), catchError(this.errorMessage.HandleErrorResponse));
   }
 
+  getCustomerPostalsByCustomerCode(customerCode: string) {
+    return this.http
+      .get(
+        this.url +
+          `/api/services/app/CustomerPostal/GetCustomerPostalsByCustomerCode?customerCode=${customerCode}`,
+        this.options_
+      )
+      .pipe(retry(1), catchError(this.errorMessage.HandleErrorResponse));
+  }
+
   //Is Currency Wallet Exists 
   isCurrencyWalletExist(rate: number, accNo: number){
     return this.http

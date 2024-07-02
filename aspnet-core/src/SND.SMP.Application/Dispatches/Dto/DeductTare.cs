@@ -6,3 +6,10 @@ public class DeductTare
     public decimal Weight { get; set; }
     public bool IsEnough { get; set; }
 }
+
+public class ManifestWeight
+{
+    public string TrackingNo { get; set; }
+    public string BagNo { get; set; }
+    public decimal Weight { get; set; }
+}

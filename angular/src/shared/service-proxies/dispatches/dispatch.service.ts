@@ -157,10 +157,20 @@ export class DispatchService {
       .pipe(retry(1), catchError(this.errorMessage.HandleErrorResponse));
   }
 
-  // Get Dispatch Info
-  getDispatchInfoListPaged(body: PagedDispatchResultRequestDto) {
-    let url_ =
-      this.url + "/api/services/app/Dispatch/GetDispatchInfoListPaged?";
+  // Upload Post Check For Display
+  uploadPostCheckForDisplay(body: any) {
+    return this.http
+      .post(this.url + "/api/services/app/Dispatch/UploadPostCheckForDisplay", body, {
+        headers: new HttpHeaders({
+          Accept: "text/plain",
+        }),
+      })
+      .pipe(retry(1), catchError(this.errorMessage.HandleErrorResponse));
+  }
+
+  // Get Dispatch Info 
+  getDispatchInfoListPaged(body: PagedDispatchResultRequestDto){
+    let url_ = this.url + "/api/services/app/Dispatch/GetDispatchInfoListPaged?";
 
     if (body.keyword === null)
       throw new Error("The parameter 'keyword' cannot be null.");

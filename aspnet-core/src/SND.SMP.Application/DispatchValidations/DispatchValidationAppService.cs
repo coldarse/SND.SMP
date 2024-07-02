@@ -15,12 +15,8 @@ using Abp.AutoMapper;
 
 namespace SND.SMP.DispatchValidations
 {
-    public class DispatchValidationAppService : AsyncCrudAppService<DispatchValidation, DispatchValidationDto, string, PagedDispatchValidationResultRequestDto>
+    public class DispatchValidationAppService(IRepository<DispatchValidation, string> repository) : AsyncCrudAppService<DispatchValidation, DispatchValidationDto, string, PagedDispatchValidationResultRequestDto>(repository)
     {
-
-        public DispatchValidationAppService(IRepository<DispatchValidation, string> repository) : base(repository)
-        {
-        }
         protected override IQueryable<DispatchValidation> CreateFilteredQuery(PagedDispatchValidationResultRequestDto input)
         {
             return input.isAdmin ?
@@ -44,13 +40,6 @@ namespace SND.SMP.DispatchValidations
                         x.ProductCode.Contains(input.Keyword) ||
                         x.Status.Contains(input.Keyword))
                     .Where(x => x.CustomerCode.Equals(input.CustomerCode));
-        }
-
-        public async Task<List<DispatchValidation>> GetDashboardDispatchValidation(bool isAdmin, int top, string customer = null)
-        {
-            var validations = isAdmin ? await Repository.GetAllListAsync() : await Repository.GetAllListAsync(x => x.CustomerCode.Equals(customer));
-
-            return [.. validations.OrderByDescending(x => x.ValidationProgress).Take(top)];
         }
 
         private IQueryable<DispatchValidation> ApplySorting(IQueryable<DispatchValidation> query, PagedDispatchValidationResultRequestDto input)
@@ -97,16 +86,23 @@ namespace SND.SMP.DispatchValidations
 
             var totalCount = await AsyncQueryableExecuter.CountAsync(query);
 
-            query = ApplySorting(query, input);
+            query = query.OrderByDescending(x => x.DateStarted);
+            // query = ApplySorting(query, input);
             query = ApplyPaging(query, input);
-
 
             var entities = await AsyncQueryableExecuter.ToListAsync(query);
 
             return new PagedResultDto<DispatchValidationDto>(
                 totalCount,
-                entities.Select(MapToEntityDto).ToList()
+                [.. entities.Select(MapToEntityDto)]
             );
+        }
+
+        public async Task<List<DispatchValidation>> GetDashboardDispatchValidation(bool isAdmin, int top, string customer = null)
+        {
+            var validations = isAdmin ? await Repository.GetAllListAsync() : await Repository.GetAllListAsync(x => x.CustomerCode.Equals(customer));
+
+            return [.. validations.OrderByDescending(x => x.DateStarted).Take(top)];
         }
     }
 }

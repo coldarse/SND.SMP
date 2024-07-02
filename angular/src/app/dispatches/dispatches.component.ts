@@ -242,6 +242,7 @@ export class DispatchesComponent extends PagedListingComponentBase<DispatchDto> 
             totalWeight: element.totalWeight,
             totalCountry: element.totalCountry,
             status: element.status,
+            path: element.path,
           };
 
           this.dispatches.push(tempDispatch);

@@ -20,8 +20,11 @@ namespace SND.SMP.DispatchConsole
 
 		public int CurrencyId { get; set; }
 
+		public string ErrorMsg { get; set; }
+
 		public DispatchPricer(string accNo, string postalCode, string serviceCode, string productCode, string rateOptionId, string paymentMode)
 		{
+			ErrorMsg = "";
 			_accNo = accNo;
 			_postalCode = postalCode;
 			_serviceCode = serviceCode;
@@ -32,46 +35,74 @@ namespace SND.SMP.DispatchConsole
 			_useRateMaintenance = _serviceCode == DispatchEnumConst.SERVICE_TS;
 			_useRateWeightBreak = _serviceCode == DispatchEnumConst.SERVICE_DE;
 
-            using EF.db db = new();
-            var acctNo = db.Customers.FirstOrDefault(u => u.Code == _accNo);
-            if (_useRateMaintenance)
-            {
-                // _rates = db.Customerpostals
-                // 	.Where(u => u.AccountNo == _accNo)
-                // 	.Where(u => u.Postal == _postalCode)
-                // 	.SelectMany(u => u.RateNav.Rateitems)
-                // 	.Where(u => u.ServiceCode == _serviceCode)
-                // 	.Where(u => u.ProductCode == _productCode)
-                // 	.Where(u => u.PaymentMode == _paymentMode)
-                // 	.ToList();
+			using EF.db db = new();
+			var acctNo = db.Customers.FirstOrDefault(u => u.Code == _accNo);
+			var _customerPostal = db.Customerpostals.FirstOrDefault(u => (u.AccountNo == acctNo.Id) && (u.Postal == _postalCode));
 
-                var _customerPostal = db.Customerpostals.FirstOrDefault(u => (u.AccountNo == acctNo.Id) && (u.Postal == _postalCode));
-                _rates = [.. db.Rateitems
-                            .Where(u => u.Id == _customerPostal.Rate)
-                            .Where(u => u.ServiceCode == _serviceCode)];
+			if (_customerPostal is not null)
+			{
+				if (_useRateMaintenance)
+				{
+					// _rates = db.Customerpostals
+					// 	.Where(u => u.AccountNo == _accNo)
+					// 	.Where(u => u.Postal == _postalCode)
+					// 	.SelectMany(u => u.RateNav.Rateitems)
+					// 	.Where(u => u.ServiceCode == _serviceCode)
+					// 	.Where(u => u.ProductCode == _productCode)
+					// 	.Where(u => u.PaymentMode == _paymentMode)
+					// 	.ToList();
 
+					_rates = [.. db.Rateitems
+							.Where(u => u.RateId == _customerPostal.Rate)
+							.Where(u => u.ProductCode == _productCode)
+							.Where(u => u.ServiceCode == _serviceCode)];
 
-                CurrencyId = _rates.Select(u => u.CurrencyId).FirstOrDefault();
-            }
+					if (_rates.Count > 0)
+					{
+						CurrencyId = _rates.Select(u => u.CurrencyId).FirstOrDefault();
 
-            if (_useRateWeightBreak)
-            {
-                // _rateWeightBreaks = db.Customerpostals
-                // 	.Where(u => u.AccountNo == _accNo)
-                // 	.Where(u => u.Postal == _postalCode)
-                // 	.SelectMany(u => u.RateNav.Rateweightbreaks)
-                // 	.Where(u => u.ProductCode == _productCode)
-                // 	.Where(u => u.PaymentMode == _paymentMode)
-                // 	.ToList();
+						if (CurrencyId == 0) ErrorMsg = $"Unable to find Currency with the Id of {_rates.First().CurrencyId}";
+					}
+					else
+					{
+						var rateCard = db.Rates.FirstOrDefault(u => u.Id.Equals(_customerPostal.Rate));
+						string rateValue = rateCard is null ? _customerPostal.Rate.ToString() : rateCard.CardName;
+						ErrorMsg = $"No rates found for this Rate Id of {rateValue}";
+					}
+				}
 
-                var _customerPostal = db.Customerpostals.FirstOrDefault(u => (u.AccountNo == acctNo.Id) && (u.Postal == _postalCode));
-                _rateWeightBreaks = [.. db.Rateweightbreaks
-                                        .Where(u => u.Id == _customerPostal.Rate)
-                                        .Where(u => u.ProductCode == _productCode)];
+				if (_useRateWeightBreak)
+				{
+					// _rateWeightBreaks = db.Customerpostals
+					// 	.Where(u => u.AccountNo == _accNo)
+					// 	.Where(u => u.Postal == _postalCode)
+					// 	.SelectMany(u => u.RateNav.Rateweightbreaks)
+					// 	.Where(u => u.ProductCode == _productCode)
+					// 	.Where(u => u.PaymentMode == _paymentMode)
+					// 	.ToList();
 
-                CurrencyId = _rateWeightBreaks.Select(u => u.CurrencyId).FirstOrDefault();
-            }
-        }
+					_rateWeightBreaks = [.. db.Rateweightbreaks
+										.Where(u => u.RateId == _customerPostal.Rate)
+										.Where(u => u.ProductCode == _productCode)];
+
+					if (_rateWeightBreaks.Count > 0)
+					{
+						CurrencyId = _rateWeightBreaks.Select(u => u.CurrencyId).FirstOrDefault();
+
+						if (CurrencyId == 0) ErrorMsg = $"Unable to find Currency with the Id of {_rateWeightBreaks.First().CurrencyId}";
+					}
+					else
+					{
+						var rateCard = db.Rates.FirstOrDefault(u => u.Id.Equals(_customerPostal.Rate));
+						string rateValue = rateCard is null ? _customerPostal.Rate.ToString() : rateCard.CardName;
+						ErrorMsg = $"No rates found for this Rate Id of {rateValue}";
+					}
+
+				}
+			}
+			else ErrorMsg = "No Customer Postal exists for this Dispatch.";
+
+		}
 
 		public decimal CalculatePrice(string countryCode, decimal weight)
 		{
@@ -88,8 +119,9 @@ namespace SND.SMP.DispatchConsole
 
 					if (rate != null)
 					{
-						price = Math.Round(rate.Total.GetValueOrDefault() * weight, 2) + rate.RegisteredFee.GetValueOrDefault();
+						price = rate.Total.GetValueOrDefault() * weight + rate.RegisteredFee.GetValueOrDefault();
 					}
+					else ErrorMsg = $"No Rate found for Country Code: {countryCode} with Service Code: {_serviceCode} and Product Code: {_productCode}. Please contact System Finance for further review.";
 				}
 			}
 
@@ -103,7 +135,7 @@ namespace SND.SMP.DispatchConsole
 
 				if (rate != null)
 				{
-					price = rate.ItemRate.GetValueOrDefault() + Math.Round(rate.WeightRate.GetValueOrDefault() * weight, 2);
+					price = rate.ItemRate.GetValueOrDefault() + rate.WeightRate.GetValueOrDefault() * weight;
 				}
 				else
 				{
@@ -125,13 +157,14 @@ namespace SND.SMP.DispatchConsole
 
 							if (rateExceed != null)
 							{
-								var weightExceed = Math.Round(weight - rateHeaviest.WeightMax.GetValueOrDefault(), 3);
+								var weightExceed = weight - rateHeaviest.WeightMax.GetValueOrDefault();
 
-								price = rateHeaviest.ItemRate.GetValueOrDefault() + Math.Round(rateHeaviest.WeightRate.GetValueOrDefault() * Math.Round(rateHeaviest.WeightMax.GetValueOrDefault(), 3), 2);
-								price += rateExceed.ItemRate.GetValueOrDefault() + Math.Round(rateExceed.WeightRate.GetValueOrDefault() * weightExceed, 2);
+								price = rateHeaviest.ItemRate.GetValueOrDefault() + rateHeaviest.WeightRate.GetValueOrDefault() * rateHeaviest.WeightMax.GetValueOrDefault();
+								price += rateExceed.ItemRate.GetValueOrDefault() + rateExceed.WeightRate.GetValueOrDefault() * weightExceed;
 							}
 						}
 					}
+					else ErrorMsg = $"No Rate found for Country Code: {countryCode} with Service Code: {_serviceCode} and Product Code: {_productCode}. Please contact System Finance for further review.";
 				}
 			}
 

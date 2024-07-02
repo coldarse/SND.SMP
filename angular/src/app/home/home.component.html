@@ -32,12 +32,11 @@
           @if (showTable == '1') {
           <div class="row">
             <div class="col-md-12">
-              <app-customer-transactions
+              <app-dispatches
                 [showPagination]="false"
                 [showHeader]="false"
-                [maxItems]="3"
-              >
-              </app-customer-transactions>
+                [maxItems]="5"
+              ></app-dispatches>
             </div>
           </div>
           } @if (showTable == '2') {
@@ -46,7 +45,7 @@
               <app-dispatch-validations
                 [showPagination]="false"
                 [showHeader]="false"
-                [maxItems]="3"
+                [maxItems]="5"
               >
               </app-dispatch-validations>
             </div>
@@ -54,11 +53,12 @@
           } @if (showTable == '3') {
           <div class="row">
             <div class="col-md-12">
-              <app-dispatches
+              <app-customer-transactions
                 [showPagination]="false"
                 [showHeader]="false"
                 [maxItems]="3"
-              ></app-dispatches>
+              >
+              </app-customer-transactions>
             </div>
           </div>
           }
@@ -68,13 +68,13 @@
         <div class="col-md-3">
           <div class="card">
             <div class="card-body">
-              <h5 class="card-title badge badge-dark">
+              <h5 class="card-title badge badge-light">
                 <strong>Wallets</strong>
               </h5>
               <!-- <h6 class="badge badge-light"></h6> -->
               <br />
               <br />
-              <div class="row" *ngFor="let wallet of filterType(1)">
+              <div class="row" *ngFor="let wallet of filterType(3)">
                 <div class="currency col-3 text-left">
                   <h6 class="mt-2 ml-2">
                     {{ wallet.currency }}

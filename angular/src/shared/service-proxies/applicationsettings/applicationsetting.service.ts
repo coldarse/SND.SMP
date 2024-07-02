@@ -3,6 +3,7 @@ import { HttpClient, HttpErrorResponse, HttpHeaders, HttpParams } from '@angular
 import { catchError, retry, throwError } from 'rxjs';
 import { PagedApplicationSettingResultRequestDto, ApplicationSettingDto } from './model';
 import { AppConsts } from '@shared/AppConsts';
+import { ErrorMessage } from '../error-handling';
 
 @Injectable()
 export class ApplicationSettingService {
@@ -10,7 +11,7 @@ export class ApplicationSettingService {
     url = '';
     options_: any;
 
-    constructor(private http: HttpClient){
+    constructor(private http: HttpClient, private errorMessage: ErrorMessage){
         this.url = AppConsts.remoteServiceBaseUrl;
         this.options_ = {
             headers: new HttpHeaders({
@@ -40,7 +41,7 @@ export class ApplicationSettingService {
             this.options_
         ).pipe(
             retry(1),
-            catchError(this.handleError),
+            catchError(this.errorMessage.HandleErrorResponse),
         )
     }
 
@@ -52,7 +53,7 @@ export class ApplicationSettingService {
             this.options_
         ).pipe(
             retry(1),
-            catchError(this.handleError),
+            catchError(this.errorMessage.HandleErrorResponse),
         )
     }
 
@@ -63,7 +64,7 @@ export class ApplicationSettingService {
             this.options_
         ).pipe(
             retry(1),
-            catchError(this.handleError),
+            catchError(this.errorMessage.HandleErrorResponse),
         )
     }
 
@@ -74,7 +75,7 @@ export class ApplicationSettingService {
             this.options_
         ).pipe(
             retry(1),
-            catchError(this.handleError),
+            catchError(this.errorMessage.HandleErrorResponse),
         )
     }
 
@@ -99,7 +100,18 @@ export class ApplicationSettingService {
             this.options_
         ).pipe(
             retry(1),
-            catchError(this.handleError),
+            catchError(this.errorMessage.HandleErrorResponse),
+        )
+    }
+
+    getValueByName(name: string)
+    {
+        return this.http.get(
+            this.url + `/api/services/app/ApplicationSetting/GetValueByName?name=${name}`,
+            this.options_
+        ).pipe(
+            retry(1),
+            catchError(this.errorMessage.HandleErrorResponse),
         )
     }
 }

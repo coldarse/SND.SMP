@@ -19,6 +19,7 @@ using SND.SMP.Currencies;
 using SND.SMP.Rates;
 using System.Configuration.Internal;
 using Microsoft.EntityFrameworkCore;
+using Abp.Linq.Extensions;
 using System.Text.Json;
 
 namespace SND.SMP.RateWeightBreaks
@@ -40,10 +41,9 @@ namespace SND.SMP.RateWeightBreaks
                 .WhereIf(!input.Keyword.IsNullOrWhiteSpace(), x =>
                     x.PostalOrgId.Contains(input.Keyword) ||
                     x.ProductCode.Contains(input.Keyword) ||
-                    x.PaymentMode.Contains(input.Keyword)).AsQueryable();
+                    x.PaymentMode.Contains(input.Keyword));
         }
 
-        #region Private Functions
         private async Task<long> InsertAndGetIdForCurrency(string currency)
         {
             var currencyCreateId = await _currencyRepository.InsertAsync(new Currency()
@@ -51,10 +51,9 @@ namespace SND.SMP.RateWeightBreaks
                 Abbr = currency,
                 Description = ""
             });
-            await _currencyRepository.GetDbContext().SaveChangesAsync();
+            await _currencyRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
             return currencyCreateId.Id;
         }
-
         private async Task<string> InsertAndGetIdForPostalOrg(string postal)
         {
             var existingPostalOrg = await _postalOrgRepository.FirstOrDefaultAsync(x => x.Id.Equals(postal));
@@ -63,7 +62,7 @@ namespace SND.SMP.RateWeightBreaks
             {
                 existingPostalOrg.Name = "";
                 await _postalOrgRepository.UpdateAsync(existingPostalOrg);
-                await _postalOrgRepository.GetDbContext().SaveChangesAsync();
+                await _postalOrgRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
 
                 return existingPostalOrg.Id;
             }
@@ -77,15 +76,23 @@ namespace SND.SMP.RateWeightBreaks
 
                 await _postalOrgRepository.InsertAsync(newPostalOrg);
 
-                await _postalOrgRepository.GetDbContext().SaveChangesAsync();
+                await _postalOrgRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
 
                 return newPostalOrg.Id;
             }
         }
-
         private async Task<List<Rate>> InsertAndGetUpdatedRateCards(List<string> rateCards)
         {
             List<Rate> rateCard = [];
+
+            var de_rates = await _rateRepository.GetAllListAsync(x => x.Service.Equals("DE"));
+            foreach (var rate in de_rates) 
+            {
+                rate.Count = 0;
+                rate.Service = "";
+                await _rateRepository.UpdateAsync(rate);
+            }
+            await _rateRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);  
 
             foreach (var distinctedRateCard in rateCards)
             {
@@ -106,7 +113,8 @@ namespace SND.SMP.RateWeightBreaks
                     var rateCardCreateId = await _rateRepository.InsertAndGetIdAsync(new Rate()
                     {
                         CardName = rc.CardName,
-                        Count = rc.Count
+                        Count = rc.Count,
+                        Service = "DE"
                     });
 
                     var updatedRateCard = rateCard.FirstOrDefault(x => x.CardName.Equals(rc.CardName));
@@ -116,14 +124,15 @@ namespace SND.SMP.RateWeightBreaks
                 else
                 {
                     var rateCardForUpdate = await _rateRepository.FirstOrDefaultAsync(x => x.Id.Equals(rc.Id));
-                    rateCardForUpdate.Count += rc.Count;
+                    rateCardForUpdate.Count = rc.Count;
+                    rateCardForUpdate.Service = "DE";
                     var rateCardUpdate = await _rateRepository.UpdateAsync(rateCardForUpdate);
                 }
             }
 
             return rateCard;
         }
-        #endregion
+
 
         public async Task<RateCardWeightBreakDisplayDto> GetRateWeightBreakByRate(int rateid)
         {

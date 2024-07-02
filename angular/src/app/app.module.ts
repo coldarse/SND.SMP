@@ -39,6 +39,10 @@ import { SidebarLogoComponent } from "./layout/sidebar-logo.component";
 import { SidebarUserPanelComponent } from "./layout/sidebar-user-panel.component";
 import { SidebarMenuComponent } from "./layout/sidebar-menu.component";
 /* Insert Import */
+import { EmailContentsComponent } from './emailcontents/emailcontents.component';
+import { CreateUpdateEmailContentComponent } from './emailcontents/create-update-emailcontent/create-update-emailcontent.component';
+import { EmailContentService } from '@shared/service-proxies/emailcontents/emailcontent.service';
+
 import { AirportsComponent } from './airports/airports.component';
 import { CreateUpdateAirportComponent } from './airports/create-update-airport/create-update-airport.component';
 import { AirportService } from '@shared/service-proxies/airports/airport.service';
@@ -145,6 +149,7 @@ import { CreateItemTrackingApplicationComponent } from "./item-tracking-applicat
 import { ReviewItemTrackingApplicationComponent } from "./item-tracking-applications/review-item-tracking-application/review-item-tracking-application.component";
 
 import { DispatchTrackingComponent } from "./dispatch-tracking/dispatch-tracking.component";
+import { AngularEditorModule } from '@kolkov/angular-editor';
 
 @NgModule({
   declarations: [
@@ -176,8 +181,10 @@ import { DispatchTrackingComponent } from "./dispatch-tracking/dispatch-tracking
     SidebarUserPanelComponent,
     SidebarMenuComponent,
     /* Insert Component */
-        AirportsComponent,
-        CreateUpdateAirportComponent,
+    EmailContentsComponent,
+    CreateUpdateEmailContentComponent,
+    AirportsComponent,
+    CreateUpdateAirportComponent,
     ItemTrackingApplicationsComponent,
     CreateUpdateItemTrackingApplicationComponent,
     IMPCSComponent,
@@ -247,9 +254,11 @@ import { DispatchTrackingComponent } from "./dispatch-tracking/dispatch-tracking
     SharedModule,
     NgxPaginationModule,
     CardsComponent,
+    AngularEditorModule,
   ],
   providers: [
     /* Insert Service */
+        EmailContentService,
         AirportService,
     ItemTrackingReviewService,
     ItemTrackingApplicationService,

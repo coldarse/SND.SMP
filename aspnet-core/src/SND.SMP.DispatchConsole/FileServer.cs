@@ -10,6 +10,7 @@ namespace SND.SMP.DispatchConsole
         public static async Task<Stream> GetFileStream(string url)
         {
             using var httpClient = new HttpClient();
+            httpClient.Timeout = Timeout.InfiniteTimeSpan;
             using var response = await httpClient.GetAsync(url);
             if (response.IsSuccessStatusCode)
             {
@@ -136,7 +137,7 @@ namespace SND.SMP.DispatchConsole
                 if (albums.Count == 0)
                 {
                     var album = await CreateAlbumAsync("ErrorDetails", dbconn);
-                    await AddFileToAlbum(album.album.uuid, file_uuid, dbconn);
+                    await AddFileToAlbum(album.album.uuid, file_uuid, dbconn).ConfigureAwait(false);
                 }
                 else
                 {
@@ -144,7 +145,7 @@ namespace SND.SMP.DispatchConsole
                     if (error_album == null)
                     {
                         var album = await CreateAlbumAsync("ErrorDetails", dbconn);
-                        await AddFileToAlbum(album.album.uuid, file_uuid, dbconn);
+                        await AddFileToAlbum(album.album.uuid, file_uuid, dbconn).ConfigureAwait(false);
                     }
                     else await AddFileToAlbum(error_album.uuid, file_uuid, dbconn);
                 }
@@ -155,20 +156,20 @@ namespace SND.SMP.DispatchConsole
                 if (postalCode != null)
                 {
                     var postal_album = albums.FirstOrDefault(a => a.name == "Postal_" + postalCode[..2]);
-                    if (postal_album == null) await CreateInsertPostalAlbum(postalCode[..2], file_uuid, dbconn);
-                    else await AddFileToAlbum(postal_album.uuid, file_uuid, dbconn);
+                    if (postal_album == null) await CreateInsertPostalAlbum(postalCode[..2], file_uuid, dbconn).ConfigureAwait(false);
+                    else await AddFileToAlbum(postal_album.uuid, file_uuid, dbconn).ConfigureAwait(false);
                 }
                 if (serviceCode != null)
                 {
                     var service_album = albums.FirstOrDefault(a => a.name == "Service_" + serviceCode);
-                    if (service_album == null) await CreateInsertServiceAlbum(serviceCode, file_uuid, dbconn);
-                    else await AddFileToAlbum(service_album.uuid, file_uuid, dbconn);
+                    if (service_album == null) await CreateInsertServiceAlbum(serviceCode, file_uuid, dbconn).ConfigureAwait(false);
+                    else await AddFileToAlbum(service_album.uuid, file_uuid, dbconn).ConfigureAwait(false);
                 }
                 if (productCode != null)
                 {
                     var product_album = albums.FirstOrDefault(a => a.name == "Product_" + productCode);
-                    if (product_album == null) await CreateInsertProductAlbum(productCode, file_uuid, dbconn);
-                    else await AddFileToAlbum(product_album.uuid, file_uuid, dbconn);
+                    if (product_album == null) await CreateInsertProductAlbum(productCode, file_uuid, dbconn).ConfigureAwait(false);
+                    else await AddFileToAlbum(product_album.uuid, file_uuid, dbconn).ConfigureAwait(false);
                 }
             }
             return true;

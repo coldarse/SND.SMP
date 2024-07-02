@@ -16,10 +16,18 @@ using SND.SMP.PostalOrgs;
 using Abp.EntityFrameworkCore.Repositories;
 using Microsoft.EntityFrameworkCore;
 using System.IO;
+using Abp.Application.Services.Dto;
+using SND.SMP.Dispatches;
+using Abp.UI;
+using SND.SMP.Authorization.Users;
 
 namespace SND.SMP.Postals
 {
-    public class PostalAppService(IRepository<Postal, long> repository, IRepository<PostalOrg, string> postalOrgRepository) : AsyncCrudAppService<Postal, PostalDto, long, PagedPostalResultRequestDto>(repository)
+    public class PostalAppService(
+        IRepository<Postal, long> repository, 
+        IRepository<PostalOrg, string> postalOrgRepository,
+        IRepository<Dispatch, int> dispatchRepository
+    ) : AsyncCrudAppService<Postal, PostalDto, long, PagedPostalResultRequestDto>(repository)
     {
         protected override IQueryable<Postal> CreateFilteredQuery(PagedPostalResultRequestDto input)
         {
@@ -31,6 +39,50 @@ namespace SND.SMP.Postals
                     x.ServiceDesc.Contains(input.Keyword) ||
                     x.ProductCode.Contains(input.Keyword) ||
                     x.ProductDesc.Contains(input.Keyword));
+        }
+
+        public override async Task DeleteAsync(EntityDto<long> input)
+        {
+            var postal = await Repository.FirstOrDefaultAsync(x => x.Id.Equals(input.Id)) ?? throw new UserFriendlyException("Postal does not exist.");
+            var dispatch = await dispatchRepository.FirstOrDefaultAsync(x => x.PostalCode.Equals(postal.PostalCode));
+
+            if(dispatch is null) await Repository.DeleteAsync(input.Id);
+            else throw new UserFriendlyException("Postal has been used, unable to delete.");
+        }
+
+        private static DataTable ConvertToDatatable(Stream ms)
+        {
+            DataTable dataTable = new();
+
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
+            using (var package = new ExcelPackage(ms))
+            {
+                ExcelWorksheet worksheet = package.Workbook.Worksheets[0];
+
+                // Assuming the first row is the header
+                for (int i = 1; i <= worksheet.Dimension.End.Column; i++)
+                {
+                    string columnName = worksheet.Cells[1, i].Value?.ToString();
+                    if (!string.IsNullOrEmpty(columnName))
+                    {
+                        dataTable.Columns.Add(columnName);
+                    }
+                }
+
+                // Populate DataTable with data from Excel
+                for (int row = 2; row <= worksheet.Dimension.End.Row; row++)
+                {
+                    DataRow dataRow = dataTable.NewRow();
+                    for (int col = 1; col <= worksheet.Dimension.End.Column; col++)
+                    {
+                        dataRow[col - 1] = worksheet.Cells[row, col].Value;
+                    }
+                    dataTable.Rows.Add(dataRow);
+                }
+            }
+
+            return dataTable;
         }
 
         public async Task<List<PostalDDL>> GetPostalDDL()
@@ -101,41 +153,6 @@ namespace SND.SMP.Postals
             return productDDLs;
         }
 
-        private async Task<DataTable> ConvertToDatatable(Stream ms)
-        {
-            DataTable dataTable = new();
-
-            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-
-            using (var package = new ExcelPackage(ms))
-            {
-                ExcelWorksheet worksheet = package.Workbook.Worksheets[0];
-
-                // Assuming the first row is the header
-                for (int i = 1; i <= worksheet.Dimension.End.Column; i++)
-                {
-                    string columnName = worksheet.Cells[1, i].Value?.ToString();
-                    if (!string.IsNullOrEmpty(columnName))
-                    {
-                        dataTable.Columns.Add(columnName);
-                    }
-                }
-
-                // Populate DataTable with data from Excel
-                for (int row = 2; row <= worksheet.Dimension.End.Row; row++)
-                {
-                    DataRow dataRow = dataTable.NewRow();
-                    for (int col = 1; col <= worksheet.Dimension.End.Column; col++)
-                    {
-                        dataRow[col - 1] = worksheet.Cells[row, col].Value;
-                    }
-                    dataTable.Rows.Add(dataRow);
-                }
-            }
-
-            return dataTable;
-        }
-
         [Consumes("multipart/form-data")]
         public async Task<List<Postal>> UploadPostalFile([FromForm] UploadPostal input)
         {
@@ -143,21 +160,24 @@ namespace SND.SMP.Postals
 
             if (input.file == null || input.file.Length == 0) return [];
 
-            DataTable dataTable = await ConvertToDatatable(input.file.OpenReadStream());
+            DataTable dataTable = ConvertToDatatable(input.file.OpenReadStream());
 
             List<PostalExcel> postalExcel = [];
             foreach (DataRow dr in dataTable.Rows)
             {
-                postalExcel.Add(new PostalExcel()
+                if (dr.ItemArray[0].ToString() != "")
                 {
-                    PostalCode = dr.ItemArray[0].ToString(),
-                    PostalDesc = dr.ItemArray[1].ToString(),
-                    ServiceDesc = dr.ItemArray[2].ToString(),
-                    ServiceCode = dr.ItemArray[3].ToString(),
-                    ProductDesc = dr.ItemArray[4].ToString(),
-                    ProductCode = dr.ItemArray[5].ToString(),
-                    ItemTopUpValue = dr.ItemArray[6].ToString() == "" ? 0 : Convert.ToDecimal(dr.ItemArray[6]),
-                });
+                    postalExcel.Add(new PostalExcel()
+                    {
+                        PostalCode = dr.ItemArray[0].ToString(),
+                        PostalDesc = dr.ItemArray[1].ToString(),
+                        ServiceDesc = dr.ItemArray[2].ToString(),
+                        ServiceCode = dr.ItemArray[3].ToString(),
+                        ProductDesc = dr.ItemArray[4].ToString(),
+                        ProductCode = dr.ItemArray[5].ToString(),
+                        ItemTopUpValue = dr.ItemArray[6].ToString() == "" ? 0 : Convert.ToDecimal(dr.ItemArray[6]),
+                    });
+                }
             }
 
             var distinctedByPostalCode = postalExcel.DistinctBy(x => x.PostalCode?[0..Math.Min(x.PostalCode.Length, 2)]);
@@ -180,7 +200,7 @@ namespace SND.SMP.Postals
                 }
             }
 
-            await Repository.GetDbContext().Database.ExecuteSqlRawAsync("TRUNCATE TABLE smpdb.postals");
+            await Repository.GetDbContext().Database.ExecuteSqlRawAsync("TRUNCATE TABLE smpdb.postals").ConfigureAwait(false);
 
             List<Postal> postals = [];
             foreach (PostalExcel excelItem in postalExcel.ToList())

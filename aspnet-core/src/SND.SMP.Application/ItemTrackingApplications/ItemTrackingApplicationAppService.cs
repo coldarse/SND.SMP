@@ -37,7 +37,14 @@ namespace SND.SMP.ItemTrackingApplications
 
         public async Task<bool> CreateTrackingApplication(string CustomerCode, long CustomerId, int Total, string ProductCode, string ProductDesc, string PostalCode)
         {
-            var postal = await _postalRepository.FirstOrDefaultAsync(x => x.PostalCode.Equals(PostalCode));
+            var postals = await _postalRepository.GetAllListAsync();
+
+            var postal = 
+                postals.FirstOrDefault(x => 
+                                            x.PostalCode[..2].Equals(PostalCode[..2]) && 
+                                            x.ProductCode.Equals(ProductCode)
+                    ) 
+                ?? throw new UserFriendlyException($"Postal Code {PostalCode} or Product Code {ProductCode} combination not found.");
 
             await Repository.InsertAsync(new ItemTrackingApplication()
             {
@@ -52,11 +59,11 @@ namespace SND.SMP.ItemTrackingApplications
                 Status = "Pending",
                 Range = "",
                 Path = ""
-            });
+            }).ConfigureAwait(false);
 
             return true;
         }
 
-        
+
     }
 }

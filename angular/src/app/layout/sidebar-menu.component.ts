@@ -55,76 +55,19 @@ export class SidebarMenuComponent extends AppComponentBase implements OnInit {
 
   getMenuItems(): MenuItem[] {
     return [
-      // new MenuItem(this.l('About'), '/app/about', 'fas fa-info-circle'),
       new MenuItem(this.l("HomePage"), "/app/home", "fas fa-home"),
       new MenuItem(
-        this.l("Roles"),
-        "/app/roles",
-        "fas fa-theater-masks",
-        "Pages.Roles"
+        this.l("Postals"),
+        "/app/postals",
+        "fas fa-parachute-box",
+        "Pages.Postal"
       ),
       new MenuItem(
-        this.l("Tenants"),
-        "/app/tenants",
-        "fas fa-building",
-        "Pages.Tenants"
+        this.l("Postal Countries"),
+        "/app/postal-countries",
+        "fas fa-earth-asia",
+        "Pages.PostalCountry"
       ),
-      new MenuItem(
-        this.l("Users"),
-        "/app/users",
-        "fas fa-users",
-        "Pages.Users"
-      ),
-      /* Insert Menu Path */
-      new MenuItem(
-        this.l("Airports"),
-        "/app/airports",
-        "fas fa-plane-arrival",
-        "Pages.Airport"
-      ),
-      new MenuItem(
-        this.l("Item Tracking"),
-        "/app/item-tracking-applications",
-        "fas fa-magnifying-glass-location",
-        "Pages.ItemTrackingApplication"
-      ),
-      new MenuItem(
-        this.l("IMPCS"),
-        "/app/impcs",
-        "fas fa-barcode",
-        "Pages.IMPC"
-      ),
-      // new MenuItem(
-      //   this.l("Refunds"),
-      //   "/app/refunds",
-      //   "far fa-circle",
-      //   "Pages.Refund"
-      // ),
-      // new MenuItem(
-      //   this.l("WeightAdjustments"),
-      //   "/app/weightadjustments",
-      //   "far fa-circle",
-      //   "Pages.WeightAdjustment"
-      // ),
-      new MenuItem(
-        this.l("Application Settings"),
-        "/app/applicationsettings",
-        "fas fa-toolbox",
-        "Pages.ApplicationSetting"
-      ),
-      // new MenuItem(
-      //   this.l("ItemMins"),
-      //   "/app/itemmins",
-      //   "far fa-circle",
-      //   "Pages.ItemMin"
-      // ),
-      // new MenuItem(
-      //   this.l("Items"),
-      //   "/app/items",
-      //   "far fa-circle",
-      //   "Pages.Item"
-      // ),
-      // new MenuItem(this.l("Bags"), "/app/bags", "far fa-circle", "Pages.Bag"),
       new MenuItem(
         this.l("Dispatch Validations"),
         "/app/dispatch-validations",
@@ -150,115 +93,147 @@ export class SidebarMenuComponent extends AppComponentBase implements OnInit {
         "Pages.Queue"
       ),
       new MenuItem(
+        this.l("Item Tracking"),
+        "/app/item-tracking-applications",
+        "fas fa-barcode",
+        "Pages.ItemTrackingApplication"
+      ),
+      new MenuItem(
         this.l("Pre-Check Upload"),
         "/app/pre-alerts",
         "fas fa-bell"
       ),
+
+      /* Insert Menu Path */
+      new MenuItem(this.l("Customers"), "", "fas fa-user", "Pages.Customer", [
+        new MenuItem(
+          this.l("Info"),
+          "/app/customers",
+          "fas fa-info",
+          "Pages.Customer"
+        ),
+        new MenuItem(
+          this.l("Wallets"),
+          "/app/wallets",
+          "fas fa-wallet",
+          "Pages.Wallet"
+        ),
+        new MenuItem(
+          this.l("Transactions"),
+          "/app/customer-transactions",
+          "fas fa-square-poll-horizontal",
+          "Pages.CustomerTransaction"
+        ),
+      ]),
       new MenuItem(
-        this.l("Rate Weight Breaks"),
-        "/app/rate-weight-breaks",
-        "fas fa-scale-unbalanced",
-        "Pages.RateWeightBreak"
+        this.l("Rate Maintenance"),
+        "",
+        "fas fa-percentage",
+        "Pages.Rate",
+        [
+          new MenuItem(
+            this.l("TS Rates"),
+            "/app/ts-rates",
+            "fas fa-angle-right",
+            "Pages.RateItem"
+          ),
+          new MenuItem(
+            this.l("DE Rates"),
+            "/app/de-rates",
+            "fa fa-angle-right",
+            "Pages.RateWeightBreak"
+          ),
+        ]
+      ),
+      new MenuItem(this.l("System"), "", "fas fa-desktop", "Pages.Rate", [
+        new MenuItem(
+          this.l("Application Settings"),
+          "/app/applicationsettings",
+          "fas fa-toolbox",
+          "Pages.ApplicationSetting"
+        ),
+        new MenuItem(
+          this.l("Currencies"),
+          "/app/currencies",
+          "fas fa-dollar-sign",
+          "Pages.Currency"
+        ),
+        new MenuItem(
+          this.l("Airports"),
+          "/app/airports",
+          "fas fa-plane-arrival",
+          "Pages.Airport"
+        ),
+        new MenuItem(
+          this.l("IMPCS"),
+          "/app/impcs",
+          "fas fa-magnifying-glass-location",
+          "Pages.IMPC"
+        ),
+        new MenuItem(
+          this.l("EWalletTypes"),
+          "/app/ewallettypes",
+          "fas fa-comment-dollar",
+          "Pages.EWalletType"
+        ),
+        new MenuItem(
+          this.l("Email Contents"),
+          "/app/emailcontents",
+          "fas fa-mail-bulk",
+          "Pages.EmailContent"
+        ),
+      ]),
+
+      new MenuItem(
+        this.l("Roles"),
+        "/app/roles",
+        "fas fa-theater-masks",
+        "Pages.RolesPage"
       ),
       new MenuItem(
-        this.l("Postal Countries"),
-        "/app/postal-countries",
-        "fas fa-earth-asia",
-        "Pages.PostalCountry"
+        this.l("Tenants"),
+        "/app/tenants",
+        "fas fa-building",
+        "Pages.Tenants"
       ),
       new MenuItem(
-        this.l("Postals"),
-        "/app/postals",
-        "fas fa-parachute-box",
-        "Pages.Postal"
-      ),
-      new MenuItem(
-        this.l("Currencies"),
-        "/app/currencies",
-        "fas fa-dollar-sign",
-        "Pages.Currency"
-      ),
-      new MenuItem(
-        this.l("EWalletTypes"),
-        "/app/ewallettypes",
-        "fas fa-comment-dollar",
-        "Pages.EWalletType"
-      ),
-      new MenuItem(
-        this.l("Customers"),
-        "/app/customers",
+        this.l("Users"),
+        "/app/users",
         "fas fa-users",
-        "Pages.Customer"
+        "Pages.UsersPage"
       ),
-      new MenuItem(
-        this.l("Wallets"),
-        "/app/wallets",
-        "fas fa-wallet",
-        "Pages.Wallet"
-      ),
-      new MenuItem(
-        this.l("Rate Items"),
-        "/app/rate-items",
-        "fas fa-sitemap",
-        "Pages.RateItem"
-      ),
-      new MenuItem(
-        this.l("Transactions"),
-        "/app/customer-transactions",
-        "fas fa-square-poll-horizontal",
-        "Pages.CustomerTransaction"
-      ),
-      // new MenuItem(this.l('MultiLevelMenu'), '', 'fas fa-circle', '', [
-      //     new MenuItem('ASP.NET Boilerplate', '', 'fas fa-dot-circle', '', [
-      //         new MenuItem(
-      //             'Home',
-      //             'https://aspnetboilerplate.com?ref=abptmpl',
-      //             'far fa-circle'
-      //         ),
-      //         new MenuItem(
-      //             'Templates',
-      //             'https://aspnetboilerplate.com/Templates?ref=abptmpl',
-      //             'far fa-circle'
-      //         ),
-      //         new MenuItem(
-      //             'Samples',
-      //             'https://aspnetboilerplate.com/Samples?ref=abptmpl',
-      //             'far fa-circle'
-      //         ),
-      //         new MenuItem(
-      //             'Documents',
-      //             'https://aspnetboilerplate.com/Pages/Documents?ref=abptmpl',
-      //             'far fa-circle'
-      //         ),
-      //     ]),
-      //     new MenuItem('ASP.NET Zero', '', 'fas fa-dot-circle', '', [
-      //         new MenuItem(
-      //             'Home',
-      //             'https://aspnetzero.com?ref=abptmpl',
-      //             'far fa-circle'
-      //         ),
-      //         new MenuItem(
-      //             'Features',
-      //             'https://aspnetzero.com/Features?ref=abptmpl',
-      //             'far fa-circle'
-      //         ),
-      //         new MenuItem(
-      //             'Pricing',
-      //             'https://aspnetzero.com/Pricing?ref=abptmpl#pricing',
-      //             'far fa-circle'
-      //         ),
-      //         new MenuItem(
-      //             'Faq',
-      //             'https://aspnetzero.com/Faq?ref=abptmpl',
-      //             'far fa-circle'
-      //         ),
-      //         new MenuItem(
-      //             'Documents',
-      //             'https://aspnetzero.com/Documents?ref=abptmpl',
-      //             'far fa-circle'
-      //         )
-      //     ])
-      // ])
+      // new MenuItem(
+      //   this.l("Refunds"),
+      //   "/app/refunds",
+      //   "far fa-circle",
+      //   "Pages.Refund"
+      // ),
+      // new MenuItem(
+      //   this.l("WeightAdjustments"),
+      //   "/app/weightadjustments",
+      //   "far fa-circle",
+      //   "Pages.WeightAdjustment"
+      // ),
+
+      // new MenuItem(
+      //   this.l("ItemMins"),
+      //   "/app/itemmins",
+      //   "far fa-circle",
+      //   "Pages.ItemMin"
+      // ),
+      // new MenuItem(
+      //   this.l("Items"),
+      //   "/app/items",
+      //   "far fa-circle",
+      //   "Pages.Item"
+      // ),
+      // new MenuItem(this.l("Bags"), "/app/bags", "far fa-circle", "Pages.Bag"),
+      // new MenuItem(
+      //   this.l("Queues"),
+      //   "/app/queues",
+      //   "fas fa-arrow-down-wide-short",
+      //   "Pages.Queue"
+      // ),
     ];
   }
 

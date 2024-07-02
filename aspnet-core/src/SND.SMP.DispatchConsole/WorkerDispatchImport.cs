@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Threading;
 using Newtonsoft;
 using System.IO;
+using SND.SMP.DispatchConsole.Dto;
 
 namespace SND.SMP.DispatchConsole;
 
@@ -15,6 +16,7 @@ public class WorkerDispatchImport : BackgroundService
     {
         public string FilePath { get; set; }
         public string ErrorMsg { get; set; }
+        public List<DispatchValidateDto> Validations { get; set; }
     }
 
     public WorkerDispatchImport(ILogger<Worker> logger, IConfiguration configuration)
@@ -35,7 +37,8 @@ public class WorkerDispatchImport : BackgroundService
             var pollInMs = _configuration.GetValue<int>("Import:DispatchImportPollInSec") * 1000;
             string fileType = _configuration.GetValue<string>("Import:FileType");
             int batchSize = _configuration.GetValue<int>("Import:BatchSize");
-            
+            int blockSize = _configuration.GetValue<int>("Import:BlockSize");
+
             DispatchImporter dispatchImporter = new DispatchImporter();
 
             await dispatchImporter.DiscoverAndImport(fileType: fileType, batchSize: batchSize);

@@ -12,12 +12,8 @@ using SND.SMP.WeightAdjustments.Dto;
 
 namespace SND.SMP.WeightAdjustments
 {
-    public class WeightAdjustmentAppService : AsyncCrudAppService<WeightAdjustment, WeightAdjustmentDto, int, PagedWeightAdjustmentResultRequestDto>
+    public class WeightAdjustmentAppService(IRepository<WeightAdjustment, int> repository) : AsyncCrudAppService<WeightAdjustment, WeightAdjustmentDto, int, PagedWeightAdjustmentResultRequestDto>(repository)
     {
-
-        public WeightAdjustmentAppService(IRepository<WeightAdjustment, int> repository) : base(repository)
-        {
-        }
         protected override IQueryable<WeightAdjustment> CreateFilteredQuery(PagedWeightAdjustmentResultRequestDto input)
         {
             return Repository.GetAllIncluding()

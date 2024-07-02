@@ -173,6 +173,7 @@ export interface DispatchInfoDto {
   totalWeight: number;
   totalCountry: number;
   status: string;
+  path: string;
 }
 
 export interface Zip {

@@ -197,7 +197,7 @@
       <button
       class="btn btn-danger"
         (click)="undo()"
-        [disabled]="amount.remaining < amount.issued || saving"
+        [disabled]="amount.remaining != amount.issued || saving || application.status == 'Approved & Generated'"
       >
         Undo Review
       </button>

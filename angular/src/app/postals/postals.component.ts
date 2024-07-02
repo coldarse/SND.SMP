@@ -7,6 +7,8 @@ import { PostalService } from '@shared/service-proxies/postals/postal.service'
 import { UploadPostalComponent } from './upload-postal/upload-postal.component';
 import { CreateUpdatePostalComponent } from './create-update-postal/create-update-postal.component';
 import * as XLSX from "xlsx";
+import { HttpErrorResponse } from '@angular/common/http';
+import { ErrorModalComponent } from '@shared/components/error-modal/error-modal.component';
 
 class PagedPostalsRequestDto extends PagedRequestDto{
   keyword: string
@@ -94,6 +96,20 @@ export class PostalsComponent extends PagedListingComponentBase<PostalDto> {
           this._postalService.delete(entity.id).subscribe(() => {
             abp.notify.success(this.l('SuccessfullyDeleted'));
             this.refresh();
+          },
+          (error: HttpErrorResponse) => {
+            //Handle error
+            let cc: BsModalRef;
+            cc = this._modalService.show(
+              ErrorModalComponent,
+              {
+                class: 'modal-lg',
+                initialState: {
+                  title: "",
+                  errorMessage: error.message,
+                },
+              }
+            )
           });
         }
       }

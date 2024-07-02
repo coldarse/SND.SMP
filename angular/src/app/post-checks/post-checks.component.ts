@@ -46,7 +46,9 @@ export class PostChecksComponent extends AppComponentBase implements OnInit {
 
   postchecks: GetPostCheck = undefined;
 
-  isLoading = false;
+  isBypassing = false;
+  isUploading = false;
+  isSaving = false;
 
   ngOnInit(): void {
     this.postchecks = undefined;
@@ -83,7 +85,7 @@ export class PostChecksComponent extends AppComponentBase implements OnInit {
   calculate(event: any, index: any) {
     let bag = this.postchecks.bags.find((x) => x.id === index.id);
     bag.weightPost = +event.target.value;
-    bag.weightVariance = +(bag.weightPre - bag.weightPost).toFixed(3);
+    bag.weightVariance = +(bag.weightPost - bag.weightPre).toFixed(3);
 
     let totalBagsPostChecked = 0;
     let totalWeightPostChecked = 0;
@@ -137,11 +139,18 @@ export class PostChecksComponent extends AppComponentBase implements OnInit {
   }
 
   SubmitPostCheck() {
-    this._dispatchService.savePostCheck(this.postchecks).subscribe(
+    this.isSaving = true;
+    this._dispatchService.savePostCheck(this.postchecks)
+    .pipe(
+      finalize(() => {
+        this.isSaving = false;
+      })
+    )
+    .subscribe(
       (result: any) => {
         if (result.result) {
           this.notify.info(this.l("Post Check Completed"));
-          this.ngOnInit();
+          this.router.navigate(["/app/dispatches"]);
         } else this.notify.error(this.l("Error Post Check"));
       },
       (error: HttpErrorResponse) => {
@@ -159,19 +168,19 @@ export class PostChecksComponent extends AppComponentBase implements OnInit {
   }
 
   BypassPostCheck() {
-    this.isLoading = true;
+    this.isBypassing = true;
     this._dispatchService
       .bypassPostCheck(this.dispatchNo, this.bypassValue)
       .pipe(
         finalize(() => {
-          this.isLoading = false;
+          this.isBypassing = false;
         })
       )
       .subscribe(
         (result: any) => {
           if (result.result) {
             this.notify.info(this.l("ByPassed Post Check"));
-            this.ngOnInit();
+            this.router.navigate(["/app/dispatches"]);
           } else this.notify.error(this.l("Failed to ByPass Post Check"));
         },
         (error: HttpErrorResponse) => {
@@ -189,18 +198,24 @@ export class PostChecksComponent extends AppComponentBase implements OnInit {
   }
 
   UploadPostCheck() {
+    this.isUploading = true;
+    this.postchecks = undefined;
     const form = new FormData();
     form.append("file", this.fileUpload);
     form.append("dispatchNo", this.dispatchNo);
 
-    this._dispatchService.uploadPostCheck(form).subscribe(
+    this._dispatchService.uploadPostCheckForDisplay(form)
+    .pipe(
+      finalize(() => {
+        this.isUploading = false;
+      })
+    )
+    .subscribe(
       (result: any) => {
-        if (result.result) {
-          this.notify.info(this.l("UploadedSuccessfully"));
-          this.ngOnInit();
-        } else this.notify.error(this.l("UploadFailed"));
+        this.postchecks = result.result;
       },
       (error: HttpErrorResponse) => {
+        this.postchecks = {} as GetPostCheck;
         //Handle error
         let cc: BsModalRef;
         cc = this._modalService.show(ErrorModalComponent, {
@@ -212,5 +227,25 @@ export class PostChecksComponent extends AppComponentBase implements OnInit {
         });
       }
     );
+
+    // this._dispatchService.uploadPostCheck(form).subscribe(
+    //   (result: any) => {
+    //     if (result.result) {
+    //       this.notify.info(this.l("UploadedSuccessfully"));
+    //       this.router.navigate(["/app/dispatches"]);
+    //     } else this.notify.error(this.l("UploadFailed"));
+    //   },
+    //   (error: HttpErrorResponse) => {
+    //     //Handle error
+    //     let cc: BsModalRef;
+    //     cc = this._modalService.show(ErrorModalComponent, {
+    //       class: "modal-lg",
+    //       initialState: {
+    //         title: "",
+    //         errorMessage: error.message,
+    //       },
+    //     });
+    //   }
+    // );
   }
 }

@@ -12,12 +12,8 @@ using SND.SMP.Airports.Dto;
 
 namespace SND.SMP.Airports
 {
-    public class AirportAppService : AsyncCrudAppService<Airport, AirportDto, int, PagedAirportResultRequestDto>
+    public class AirportAppService(IRepository<Airport, int> repository) : AsyncCrudAppService<Airport, AirportDto, int, PagedAirportResultRequestDto>(repository)
     {
-
-        public AirportAppService(IRepository<Airport, int> repository) : base(repository)
-        {
-        }
         protected override IQueryable<Airport> CreateFilteredQuery(PagedAirportResultRequestDto input)
         {
             return Repository.GetAllIncluding()

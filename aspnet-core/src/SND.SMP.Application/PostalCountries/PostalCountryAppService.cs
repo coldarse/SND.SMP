@@ -3,6 +3,7 @@ using Abp.Application.Services;
 using Abp.Extensions;
 using Abp.Collections.Extensions;
 using Abp.Domain.Repositories;
+using Abp.Linq.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,10 +26,10 @@ namespace SND.SMP.PostalCountries
             return Repository.GetAllIncluding()
                 .WhereIf(!input.Keyword.IsNullOrWhiteSpace(), x =>
                     x.PostalCode.Contains(input.Keyword) ||
-                    x.CountryCode.Contains(input.Keyword)).AsQueryable();
+                    x.CountryCode.Contains(input.Keyword));
         }
 
-        private async Task<DataTable> ConvertToDatatable(Stream ms)
+        private static DataTable ConvertToDatatable(Stream ms)
         {
             DataTable dataTable = new();
 
@@ -67,11 +68,27 @@ namespace SND.SMP.PostalCountries
         {
             CheckCreatePermission();
 
-            var postalCountry = await Repository.FirstOrDefaultAsync(x => x.CountryCode.Equals(input.CountryCode));
+            var postalCountry = await Repository.FirstOrDefaultAsync(x => 
+                                                                        x.CountryCode.Equals(input.CountryCode) && 
+                                                                        x.PostalCode.Equals(input.PostalCode)
+                                                                    );
 
             if (postalCountry is not null) throw new UserFriendlyException("Postal Country Exists");
 
             return await base.CreateAsync(input);
+        }
+
+        public async Task<List<string>> GetCountries()
+        {
+            var postalCountries = await Repository.GetAllListAsync();
+
+            var distinctedCountries = postalCountries.DistinctBy(x => x.CountryCode);
+
+            List<string> countries = [];
+
+            foreach (var dc in distinctedCountries) countries.Add(dc.CountryCode);
+
+            return countries;
         }
 
         [Consumes("multipart/form-data")]
@@ -79,19 +96,22 @@ namespace SND.SMP.PostalCountries
         {
             if (input.file == null || input.file.Length == 0) return [];
 
-            DataTable dataTable = await ConvertToDatatable(input.file.OpenReadStream());
+            DataTable dataTable = ConvertToDatatable(input.file.OpenReadStream());
 
             List<PostalCountryExcel> postalCountryExcel = [];
             foreach (DataRow dr in dataTable.Rows)
             {
-                postalCountryExcel.Add(new PostalCountryExcel()
+                if (dr.ItemArray[0].ToString() != "")
                 {
-                    PostalCode = dr.ItemArray[0].ToString(),
-                    CountryCode = dr.ItemArray[1].ToString(),
-                });
+                    postalCountryExcel.Add(new PostalCountryExcel()
+                    {
+                        PostalCode = dr.ItemArray[0].ToString(),
+                        CountryCode = dr.ItemArray[1].ToString(),
+                    });
+                }
             }
 
-            await Repository.GetDbContext().Database.ExecuteSqlRawAsync("TRUNCATE TABLE smpdb.postalcountries");
+            await Repository.GetDbContext().Database.ExecuteSqlRawAsync("TRUNCATE TABLE smpdb.postalcountries").ConfigureAwait(false);
 
             List<PostalCountry> postalCountries = [];
             foreach (PostalCountryExcel excelItem in postalCountryExcel)
@@ -106,19 +126,6 @@ namespace SND.SMP.PostalCountries
             }
 
             return postalCountries;
-        }
-
-        public async Task<List<string>> GetCountries()
-        {
-            var postalCountries = await Repository.GetAllListAsync();
-
-            var distinctedCountries = postalCountries.DistinctBy(x => x.CountryCode);
-
-            List<string> countries = [];
-
-            foreach(var dc in distinctedCountries) countries.Add(dc.CountryCode);
-
-            return countries;
         }
     }
 }
