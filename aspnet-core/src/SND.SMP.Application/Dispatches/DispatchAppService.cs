@@ -870,7 +870,7 @@ namespace SND.SMP.Dispatches
             var kgc = impcs.FirstOrDefault(u => u.CountryCode.Equals(countryCode));
             var destination = kgc is null ? "" : kgc.AirportCode;
 
-            for (int i = 0; i < bags.Count; i++)
+            for (int i = 0; i < groupedBags.Count; i++)
             {
                 var bagNo = groupedBags[i].Key;
                 kgBag.Add(new KGBag
@@ -924,7 +924,7 @@ namespace SND.SMP.Dispatches
             var gqc = impcs.FirstOrDefault(u => u.CountryCode.Equals(countryCode));
             var destination = gqc is null ? "" : gqc.AirportCode;
 
-            for (int i = 0; i < bags.Count; i++)
+            for (int i = 0; i < groupedBags.Count; i++)
             {
                 var bagNo = groupedBags[i].Key;
 
@@ -974,7 +974,7 @@ namespace SND.SMP.Dispatches
 
             var groupedBags = items.GroupBy(u => u.BagNo).ToList();
 
-            for (int i = 0; i < bags.Count; i++)
+            for (int i = 0; i < groupedBags.Count; i++)
             {
                 var bagNo = groupedBags[i].Key;
 
@@ -1049,7 +1049,7 @@ namespace SND.SMP.Dispatches
 
             var destination = countryCode ?? "";
 
-            for (int i = 0; i < bags.Count; i++)
+            for (int i = 0; i < groupedBags.Count; i++)
             {
                 var bagNo = groupedBags[i].Key;
                 doBag.Add(new DOBag
