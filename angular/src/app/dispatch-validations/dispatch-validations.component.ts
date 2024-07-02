@@ -17,6 +17,7 @@ import { ChibiService } from "@shared/service-proxies/chibis/chibis.service";
 import { DispatchValidationErrorComponent } from "./dipatch-validation-error/dispatch-validation-error.component";
 import { QueueService } from "@shared/service-proxies/queues/queue.service";
 import { UploadRetryComponent } from "./upload-retry/upload-retry.component";
+import { ApplicationSettingService } from "@shared/service-proxies/applicationsettings/applicationsetting.service";
 
 class PagedDispatchValidationsRequestDto extends PagedRequestDto {
   keyword: string;
@@ -53,20 +54,23 @@ export class DispatchValidationsComponent
     private _dispatchvalidationService: DispatchValidationService,
     private _chibiService: ChibiService,
     private _queueService: QueueService,
+    private _applicationSettingService: ApplicationSettingService,
     private _modalService: BsModalService
   ) {
     super(injector);
   }
 
   ngOnInit(): void {
-    this.startReloadInterval();
+    this._applicationSettingService.getValueByName("AutoReloadPageSecs").subscribe((data: any) => {
+      this.startReloadInterval(data.result == "" ? 5 : +data.result);
+    });
   }
 
-  startReloadInterval() {
+  startReloadInterval(seconds: number) {
     this.getDataPage(1);
     this.reloadDispatchValidation = setInterval(() => {
       this.getDataPage(1);
-    }, 5000);
+    }, seconds * 1000);
   }
 
   ngOnDestroy(): void {

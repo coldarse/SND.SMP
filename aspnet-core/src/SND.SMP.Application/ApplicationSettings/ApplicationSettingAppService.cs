@@ -21,5 +21,12 @@ namespace SND.SMP.ApplicationSettings
                     x.Name.Contains(input.Keyword) ||
                     x.Value.Contains(input.Keyword));
         }
+
+        public async Task<string> GetValueByName(string name)
+        {
+            var setting = await Repository.FirstOrDefaultAsync(x => x.Name.Equals(name));
+            if (setting == null) return string.Empty;
+            return setting.Value;
+        }
     }
 }
