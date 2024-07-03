@@ -67,9 +67,9 @@ export class DispatchValidationsComponent
   }
 
   startReloadInterval(seconds: number) {
-    this.getDataPage(1);
+    this.getDataPage(this.pageNumber);
     this.reloadDispatchValidation = setInterval(() => {
-      this.getDataPage(1);
+      this.getDataPage(this.pageNumber);
     }, seconds * 1000);
   }
 
