@@ -34,5 +34,6 @@ public class DispatchBag
     public string BagNo { get; set; }
     public int ItemCount { get; set; }
     public bool Select { get; set; }
+    public bool Custom { get; set; }
 
 }

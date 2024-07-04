@@ -2703,6 +2703,7 @@ namespace SND.SMP.Dispatches
             List<string> countries = [];
 
             var dispatches = await Repository.GetAllListAsync(x => !x.DispatchNo.Contains("Temp"));
+            var bags = await _bagRepository.GetAllListAsync();
 
             foreach (var dispatch in dispatches)
             {
@@ -2717,11 +2718,11 @@ namespace SND.SMP.Dispatches
                     Open = false,
                 };
 
-                var bags = await _bagRepository.GetAllListAsync(x => x.DispatchId.Equals(dispatch.Id));
-
                 List<DispatchCountry> dc = [];
 
-                var distinctedCountryCode = bags.DistinctBy(x => x.CountryCode).ToList();
+                var dispatchBags = bags.Where(x => x.DispatchId.Equals(dispatch.Id)).ToList();
+
+                var distinctedCountryCode = dispatchBags.DistinctBy(x => x.CountryCode).ToList();
 
                 foreach (var country in distinctedCountryCode) countries.Add(country.CountryCode);
 
@@ -2742,6 +2743,7 @@ namespace SND.SMP.Dispatches
                                 BagNo = bag.BagNo,
                                 ItemCount = bag.ItemCountPost == null ? 0 : (int)bag.ItemCountPost,
                                 Select = false,
+                                Custom = false,
                             });
                         }
 

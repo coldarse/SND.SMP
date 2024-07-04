@@ -84,6 +84,11 @@ export class DispatchTrackingComponent
     this.dispatches[indexC].dispatchCountries[indexB].dispatchBags[indexS].select = !this.dispatches[indexC].dispatchCountries[indexB].dispatchBags[indexS].select;
   }
 
+  custom(indexC: any, indexB: any, indexZ: any){
+    this.dispatches[indexC].dispatchCountries[indexB].dispatchBags[indexZ].custom = !this.dispatches[indexC].dispatchCountries[indexB].dispatchBags[indexZ].custom;
+  }
+
+
   protected list(
     request: PagedRequestDto,
     pageNumber: number,

@@ -186,6 +186,7 @@ export interface DispatchBag {
   bagNo: string;
   itemCount: number;
   select: boolean;
+  custom: boolean;
 }
 
 export interface DispatchCountry {

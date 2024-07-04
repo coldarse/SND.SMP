@@ -98,13 +98,82 @@ body {
     overflow: auto;
 }
 
+table {
+    position: relative;
+    border-collapse: collapse;
+}
+
 th {
     position: sticky;
-    top: 0px;
+    top: 0;
 }
 
 thead {
-    /* background-color: #E0142B; */
     background-color: #dc3545;
     color: white;
+}
+
+
+
+.parentTableHead {
+    overflow-y: auto;
+    height: 70vh;
+}
+
+.parentTableHead th {
+    z-index: 1;
+    background-color: #dc3545;
+    position: sticky;
+    top: 0;
+}
+
+.childTableHead {
+    overflow-y: auto;
+    max-height: 480px;
+}
+
+.childTableHead thead th {
+    z-index: 2;
+    background-color: #dc3545;
+    position: sticky;
+    top: 0;
+}
+
+.leftSticky {
+    cursor: pointer;
+    position: sticky;
+    left: 0;
+    z-index: 3;
+    -webkit-box-shadow: 5px 0px 15px 0px rgba(0, 0, 0);
+    -moz-box-shadow: 5px 0px 15px 0px rgba(0, 0, 0);
+    box-shadow: 5px 0px 15px 0px rgba(0, 0, 0);
+    background-color: #ffaaaa;
+}
+
+.leftBagSticky {
+    cursor: pointer;
+    position: sticky;
+    left: 0;
+    z-index: 3;
+    -webkit-box-shadow: 5px 0px 15px 0px rgba(0, 0, 0);
+    -moz-box-shadow: 5px 0px 15px 0px rgba(0, 0, 0);
+    box-shadow: 5px 0px 15px 0px rgba(0, 0, 0);
+    background-color: #fee0e0;
+    white-space: wrap;
+}
+
+.leftHeaderSticky {
+    cursor: pointer;
+    position: sticky;
+    left: 0;
+    z-index: 4 !important;
+    -webkit-box-shadow: 5px 0px 15px 0px rgba(0, 0, 0);
+    -moz-box-shadow: 5px 0px 15px 0px rgba(0, 0, 0);
+    box-shadow: 5px 0px 15px 0px rgba(0, 0, 0);
+    background-color: #ffaaaa;
+}
+
+.margin_left_right {
+    margin-left: 2px;
+    margin-right: 2px;
 }
