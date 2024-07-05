@@ -2716,6 +2716,7 @@ namespace SND.SMP.Dispatches
                     Status = (int)dispatch.Status,
                     Customer = dispatch.CustomerCode,
                     Open = false,
+                    Stages = []
                 };
 
                 List<DispatchCountry> dc = [];
@@ -2751,7 +2752,9 @@ namespace SND.SMP.Dispatches
                         {
                             CountryCode = country.CountryCode,
                             BagCount = bagsInCountry.Count,
-                            DispatchBags = db
+                            DispatchBags = db,
+                            Select = false,
+                            Open = false
                         });
                     }
 
