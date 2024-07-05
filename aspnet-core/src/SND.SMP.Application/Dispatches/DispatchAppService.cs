@@ -750,11 +750,7 @@ namespace SND.SMP.Dispatches
                                         .ToList();
 
             if (!string.IsNullOrWhiteSpace(countryCode))
-            {
                 items = items.Where(x => x.CountryCode.Equals(countryCode)).ToList();
-                bags = bags.Where(x => x.CountryCode.Equals(countryCode)).ToList();
-            }
-
 
             var shippers = new List<Shipper>
             {
@@ -766,12 +762,12 @@ namespace SND.SMP.Dispatches
 
             var mapping = new List<DOMapping>
             {
-                new() { CountryCode = "PR", Origin = "TPE", Destination = "SDQ", Service = "PP-105"},
-                new() { CountryCode = "US", Origin = "TPE", Destination = "SDQ", Service = "PP-105"},
-                new() { CountryCode = "VI", Origin = "TPE", Destination = "SDQ", Service = "PP-105"},
-                new() { CountryCode = "CA", Origin = "TPE", Destination = "SDQ", Service = "PP-105"},
-                new() { CountryCode = "MU", Origin = "SDQ", Destination = "MRU", Service = "PP-101"},
-                new() { CountryCode = "MV", Origin = "SDQ", Destination = "MLE", Service = "PP-101"},
+                new() { CountryCode = "PR", Origin = "TPE", Destination = "SDQ", Service = "PP105"},
+                new() { CountryCode = "US", Origin = "TPE", Destination = "SDQ", Service = "PP105"},
+                new() { CountryCode = "VI", Origin = "TPE", Destination = "SDQ", Service = "PP105"},
+                new() { CountryCode = "CA", Origin = "TPE", Destination = "SDQ", Service = "PP105"},
+                new() { CountryCode = "MU", Origin = "SDQ", Destination = "MRU", Service = "PP101"},
+                new() { CountryCode = "MV", Origin = "SDQ", Destination = "MLE", Service = "PP101"},
             };
 
             var listManifestWeight = GetManifestWeight(bags, items, isPreCheckWeight);
