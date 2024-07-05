@@ -750,7 +750,11 @@ namespace SND.SMP.Dispatches
                                         .ToList();
 
             if (!string.IsNullOrWhiteSpace(countryCode))
+            {
                 items = items.Where(x => x.CountryCode.Equals(countryCode)).ToList();
+                bags = bags.Where(x => x.CountryCode.Equals(countryCode)).ToList();
+            }
+
 
             var shippers = new List<Shipper>
             {
@@ -770,7 +774,7 @@ namespace SND.SMP.Dispatches
                 new() { CountryCode = "MV", Origin = "SDQ", Destination = "MLE", Service = "PP-101"},
             };
 
-            var listDeductedTare = GetManifestWeight(bags, items, isPreCheckWeight);
+            var listManifestWeight = GetManifestWeight(bags, items, isPreCheckWeight);
 
             foreach (var u in items)
             {
@@ -780,7 +784,7 @@ namespace SND.SMP.Dispatches
 
                 var foundBag = itemCountryBags.FirstOrDefault(x => x.BagNo.Equals(u.BagNo));
 
-                var itemAfterWeight = Math.Round(listDeductedTare.FirstOrDefault(p => p.TrackingNo.Equals(u.Id)).Weight, 3);
+                var itemAfterWeight = listManifestWeight.FirstOrDefault(p => p.TrackingNo.Equals(u.Id)).Weight;
 
                 doManifest.Add(new DOManifest()
                 {
@@ -807,7 +811,7 @@ namespace SND.SMP.Dispatches
                     ConsigneeMobile = "",
                     ConsigneeTaxId = "",
                     Pieces = 1,
-                    Gweight = itemAfterWeight, //u.Weight.GetValueOrDefault(),
+                    Gweight = itemAfterWeight,
                     Cweight = "",
                     WeightType = "KG",
                     Height = (int)u.Height.GetValueOrDefault(),
@@ -1193,10 +1197,10 @@ namespace SND.SMP.Dispatches
                 {
                     decimal weightVariance = bag.WeightVariance ?? 0m;
                     var bagItems = result.Where(u => u.BagNo.Equals(bag.BagNo));
+                    var itemCount = bag.ItemCountPost ?? bag.ItemCountPre;
 
                     if (weightVariance > 0)
                     {
-                        var itemCount = bag.ItemCountPost ?? bag.ItemCountPre;
                         var averageWeight = weightVariance / itemCount;
                         foreach (var item in bagItems)
                         {
@@ -1988,7 +1992,7 @@ namespace SND.SMP.Dispatches
             var bags = await _bagRepository.GetAllListAsync(x => x.DispatchId.Equals(dispatch.Id));
             var items = await _itemRepository.GetAllListAsync(x => x.DispatchID.Equals(dispatch.Id));
             var countries = bags.GroupBy(x => x.CountryCode).Select(u => u.Key).OrderBy(u => u).ToList();
-            var Cos = await _impcRepository.GetAllListAsync(x => x.Type.Equals(code));
+            var impcs = await _impcRepository.GetAllListAsync(x => x.Type.Equals(code));
 
             var customerCode = dispatch.CustomerCode;
             var productCode = dispatch.ProductCode;
@@ -2003,11 +2007,11 @@ namespace SND.SMP.Dispatches
 
                 foreach (var country in countries)
                 {
-                    var model = await GetKGManifest(dispatch, bags, items, Cos, isPreCheckWeight, country);
+                    var model = await GetKGManifest(dispatch, bags, items, impcs, isPreCheckWeight, country);
 
                     if (model.Count != 0)
                     {
-                        var kgc = Cos.FirstOrDefault(u => u.CountryCode.Equals(country));
+                        var kgc = impcs.FirstOrDefault(u => u.CountryCode.Equals(country));
                         var airportCode = kgc is null ? "" : kgc.AirportCode;
 
                         if (postalCode.Equals($"{code}02"))
@@ -2054,11 +2058,11 @@ namespace SND.SMP.Dispatches
 
                 foreach (var country in countries)
                 {
-                    var model = await GetGQManifest(dispatch, bags, items, Cos, isPreCheckWeight, country);
+                    var model = await GetGQManifest(dispatch, bags, items, impcs, isPreCheckWeight, country);
 
                     if (model.Count != 0)
                     {
-                        var gqc = Cos.FirstOrDefault(u => u.CountryCode.Equals(country));
+                        var gqc = impcs.FirstOrDefault(u => u.CountryCode.Equals(country));
                         var airportCode = gqc is null ? "" : gqc.AirportCode;
 
                         if (postalCode.Equals($"{code}02"))
@@ -2182,7 +2186,7 @@ namespace SND.SMP.Dispatches
             var bags = await _bagRepository.GetAllListAsync(x => x.DispatchId.Equals(dispatch.Id));
             var items = await _itemRepository.GetAllListAsync(x => x.DispatchID.Equals(dispatch.Id));
             var countries = bags.GroupBy(x => x.CountryCode).Select(u => u.Key).OrderBy(u => u).ToList();
-            var Cos = await _impcRepository.GetAllListAsync(x => x.Type.Equals($"{code}"));
+            var impcs = await _impcRepository.GetAllListAsync(x => x.Type.Equals($"{code}"));
 
             var customerCode = dispatch.CustomerCode;
             var productCode = dispatch.ProductCode;
@@ -2197,11 +2201,11 @@ namespace SND.SMP.Dispatches
 
                 foreach (var country in countries)
                 {
-                    var model = await GetKGBag(dispatch, bags, items, Cos, isPreCheckWeight, country);
+                    var model = await GetKGBag(dispatch, bags, items, impcs, isPreCheckWeight, country);
 
                     if (model.Count != 0)
                     {
-                        var kgc = Cos.FirstOrDefault(u => u.CountryCode.Equals(country));
+                        var kgc = impcs.FirstOrDefault(u => u.CountryCode.Equals(country));
                         var airportCode = kgc is null ? "" : kgc.AirportCode;
 
                         if (postalCode.Equals($"{code}02"))
@@ -2248,11 +2252,11 @@ namespace SND.SMP.Dispatches
 
                 foreach (var country in countries)
                 {
-                    var model = await GetGQBag(dispatch, bags, items, Cos, isPreCheckWeight, country);
+                    var model = await GetGQBag(dispatch, bags, items, impcs, isPreCheckWeight, country);
 
                     if (model.Count != 0)
                     {
-                        var gqc = Cos.FirstOrDefault(u => u.CountryCode.Equals(country));
+                        var gqc = impcs.FirstOrDefault(u => u.CountryCode.Equals(country));
                         var airportCode = gqc is null ? "" : gqc.AirportCode;
 
                         if (postalCode.Equals($"{code}02"))
