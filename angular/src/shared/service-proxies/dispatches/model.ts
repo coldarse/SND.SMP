@@ -187,6 +187,7 @@ export interface DispatchBag {
   itemCount: number;
   select: boolean;
   custom: boolean;
+  stages: Stage;
 }
 
 export interface DispatchCountry {
@@ -195,6 +196,7 @@ export interface DispatchCountry {
   dispatchBags: DispatchBag[];
   open: boolean;
   select: boolean;
+  stages: Stage;
 }
 
 export interface DispatchInfo {
@@ -206,7 +208,6 @@ export interface DispatchInfo {
   customer: string;
   open: boolean;
   dispatchCountries: DispatchCountry[];
-  stages: Stage[];
 }
 
 export interface DispatchTracking {

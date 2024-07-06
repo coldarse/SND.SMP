@@ -2716,7 +2716,6 @@ namespace SND.SMP.Dispatches
                     Status = (int)dispatch.Status,
                     Customer = dispatch.CustomerCode,
                     Open = false,
-                    Stages = []
                 };
 
                 List<DispatchCountry> dc = [];
@@ -2745,6 +2744,7 @@ namespace SND.SMP.Dispatches
                                 ItemCount = bag.ItemCountPost == null ? 0 : (int)bag.ItemCountPost,
                                 Select = false,
                                 Custom = false,
+                                Stages = null
                             });
                         }
 
@@ -2754,7 +2754,8 @@ namespace SND.SMP.Dispatches
                             BagCount = bagsInCountry.Count,
                             DispatchBags = db,
                             Select = false,
-                            Open = false
+                            Open = false,
+                            Stages = null
                         });
                     }
 

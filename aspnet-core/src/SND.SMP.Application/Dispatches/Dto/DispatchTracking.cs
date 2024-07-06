@@ -17,8 +17,6 @@ public class DispatchInfo
     public string Customer { get; set; }
     public bool Open { get; set; }
     public List<DispatchCountry> DispatchCountries { get; set; }
-    public List<Stage> Stages { get; set; }
-
 }
 
 public class DispatchCountry
@@ -28,6 +26,7 @@ public class DispatchCountry
     public int BagCount { get; set; }
     public bool Open { get; set; }
     public bool Select { get; set; }
+    public Stage Stages { get; set; }
 }
 
 public class DispatchBag
@@ -37,7 +36,7 @@ public class DispatchBag
     public int ItemCount { get; set; }
     public bool Select { get; set; }
     public bool Custom { get; set; }
-
+    public Stage Stages { get; set; }
 }
 
 public class Stage

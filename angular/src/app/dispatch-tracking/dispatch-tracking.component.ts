@@ -7,6 +7,8 @@ import { AirportService } from "@shared/service-proxies/airports/airport.service
 import { AirportDto } from "@shared/service-proxies/airports/model";
 import { DispatchService } from "@shared/service-proxies/dispatches/dispatch.service";
 import {
+  DispatchBag,
+  DispatchCountry,
   DispatchInfo,
   DispatchTracking,
   Stage,
@@ -75,6 +77,15 @@ export class DispatchTrackingComponent
 
   openCountry(index: any) {
     this.dispatches[index].open = !this.dispatches[index].open;
+
+    if (this.dispatches[index].open == false) {
+      this.dispatches[index].dispatchCountries.forEach(
+        (elem: DispatchCountry) => {
+          elem.open = false;
+          elem.select = false;
+        }
+      );
+    }
   }
 
   openCloseBag(indexC: any, indexB: any) {
@@ -137,20 +148,23 @@ export class DispatchTrackingComponent
         dispatchNo: dispatchNo,
         countryCode: countryCode,
       };
-      this.dispatches[indexC].stages.push(stage);
+
+      this.dispatches[indexC].dispatchCountries[indexB].dispatchBags[
+        indexZ
+      ].stages = stage;
     } else {
-      for (let i = this.dispatches[indexC].stages.length - 1; i >= 0; i--) {
-        if (this.dispatches[indexC].stages[i].bagNo === bagNo) {
-          this.dispatches[indexC].stages.splice(i, 1);
-        }
-      }
+      this.dispatches[indexC].dispatchCountries[indexB].dispatchBags[
+        indexZ
+      ].stages = undefined;
     }
-    console.log(this.dispatches[indexC].stages);
   }
 
   countrySelect(indexC: any, indexY: any) {
     this.dispatches[indexC].dispatchCountries[indexY].select =
       !this.dispatches[indexC].dispatchCountries[indexY].select;
+
+    if (!this.dispatches[indexC].dispatchCountries[indexY].select)
+      this.dispatches[indexC].dispatchCountries[indexY].open = false;
 
     let countryCode =
       this.dispatches[indexC].dispatchCountries[indexY].countryCode;
@@ -181,22 +195,19 @@ export class DispatchTrackingComponent
         dispatchNo: dispatchNo,
         countryCode: countryCode,
       };
-      this.dispatches[indexC].stages.push(stage);
+
+      this.dispatches[indexC].dispatchCountries[indexY].stages = stage;
     } else {
-      for (let i = this.dispatches[indexC].stages.length - 1; i >= 0; i--) {
-        if (
-          this.dispatches[indexC].stages[i].dispatchNo === dispatchNo &&
-          this.dispatches[indexC].stages[i].countryCode === countryCode
-        ) {
-          this.dispatches[indexC].stages.splice(i, 1);
-        }
-      }
+      this.dispatches[indexC].dispatchCountries[indexY].stages = undefined;
     }
-    console.log(this.dispatches[indexC].stages);
   }
 
-  inputStage(event: any, indexC: any, bagNo: string, field: string) {
-    let temp = this.dispatches[indexC].stages.find((x) => x.bagNo === bagNo);
+  inputStage(event: any, indexC: any, indexB: any, indexS: any, field: string) {
+    let temp =
+      indexS == ""
+        ? this.dispatches[indexC].dispatchCountries[indexB].stages
+        : this.dispatches[indexC].dispatchCountries[indexB].dispatchBags[indexS]
+            .stages;
 
     if (temp != undefined) {
       switch (field) {
@@ -266,8 +277,10 @@ export class DispatchTrackingComponent
         }
       }
     }
+  }
 
-    console.log(this.dispatches[indexC].stages);
+  submitItemTracking(){
+    
   }
 
   protected list(

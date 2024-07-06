@@ -126,12 +126,12 @@
                                         />
                                       </div>
                                       <div class="col-8">
-                                        {{ country.countryCode }}
+                                        {{ country.stages.countryCode }}
                                       </div>
                                     </div>
                                     <div class="row">
                                       <div class="col-12">
-                                        <span class="badge badge-light mt-1 mb-1 float-right cursor hover" (click)="openCloseBag(indexC, indexB)">Bags</span>
+                                        <span class="badge badge-light mt-1 mb-1 float-right cursor hover" (click)="openCloseBag(indexC, indexB)">{{country.dispatchBags.length}} Bag(s)</span>
                                       </div>
                                     </div>
                                   </td>
@@ -141,14 +141,16 @@
                                         type="text"
                                         class="form-control m-1"
                                         placeholder="Stage 1 Description"
-                                        (input)="inputStage($event, indexC, '', 'stage1')"
+                                        [(ngModel)]="country.stages.stage1Desc"
+                                        (input)="inputStage($event, indexC, indexB, '', 'stage1')"
                                       />
                                     </div>
                                     <div class="row">
                                       <input
                                         type="datetime-local"
                                         class="form-control m-1"
-                                        (change)="inputStage($event, indexC, '', 'time1')"
+                                        [(ngModel)]="country.stages.stage1DateTime"
+                                        (change)="inputStage($event, indexC, indexB, '', 'time1')"
                                       />
                                     </div>
                                   </td>
@@ -158,14 +160,16 @@
                                         type="text"
                                         class="form-control m-1"
                                         placeholder="Stage 2 Description"
-                                        (input)="inputStage($event, indexC, '', 'stage2')"
+                                        [(ngModel)]="country.stages.stage2Desc"
+                                        (input)="inputStage($event, indexC, indexB, '', 'stage2')"
                                       />
                                     </div>
                                     <div class="row">
                                       <input
                                         type="datetime-local"
                                         class="form-control m-1"
-                                        (change)="inputStage($event, indexC, '', 'time2')"
+                                        [(ngModel)]="country.stages.stage2DateTime"
+                                        (change)="inputStage($event, indexC, indexB, '', 'time2')"
                                       />
                                     </div>
                                   </td>
@@ -175,14 +179,16 @@
                                         type="text"
                                         class="form-control m-1"
                                         placeholder="Stage 3 Description"
-                                        (input)="inputStage($event, indexC, '', 'stage3')"
+                                        [(ngModel)]="country.stages.stage3Desc"
+                                        (input)="inputStage($event, indexC, indexB, '', 'stage3')"
                                       />
                                     </div>
                                     <div class="row">
                                       <input
                                         type="datetime-local"
                                         class="form-control m-1"
-                                        (change)="inputStage($event, indexC, '', 'time3')"
+                                        [(ngModel)]="country.stages.stage3DateTime"
+                                        (change)="inputStage($event, indexC, indexB, '', 'time3')"
                                       />
                                     </div>
                                   </td>
@@ -192,14 +198,16 @@
                                         type="text"
                                         class="form-control m-1"
                                         placeholder="Stage 4 Description"
-                                        (input)="inputStage($event, indexC, '', 'stage4')"
+                                        [(ngModel)]="country.stages.stage4Desc"
+                                        (input)="inputStage($event, indexC, indexB, '', 'stage4')"
                                       />
                                     </div>
                                     <div class="row">
                                       <input
                                         type="datetime-local"
                                         class="form-control m-1"
-                                        (change)="inputStage($event, indexC, '', 'time4')"
+                                        [(ngModel)]="country.stages.stage4DateTime"
+                                        (change)="inputStage($event, indexC, indexB, '', 'time4')"
                                       />
                                     </div>
                                   </td>
@@ -209,14 +217,16 @@
                                         type="text"
                                         class="form-control m-1"
                                         placeholder="Stage 5 Description"
-                                        (input)="inputStage($event, indexC, '', 'stage5')"
+                                        [(ngModel)]="country.stages.stage5Desc"
+                                        (input)="inputStage($event, indexC, indexB, '', 'stage5')"
                                       />
                                     </div>
                                     <div class="row">
                                       <input
                                         type="datetime-local"
                                         class="form-control m-1"
-                                        (change)="inputStage($event, indexC, '', 'time5')"
+                                        [(ngModel)]="country.stages.stage5DateTime"
+                                        (change)="inputStage($event, indexC, indexB, '', 'time5')"
                                       />
                                     </div>
                                   </td>
@@ -226,14 +236,16 @@
                                         type="text"
                                         class="form-control m-1"
                                         placeholder="Stage 6 Description"
-                                        (input)="inputStage($event, indexC, '', 'stage6')"
+                                        [(ngModel)]="country.stages.stage6Desc"
+                                        (input)="inputStage($event, indexC, indexB, '', 'stage6')"
                                       />
                                     </div>
                                     <div class="row">
                                       <input
                                         type="datetime-local"
                                         class="form-control m-1"
-                                        (change)="inputStage($event, indexC, '', 'time6')"
+                                        [(ngModel)]="country.stages.stage6DateTime"
+                                        (change)="inputStage($event, indexC, indexB, '', 'time6')"
                                       />
                                     </div>
                                   </td>
@@ -243,10 +255,11 @@
                                         name="airport"
                                         id="airport"
                                         class="form-control m-1"
-                                        (change)="inputStage($event, indexC, '', 'airport')"
+                                        [(ngModel)]="country.stages.airport"
+                                        (change)="inputStage($event, indexC, indexB, '', 'airport')"
                                       >
                                         <option
-                                          value="{{ airport.name }}"
+                                          value="{{ airport.code }}"
                                           *ngFor="let airport of airports"
                                         >
                                           {{ airport.name }}
@@ -257,7 +270,8 @@
                                       <input
                                         type="datetime-local"
                                         class="form-control m-1"
-                                        (change)="inputStage($event, indexC, '', 'airportTime')"
+                                        [(ngModel)]="country.stages.airportDateTime"
+                                        (change)="inputStage($event, indexC, indexB, '', 'airportTime')"
                                       />
                                     </div>
                                   </td>
@@ -267,14 +281,16 @@
                                         type="text"
                                         class="form-control m-1"
                                         placeholder="Stage 7 Description"
-                                        (input)="inputStage($event, indexC, '', 'stage7')"
+                                        [(ngModel)]="country.stages.stage7Desc"
+                                        (input)="inputStage($event, indexC, indexB, '', 'stage7')"
                                       />
                                     </div>
                                     <div class="row">
                                       <input
                                         type="datetime-local"
                                         class="form-control m-1"
-                                        (change)="inputStage($event, indexC, '', 'time7')"
+                                        [(ngModel)]="country.stages.stage7DateTime"
+                                        (change)="inputStage($event, indexC, indexB, '', 'time7')"
                                       />
                                     </div>
                                   </td>
@@ -298,7 +314,7 @@
                                             />
                                           </div>
                                           <div class="col-8">
-                                            {{ bag.bagNo }}
+                                            {{ bag.stages.bagNo }}
                                           </div>
                                           <div class="col-12">
                                             <span class="badge badge-light mt-1 mb-1 float-right cursor hover" (click)="custom(indexC, indexB, indexS)">Cancel</span>
@@ -311,14 +327,16 @@
                                             type="text"
                                             class="form-control m-1"
                                             placeholder="Stage 1 Description"
-                                            (input)="inputStage($event, indexC, bag.bagNo, 'stage1')"
+                                            [(ngModel)]="bag.stages.stage1Desc"
+                                            (input)="inputStage($event, indexC, indexB, indexS, 'stage1')"
                                           />
                                         </div>
                                         <div class="row">
                                           <input
                                             type="datetime-local"
                                             class="form-control m-1"
-                                            (change)="inputStage($event, indexC, bag.bagNo, 'time1')"
+                                            [(ngModel)]="bag.stages.stage1DateTime"
+                                            (change)="inputStage($event, indexC, indexB, indexS, 'time1')"
                                           />
                                         </div>
                                       </td>
@@ -328,14 +346,16 @@
                                             type="text"
                                             class="form-control m-1"
                                             placeholder="Stage 2 Description"
-                                            (input)="inputStage($event, indexC, bag.bagNo, 'stage2')"
+                                            [(ngModel)]="bag.stages.stage2Desc"
+                                            (input)="inputStage($event, indexC, indexB, indexS, 'stage2')"
                                           />
                                         </div>
                                         <div class="row">
                                           <input
                                             type="datetime-local"
                                             class="form-control m-1"
-                                            (change)="inputStage($event, indexC, bag.bagNo, 'time2')"
+                                            [(ngModel)]="bag.stages.stage2DateTime"
+                                            (change)="inputStage($event, indexC, indexB, indexS, 'time2')"
                                           />
                                         </div>
                                       </td>
@@ -345,14 +365,16 @@
                                             type="text"
                                             class="form-control m-1"
                                             placeholder="Stage 3 Description"
-                                            (input)="inputStage($event, indexC, bag.bagNo, 'stage3')"
+                                            [(ngModel)]="bag.stages.stage3Desc"
+                                            (input)="inputStage($event, indexC, indexB, indexS, 'stage3')"
                                           />
                                         </div>
                                         <div class="row">
                                           <input
                                             type="datetime-local"
                                             class="form-control m-1"
-                                            (change)="inputStage($event, indexC, bag.bagNo, 'time3')"
+                                            [(ngModel)]="bag.stages.stage3DateTime"
+                                            (change)="inputStage($event, indexC, indexB, indexS, 'time3')"
                                           />
                                         </div>
                                       </td>
@@ -362,14 +384,16 @@
                                             type="text"
                                             class="form-control m-1"
                                             placeholder="Stage 4 Description"
-                                            (input)="inputStage($event, indexC, bag.bagNo, 'stage4')"
+                                            [(ngModel)]="bag.stages.stage4Desc"
+                                            (input)="inputStage($event, indexC, indexB, indexS, 'stage4')"
                                           />
                                         </div>
                                         <div class="row">
                                           <input
                                             type="datetime-local"
                                             class="form-control m-1"
-                                            (change)="inputStage($event, indexC, bag.bagNo, 'time4')"
+                                            [(ngModel)]="bag.stages.stage4DateTime"
+                                            (change)="inputStage($event, indexC, indexB, indexS, 'time4')"
                                           />
                                         </div>
                                       </td>
@@ -379,14 +403,16 @@
                                             type="text"
                                             class="form-control m-1"
                                             placeholder="Stage 5 Description"
-                                            (input)="inputStage($event, indexC, bag.bagNo, 'stage5')"
+                                            [(ngModel)]="bag.stages.stage5Desc"
+                                            (input)="inputStage($event, indexC, indexB, indexS, 'stage5')"
                                           />
                                         </div>
                                         <div class="row">
                                           <input
                                             type="datetime-local"
                                             class="form-control m-1"
-                                            (change)="inputStage($event, indexC, bag.bagNo, 'time5')"
+                                            [(ngModel)]="bag.stages.stage5DateTime"
+                                            (change)="inputStage($event, indexC, indexB, indexS, 'time5')"
                                           />
                                         </div>
                                       </td>
@@ -396,14 +422,16 @@
                                             type="text"
                                             class="form-control m-1"
                                             placeholder="Stage 6 Description"
-                                            (input)="inputStage($event, indexC, bag.bagNo, 'stage6')"
+                                            [(ngModel)]="bag.stages.stage6Desc"
+                                            (input)="inputStage($event, indexC, indexB, indexS, 'stage6')"
                                           />
                                         </div>
                                         <div class="row">
                                           <input
                                             type="datetime-local"
                                             class="form-control m-1"
-                                            (change)="inputStage($event, indexC, bag.bagNo, 'time6')"
+                                            [(ngModel)]="bag.stages.stage6DateTime"
+                                            (change)="inputStage($event, indexC, indexB, indexS, 'time6')"
                                           />
                                         </div>
                                       </td>
@@ -413,10 +441,11 @@
                                             name="airport"
                                             id="airport"
                                             class="form-control m-1"
-                                            (change)="inputStage($event, indexC, '', 'airport')"
+                                            [(ngModel)]="bag.stages.airport"
+                                            (change)="inputStage($event, indexC, indexB, indexS, 'airport')"
                                           >
                                             <option
-                                              value="{{ airport.name }}"
+                                              value="{{ airport.code }}"
                                               *ngFor="let airport of airports"
                                             >
                                               {{ airport.name }}
@@ -427,7 +456,8 @@
                                           <input
                                             type="datetime-local"
                                             class="form-control m-1"
-                                            (change)="inputStage($event, indexC, bag.bagNo, 'airportTime')"
+                                            [(ngModel)]="bag.stages.airportDateTime"
+                                            (change)="inputStage($event, indexC, indexB, indexS, 'airportTime')"
                                           />
                                         </div>
                                       </td>
@@ -437,14 +467,16 @@
                                             type="text"
                                             class="form-control m-1"
                                             placeholder="Stage 7 Description"
-                                            (input)="inputStage($event, indexC, bag.bagNo, 'stage7')"
+                                            [(ngModel)]="bag.stages.stage7Desc"
+                                            (input)="inputStage($event, indexC, indexB, indexS, 'stage7')"
                                           />
                                         </div>
                                         <div class="row">
                                           <input
                                             type="datetime-local"
                                             class="form-control m-1"
-                                            (change)="inputStage($event, indexC, bag.bagNo, 'time7')"
+                                            [(ngModel)]="bag.stages.stage7DateTime"
+                                            (change)="inputStage($event, indexC, indexB, indexS, 'time7')"
                                           />
                                         </div>
                                       </td>
@@ -494,6 +526,18 @@
                   } }
                 </tbody>
               </table>
+            </div>
+          </div>
+        </div>
+        <div class="card-footer table-card-footer bg-light border-top">
+          <div class="row">
+            <div class="col-sm-4 col-12"></div>
+            <div class="col-sm-4 col-12"></div>
+            <div class="col-sm-4 col-12 text-sm-right text-center">
+              <button class="btn btn-primary" (click)="submitItemTracking()">
+                <i class="fas fa-save"></i>
+                Submit
+              </button>
             </div>
           </div>
         </div>
