@@ -33,3 +33,17 @@ public class UnusedItemIds
     public List<ItemTrackingWithPath> ItemWithPath { get; set; }
     public List<string> UnusedList { get; set; }
 }
+
+public class ItemIdPath
+{
+    public string ItemId { get; set; }
+    public string Path { get; set; }
+    public string DispatchNo { get; set; }
+}
+
+public class ItemIdPaths
+{
+    public List<ItemTrackingWithPath> ItemWithPath { get; set; }
+    public List<ItemIdPath> Paths { get; set; }
+    public int Count { get; set; }
+}

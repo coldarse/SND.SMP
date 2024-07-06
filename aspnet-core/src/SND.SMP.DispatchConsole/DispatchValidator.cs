@@ -16,6 +16,7 @@ using SND.SMP.CustomerTransactions;
 using SND.SMP.DispatchUsedAmounts;
 using System.Text;
 using OfficeOpenXml;
+using SND.SMP.ItemTrackingReviews;
 
 namespace SND.SMP.DispatchConsole
 {
@@ -213,7 +214,7 @@ namespace SND.SMP.DispatchConsole
                 var listIOSSChecking = new List<DispatchValidateIOSSDto>();
                 var listCountryCodes = new List<DispatchValidateCountryDto>();
                 var listParticulars = new List<DispatchValidateParticularsDto>();
-
+                var listItemIdsForUpdate = new List<string>();
                 do
                 {
                     while (reader.Read())
@@ -262,6 +263,7 @@ namespace SND.SMP.DispatchConsole
                             totalPrice += price;
 
                             listItemIds.Add(itemId);
+                            listItemIdsForUpdate.Add(itemId);
                             if (!listBagNos.Contains(bagNo)) listBagNos.Add(bagNo);
                             listIOSSChecking.Add(new DispatchValidateIOSSDto { Row = rowTouched, TrackingNo = itemId, CountryCode = countryCode, IOSS = taxPaymentMethod });
                             listCountryCodes.Add(new DispatchValidateCountryDto { Id = itemId, CountryCode = countryCode });
@@ -325,7 +327,7 @@ namespace SND.SMP.DispatchConsole
                     }
                 } while (reader.NextResult());
 
-                
+
 
                 if (listItemIds.Count != 0)
                 {
@@ -360,7 +362,7 @@ namespace SND.SMP.DispatchConsole
 
                 bool allowUploadIfInsufficientFund = false;
                 var appSetting = db.ApplicationSettings.FirstOrDefault(u => u.Name.Equals("AllowUploadIfInsufficientFund"));
-                if (appSetting is not null) 
+                if (appSetting is not null)
                 {
                     allowUploadIfInsufficientFund = appSetting.Value.ToString() == "true";
                 }
@@ -440,7 +442,9 @@ namespace SND.SMP.DispatchConsole
                     }
                     else //---- Deduct Amount If Valid ----//
                     {
-                        if(validations.Count == 1 && validations[0].Category == "Insufficient Wallet Balance")
+                        await UpdateItemTrackingFile(CustomerCode, listItemIdsForUpdate, DispatchProfile.DispatchNo).ConfigureAwait(false);
+
+                        if (validations.Count == 1 && validations[0].Category == "Insufficient Wallet Balance")
                         {
                             await ValidationsHandling(validations, DispatchProfile.DispatchNo, CustomerCode);
                         }
@@ -910,6 +914,187 @@ namespace SND.SMP.DispatchConsole
             }
 
             return dataTable;
+        }
+
+        private static async Task<Stream> GetFileStream(string url)
+        {
+            using var httpClient = new HttpClient();
+            using var response = await httpClient.GetAsync(url);
+            if (response.IsSuccessStatusCode)
+            {
+                var contentByteArray = await response.Content.ReadAsByteArrayAsync();
+                return new MemoryStream(contentByteArray);
+            }
+            return null;
+        }
+
+        private static async Task UpdateItemTrackingFile(string customerCode, List<string> trackingNos, string dispatchNo)
+        {
+            using db db = new();
+
+            List<ItemIdPath> itemIdPaths = await GetItemTrackingFiles(customerCode, trackingNos);
+            var distinctedPaths = itemIdPaths.DistinctBy(x => x.Path).ToList();
+            List<DataTable> dataTablesByPath = await PrepareDataTableByPath(distinctedPaths);
+
+            foreach (var itemId in itemIdPaths)
+            {
+                DataTable foundTable = dataTablesByPath.FirstOrDefault(dt => dt.TableName == itemId.Path);
+
+                if (foundTable != null)
+                {
+                    foreach (DataRow row in foundTable.Rows)
+                    {
+                        DataRow foundRow = foundTable.AsEnumerable().FirstOrDefault(r => r.Field<string>("TrackingNo").Equals(itemId.ItemId));
+
+                        foundRow["DateUsed"] = DateTime.Now;
+                        foundRow["DispatchNo"] = dispatchNo;
+                    }
+                    foundTable.AcceptChanges();
+                }
+            }
+
+            foreach (DataTable dataTableByPath in dataTablesByPath)
+            {
+                ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+                using ExcelPackage package = new();
+                ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("Sheet 1");
+
+                // Load DataTable content to Excel worksheet
+                for (int i = 0; i < dataTableByPath.Columns.Count; i++)
+                {
+                    worksheet.Cells[1, i + 1].Value = dataTableByPath.Columns[i].ColumnName;
+                }
+                for (int i = 0; i < dataTableByPath.Rows.Count; i++)
+                {
+                    for (int j = 0; j < dataTableByPath.Columns.Count; j++)
+                    {
+                        worksheet.Cells[i + 2, j + 1].Value = dataTableByPath.Rows[i][j];
+                    }
+                }
+
+                Stream excelStream = new MemoryStream();
+                package.SaveAs(excelStream);
+                excelStream.Position = 0;
+
+                var chibiFile = db.Chibis.FirstOrDefault(x => x.URL.Equals(dataTableByPath.TableName));
+                var generatedName = chibiFile.GeneratedName;
+                var fileName = chibiFile.OriginalName.Replace("_" + generatedName, "");
+                var application = db.ItemTrackingApplications.FirstOrDefault(x => x.Path.Equals(dataTableByPath.TableName));
+
+                var review = distinctedPaths.FirstOrDefault(x => x.Path.Equals(dataTableByPath.TableName));
+
+                ChibiUpload uploadExcel = await FileServer.InsertExcelFileToChibi(excelStream, fileName, originalName: null, postalCode: review.PostalCode, productCode: review.ProductCode);
+
+                db.Chibis.Remove(chibiFile);
+
+                application.Path = uploadExcel.url;
+
+                await db.SaveChangesAsync().ConfigureAwait(false);
+            }
+        }
+        private static async Task<List<DataTable>> PrepareDataTableByPath(List<ItemIdPath> itemIdsWithDispatch)
+        {
+            List<DataTable> dataTableByPath = [];
+            foreach (ItemIdPath itemIdPath in itemIdsWithDispatch)
+            {
+                var stream = await GetFileStream(itemIdPath.Path);
+                var datatable = ConvertToDatatable(stream);
+
+                datatable.TableName = itemIdPath.Path;
+                dataTableByPath.Add(datatable);
+            }
+
+            return dataTableByPath;
+        }
+        private static async Task<List<ItemIdPath>> GetItemTrackingFiles(string customerCode, List<string> trackingNos)
+        {
+            using db db = new();
+            db.ChangeTracker.AutoDetectChangesEnabled = false;
+
+            List<ItemTrackingReview> reviews = [];
+
+            List<PrefixSuffixCustomerCode> prefixSuffixCustomerCodes = [];
+
+            foreach (var trackingNo in trackingNos)
+            {
+                string prefix = trackingNo[..2];
+                string suffix = trackingNo[^2..];
+
+                prefixSuffixCustomerCodes.Add(new PrefixSuffixCustomerCode
+                {
+                    Prefix = prefix,
+                    Suffix = suffix,
+                    CustomerCode = customerCode
+                });
+            }
+
+            prefixSuffixCustomerCodes = prefixSuffixCustomerCodes
+                                        .GroupBy(x => new { x.CustomerCode, x.Prefix, x.Suffix })
+                                        .Select(g => g.First())
+                                        .ToList();
+
+            var reviewList = db.ItemTrackingReviews.ToList();
+
+            foreach (var prefixSuffixCustomerCode in prefixSuffixCustomerCodes)
+            {
+                var review = reviewList.FirstOrDefault(x => x.Prefix.Equals(prefixSuffixCustomerCode.Prefix) &&
+                                                            x.Suffix.Equals(prefixSuffixCustomerCode.Suffix) &&
+                                                            x.CustomerCode.Equals(prefixSuffixCustomerCode.CustomerCode));
+
+                if (review is not null) reviews.Add(review);
+            }
+
+
+            List<string> paths = [];
+            List<ItemIdPath> itemIdFilePath = [];
+
+            var applications = db.ItemTrackingApplications.ToList();
+
+            foreach (var review in reviews)
+            {
+                var application = applications.FirstOrDefault(x => x.Id.Equals(review.ApplicationId));
+
+                if (application is not null) paths.Add(application.Path + "," + review.PostalCode + "," + review.ProductCode);
+            }
+
+            if (!paths.Count.Equals(0))
+            {
+                //---- Gets all Excel files and retrieves its info to create the object ItemIds ----//
+                foreach (var path in paths)
+                {
+                    string[] splits = path.Split(",");
+                    ItemTrackingWithPath itemWithPath = new();
+                    Stream excel_stream = await GetFileStream(splits[0].ToString());
+                    DataTable dataTable = ConvertToDatatable(excel_stream);
+
+                    List<ItemTrackingIdDto> items = [];
+                    foreach (DataRow dr in dataTable.Rows)
+                    {
+                        if (dr.ItemArray[0].ToString() != "")
+                        {
+                            items.Add(new ItemTrackingIdDto()
+                            {
+                                TrackingNo = dr.ItemArray[0].ToString(),
+                                DateCreated = dr.ItemArray[1].ToString(),
+                                DateUsed = dr.ItemArray[2].ToString(),
+                                DispatchNo = dr.ItemArray[3].ToString(),
+                            });
+
+                            if (trackingNos.Contains(dr.ItemArray[0].ToString())) itemIdFilePath.Add(
+                                new ItemIdPath
+                                {
+                                    ItemId = dr.ItemArray[0].ToString(),
+                                    Path = path,
+                                    DispatchNo = "",
+                                    PostalCode = splits[1].ToString(),
+                                    ProductCode = splits[2].ToString(),
+                                });
+                        }
+                    }
+                }
+            }
+
+            return itemIdFilePath;
         }
     }
 }

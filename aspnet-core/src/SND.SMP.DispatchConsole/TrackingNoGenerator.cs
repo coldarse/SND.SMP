@@ -168,7 +168,7 @@ namespace SND.SMP.DispatchConsole
 
                     string fileName = string.Format("{0}_{1}_{2}_{3}_{4}.xlsx", Prefix, PrefixNo, Suffix, AmountGiven, Customer.Replace(" ", "_"));
 
-                    ChibiUpload uploadExcel = await InsertExcelFileToChibi(stream, fileName, originalName: null, postalCode: review.PostalCode, productCode: review.ProductCode);
+                    ChibiUpload uploadExcel = await FileServer.InsertExcelFileToChibi(stream, fileName, originalName: null, postalCode: review.PostalCode, productCode: review.ProductCode);
 
                     application.Path = uploadExcel.url;
                     application.Range = string.Format("{0} - {1}", trackingIds[0].ToString(), trackingIds[^1].ToString());
@@ -209,59 +209,6 @@ namespace SND.SMP.DispatchConsole
             }
 
             return package.GetAsByteArray();
-        }
-
-        public async Task<ChibiUpload> InsertExcelFileToChibi(Stream excel, string fileName, string originalName = null, string postalCode = null, string productCode = null)
-        {
-            using db dbconn = new();
-            var obj_ChibiKey = await dbconn.ApplicationSettings.FirstOrDefaultAsync(x => x.Name.Equals("ChibiKey"));
-            var obj_ChibiURL = await dbconn.ApplicationSettings.FirstOrDefaultAsync(x => x.Name.Equals("ChibiURL"));
-
-            _chibiAPIKey = obj_ChibiKey.Value;
-            _chibiURL = obj_ChibiURL.Value;
-
-            var client = new HttpClient();
-            client.DefaultRequestHeaders.Clear();
-            client.DefaultRequestHeaders.Add("x-api-key", _chibiAPIKey);
-            var formData = new MultipartFormDataContent();
-
-            var xlsxContent = new StreamContent(excel);
-            xlsxContent.Headers.ContentType = MediaTypeHeaderValue.Parse("multipart/form-data");
-            formData.Add(xlsxContent, "file", fileName);
-
-            var request = new HttpRequestMessage
-            {
-                Method = HttpMethod.Post,
-                RequestUri = new Uri(_chibiURL + "upload"),
-                Content = formData,
-            };
-
-            using var response = await client.SendAsync(request);
-
-            response.EnsureSuccessStatusCode();
-            var body = await response.Content.ReadAsStringAsync();
-            var result = JsonSerializer.Deserialize<ChibiUpload>(body);
-
-            if (result != null)
-            {
-                result.originalName = fileName.Replace(".xlsx", "") + $"_{result.name}";
-                //Insert to DB
-                Chibi entity = new()
-                {
-                    FileName = result.name == null ? "" : DateTime.Now.ToString("yyyyMMdd") + "_" + result.name,
-                    UUID = result.uuid ?? "",
-                    URL = result.url ?? "",
-                    OriginalName = originalName is null ? result.originalName : originalName,
-                    GeneratedName = result.name ?? ""
-                };
-
-                await dbconn.Chibis.AddAsync(entity).ConfigureAwait(false);
-                await dbconn.SaveChangesAsync();
-
-                await FileServer.InsertFileToAlbum(result.uuid, false, dbconn, postalCode, null, productCode);
-            }
-
-            return result;
         }
 
         public static async Task<bool> IsTrackingNumberExist(string trackingNo, string Prefix, string PrefixNo, string Suffix)
