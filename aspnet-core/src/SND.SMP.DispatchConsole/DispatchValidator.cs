@@ -42,6 +42,8 @@ namespace SND.SMP.DispatchConsole
         private string Currency { get; set; }
         private int BatchSize { get; set; }
 
+        private List<DataTable> DataTablesByPath;
+
 
         public DispatchValidator() { }
 
@@ -928,68 +930,79 @@ namespace SND.SMP.DispatchConsole
             return null;
         }
 
-        private static async Task UpdateItemTrackingFile(string customerCode, List<string> trackingNos, string dispatchNo)
+        private async Task UpdateItemTrackingFile(string customerCode, List<string> trackingNos, string dispatchNo)
         {
             using db db = new();
 
             List<ItemIdPath> itemIdPaths = await GetItemTrackingFiles(customerCode, trackingNos);
+            List<string> editedTablePaths = [];
             var distinctedPaths = itemIdPaths.DistinctBy(x => x.Path).ToList();
-            List<DataTable> dataTablesByPath = await PrepareDataTableByPath(distinctedPaths);
 
             foreach (var itemId in itemIdPaths)
             {
-                DataTable foundTable = dataTablesByPath.FirstOrDefault(dt => dt.TableName == itemId.Path);
+                var splits = itemId.Path.Split(",");
+                DataTable foundTable = DataTablesByPath.FirstOrDefault(dt => dt.TableName == splits[0].ToString());
 
                 if (foundTable != null)
                 {
-                    foreach (DataRow row in foundTable.Rows)
-                    {
-                        DataRow foundRow = foundTable.AsEnumerable().FirstOrDefault(r => r.Field<string>("TrackingNo").Equals(itemId.ItemId));
+                    DataRow[] rowsToUpdate = foundTable.Select($"TrackingNo = '{itemId.ItemId}'");
 
-                        foundRow["DateUsed"] = DateTime.Now;
-                        foundRow["DispatchNo"] = dispatchNo;
+                    foreach (DataRow rowToUpdate in rowsToUpdate)
+                    {
+                        rowToUpdate["DateUsed"] = DateTime.Now;
+                        rowToUpdate["DispatchNo"] = dispatchNo;
                     }
+
+                    if (rowsToUpdate.Length > 0)
+                    {
+                        if (!editedTablePaths.Contains(splits[0].ToString()))
+                            editedTablePaths.Add(splits[0].ToString());
+                    }
+
                     foundTable.AcceptChanges();
                 }
             }
 
-            foreach (DataTable dataTableByPath in dataTablesByPath)
+            foreach (DataTable dataTableByPath in DataTablesByPath)
             {
-                ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-                using ExcelPackage package = new();
-                ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("Sheet 1");
+                if (editedTablePaths.Contains(dataTableByPath.TableName))
+                {
+                    ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+                    using ExcelPackage package = new();
+                    ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("Sheet 1");
 
-                // Load DataTable content to Excel worksheet
-                for (int i = 0; i < dataTableByPath.Columns.Count; i++)
-                {
-                    worksheet.Cells[1, i + 1].Value = dataTableByPath.Columns[i].ColumnName;
-                }
-                for (int i = 0; i < dataTableByPath.Rows.Count; i++)
-                {
-                    for (int j = 0; j < dataTableByPath.Columns.Count; j++)
+                    // Load DataTable content to Excel worksheet
+                    for (int i = 0; i < dataTableByPath.Columns.Count; i++)
                     {
-                        worksheet.Cells[i + 2, j + 1].Value = dataTableByPath.Rows[i][j];
+                        worksheet.Cells[1, i + 1].Value = dataTableByPath.Columns[i].ColumnName;
                     }
+                    for (int i = 0; i < dataTableByPath.Rows.Count; i++)
+                    {
+                        for (int j = 0; j < dataTableByPath.Columns.Count; j++)
+                        {
+                            worksheet.Cells[i + 2, j + 1].Value = dataTableByPath.Rows[i][j];
+                        }
+                    }
+
+                    Stream excelStream = new MemoryStream();
+                    package.SaveAs(excelStream);
+                    excelStream.Position = 0;
+
+                    var chibiFile = db.Chibis.FirstOrDefault(x => x.URL.Equals(dataTableByPath.TableName));
+                    var generatedName = chibiFile.GeneratedName;
+                    var fileName = chibiFile.OriginalName.Replace("_" + generatedName, "") + ".xlsx";
+                    var application = db.ItemTrackingApplications.FirstOrDefault(x => x.Path.Equals(dataTableByPath.TableName));
+
+                    var review = db.ItemTrackingReviews.FirstOrDefault(x => x.ApplicationId.Equals(application.Id));
+
+                    ChibiUpload uploadExcel = await FileServer.InsertExcelFileToChibi(excelStream, fileName, originalName: null, postalCode: review.PostalCode, productCode: review.ProductCode);
+
+                    db.Chibis.Remove(chibiFile);
+
+                    application.Path = uploadExcel.url;
+
+                    await db.SaveChangesAsync().ConfigureAwait(false);
                 }
-
-                Stream excelStream = new MemoryStream();
-                package.SaveAs(excelStream);
-                excelStream.Position = 0;
-
-                var chibiFile = db.Chibis.FirstOrDefault(x => x.URL.Equals(dataTableByPath.TableName));
-                var generatedName = chibiFile.GeneratedName;
-                var fileName = chibiFile.OriginalName.Replace("_" + generatedName, "");
-                var application = db.ItemTrackingApplications.FirstOrDefault(x => x.Path.Equals(dataTableByPath.TableName));
-
-                var review = distinctedPaths.FirstOrDefault(x => x.Path.Equals(dataTableByPath.TableName));
-
-                ChibiUpload uploadExcel = await FileServer.InsertExcelFileToChibi(excelStream, fileName, originalName: null, postalCode: review.PostalCode, productCode: review.ProductCode);
-
-                db.Chibis.Remove(chibiFile);
-
-                application.Path = uploadExcel.url;
-
-                await db.SaveChangesAsync().ConfigureAwait(false);
             }
         }
         private static async Task<List<DataTable>> PrepareDataTableByPath(List<ItemIdPath> itemIdsWithDispatch)
@@ -1006,8 +1019,9 @@ namespace SND.SMP.DispatchConsole
 
             return dataTableByPath;
         }
-        private static async Task<List<ItemIdPath>> GetItemTrackingFiles(string customerCode, List<string> trackingNos)
+        private async Task<List<ItemIdPath>> GetItemTrackingFiles(string customerCode, List<string> trackingNos)
         {
+            DataTablesByPath = [];
             using db db = new();
             db.ChangeTracker.AutoDetectChangesEnabled = false;
 
@@ -1037,11 +1051,11 @@ namespace SND.SMP.DispatchConsole
 
             foreach (var prefixSuffixCustomerCode in prefixSuffixCustomerCodes)
             {
-                var review = reviewList.FirstOrDefault(x => x.Prefix.Equals(prefixSuffixCustomerCode.Prefix) &&
+                var tempReviews = reviewList.Where(x => x.Prefix.Equals(prefixSuffixCustomerCode.Prefix) &&
                                                             x.Suffix.Equals(prefixSuffixCustomerCode.Suffix) &&
-                                                            x.CustomerCode.Equals(prefixSuffixCustomerCode.CustomerCode));
+                                                            x.CustomerCode.Equals(prefixSuffixCustomerCode.CustomerCode)).ToList();
 
-                if (review is not null) reviews.Add(review);
+                if (tempReviews.Count > 0) foreach (var review in tempReviews) reviews.Add(review);
             }
 
 
@@ -1066,20 +1080,13 @@ namespace SND.SMP.DispatchConsole
                     ItemTrackingWithPath itemWithPath = new();
                     Stream excel_stream = await GetFileStream(splits[0].ToString());
                     DataTable dataTable = ConvertToDatatable(excel_stream);
+                    dataTable.TableName = splits[0].ToString();
+                    DataTablesByPath.Add(dataTable);
 
-                    List<ItemTrackingIdDto> items = [];
                     foreach (DataRow dr in dataTable.Rows)
                     {
                         if (dr.ItemArray[0].ToString() != "")
                         {
-                            items.Add(new ItemTrackingIdDto()
-                            {
-                                TrackingNo = dr.ItemArray[0].ToString(),
-                                DateCreated = dr.ItemArray[1].ToString(),
-                                DateUsed = dr.ItemArray[2].ToString(),
-                                DispatchNo = dr.ItemArray[3].ToString(),
-                            });
-
                             if (trackingNos.Contains(dr.ItemArray[0].ToString())) itemIdFilePath.Add(
                                 new ItemIdPath
                                 {
