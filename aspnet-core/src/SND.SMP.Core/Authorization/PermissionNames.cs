@@ -12,6 +12,11 @@ namespace SND.SMP.Authorization
         public const string Pages_Roles = "Pages.Roles";
 
         /* Define your permissions here */
+        public const string Pages_APIRequestResponse = "Pages.APIRequestResponse";
+        public const string Pages_APIRequestResponse_Create = "Pages.APIRequestResponse.Create";
+        public const string Pages_APIRequestResponse_Edit = "Pages.APIRequestResponse.Edit";
+        public const string Pages_APIRequestResponse_Delete = "Pages.APIRequestResponse.Delete";
+
         public const string Pages_EmailContent = "Pages.EmailContent";
         public const string Pages_EmailContent_Create = "Pages.EmailContent.Create";
         public const string Pages_EmailContent_Edit = "Pages.EmailContent.Edit";

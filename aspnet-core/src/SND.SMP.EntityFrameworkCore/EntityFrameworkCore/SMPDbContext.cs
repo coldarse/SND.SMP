@@ -4,6 +4,7 @@ using SND.SMP.Authorization.Roles;
 using SND.SMP.Authorization.Users;
 using SND.SMP.MultiTenancy;
 /* Using Definition */
+using SND.SMP.APIRequestResponses;
 using SND.SMP.EmailContents;
 using SND.SMP.DispatchUsedAmounts;
 using SND.SMP.Airports;
@@ -70,6 +71,7 @@ namespace SND.SMP.EntityFrameworkCore
         public DbSet<Airport> Airports { get; set; }
         public DbSet<DispatchUsedAmount> DispatchUsedAmounts { get; set; }
         public DbSet<EmailContent> EmailContents { get; set; }
+        public DbSet<APIRequestResponse> APIRequestResponses { get; set; }
         /* Define a DbSet for each entity of the application */
 
         public SMPDbContext(DbContextOptions<SMPDbContext> options)
@@ -82,6 +84,18 @@ namespace SND.SMP.EntityFrameworkCore
             base.OnModelCreating(builder);
 
             /* Define Tables */
+            builder.Entity<APIRequestResponse>(b =>
+            {
+                b.ToTable(SMPConsts.DbTablePrefix + "APIRequestResponses");
+                b.Property(x => x.URL).HasColumnName(nameof(APIRequestResponse.URL)).HasMaxLength(255);
+                b.Property(x => x.RequestBody).HasColumnName(nameof(APIRequestResponse.RequestBody));
+                b.Property(x => x.ResponseBody).HasColumnName(nameof(APIRequestResponse.ResponseBody));
+                b.Property(x => x.RequestDateTime).HasColumnName(nameof(APIRequestResponse.RequestDateTime));
+                b.Property(x => x.ResponseDateTime).HasColumnName(nameof(APIRequestResponse.ResponseDateTime));
+                b.Property(x => x.Duration).HasColumnName(nameof(APIRequestResponse.Duration));
+                b.HasKey(x => x.Id);
+            });
+
             builder.Entity<EmailContent>(b =>
             {
                 b.ToTable(SMPConsts.DbTablePrefix + "EmailContents");

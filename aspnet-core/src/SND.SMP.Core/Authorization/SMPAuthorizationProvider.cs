@@ -16,6 +16,11 @@ namespace SND.SMP.Authorization
             context.CreatePermission(PermissionNames.Pages_Tenants, L("Tenants"), multiTenancySides: MultiTenancySides.Host);
 
             /* Define your permissions here */
+            context.CreatePermission(PermissionNames.Pages_APIRequestResponse, L("APIRequestResponses"));
+            context.CreatePermission(PermissionNames.Pages_APIRequestResponse_Create, L("APIRequestResponsesCreate"));
+            context.CreatePermission(PermissionNames.Pages_APIRequestResponse_Edit, L("APIRequestResponsesEdit"));
+            context.CreatePermission(PermissionNames.Pages_APIRequestResponse_Delete, L("APIRequestResponsesDelete"));
+
             context.CreatePermission(PermissionNames.Pages_EmailContent, L("EmailContents"));
             context.CreatePermission(PermissionNames.Pages_EmailContent_Create, L("EmailContentsCreate"));
             context.CreatePermission(PermissionNames.Pages_EmailContent_Edit, L("EmailContentsEdit"));
