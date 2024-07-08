@@ -12,6 +12,11 @@ namespace SND.SMP.Authorization
         public const string Pages_Roles = "Pages.Roles";
 
         /* Define your permissions here */
+        public const string Pages_TrackingNoForUpdate = "Pages.TrackingNoForUpdate";
+        public const string Pages_TrackingNoForUpdate_Create = "Pages.TrackingNoForUpdate.Create";
+        public const string Pages_TrackingNoForUpdate_Edit = "Pages.TrackingNoForUpdate.Edit";
+        public const string Pages_TrackingNoForUpdate_Delete = "Pages.TrackingNoForUpdate.Delete";
+
         public const string Pages_APIRequestResponse = "Pages.APIRequestResponse";
         public const string Pages_APIRequestResponse_Create = "Pages.APIRequestResponse.Create";
         public const string Pages_APIRequestResponse_Edit = "Pages.APIRequestResponse.Edit";

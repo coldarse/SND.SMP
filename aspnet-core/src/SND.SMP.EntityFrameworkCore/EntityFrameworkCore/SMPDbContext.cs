@@ -4,6 +4,7 @@ using SND.SMP.Authorization.Roles;
 using SND.SMP.Authorization.Users;
 using SND.SMP.MultiTenancy;
 /* Using Definition */
+using SND.SMP.TrackingNoForUpdates;
 using SND.SMP.APIRequestResponses;
 using SND.SMP.EmailContents;
 using SND.SMP.DispatchUsedAmounts;
@@ -72,6 +73,7 @@ namespace SND.SMP.EntityFrameworkCore
         public DbSet<DispatchUsedAmount> DispatchUsedAmounts { get; set; }
         public DbSet<EmailContent> EmailContents { get; set; }
         public DbSet<APIRequestResponse> APIRequestResponses { get; set; }
+        public DbSet<TrackingNoForUpdate> TrackingNoForUpdates { get; set; }
         /* Define a DbSet for each entity of the application */
 
         public SMPDbContext(DbContextOptions<SMPDbContext> options)
@@ -84,6 +86,15 @@ namespace SND.SMP.EntityFrameworkCore
             base.OnModelCreating(builder);
 
             /* Define Tables */
+            builder.Entity<TrackingNoForUpdate>(b =>
+            {
+                b.ToTable(SMPConsts.DbTablePrefix + "TrackingNoForUpdates");
+                b.Property(x => x.TrackingNo).HasColumnName(nameof(TrackingNoForUpdate.TrackingNo)).HasMaxLength(20);
+                b.Property(x => x.DispatchNo).HasColumnName(nameof(TrackingNoForUpdate.DispatchNo)).HasMaxLength(40);
+                b.Property(x => x.ProcessType).HasColumnName(nameof(TrackingNoForUpdate.ProcessType)).HasMaxLength(20);
+                b.HasKey(x => x.Id);
+            });
+
             builder.Entity<APIRequestResponse>(b =>
             {
                 b.ToTable(SMPConsts.DbTablePrefix + "APIRequestResponses");
