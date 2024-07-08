@@ -190,7 +190,7 @@ namespace SND.SMP.DispatchConsole
         {
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
             using ExcelPackage package = new();
-            ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("Sheet 1");
+            ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("Tracking Numbers");
 
             string[] headers = ["TrackingNo", "DateCreated", "DateUsed", "DispatchNo"];
 

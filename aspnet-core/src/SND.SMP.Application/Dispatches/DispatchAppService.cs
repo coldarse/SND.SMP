@@ -42,6 +42,11 @@ using SND.SMP.DispatchValidations;
 using System.Reflection;
 using System.Globalization;
 using System.Threading;
+using SND.SMP.Chibis;
+using SND.SMP.ItemTrackingApplications;
+using SND.SMP.ItemTrackingReviews;
+using SND.SMP.Chibis.Dto;
+using SND.SMP.ApplicationSettings;
 
 namespace SND.SMP.Dispatches
 {
@@ -84,6 +89,7 @@ namespace SND.SMP.Dispatches
         private readonly IRepository<Currency, long> _currencyRepository = currencyRepository;
         private readonly IRepository<DispatchUsedAmount, int> _dispatchUsedAmountRepository = dispatchUsedAmountRepository;
         private readonly IRepository<DispatchValidation, string> _dispatchValidationRepository = dispatchValidationRepository;
+        
 
         [System.Text.RegularExpressions.GeneratedRegex(@"[a-zA-Z]")]
         private static partial System.Text.RegularExpressions.Regex MyRegex();
@@ -151,7 +157,7 @@ namespace SND.SMP.Dispatches
         {
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
             using ExcelPackage package = new();
-            ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("Sheet 1");
+            ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("SL Manifest");
             var properties = typeof(SLManifest).GetProperties();
 
             for (int col = 0; col < properties.Length; col++)
@@ -173,7 +179,7 @@ namespace SND.SMP.Dispatches
         {
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
             using ExcelPackage package = new();
-            ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("Sheet 1");
+            ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("GQ Manifest");
             var properties = typeof(GQManifest).GetProperties();
 
             for (int col = 0; col < properties.Length; col++)
@@ -195,7 +201,7 @@ namespace SND.SMP.Dispatches
         {
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
             using ExcelPackage package = new();
-            ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("Sheet 1");
+            ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("KG Manifest");
 
             var properties = typeof(KGManifest).GetProperties();
 
@@ -218,7 +224,7 @@ namespace SND.SMP.Dispatches
         {
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
             using ExcelPackage package = new();
-            ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("Sheet 1");
+            ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("DO Manifest");
 
             var properties = typeof(DOManifest).GetProperties();
 
@@ -241,7 +247,7 @@ namespace SND.SMP.Dispatches
         {
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
             using ExcelPackage package = new();
-            ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("Sheet 1");
+            ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("SL Bags");
             var properties = typeof(SLBag).GetProperties();
 
             for (int col = 0; col < properties.Length; col++)
@@ -263,7 +269,7 @@ namespace SND.SMP.Dispatches
         {
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
             using ExcelPackage package = new();
-            ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("Sheet 1");
+            ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("GQ Bags");
             var properties = typeof(GQBag).GetProperties();
 
             for (int col = 0; col < properties.Length; col++)
@@ -285,7 +291,7 @@ namespace SND.SMP.Dispatches
         {
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
             using ExcelPackage package = new();
-            ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("Sheet 1");
+            ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("KG Bags");
 
             var properties = typeof(KGBag).GetProperties();
 
@@ -308,7 +314,7 @@ namespace SND.SMP.Dispatches
         {
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
             using ExcelPackage package = new();
-            ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("Sheet 1");
+            ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("DO Bags");
 
             var properties = typeof(DOBag).GetProperties();
 
@@ -1208,8 +1214,7 @@ namespace SND.SMP.Dispatches
 
             return result;
         }
-
-
+        
         protected override IQueryable<Dispatch> CreateFilteredQuery(PagedDispatchResultRequestDto input)
         {
             return input.isAdmin ?

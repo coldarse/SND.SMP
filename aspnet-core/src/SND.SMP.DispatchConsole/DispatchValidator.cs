@@ -969,9 +969,8 @@ namespace SND.SMP.DispatchConsole
                 {
                     ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
                     using ExcelPackage package = new();
-                    ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("Sheet 1");
+                    ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("Tracking Numbers");
 
-                    // Load DataTable content to Excel worksheet
                     for (int i = 0; i < dataTableByPath.Columns.Count; i++)
                     {
                         worksheet.Cells[1, i + 1].Value = dataTableByPath.Columns[i].ColumnName;
@@ -1004,20 +1003,6 @@ namespace SND.SMP.DispatchConsole
                     await db.SaveChangesAsync().ConfigureAwait(false);
                 }
             }
-        }
-        private static async Task<List<DataTable>> PrepareDataTableByPath(List<ItemIdPath> itemIdsWithDispatch)
-        {
-            List<DataTable> dataTableByPath = [];
-            foreach (ItemIdPath itemIdPath in itemIdsWithDispatch)
-            {
-                var stream = await GetFileStream(itemIdPath.Path);
-                var datatable = ConvertToDatatable(stream);
-
-                datatable.TableName = itemIdPath.Path;
-                dataTableByPath.Add(datatable);
-            }
-
-            return dataTableByPath;
         }
         private async Task<List<ItemIdPath>> GetItemTrackingFiles(string customerCode, List<string> trackingNos)
         {
@@ -1092,9 +1077,6 @@ namespace SND.SMP.DispatchConsole
                                 {
                                     ItemId = dr.ItemArray[0].ToString(),
                                     Path = path,
-                                    DispatchNo = "",
-                                    PostalCode = splits[1].ToString(),
-                                    ProductCode = splits[2].ToString(),
                                 });
                         }
                     }

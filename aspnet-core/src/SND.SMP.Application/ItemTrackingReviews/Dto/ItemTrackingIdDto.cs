@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Data;
 
 public class ItemTrackingIdDto
 {
@@ -46,4 +47,10 @@ public class ItemIdPaths
     public List<ItemTrackingWithPath> ItemWithPath { get; set; }
     public List<ItemIdPath> Paths { get; set; }
     public int Count { get; set; }
+}
+
+public class ItemIdPathWithDatatables
+{
+    public List<ItemIdPath> ItemIdPaths{ get; set; }
+    public List<DataTable> DataTablesByPath {get;set;}
 }
