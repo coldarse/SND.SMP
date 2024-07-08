@@ -42,7 +42,7 @@ namespace SND.SMP.DispatchConsole
         private string Currency { get; set; }
         private int BatchSize { get; set; }
 
-        private List<DataTable> DataTablesByPath;
+        
 
 
         public DispatchValidator() { }
@@ -444,7 +444,7 @@ namespace SND.SMP.DispatchConsole
                     }
                     else //---- Deduct Amount If Valid ----//
                     {
-                        await UpdateItemTrackingFile(CustomerCode, listItemIdsForUpdate, DispatchProfile.DispatchNo).ConfigureAwait(false);
+                        // await UpdateItemTrackingFile(CustomerCode, listItemIdsForUpdate, DispatchProfile.DispatchNo).ConfigureAwait(false);
 
                         if (validations.Count == 1 && validations[0].Category == "Insufficient Wallet Balance")
                         {
@@ -930,161 +930,7 @@ namespace SND.SMP.DispatchConsole
             return null;
         }
 
-        private async Task UpdateItemTrackingFile(string customerCode, List<string> trackingNos, string dispatchNo)
-        {
-            using db db = new();
-
-            List<ItemIdPath> itemIdPaths = await GetItemTrackingFiles(customerCode, trackingNos);
-            List<string> editedTablePaths = [];
-            var distinctedPaths = itemIdPaths.DistinctBy(x => x.Path).ToList();
-
-            foreach (var itemId in itemIdPaths)
-            {
-                var splits = itemId.Path.Split(",");
-                DataTable foundTable = DataTablesByPath.FirstOrDefault(dt => dt.TableName == splits[0].ToString());
-
-                if (foundTable != null)
-                {
-                    DataRow[] rowsToUpdate = foundTable.Select($"TrackingNo = '{itemId.ItemId}'");
-
-                    foreach (DataRow rowToUpdate in rowsToUpdate)
-                    {
-                        rowToUpdate["DateUsed"] = DateTime.Now;
-                        rowToUpdate["DispatchNo"] = dispatchNo;
-                    }
-
-                    if (rowsToUpdate.Length > 0)
-                    {
-                        if (!editedTablePaths.Contains(splits[0].ToString()))
-                            editedTablePaths.Add(splits[0].ToString());
-                    }
-
-                    foundTable.AcceptChanges();
-                }
-            }
-
-            foreach (DataTable dataTableByPath in DataTablesByPath)
-            {
-                if (editedTablePaths.Contains(dataTableByPath.TableName))
-                {
-                    ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-                    using ExcelPackage package = new();
-                    ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("Tracking Numbers");
-
-                    for (int i = 0; i < dataTableByPath.Columns.Count; i++)
-                    {
-                        worksheet.Cells[1, i + 1].Value = dataTableByPath.Columns[i].ColumnName;
-                    }
-                    for (int i = 0; i < dataTableByPath.Rows.Count; i++)
-                    {
-                        for (int j = 0; j < dataTableByPath.Columns.Count; j++)
-                        {
-                            worksheet.Cells[i + 2, j + 1].Value = dataTableByPath.Rows[i][j];
-                        }
-                    }
-
-                    Stream excelStream = new MemoryStream();
-                    package.SaveAs(excelStream);
-                    excelStream.Position = 0;
-
-                    var chibiFile = db.Chibis.FirstOrDefault(x => x.URL.Equals(dataTableByPath.TableName));
-                    var generatedName = chibiFile.GeneratedName;
-                    var fileName = chibiFile.OriginalName.Replace("_" + generatedName, "") + ".xlsx";
-                    var application = db.ItemTrackingApplications.FirstOrDefault(x => x.Path.Equals(dataTableByPath.TableName));
-
-                    var review = db.ItemTrackingReviews.FirstOrDefault(x => x.ApplicationId.Equals(application.Id));
-
-                    ChibiUpload uploadExcel = await FileServer.InsertExcelFileToChibi(excelStream, fileName, originalName: null, postalCode: review.PostalCode, productCode: review.ProductCode);
-
-                    db.Chibis.Remove(chibiFile);
-
-                    application.Path = uploadExcel.url;
-
-                    await db.SaveChangesAsync().ConfigureAwait(false);
-                }
-            }
-        }
-        private async Task<List<ItemIdPath>> GetItemTrackingFiles(string customerCode, List<string> trackingNos)
-        {
-            DataTablesByPath = [];
-            using db db = new();
-            db.ChangeTracker.AutoDetectChangesEnabled = false;
-
-            List<ItemTrackingReview> reviews = [];
-
-            List<PrefixSuffixCustomerCode> prefixSuffixCustomerCodes = [];
-
-            foreach (var trackingNo in trackingNos)
-            {
-                string prefix = trackingNo[..2];
-                string suffix = trackingNo[^2..];
-
-                prefixSuffixCustomerCodes.Add(new PrefixSuffixCustomerCode
-                {
-                    Prefix = prefix,
-                    Suffix = suffix,
-                    CustomerCode = customerCode
-                });
-            }
-
-            prefixSuffixCustomerCodes = prefixSuffixCustomerCodes
-                                        .GroupBy(x => new { x.CustomerCode, x.Prefix, x.Suffix })
-                                        .Select(g => g.First())
-                                        .ToList();
-
-            var reviewList = db.ItemTrackingReviews.ToList();
-
-            foreach (var prefixSuffixCustomerCode in prefixSuffixCustomerCodes)
-            {
-                var tempReviews = reviewList.Where(x => x.Prefix.Equals(prefixSuffixCustomerCode.Prefix) &&
-                                                            x.Suffix.Equals(prefixSuffixCustomerCode.Suffix) &&
-                                                            x.CustomerCode.Equals(prefixSuffixCustomerCode.CustomerCode)).ToList();
-
-                if (tempReviews.Count > 0) foreach (var review in tempReviews) reviews.Add(review);
-            }
-
-
-            List<string> paths = [];
-            List<ItemIdPath> itemIdFilePath = [];
-
-            var applications = db.ItemTrackingApplications.ToList();
-
-            foreach (var review in reviews)
-            {
-                var application = applications.FirstOrDefault(x => x.Id.Equals(review.ApplicationId));
-
-                if (application is not null) paths.Add(application.Path + "," + review.PostalCode + "," + review.ProductCode);
-            }
-
-            if (!paths.Count.Equals(0))
-            {
-                //---- Gets all Excel files and retrieves its info to create the object ItemIds ----//
-                foreach (var path in paths)
-                {
-                    string[] splits = path.Split(",");
-                    ItemTrackingWithPath itemWithPath = new();
-                    Stream excel_stream = await GetFileStream(splits[0].ToString());
-                    DataTable dataTable = ConvertToDatatable(excel_stream);
-                    dataTable.TableName = splits[0].ToString();
-                    DataTablesByPath.Add(dataTable);
-
-                    foreach (DataRow dr in dataTable.Rows)
-                    {
-                        if (dr.ItemArray[0].ToString() != "")
-                        {
-                            if (trackingNos.Contains(dr.ItemArray[0].ToString())) itemIdFilePath.Add(
-                                new ItemIdPath
-                                {
-                                    ItemId = dr.ItemArray[0].ToString(),
-                                    Path = path,
-                                });
-                        }
-                    }
-                }
-            }
-
-            return itemIdFilePath;
-        }
+        
     }
 }
 

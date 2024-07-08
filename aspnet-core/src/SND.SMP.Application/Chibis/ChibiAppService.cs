@@ -38,6 +38,8 @@ using SND.SMP.CustomerTransactions;
 using SND.SMP.EWalletTypes;
 using SND.SMP.Currencies;
 using SND.SMP.ItemTrackingApplications;
+using SND.SMP.TrackingNoForUpdates;
+using static SND.SMP.Shared.EnumConst;
 
 namespace SND.SMP.Chibis
 {
@@ -59,7 +61,8 @@ namespace SND.SMP.Chibis
         IRepository<EWalletType, long> ewalletTypeRepository,
         IRepository<Currency, long> currencyRepository,
         IRepository<ItemTrackingApplication, int> itemTrackingApplicationRepository,
-        IRepository<ItemTrackingReview, int> itemTrackingReviewRepository
+        IRepository<ItemTrackingReview, int> itemTrackingReviewRepository,
+        IRepository<TrackingNoForUpdate, long> trackingNoForUpdateRepository
     ) : AsyncCrudAppService<Chibi, ChibiDto, long, PagedChibiResultRequestDto>(repository)
     {
         private readonly IRepository<Queue, long> _queueRepository = queueRepository;
@@ -79,6 +82,7 @@ namespace SND.SMP.Chibis
         private readonly IRepository<Currency, long> _currencyRepository = currencyRepository;
         private readonly IRepository<ItemTrackingApplication, int> _itemTrackingApplicationRepository = itemTrackingApplicationRepository;
         private readonly IRepository<ItemTrackingReview, int> _itemTrackingReviewRepository = itemTrackingReviewRepository;
+        private readonly IRepository<TrackingNoForUpdate, long> _trackingNoForUpdateRepository = trackingNoForUpdateRepository;
 
         private static async Task<string> GetFileStreamAsString(string url)
         {
@@ -498,7 +502,7 @@ namespace SND.SMP.Chibis
 
             return result;
         }
-        
+
         private async Task<ItemIdPathWithDatatables> GetItemTrackingFiles(string customerCode, List<string> trackingNos)
         {
             List<DataTable> DataTablesByPath = [];
@@ -524,6 +528,16 @@ namespace SND.SMP.Chibis
                                         .GroupBy(x => new { x.CustomerCode, x.Prefix, x.Suffix })
                                         .Select(g => g.First())
                                         .ToList();
+
+            foreach (var prefixSuffixCustomerCode in prefixSuffixCustomerCodes)
+            {
+                prefixSuffixCustomerCodes.Add(new PrefixSuffixCustomerCode
+                {
+                    Prefix = prefixSuffixCustomerCode.Prefix,
+                    Suffix = prefixSuffixCustomerCode.Suffix,
+                    CustomerCode = "Any Account"
+                });
+            }
 
             var reviewList = await _itemTrackingReviewRepository.GetAllListAsync();
 
@@ -684,6 +698,12 @@ namespace SND.SMP.Chibis
                     _itemsRepository.RemoveRange(items);
                     await _itemsRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
 
+                    await _trackingNoForUpdateRepository.InsertRangeAsync(itemTrackingsList.Select(u => new TrackingNoForUpdate
+                    {
+                        TrackingNo = u.TrackingNo,
+                        DispatchNo = dispatch.DispatchNo,
+                        ProcessType = TrackingNoForUpdateConst.STATUS_DELETE,
+                    })).ConfigureAwait(false);
                 }
 
                 var itemMins = await _itemMinsRepository.GetAllListAsync(x => x.DispatchID.Equals(dispatch.Id));

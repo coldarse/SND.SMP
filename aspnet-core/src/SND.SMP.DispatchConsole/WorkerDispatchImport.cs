@@ -41,7 +41,7 @@ public class WorkerDispatchImport : BackgroundService
 
             DispatchImporter dispatchImporter = new DispatchImporter();
 
-            await dispatchImporter.DiscoverAndImport(fileType: fileType, batchSize: batchSize);
+            await dispatchImporter.DiscoverAndImport(fileType: fileType, batchSize: batchSize, blockSize: blockSize);
 
             #region Logger
             if (_logger.IsEnabled(LogLevel.Information))

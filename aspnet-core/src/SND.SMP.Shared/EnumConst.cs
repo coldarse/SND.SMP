@@ -17,6 +17,16 @@ namespace SND.SMP.Shared
             public const string EVENT_TYPE_POOL_ID_GEN = "Generate Pool Item ID";
 
             public const string EVENT_TYPE_TRACKING_UPLOAD = "Upload Tracking";
+
+            public const string EVENT_TYPE_TRACKING_UPDATE = "Update Tracking";
+
+
+        }
+
+        public class TrackingNoForUpdateConst
+        {
+            public const string STATUS_UPDATE = "UPDATE";
+            public const string STATUS_DELETE = "DELETE";
         }
 
         public class DispatchEnumConst
