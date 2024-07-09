@@ -82,7 +82,7 @@
                 >
                   <td>{{ dispatch.customerName }}</td>
                   <td>{{ dispatch.postalDesc }}</td>
-                  <td>{{ dispatch.dispatchDate }}</td>
+                  <td>{{ dispatch.dispatchDate | date : "dd/MM/yyyy" }}</td>
                   <td>{{ dispatch.dispatchNo }}</td>
                   <td>{{ dispatch.serviceDesc }}</td>
                   <td>{{ dispatch.productDesc }}</td>

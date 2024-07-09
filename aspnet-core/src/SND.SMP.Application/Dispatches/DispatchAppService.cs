@@ -42,6 +42,11 @@ using SND.SMP.DispatchValidations;
 using System.Reflection;
 using System.Globalization;
 using System.Threading;
+using SND.SMP.Chibis;
+using SND.SMP.ItemTrackingApplications;
+using SND.SMP.ItemTrackingReviews;
+using SND.SMP.Chibis.Dto;
+using SND.SMP.ApplicationSettings;
 
 namespace SND.SMP.Dispatches
 {
@@ -84,6 +89,7 @@ namespace SND.SMP.Dispatches
         private readonly IRepository<Currency, long> _currencyRepository = currencyRepository;
         private readonly IRepository<DispatchUsedAmount, int> _dispatchUsedAmountRepository = dispatchUsedAmountRepository;
         private readonly IRepository<DispatchValidation, string> _dispatchValidationRepository = dispatchValidationRepository;
+        
 
         [System.Text.RegularExpressions.GeneratedRegex(@"[a-zA-Z]")]
         private static partial System.Text.RegularExpressions.Regex MyRegex();
@@ -151,7 +157,7 @@ namespace SND.SMP.Dispatches
         {
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
             using ExcelPackage package = new();
-            ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("Sheet 1");
+            ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("SL Manifest");
             var properties = typeof(SLManifest).GetProperties();
 
             for (int col = 0; col < properties.Length; col++)
@@ -173,7 +179,7 @@ namespace SND.SMP.Dispatches
         {
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
             using ExcelPackage package = new();
-            ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("Sheet 1");
+            ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("GQ Manifest");
             var properties = typeof(GQManifest).GetProperties();
 
             for (int col = 0; col < properties.Length; col++)
@@ -195,7 +201,7 @@ namespace SND.SMP.Dispatches
         {
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
             using ExcelPackage package = new();
-            ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("Sheet 1");
+            ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("KG Manifest");
 
             var properties = typeof(KGManifest).GetProperties();
 
@@ -218,7 +224,7 @@ namespace SND.SMP.Dispatches
         {
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
             using ExcelPackage package = new();
-            ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("Sheet 1");
+            ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("DO Manifest");
 
             var properties = typeof(DOManifest).GetProperties();
 
@@ -241,7 +247,7 @@ namespace SND.SMP.Dispatches
         {
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
             using ExcelPackage package = new();
-            ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("Sheet 1");
+            ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("SL Bags");
             var properties = typeof(SLBag).GetProperties();
 
             for (int col = 0; col < properties.Length; col++)
@@ -263,7 +269,7 @@ namespace SND.SMP.Dispatches
         {
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
             using ExcelPackage package = new();
-            ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("Sheet 1");
+            ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("GQ Bags");
             var properties = typeof(GQBag).GetProperties();
 
             for (int col = 0; col < properties.Length; col++)
@@ -285,7 +291,7 @@ namespace SND.SMP.Dispatches
         {
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
             using ExcelPackage package = new();
-            ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("Sheet 1");
+            ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("KG Bags");
 
             var properties = typeof(KGBag).GetProperties();
 
@@ -308,7 +314,7 @@ namespace SND.SMP.Dispatches
         {
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
             using ExcelPackage package = new();
-            ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("Sheet 1");
+            ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("DO Bags");
 
             var properties = typeof(DOBag).GetProperties();
 
@@ -762,15 +768,15 @@ namespace SND.SMP.Dispatches
 
             var mapping = new List<DOMapping>
             {
-                new() { CountryCode = "PR", Origin = "TPE", Destination = "SDQ", Service = "PP-105"},
-                new() { CountryCode = "US", Origin = "TPE", Destination = "SDQ", Service = "PP-105"},
-                new() { CountryCode = "VI", Origin = "TPE", Destination = "SDQ", Service = "PP-105"},
-                new() { CountryCode = "CA", Origin = "TPE", Destination = "SDQ", Service = "PP-105"},
-                new() { CountryCode = "MU", Origin = "SDQ", Destination = "MRU", Service = "PP-101"},
-                new() { CountryCode = "MV", Origin = "SDQ", Destination = "MLE", Service = "PP-101"},
+                new() { CountryCode = "PR", Origin = "TPE", Destination = "SDQ", Service = "PP105"},
+                new() { CountryCode = "US", Origin = "TPE", Destination = "SDQ", Service = "PP105"},
+                new() { CountryCode = "VI", Origin = "TPE", Destination = "SDQ", Service = "PP105"},
+                new() { CountryCode = "CA", Origin = "TPE", Destination = "SDQ", Service = "PP105"},
+                new() { CountryCode = "MU", Origin = "SDQ", Destination = "MRU", Service = "PP101"},
+                new() { CountryCode = "MV", Origin = "SDQ", Destination = "MLE", Service = "PP101"},
             };
 
-            var listDeductedTare = GetManifestWeight(bags, items, isPreCheckWeight);
+            var listManifestWeight = GetManifestWeight(bags, items, isPreCheckWeight);
 
             foreach (var u in items)
             {
@@ -780,7 +786,7 @@ namespace SND.SMP.Dispatches
 
                 var foundBag = itemCountryBags.FirstOrDefault(x => x.BagNo.Equals(u.BagNo));
 
-                var itemAfterWeight = Math.Round(listDeductedTare.FirstOrDefault(p => p.TrackingNo.Equals(u.Id)).Weight, 3);
+                var itemAfterWeight = listManifestWeight.FirstOrDefault(p => p.TrackingNo.Equals(u.Id)).Weight;
 
                 doManifest.Add(new DOManifest()
                 {
@@ -807,7 +813,7 @@ namespace SND.SMP.Dispatches
                     ConsigneeMobile = "",
                     ConsigneeTaxId = "",
                     Pieces = 1,
-                    Gweight = itemAfterWeight, //u.Weight.GetValueOrDefault(),
+                    Gweight = itemAfterWeight,
                     Cweight = "",
                     WeightType = "KG",
                     Height = (int)u.Height.GetValueOrDefault(),
@@ -1193,10 +1199,10 @@ namespace SND.SMP.Dispatches
                 {
                     decimal weightVariance = bag.WeightVariance ?? 0m;
                     var bagItems = result.Where(u => u.BagNo.Equals(bag.BagNo));
+                    var itemCount = bag.ItemCountPost ?? bag.ItemCountPre;
 
                     if (weightVariance > 0)
                     {
-                        var itemCount = bag.ItemCountPost ?? bag.ItemCountPre;
                         var averageWeight = weightVariance / itemCount;
                         foreach (var item in bagItems)
                         {
@@ -1208,8 +1214,7 @@ namespace SND.SMP.Dispatches
 
             return result;
         }
-
-
+        
         protected override IQueryable<Dispatch> CreateFilteredQuery(PagedDispatchResultRequestDto input)
         {
             return input.isAdmin ?
@@ -1842,6 +1847,8 @@ namespace SND.SMP.Dispatches
 
             dispatches = [.. dispatches.Where(x => !x.DispatchNo.Contains("temp", StringComparison.CurrentCultureIgnoreCase))];
 
+            dispatches = [.. dispatches.Where(x => x.IsActive.Equals(true))];
+
             dispatches = [.. dispatches.OrderByDescending(x => x.Id).Take(top)];
 
             List<DispatchInfoDto> result = [];
@@ -1902,6 +1909,7 @@ namespace SND.SMP.Dispatches
             var query = CreateFilteredQuery(input);
 
             query = query.Where(x => !x.DispatchNo.ToLower().Contains("temp"));
+            query = query.Where(x => x.IsActive.Equals(true));
 
             var totalCount = await AsyncQueryableExecuter.CountAsync(query);
 
@@ -1988,7 +1996,7 @@ namespace SND.SMP.Dispatches
             var bags = await _bagRepository.GetAllListAsync(x => x.DispatchId.Equals(dispatch.Id));
             var items = await _itemRepository.GetAllListAsync(x => x.DispatchID.Equals(dispatch.Id));
             var countries = bags.GroupBy(x => x.CountryCode).Select(u => u.Key).OrderBy(u => u).ToList();
-            var Cos = await _impcRepository.GetAllListAsync(x => x.Type.Equals(code));
+            var impcs = await _impcRepository.GetAllListAsync(x => x.Type.Equals(code));
 
             var customerCode = dispatch.CustomerCode;
             var productCode = dispatch.ProductCode;
@@ -2003,11 +2011,11 @@ namespace SND.SMP.Dispatches
 
                 foreach (var country in countries)
                 {
-                    var model = await GetKGManifest(dispatch, bags, items, Cos, isPreCheckWeight, country);
+                    var model = await GetKGManifest(dispatch, bags, items, impcs, isPreCheckWeight, country);
 
                     if (model.Count != 0)
                     {
-                        var kgc = Cos.FirstOrDefault(u => u.CountryCode.Equals(country));
+                        var kgc = impcs.FirstOrDefault(u => u.CountryCode.Equals(country));
                         var airportCode = kgc is null ? "" : kgc.AirportCode;
 
                         if (postalCode.Equals($"{code}02"))
@@ -2054,11 +2062,11 @@ namespace SND.SMP.Dispatches
 
                 foreach (var country in countries)
                 {
-                    var model = await GetGQManifest(dispatch, bags, items, Cos, isPreCheckWeight, country);
+                    var model = await GetGQManifest(dispatch, bags, items, impcs, isPreCheckWeight, country);
 
                     if (model.Count != 0)
                     {
-                        var gqc = Cos.FirstOrDefault(u => u.CountryCode.Equals(country));
+                        var gqc = impcs.FirstOrDefault(u => u.CountryCode.Equals(country));
                         var airportCode = gqc is null ? "" : gqc.AirportCode;
 
                         if (postalCode.Equals($"{code}02"))
@@ -2182,7 +2190,7 @@ namespace SND.SMP.Dispatches
             var bags = await _bagRepository.GetAllListAsync(x => x.DispatchId.Equals(dispatch.Id));
             var items = await _itemRepository.GetAllListAsync(x => x.DispatchID.Equals(dispatch.Id));
             var countries = bags.GroupBy(x => x.CountryCode).Select(u => u.Key).OrderBy(u => u).ToList();
-            var Cos = await _impcRepository.GetAllListAsync(x => x.Type.Equals($"{code}"));
+            var impcs = await _impcRepository.GetAllListAsync(x => x.Type.Equals($"{code}"));
 
             var customerCode = dispatch.CustomerCode;
             var productCode = dispatch.ProductCode;
@@ -2197,11 +2205,11 @@ namespace SND.SMP.Dispatches
 
                 foreach (var country in countries)
                 {
-                    var model = await GetKGBag(dispatch, bags, items, Cos, isPreCheckWeight, country);
+                    var model = await GetKGBag(dispatch, bags, items, impcs, isPreCheckWeight, country);
 
                     if (model.Count != 0)
                     {
-                        var kgc = Cos.FirstOrDefault(u => u.CountryCode.Equals(country));
+                        var kgc = impcs.FirstOrDefault(u => u.CountryCode.Equals(country));
                         var airportCode = kgc is null ? "" : kgc.AirportCode;
 
                         if (postalCode.Equals($"{code}02"))
@@ -2248,11 +2256,11 @@ namespace SND.SMP.Dispatches
 
                 foreach (var country in countries)
                 {
-                    var model = await GetGQBag(dispatch, bags, items, Cos, isPreCheckWeight, country);
+                    var model = await GetGQBag(dispatch, bags, items, impcs, isPreCheckWeight, country);
 
                     if (model.Count != 0)
                     {
-                        var gqc = Cos.FirstOrDefault(u => u.CountryCode.Equals(country));
+                        var gqc = impcs.FirstOrDefault(u => u.CountryCode.Equals(country));
                         var airportCode = gqc is null ? "" : gqc.AirportCode;
 
                         if (postalCode.Equals($"{code}02"))

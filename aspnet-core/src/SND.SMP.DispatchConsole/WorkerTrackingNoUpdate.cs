@@ -6,11 +6,11 @@ using System.IO;
 
 namespace SND.SMP.DispatchConsole;
 
-public class WorkerItemTrackingGenerate : BackgroundService
+public class WorkerItemTrackingNoUpdate : BackgroundService
 {
     private readonly ILogger<Worker> _logger;
     private readonly IConfiguration _configuration;
-    public WorkerItemTrackingGenerate(ILogger<Worker> logger, IConfiguration configuration)
+    public WorkerItemTrackingNoUpdate(ILogger<Worker> logger, IConfiguration configuration)
     {
         _logger = logger;
         _configuration = configuration;
@@ -25,16 +25,17 @@ public class WorkerItemTrackingGenerate : BackgroundService
     {
         while (!stoppingToken.IsCancellationRequested)
         {
-            var pollInMs = _configuration.GetValue<int>("Generate:TrackingNoGeneratePollInSec") * 1000;
+            var pollInMs = _configuration.GetValue<int>("Update:TrackingNoUpdatePollInSec") * 1000;
+            int blockSize = _configuration.GetValue<int>("Import:BlockSize");
 
-            TrackingNoGenerator trackingNoGenerator = new TrackingNoGenerator();
+            TrackingNoUpdater trackingNoUpdater = new TrackingNoUpdater();
 
-            await trackingNoGenerator.DiscoverAndGenerate();
+            await trackingNoUpdater.DiscoverAndUpdate(blockSize);
 
             #region Logger
             if (_logger.IsEnabled(LogLevel.Information))
             {
-                _logger.LogInformation("Worker Item Tracking Generate running at: {time}", DateTimeOffset.Now);
+                _logger.LogInformation("Worker Tracking No. Update running at: {time}", DateTimeOffset.Now);
             }
             #endregion
 

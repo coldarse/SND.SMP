@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SND.SMP.EntityFrameworkCore;
 
@@ -10,9 +11,11 @@ using SND.SMP.EntityFrameworkCore;
 namespace SND.SMP.Migrations
 {
     [DbContext(typeof(SMPDbContext))]
-    partial class SMPDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240707064933_AddedAPIRequestResponse")]
+    partial class AddedAPIRequestResponse
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -2446,13 +2449,13 @@ namespace SND.SMP.Migrations
                         .HasColumnName("Customer");
 
                     b.Property<string>("Prefix")
-                        .HasMaxLength(3)
-                        .HasColumnType("varchar(3)")
+                        .HasMaxLength(2)
+                        .HasColumnType("varchar(2)")
                         .HasColumnName("Prefix");
 
                     b.Property<string>("PrefixNo")
-                        .HasMaxLength(7)
-                        .HasColumnType("varchar(7)")
+                        .HasMaxLength(4)
+                        .HasColumnType("varchar(4)")
                         .HasColumnName("PrefixNo");
 
                     b.Property<int>("RunningNo")
@@ -3524,32 +3527,6 @@ namespace SND.SMP.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Refunds", (string)null);
-                });
-
-            modelBuilder.Entity("SND.SMP.TrackingNoForUpdates.TrackingNoForUpdate", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("DispatchNo")
-                        .HasMaxLength(40)
-                        .HasColumnType("varchar(40)")
-                        .HasColumnName("DispatchNo");
-
-                    b.Property<string>("ProcessType")
-                        .HasMaxLength(20)
-                        .HasColumnType("varchar(20)")
-                        .HasColumnName("ProcessType");
-
-                    b.Property<string>("TrackingNo")
-                        .HasMaxLength(20)
-                        .HasColumnType("varchar(20)")
-                        .HasColumnName("TrackingNo");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("TrackingNoForUpdates", (string)null);
                 });
 
             modelBuilder.Entity("SND.SMP.Wallets.Wallet", b =>
