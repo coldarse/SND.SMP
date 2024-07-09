@@ -27,7 +27,6 @@ namespace SND.SMP.DispatchConsole
         private const int ID_LENGTH = 13;
 
         private uint QueueId { get; set; }
-        private string DirPath { get; set; }
         private string FilePath { get; set; }
         private string FileType { get; set; }
         private string CustomerCode { get; set; }
@@ -40,18 +39,15 @@ namespace SND.SMP.DispatchConsole
         private DispatchProfileDto DispatchProfile { get; set; }
 
         private string Currency { get; set; }
-        private int BatchSize { get; set; }
 
         
 
 
         public DispatchValidator() { }
 
-        public async Task DiscoverAndValidate(string dirPath, string fileType, int batchSize = 750, int blockSize = 50)
+        public async Task DiscoverAndValidate(string fileType, int blockSize = 50)
         {
-            DirPath = dirPath;
             FileType = fileType;
-            BatchSize = batchSize;
             BlockSize = blockSize;
 
             using db db = new();

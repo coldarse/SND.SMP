@@ -114,7 +114,7 @@
                     }
                   </td>
                   <td>
-                    {{ itemtrackingapplication.dateCreated | date : "short" }}
+                    {{ itemtrackingapplication.dateCreated | date : "dd/MM/yyyy" }}
                   </td>
                   <td
                     *ngIf="isButtonVisible('Edit') || isButtonVisible('Delete')"
