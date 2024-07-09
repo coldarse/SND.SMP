@@ -444,7 +444,6 @@ namespace SND.SMP.DispatchConsole
                     }
                     else //---- Deduct Amount If Valid ----//
                     {
-                        // await UpdateItemTrackingFile(CustomerCode, listItemIdsForUpdate, DispatchProfile.DispatchNo).ConfigureAwait(false);
 
                         if (validations.Count == 1 && validations[0].Category == "Insufficient Wallet Balance")
                         {
@@ -529,7 +528,7 @@ namespace SND.SMP.DispatchConsole
 
                     if (isValid)
                     {
-                        if (isFundLack == false)
+                        if (isFundLack == false || allowUploadIfInsufficientFund == true)
                         {
                             await db.Queues.AddAsync(new Queue
                             {
