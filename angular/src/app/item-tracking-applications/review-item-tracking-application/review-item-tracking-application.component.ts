@@ -41,8 +41,7 @@ export class ReviewItemTrackingApplicationComponent
   @Output() onSave = new EventEmitter<any>();
 
   ngOnInit(): void {
-    this.suffix =
-      this.application.postalCode == "CO" ? "" : this.application.postalCode;
+    this.suffix = this.application.postalCode;
     this._itemtrackingreviewService
       .getReviewAmount(this.application.id)
       .subscribe((data: any) => {
