@@ -687,10 +687,17 @@ namespace SND.SMP.Chibis
                 if (items.Count > 0)
                 {
                     List<ItemTracking> itemTrackingsList = [];
+                    List<TrackingNoForUpdate> trackingNoForUpdates = [];
                     foreach (var item in items)
                     {
                         var itemTracking = itemTrackings.FirstOrDefault(x => x.TrackingNo.Equals(item.Id));
                         if (itemTracking is not null) itemTrackingsList.Add(itemTracking);
+                        trackingNoForUpdates.Add(new TrackingNoForUpdate()
+                        {
+                            TrackingNo = item.Id,
+                            DispatchNo = dispatch.DispatchNo,
+                            ProcessType = TrackingNoForUpdateConst.STATUS_DELETE,
+                        });
                     }
                     _itemTrackingsRepository.RemoveRange(itemTrackingsList);
                     await _itemTrackingsRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
@@ -698,12 +705,21 @@ namespace SND.SMP.Chibis
                     _itemsRepository.RemoveRange(items);
                     await _itemsRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
 
-                    await _trackingNoForUpdateRepository.InsertRangeAsync(itemTrackingsList.Select(u => new TrackingNoForUpdate
+                    _trackingNoForUpdateRepository.InsertRange(trackingNoForUpdates);
+                    await _trackingNoForUpdateRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
+
+                    await _queueRepository.InsertAsync(new Queue()
                     {
-                        TrackingNo = u.TrackingNo,
-                        DispatchNo = dispatch.DispatchNo,
-                        ProcessType = TrackingNoForUpdateConst.STATUS_DELETE,
-                    })).ConfigureAwait(false);
+                        EventType = "Update Tracking",
+                        FilePath = dispatch.DispatchNo,
+                        Status = QueueEnumConst.STATUS_NEW,
+                        DateCreated = DateTime.Now,
+                        DeleteFileOnFailed = false,
+                        DeleteFileOnSuccess = false,
+                        StartTime = DateTime.Now,
+                        EndTime = DateTime.MinValue,
+                        TookInSec = 0,
+                    }).ConfigureAwait(false);
                 }
 
                 var itemMins = await _itemMinsRepository.GetAllListAsync(x => x.DispatchID.Equals(dispatch.Id));
@@ -751,10 +767,11 @@ namespace SND.SMP.Chibis
                     await _dispatchUsedAmountRepository.DeleteAsync(dispatchUsedAmount).ConfigureAwait(false);
                 }
 
-                await _dispatchRepository.DeleteAsync(dispatch).ConfigureAwait(false);
+                dispatch.IsActive = false;
+                await _dispatchRepository.UpdateAsync(dispatch).ConfigureAwait(false);
             }
 
-            var queues = await _queueRepository.GetAllListAsync(x => x.FilePath.Equals(excelDispatchFile.URL));
+            var queues = await _queueRepository.GetAllListAsync(x => x.FilePath.Equals(excelDispatchFile.URL) && x.FilePath.Equals(dispatch.DispatchNo));
             if (queues.Count > 0)
             {
                 foreach (var queue in queues) await _queueRepository.DeleteAsync(queue).ConfigureAwait(false);

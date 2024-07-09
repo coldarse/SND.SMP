@@ -1847,6 +1847,8 @@ namespace SND.SMP.Dispatches
 
             dispatches = [.. dispatches.Where(x => !x.DispatchNo.Contains("temp", StringComparison.CurrentCultureIgnoreCase))];
 
+            dispatches = [.. dispatches.Where(x => x.IsActive.Equals(true))];
+
             dispatches = [.. dispatches.OrderByDescending(x => x.Id).Take(top)];
 
             List<DispatchInfoDto> result = [];
@@ -1907,6 +1909,7 @@ namespace SND.SMP.Dispatches
             var query = CreateFilteredQuery(input);
 
             query = query.Where(x => !x.DispatchNo.ToLower().Contains("temp"));
+            query = query.Where(x => x.IsActive.Equals(true));
 
             var totalCount = await AsyncQueryableExecuter.CountAsync(query);
 

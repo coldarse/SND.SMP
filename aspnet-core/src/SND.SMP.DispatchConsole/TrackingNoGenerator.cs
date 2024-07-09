@@ -109,7 +109,7 @@ namespace SND.SMP.DispatchConsole
 
                 for (var i = 0; i < AmountGiven; i++)
                 {
-                    int maxDigitLength = 7;
+                    int maxDigitLength = 8;
 
                     int padLeft = maxDigitLength - PrefixNo.ToString().Length;
 

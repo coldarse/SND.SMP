@@ -92,7 +92,7 @@ namespace SND.SMP.DispatchConsole
                     queueTask.EndTime = dateUpdateCompleted;
                 }
 
-
+                if (ProcessType.Equals(TrackingNoForUpdateConst.STATUS_DELETE)) db.Dispatches.Remove(dispatch);
                 db.TrackingNoForUpdates.RemoveRange(listItemIds);
                 await db.SaveChangesAsync().ConfigureAwait(false);
             }
@@ -245,15 +245,18 @@ namespace SND.SMP.DispatchConsole
                                         .Select(g => g.First())
                                         .ToList();
 
+            List<PrefixSuffixCustomerCode> prefixSuffixCustomerCodesAnyAccount = [];
             foreach (var prefixSuffixCustomerCode in prefixSuffixCustomerCodes)
             {
-                prefixSuffixCustomerCodes.Add(new PrefixSuffixCustomerCode
+                prefixSuffixCustomerCodesAnyAccount.Add(new PrefixSuffixCustomerCode
                 {
                     Prefix = prefixSuffixCustomerCode.Prefix,
                     Suffix = prefixSuffixCustomerCode.Suffix,
                     CustomerCode = "Any Account"
                 });
             }
+
+            prefixSuffixCustomerCodes.AddRange(prefixSuffixCustomerCodesAnyAccount);
 
             var reviewList = db.ItemTrackingReviews.ToList();
 
