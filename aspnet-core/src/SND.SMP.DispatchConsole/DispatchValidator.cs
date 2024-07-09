@@ -16,6 +16,7 @@ using SND.SMP.CustomerTransactions;
 using SND.SMP.DispatchUsedAmounts;
 using System.Text;
 using OfficeOpenXml;
+using SND.SMP.ItemTrackingReviews;
 
 namespace SND.SMP.DispatchConsole
 {
@@ -26,7 +27,6 @@ namespace SND.SMP.DispatchConsole
         private const int ID_LENGTH = 13;
 
         private uint QueueId { get; set; }
-        private string DirPath { get; set; }
         private string FilePath { get; set; }
         private string FileType { get; set; }
         private string CustomerCode { get; set; }
@@ -39,16 +39,15 @@ namespace SND.SMP.DispatchConsole
         private DispatchProfileDto DispatchProfile { get; set; }
 
         private string Currency { get; set; }
-        private int BatchSize { get; set; }
+
+        
 
 
         public DispatchValidator() { }
 
-        public async Task DiscoverAndValidate(string dirPath, string fileType, int batchSize = 750, int blockSize = 50)
+        public async Task DiscoverAndValidate(string fileType, int blockSize = 50)
         {
-            DirPath = dirPath;
             FileType = fileType;
-            BatchSize = batchSize;
             BlockSize = blockSize;
 
             using db db = new();
@@ -213,7 +212,7 @@ namespace SND.SMP.DispatchConsole
                 var listIOSSChecking = new List<DispatchValidateIOSSDto>();
                 var listCountryCodes = new List<DispatchValidateCountryDto>();
                 var listParticulars = new List<DispatchValidateParticularsDto>();
-
+                var listItemIdsForUpdate = new List<string>();
                 do
                 {
                     while (reader.Read())
@@ -262,6 +261,7 @@ namespace SND.SMP.DispatchConsole
                             totalPrice += price;
 
                             listItemIds.Add(itemId);
+                            listItemIdsForUpdate.Add(itemId);
                             if (!listBagNos.Contains(bagNo)) listBagNos.Add(bagNo);
                             listIOSSChecking.Add(new DispatchValidateIOSSDto { Row = rowTouched, TrackingNo = itemId, CountryCode = countryCode, IOSS = taxPaymentMethod });
                             listCountryCodes.Add(new DispatchValidateCountryDto { Id = itemId, CountryCode = countryCode });
@@ -325,7 +325,7 @@ namespace SND.SMP.DispatchConsole
                     }
                 } while (reader.NextResult());
 
-                
+
 
                 if (listItemIds.Count != 0)
                 {
@@ -360,7 +360,7 @@ namespace SND.SMP.DispatchConsole
 
                 bool allowUploadIfInsufficientFund = false;
                 var appSetting = db.ApplicationSettings.FirstOrDefault(u => u.Name.Equals("AllowUploadIfInsufficientFund"));
-                if (appSetting is not null) 
+                if (appSetting is not null)
                 {
                     allowUploadIfInsufficientFund = appSetting.Value.ToString() == "true";
                 }
@@ -440,7 +440,8 @@ namespace SND.SMP.DispatchConsole
                     }
                     else //---- Deduct Amount If Valid ----//
                     {
-                        if(validations.Count == 1 && validations[0].Category == "Insufficient Wallet Balance")
+
+                        if (validations.Count == 1 && validations[0].Category == "Insufficient Wallet Balance")
                         {
                             await ValidationsHandling(validations, DispatchProfile.DispatchNo, CustomerCode);
                         }
@@ -523,7 +524,7 @@ namespace SND.SMP.DispatchConsole
 
                     if (isValid)
                     {
-                        if (isFundLack == false)
+                        if (isFundLack == false || allowUploadIfInsufficientFund == true)
                         {
                             await db.Queues.AddAsync(new Queue
                             {
@@ -911,6 +912,20 @@ namespace SND.SMP.DispatchConsole
 
             return dataTable;
         }
+
+        private static async Task<Stream> GetFileStream(string url)
+        {
+            using var httpClient = new HttpClient();
+            using var response = await httpClient.GetAsync(url);
+            if (response.IsSuccessStatusCode)
+            {
+                var contentByteArray = await response.Content.ReadAsByteArrayAsync();
+                return new MemoryStream(contentByteArray);
+            }
+            return null;
+        }
+
+        
     }
 }
 

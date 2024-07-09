@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SND.SMP.EntityFrameworkCore;
 
@@ -10,9 +11,11 @@ using SND.SMP.EntityFrameworkCore;
 namespace SND.SMP.Migrations
 {
     [DbContext(typeof(SMPDbContext))]
-    partial class SMPDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240708061959_Removed_Status_From_TrackingNoForUpdates")]
+    partial class Removed_Status_From_TrackingNoForUpdates
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -2446,13 +2449,13 @@ namespace SND.SMP.Migrations
                         .HasColumnName("Customer");
 
                     b.Property<string>("Prefix")
-                        .HasMaxLength(3)
-                        .HasColumnType("varchar(3)")
+                        .HasMaxLength(2)
+                        .HasColumnType("varchar(2)")
                         .HasColumnName("Prefix");
 
                     b.Property<string>("PrefixNo")
-                        .HasMaxLength(7)
-                        .HasColumnType("varchar(7)")
+                        .HasMaxLength(4)
+                        .HasColumnType("varchar(4)")
                         .HasColumnName("PrefixNo");
 
                     b.Property<int>("RunningNo")

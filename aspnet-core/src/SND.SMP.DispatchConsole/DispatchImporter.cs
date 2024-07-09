@@ -9,6 +9,7 @@ using Humanizer;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using System.Text;
+using SND.SMP.DispatchConsole.EF;
 
 namespace SND.SMP.DispatchConsole
 {
@@ -310,6 +311,13 @@ namespace SND.SMP.DispatchConsole
                                         Status = (int)DispatchEnumConst.Status.Stage1
                                     })).ConfigureAwait(false);
 
+                                    await db.TrackingNoForUpdates.AddRangeAsync(listItems.Select(u => new TrackingNoForUpdates.TrackingNoForUpdate
+                                    {
+                                        TrackingNo = u.TrackingNo,
+                                        DispatchNo = _dispatchProfile.DispatchNo,
+                                        ProcessType = TrackingNoForUpdateConst.STATUS_UPDATE,
+                                    })).ConfigureAwait(false);
+
                                     dispatch.ImportProgress = Convert.ToInt32(Convert.ToDecimal(itemCount / Convert.ToDecimal(rowCount)) * 100);
 
                                     await db.SaveChangesAsync();
@@ -384,6 +392,13 @@ namespace SND.SMP.DispatchConsole
                             Status = (int)DispatchEnumConst.Status.Stage1
                         })).ConfigureAwait(false);
 
+                        await db.TrackingNoForUpdates.AddRangeAsync(listItems.Select(u => new TrackingNoForUpdates.TrackingNoForUpdate
+                        {
+                            TrackingNo = u.TrackingNo,
+                            DispatchNo = _dispatchProfile.DispatchNo,
+                            ProcessType = TrackingNoForUpdateConst.STATUS_UPDATE
+                        })).ConfigureAwait(false);
+
                         await db.SaveChangesAsync();
                     }
                     #endregion
@@ -408,6 +423,19 @@ namespace SND.SMP.DispatchConsole
                         queueTask.StartTime = dateImportStart;
                         queueTask.EndTime = dateImportCompleted;
                     }
+
+                    await db.Queues.AddAsync(new Queue
+                    {
+                        EventType = "Update Tracking",
+                        FilePath = _dispatchProfile.DispatchNo,
+                        Status = QueueEnumConst.STATUS_NEW,
+                        DateCreated = DateTime.Now,
+                        DeleteFileOnFailed = 0,
+                        DeleteFileOnSuccess = 0,
+                        StartTime = DateTime.Now,
+                        EndTime = DateTime.MinValue,
+                        TookInSec = 0,
+                    }).ConfigureAwait(false);
 
                     var apiUrl = await db.ApplicationSettings.FirstOrDefaultAsync(x => x.Name.Equals("APIURL"));
 
