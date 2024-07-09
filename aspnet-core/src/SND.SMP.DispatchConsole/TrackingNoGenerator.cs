@@ -20,10 +20,6 @@ namespace SND.SMP.DispatchConsole
         private int AmountRequested { get; set; }
         private int AmountGiven { get; set; }
 
-        private string _chibiAPIKey;
-        private string _chibiURL;
-
-
         public TrackingNoGenerator() { }
 
         public async Task DiscoverAndGenerate()
@@ -58,7 +54,7 @@ namespace SND.SMP.DispatchConsole
                 Customer = review.CustomerCode;
                 Prefix = review.Prefix;
                 PrefixNo = review.PrefixNo;
-                Suffix = review.Suffix;
+                Suffix = string.IsNullOrWhiteSpace(review.Suffix) ? "" : review.Suffix ;
                 AmountRequested = review.Total;
 
                 var runningNos = db.ItemIdRunningNos
@@ -93,7 +89,7 @@ namespace SND.SMP.DispatchConsole
 
                 int startingNo = RunningNo;
                 int endingNo = startingNo + AmountRequested;
-                int maxSerialNo = 999999;
+                int maxSerialNo = 9999999;
 
                 if (endingNo > maxSerialNo)
                 {
@@ -113,9 +109,9 @@ namespace SND.SMP.DispatchConsole
 
                 for (var i = 0; i < AmountGiven; i++)
                 {
-                    int padLeft = 6;
-                    if (PrefixNo.ToString().Length == 3) padLeft = 5;
-                    if (PrefixNo.ToString().Length == 4) padLeft = 4;
+                    int maxDigitLength = 7;
+
+                    int padLeft = maxDigitLength - PrefixNo.ToString().Length;
 
                     string serialNo = PrefixNo + Convert.ToString(startingNo + i).PadLeft(padLeft, '0');
 

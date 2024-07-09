@@ -130,7 +130,7 @@
           class="col-2"
           [(ngModel)]="prefix"
           placeholder="RS"
-          maxlength="2"
+          [maxlength]="prefixMaxLength"
           oninput="let p=this.selectionStart;this.value=this.value.toUpperCase();this.setSelectionRange(p, p);"
         />
         <input
@@ -152,6 +152,7 @@
           class="col-2"
           [(ngModel)]="suffix"
           maxlength="2"
+          [disabled]="application.postalCode == 'CO'"
           oninput="let y=this.selectionStart;this.value=this.value.toUpperCase();this.setSelectionRange(y, y);"
         />
       </div>

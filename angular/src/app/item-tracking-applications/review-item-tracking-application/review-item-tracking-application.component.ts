@@ -32,6 +32,7 @@ export class ReviewItemTrackingApplicationComponent
   remark = "";
 
   prefixNoMaxLength = 7;
+  prefixMaxLength = 2;
 
   application: ItemTrackingApplicationDto;
 
@@ -40,14 +41,16 @@ export class ReviewItemTrackingApplicationComponent
   @Output() onSave = new EventEmitter<any>();
 
   ngOnInit(): void {
-    this.suffix = this.application.postalCode;
+    this.suffix =
+      this.application.postalCode == "CO" ? "" : this.application.postalCode;
     this._itemtrackingreviewService
       .getReviewAmount(this.application.id)
       .subscribe((data: any) => {
         this.amount = data.result;
       });
 
-    this.prefixNoMaxLength = (8 - (this.application.total - 1).toString().length);
+    this.prefixMaxLength = this.application.postalCode == "CO" ? 3 : 2;
+    this.prefixNoMaxLength = 8 - (this.application.total - 1).toString().length;
   }
 
   constructor(
@@ -58,7 +61,6 @@ export class ReviewItemTrackingApplicationComponent
   ) {
     super(injector);
   }
-
 
   decline() {
     this.saving = true;
@@ -124,28 +126,28 @@ export class ReviewItemTrackingApplicationComponent
     );
   }
 
-
   undo() {
     this.saving = true;
 
-    this._itemtrackingreviewService
-      .undoReview(this.application.id)
-      .subscribe(
-        () => {
-          this.notify.info(this.l("SavedSuccessfully"));
-          this.bsModalRef.hide();
-          this.onSave.emit();
-        },
-        () => {
-          this.saving = false;
-        }
-      );
+    this._itemtrackingreviewService.undoReview(this.application.id).subscribe(
+      () => {
+        this.notify.info(this.l("SavedSuccessfully"));
+        this.bsModalRef.hide();
+        this.onSave.emit();
+      },
+      () => {
+        this.saving = false;
+      }
+    );
   }
 
   invalid() {
     if (this.prefix.length == 0) return true;
     if (this.prefixNo.length == 0) return true;
-    if (this.suffix.length == 0) return true;
+    if (this.suffix.length == 0) {
+      if(this.application.postalCode == 'CO') return true;
+    }
+    
     return false;
   }
 }

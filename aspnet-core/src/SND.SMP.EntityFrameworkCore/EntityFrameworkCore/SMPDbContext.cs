@@ -156,8 +156,8 @@ namespace SND.SMP.EntityFrameworkCore
             builder.Entity<ItemIdRunningNo>(b =>
             {
                 b.ToTable(SMPConsts.DbTablePrefix + "ItemIdRunningNos");
-                b.Property(x => x.Prefix).HasColumnName(nameof(ItemIdRunningNo.Prefix)).HasMaxLength(2);
-                b.Property(x => x.PrefixNo).HasColumnName(nameof(ItemIdRunningNo.PrefixNo)).HasMaxLength(4);
+                b.Property(x => x.Prefix).HasColumnName(nameof(ItemIdRunningNo.Prefix)).HasMaxLength(3);
+                b.Property(x => x.PrefixNo).HasColumnName(nameof(ItemIdRunningNo.PrefixNo)).HasMaxLength(7);
                 b.Property(x => x.Suffix).HasColumnName(nameof(ItemIdRunningNo.Suffix)).HasMaxLength(2);
                 b.Property(x => x.RunningNo).HasColumnName(nameof(ItemIdRunningNo.RunningNo));
                 b.Property(x => x.Customer).HasColumnName(nameof(ItemIdRunningNo.Customer)).HasMaxLength(128);
