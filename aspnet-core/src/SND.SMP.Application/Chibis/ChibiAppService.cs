@@ -691,7 +691,14 @@ namespace SND.SMP.Chibis
                     foreach (var item in items)
                     {
                         var itemTracking = itemTrackings.FirstOrDefault(x => x.TrackingNo.Equals(item.Id));
-                        if (itemTracking is not null) itemTrackingsList.Add(itemTracking);
+                        if (itemTracking is not null)
+                        {
+                            itemTracking.DispatchId = 0;
+                            itemTracking.DispatchNo = "";
+                            itemTracking.DateUsed = DateTime.MinValue;
+
+                            itemTrackingsList.Add(itemTracking);
+                        }
                         trackingNoForUpdates.Add(new TrackingNoForUpdate()
                         {
                             TrackingNo = item.Id,
@@ -699,7 +706,7 @@ namespace SND.SMP.Chibis
                             ProcessType = TrackingNoForUpdateConst.STATUS_DELETE,
                         });
                     }
-                    _itemTrackingsRepository.RemoveRange(itemTrackingsList);
+                    _itemTrackingsRepository.GetDbContext().UpdateRange(itemTrackingsList);
                     await _itemTrackingsRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
 
                     _itemsRepository.RemoveRange(items);

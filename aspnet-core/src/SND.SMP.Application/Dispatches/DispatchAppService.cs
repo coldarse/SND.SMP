@@ -813,7 +813,7 @@ namespace SND.SMP.Dispatches
                     ConsigneeMobile = "",
                     ConsigneeTaxId = "",
                     Pieces = 1,
-                    Gweight = itemAfterWeight,
+                    Gweight = Math.Round(itemAfterWeight, 3, MidpointRounding.AwayFromZero),
                     Cweight = "",
                     WeightType = "KG",
                     Height = (int)u.Height.GetValueOrDefault(),

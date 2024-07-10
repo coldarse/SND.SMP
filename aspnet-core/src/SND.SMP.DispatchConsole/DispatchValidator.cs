@@ -150,6 +150,7 @@ namespace SND.SMP.DispatchConsole
             DispatchValidateDto validationResult_country_HasInvalidCountry = new() { Category = "Invalid Country Code" };
             DispatchValidateDto validationResult_wallet_InsufficientBalance = new() { Category = "Insufficient Wallet Balance" };
             DispatchValidateDto validationResult_ioss_missing = new() { Category = "Missing IOSS" };
+            DispatchValidateDto validationResult_trackingno_IsPreRegistered = new() { Category = "Unregistered Tracking Number(s)" };
             DispatchValidateDto validationResult_Others = new() { Category = "Caught Error" };
 
             using db db = new();
@@ -280,6 +281,7 @@ namespace SND.SMP.DispatchConsole
                                     () => Id_HasInvalidPrefixSuffix(ref validationResult_id_HasInvalidPrefixSuffix, listItemIds),
                                     () => Id_HasInvalidCheckDigit(ref validationResult_id_HasInvalidCheckDigit, listItemIds),
                                     () => Country_IsInvalidCountry(ref validationResult_country_HasInvalidCountry, listCountryCodes),
+                                    () => TrackingNo_IsPreRegistered(ref validationResult_trackingno_IsPreRegistered, listItemIds, CustomerCode, DispatchProfile.ProductCode),
                                     () => Dispatch_IsParticularsNotTally(ref validationResult_dispatch_IsParticularsNotTally, listParticulars));
 
                                 listItemIds.Clear();
@@ -339,6 +341,7 @@ namespace SND.SMP.DispatchConsole
                         () => Id_HasInvalidPrefixSuffix(ref validationResult_id_HasInvalidPrefixSuffix, listItemIds),
                         () => Id_HasInvalidCheckDigit(ref validationResult_id_HasInvalidCheckDigit, listItemIds),
                         () => Country_IsInvalidCountry(ref validationResult_country_HasInvalidCountry, listCountryCodes),
+                        () => TrackingNo_IsPreRegistered(ref validationResult_trackingno_IsPreRegistered, listItemIds, CustomerCode, DispatchProfile.ProductCode),
                         () => Dispatch_IsParticularsNotTally(ref validationResult_dispatch_IsParticularsNotTally, listParticulars));
                 }
 
@@ -359,11 +362,13 @@ namespace SND.SMP.DispatchConsole
                 #endregion
 
                 bool allowUploadIfInsufficientFund = false;
-                var appSetting = db.ApplicationSettings.FirstOrDefault(u => u.Name.Equals("AllowUploadIfInsufficientFund"));
-                if (appSetting is not null)
-                {
-                    allowUploadIfInsufficientFund = appSetting.Value.ToString() == "true";
-                }
+                bool allowUploadIfUnregisteredIds = true;
+
+                var appSetting_insufficientFund = db.ApplicationSettings.FirstOrDefault(u => u.Name.Equals("AllowUploadIfInsufficientFund"));
+                var appSetting_unregisteredId = db.ApplicationSettings.FirstOrDefault(u => u.Name.Equals("AllowUploadIfUnregisteredIds"));
+
+                if (appSetting_insufficientFund is not null) allowUploadIfInsufficientFund = appSetting_insufficientFund.Value.ToString() == "true";
+                if (appSetting_unregisteredId is not null) allowUploadIfUnregisteredIds = appSetting_unregisteredId.Value.ToString() == "true";
 
                 #region Dispatch Validation
 
@@ -434,6 +439,12 @@ namespace SND.SMP.DispatchConsole
                         validations.Add(validationResult_wallet_InsufficientBalance);
                     }
 
+                    if (validationResult_trackingno_IsPreRegistered.ItemIds.Count != 0 || !string.IsNullOrWhiteSpace(validationResult_trackingno_IsPreRegistered.Message))
+                    {
+                        isValid = allowUploadIfUnregisteredIds;
+                        validations.Add(validationResult_trackingno_IsPreRegistered);
+                    }
+
                     if (!isValid)
                     {
                         await ValidationsHandling(validations, DispatchProfile.DispatchNo, CustomerCode);
@@ -442,6 +453,11 @@ namespace SND.SMP.DispatchConsole
                     {
 
                         if (validations.Count == 1 && validations[0].Category == "Insufficient Wallet Balance")
+                        {
+                            await ValidationsHandling(validations, DispatchProfile.DispatchNo, CustomerCode);
+                        }
+
+                        if (validations.Any(u => u.Category.Equals("Unregistered Tracking Number(s)")))
                         {
                             await ValidationsHandling(validations, DispatchProfile.DispatchNo, CustomerCode);
                         }
@@ -875,6 +891,27 @@ namespace SND.SMP.DispatchConsole
 
                 result = list.Count != 0;
             }
+            return result;
+        }
+
+        private static bool TrackingNo_IsPreRegistered(ref Dto.DispatchValidateDto validationResult, List<string> model, string customerCode, string productCode)
+        {
+            var result = false;
+
+            using db db = new();
+            db.ChangeTracker.AutoDetectChangesEnabled = false;
+
+            var registeredItems = db.ItemTrackings.Where(u => u.CustomerCode.Equals(customerCode) &&
+                                                              u.ProductCode .Equals(productCode)
+                                                        ).ToList();
+            
+            var unregisteredItems = model.Where(a => !registeredItems.Any(b => b.TrackingNo.Equals(a)))
+                                        .Select(u => $"Tracking No {u} has not been registered.").ToList();
+
+            validationResult.ItemIds.AddRange(unregisteredItems);
+
+            result = unregisteredItems.Count != 0;
+
             return result;
         }
 
