@@ -490,6 +490,7 @@ namespace SND.SMP.DispatchConsole
                     #endregion
 
                     dispatch.Status = (int)DispatchEnumConst.Status.Stage1;
+                    dispatch.Stage1StatusDesc = "Pre-Advice";
                     dispatch.IsActive = 1;
                     dispatch.NoofBag = listBags.Count;
                     dispatch.ItemCount = itemCount;

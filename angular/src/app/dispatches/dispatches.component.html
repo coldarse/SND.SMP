@@ -162,24 +162,117 @@
                           </div>
                           Downloading }
                         </button> -->
-                        
-                        @if (dispatch.status == 'Upload Completed') {
-                        <button
-                          type="button"
-                          class="bg-warning dropdown-item mb-1"
-                          (click)="postCheck(dispatch.dispatchNo)"
-                        >
-                          Post Check
-                        </button>
-                        }
-                        @if (dispatch.status != 'Upload Completed') {
-                        <button
-                          type="button"
-                          class="bg-danger dropdown-item"
-                          (click)="undoPostCheck(dispatch.dispatchNo)"
-                        >
-                          Undo Post Check
-                        </button>
+                        @switch (dispatch.status) {
+                          @case ('Upload Completed') {
+                            <button
+                              type="button"
+                              class="bg-warning dropdown-item mb-1"
+                              (click)="postCheck(dispatch.dispatchNo)"
+                            >
+                              Post Check
+                            </button>
+                          }
+                          @case ('Post Check') {
+                            <button
+                              type="button"
+                              class="bg-danger dropdown-item"
+                              (click)="undoPostCheck(dispatch.dispatchNo)"
+                              [disabled]="undoingPostCheck || updatingStage3"
+                            >
+                              @if (!undoingPostCheck) { 
+                                Undo Post Check
+                              }
+                              @else{
+                                <div
+                                  class="spinner-border spinner-border-sm"
+                                  role="status"
+                                >
+                                  <span class="sr-only">Loading...</span>
+                                </div>
+                                &nbsp;Undoing Post Check
+                              }
+                            </button>
+                            <button
+                              type="button"
+                              class="bg-info dropdown-item mb-1"
+                              (click)="stage3Update(dispatch.dispatchNo)"
+                              [disabled]="undoingPostCheck || updatingStage3"
+                            >
+                              @if (!updatingStage3) { 
+                                Stage 3
+                              }
+                              @else{
+                                <div
+                                  class="spinner-border spinner-border-sm"
+                                  role="status"
+                                >
+                                  <span class="sr-only">Loading...</span>
+                                </div>
+                                &nbsp;Updating to Stage 3
+                              }
+                            </button>
+                          }
+                          @case ('Departed from Hong Kong International Airport') {
+                            <button
+                              type="button"
+                              class="bg-danger dropdown-item"
+                              (click)="undoStage3(dispatch.dispatchNo)"
+                              [disabled]="undoingStage3 || updatingStage4"
+                            >
+                              @if (!undoingStage3) { 
+                                Undo Stage 3
+                              }
+                              @else{
+                                <div
+                                  class="spinner-border spinner-border-sm"
+                                  role="status"
+                                >
+                                  <span class="sr-only">Loading...</span>
+                                </div>
+                                &nbsp;Undoing Stage 3
+                              }
+                            </button>
+                            <button
+                              type="button"
+                              class="bg-info dropdown-item mb-1"
+                              (click)="stage4Update(dispatch.dispatchNo, dispatch.countries)"
+                              [disabled]="undoingStage3 || updatingStage4"
+                            >
+                              @if (!updatingStage4) { 
+                                Stage 4
+                              }
+                              @else{
+                                <div
+                                  class="spinner-border spinner-border-sm"
+                                  role="status"
+                                >
+                                  <span class="sr-only">Loading...</span>
+                                </div>
+                                &nbsp;Updating to Stage 4
+                              }
+                            </button>
+                          }
+                          @case ('Arrived at Destination Country') {
+                            <button
+                              type="button"
+                              class="bg-danger dropdown-item"
+                              (click)="undoStage4(dispatch.dispatchNo)"
+                              [disabled]="undoingStage4"
+                            >
+                              @if (!undoingStage4) { 
+                                Undo Stage 4
+                              }
+                              @else{
+                                <div
+                                  class="spinner-border spinner-border-sm"
+                                  role="status"
+                                >
+                                  <span class="sr-only">Loading...</span>
+                                </div>
+                                &nbsp;Undoing Stage 4
+                              }
+                            </button>
+                          }
                         }
                       </div>
                     </div>

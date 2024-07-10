@@ -89,7 +89,7 @@ namespace SND.SMP.Dispatches
         private readonly IRepository<Currency, long> _currencyRepository = currencyRepository;
         private readonly IRepository<DispatchUsedAmount, int> _dispatchUsedAmountRepository = dispatchUsedAmountRepository;
         private readonly IRepository<DispatchValidation, string> _dispatchValidationRepository = dispatchValidationRepository;
-        
+
 
         [System.Text.RegularExpressions.GeneratedRegex(@"[a-zA-Z]")]
         private static partial System.Text.RegularExpressions.Regex MyRegex();
@@ -1214,7 +1214,7 @@ namespace SND.SMP.Dispatches
 
             return result;
         }
-        
+
         protected override IQueryable<Dispatch> CreateFilteredQuery(PagedDispatchResultRequestDto input)
         {
             return input.isAdmin ?
@@ -1349,7 +1349,8 @@ namespace SND.SMP.Dispatches
             var items = await _itemRepository.GetAllListAsync(x => x.DispatchID.Equals(dispatch.Id));
             foreach (var item in items)
             {
-                item.DateStage2 = DateTime.MinValue;
+                item.DateStage2 = null;
+                item.Stage2StatusDesc = "";
             }
 
             var wa_ud = await _weightAdjustmentRepository.FirstOrDefaultAsync(x =>
@@ -1457,6 +1458,7 @@ namespace SND.SMP.Dispatches
                         for (int j = 0; j < bagItems.Count; j++)
                         {
                             bagItems[j].DateStage2 = DateTime.Now.AddMilliseconds(random.Next(5000, 60000));
+                            bagItems[i].Stage2StatusDesc = "Departed from warehouse";
                         }
                         _itemRepository.GetDbContext().AttachRange(bagItems);
                         _itemRepository.GetDbContext().UpdateRange(bagItems);
@@ -1686,6 +1688,7 @@ namespace SND.SMP.Dispatches
             for (int i = 0; i < remainingItems.Count; i++)
             {
                 remainingItems[i].DateStage2 = DateTime.Now.AddMilliseconds(random.Next(5000, 60000));
+                remainingItems[i].Stage2StatusDesc = "Departed from warehouse";
             }
             _itemRepository.GetDbContext().AttachRange(remainingItems);
             _itemRepository.GetDbContext().UpdateRange(remainingItems);
@@ -1955,16 +1958,15 @@ namespace SND.SMP.Dispatches
 
                 var bags = await _bagRepository.GetAllListAsync(x => x.DispatchId.Equals(entity.Id));
                 dispatchInfo.TotalCountry = bags.GroupBy(x => x.CountryCode).Count();
+                dispatchInfo.Countries = bags.GroupBy(x => x.CountryCode).Select(y => y.Key).ToList();
 
                 int status = (int)entity.Status;
                 dispatchInfo.Status = status switch
                 {
                     1 => "Upload Completed",
                     2 => "Post Check",
-                    3 => "CN35 Completed",
-                    4 => "Leg 1 Completed",
-                    5 => "Leg 2 Completed",
-                    6 => "Arrived At Destination",
+                    3 => "Departed from Hong Kong International Airport",
+                    4 => "Arrived at Destination Country",
                     _ => $"Stage {status}",
                 };
 
@@ -2704,5 +2706,113 @@ namespace SND.SMP.Dispatches
             }
             return true;
         }
+
+        [HttpPost]
+        public async Task<bool> Stage3Update(string dispatchNo)
+        {
+            var dispatch = await _dispatchRepository.FirstOrDefaultAsync(x => x.DispatchNo.Equals(dispatchNo)) ?? throw new UserFriendlyException("No Dispatch Found");
+            dispatch.Status = 3;
+
+            var dispatchItems = await _itemRepository.GetAllListAsync(x => x.DispatchID.Equals(dispatch.Id));
+
+            if (dispatchItems.Count == 0) throw new UserFriendlyException($"No Items Found in Dispatch {dispatchNo}");
+
+            DateTime stage3DateTime = DateTime.Now;
+            foreach (var item in dispatchItems)
+            {
+                item.DateStage3 = stage3DateTime;
+                item.Stage3StatusDesc = "Departed from Hong Kong International Airport";
+            }
+
+            _itemRepository.GetDbContext().UpdateRange(dispatchItems);
+            await _itemRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
+
+            await _dispatchRepository.UpdateAsync(dispatch).ConfigureAwait(false);
+
+            return true;
+        }
+
+        [HttpPost]
+        public async Task<bool> Stage3Undo(string dispatchNo)
+        {
+            var dispatch = await _dispatchRepository.FirstOrDefaultAsync(x => x.DispatchNo.Equals(dispatchNo)) ?? throw new UserFriendlyException("No Dispatch Found");
+            dispatch.Status = 2;
+
+            var dispatchItems = await _itemRepository.GetAllListAsync(x => x.DispatchID.Equals(dispatch.Id));
+
+            if (dispatchItems.Count == 0) throw new UserFriendlyException($"No Items Found in Dispatch {dispatchNo}");
+
+            foreach (var item in dispatchItems)
+            {
+                item.DateStage3 = null;
+                item.Stage3StatusDesc = "";
+            }
+
+            _itemRepository.GetDbContext().UpdateRange(dispatchItems);
+            await _itemRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
+
+            await _dispatchRepository.UpdateAsync(dispatch).ConfigureAwait(false);
+
+            return true;
+        }
+
+        [HttpPost]
+        public async Task<bool> Stage4Update(Stage4Update input)
+        {
+            var dispatch = await _dispatchRepository.FirstOrDefaultAsync(x => x.DispatchNo.Equals(input.DispatchNo)) ?? throw new UserFriendlyException("No Dispatch Found");
+            dispatch.Status = 4;
+
+            var dispatchItems = await _itemRepository.GetAllListAsync(x => x.DispatchID.Equals(dispatch.Id));
+
+            if (dispatchItems.Count == 0) throw new UserFriendlyException($"No Items Found in Dispatch {input.DispatchNo}");
+
+            DateTime stage4DateTime = DateTime.Now;
+            List<Item> itemForUpdates = [];
+            foreach (var country in input.CountryWithAirports)
+            {
+                if (country.Airport.Length > 0)
+                {
+                    var itemsForCountry = dispatchItems.Where(x => x.CountryCode.Equals(country.Country));
+                    foreach (var item in itemsForCountry)
+                    {
+                        item.DateStage4 = stage4DateTime;
+                        item.Stage4StatusDesc = $"Arrived at {country.Airport} on {stage4DateTime.ToString("dd/MM/yyyy HH:mm tt")}";
+                        itemForUpdates.Add(item);
+                    }
+                }
+            }
+
+            _itemRepository.GetDbContext().UpdateRange(itemForUpdates);
+            await _itemRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
+
+            await _dispatchRepository.UpdateAsync(dispatch).ConfigureAwait(false);
+
+            return true;
+        }
+
+        [HttpPost]
+        public async Task<bool> Stage4Undo(string dispatchNo)
+        {
+            var dispatch = await _dispatchRepository.FirstOrDefaultAsync(x => x.DispatchNo.Equals(dispatchNo)) ?? throw new UserFriendlyException("No Dispatch Found");
+            dispatch.Status = 3;
+
+            var dispatchItems = await _itemRepository.GetAllListAsync(x => x.DispatchID.Equals(dispatch.Id));
+
+            if (dispatchItems.Count == 0) throw new UserFriendlyException($"No Items Found in Dispatch {dispatchNo}");
+
+            foreach (var item in dispatchItems)
+            {
+                item.DateStage4 = null;
+                item.Stage4StatusDesc = "";
+            }
+
+            _itemRepository.GetDbContext().UpdateRange(dispatchItems);
+            await _itemRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
+
+            await _dispatchRepository.UpdateAsync(dispatch).ConfigureAwait(false);
+
+            return true;
+        }
+
     }
 }

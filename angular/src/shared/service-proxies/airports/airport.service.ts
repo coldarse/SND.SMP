@@ -80,6 +80,17 @@ export class AirportService {
     }
 
     //Get All Airports
+    getAllAirports(){
+        return this.http.get(
+            this.url + `/api/services/app/Airport/GetAllAirports`,
+            this.options_
+        ).pipe(
+            retry(1),
+            catchError(this.errorMessage.HandleErrorResponse),
+        )
+    }
+
+    //Get All Airports
     getAll(body: PagedAirportResultRequestDto){
         let url_ = this.url + "/api/services/app/Airport/GetAll?";
 

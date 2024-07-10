@@ -174,9 +174,20 @@ export interface DispatchInfoDto {
   totalCountry: number;
   status: string;
   path: string;
+  countries: string[];
 }
 
 export interface Zip {
   blob: Blob;
   filename: string;
+}
+
+export interface Stage4Update {
+  dispatchNo: string;
+  countryWithAirports: CountryWithAirport[];
+}
+
+export interface CountryWithAirport {
+  country: string;
+  airport: string;
 }
