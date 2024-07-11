@@ -575,7 +575,7 @@ namespace SND.SMP.DispatchConsole
             }
         }
 
-        private static async Task ValidationsHandling(List<DispatchValidateDto> validations, string dispatchNo, string customerCode)
+        private static async Task ValidationsHandling(List<DispatchValidateDto> validations, string dispatchNo, string customerCode, bool successEmail = false)
         {
             string validationJSON = JsonConvert.SerializeObject(validations);
 
