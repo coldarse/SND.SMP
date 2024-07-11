@@ -31,7 +31,7 @@ namespace SND.SMP.EmailContents
                     x.Content.Contains(input.Keyword));
         }
 
-        public async Task<bool> SendPreAlertFailureEmailAsync(PreAlertFailureEmail input)
+        public async Task<bool> SendPreAlertFailureEmailAsync(PreAlertErrorEmail input)
         {
             try
             {
@@ -130,7 +130,7 @@ namespace SND.SMP.EmailContents
             }
         }
 
-        public async Task<bool> SendPreAlertSuccessWithErrorsEmailAsync(PreAlertSuccessWithErrorsEmail input)
+        public async Task<bool> SendPreAlertSuccessWithErrorsEmailAsync(PreAlertErrorEmail input)
         {
             try
             {
