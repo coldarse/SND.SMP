@@ -45,7 +45,6 @@ export class DispatchesComponent extends PagedListingComponentBase<DispatchDto> 
   isAdmin = true;
   isDownloadingManifest = false;
   isDownloadingBag = false;
-  isUndoingPostCheck = false;
   companyCode = "";
   airports: AirportDto[] = [];
 
@@ -345,7 +344,7 @@ export class DispatchesComponent extends PagedListingComponentBase<DispatchDto> 
       });
     });
 
-    
+
   }
 
   undoStage4(dispatchNo: string) {
