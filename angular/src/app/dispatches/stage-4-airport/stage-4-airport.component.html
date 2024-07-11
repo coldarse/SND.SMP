@@ -5,14 +5,25 @@
 <div class="modal-body">
     @for (country of countriesWithAirports; track $index) {
         <div class='form-group row'>
-            <label class='col-md-3 col-form-label' for='airport'>
+            <label class='col-md-2 col-form-label' for='airport'>
                 {{country.country}} {{ 'Airport' | localize }}
             </label>
-            <div class='col-md-9'>
+            <div class='col-md-5'>
                 <select class="form-control" name="airportList" id="airportList" [(ngModel)]="country.airport" (change)="selectedAirport($event, $index)">
                     <option value="">Do Not Update</option>
                     <option *ngFor="let airport of country.airports" value="{{airport.name}}">{{airport.name}}</option>
                 </select>
+            </div>
+            <div class='col-md-5'>
+                <input
+                    type='datetime-local'
+                    class='form-control'
+                    name='dateTime'
+                    id='dateTime'
+                    required
+                    [(ngModel)]='country.date'
+                    (change)="selectedDate($event, $index)"
+                />
             </div>
         </div>
     }

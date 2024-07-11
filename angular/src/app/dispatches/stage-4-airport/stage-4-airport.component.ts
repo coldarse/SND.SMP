@@ -28,9 +28,15 @@ export class Stage4AirportComponent
             this.countriesWithAirports.push({ 
                 country: country, 
                 airports: temp_airports,
-                airport: temp_airports.length == 0 ? '' : temp_airports[0].name
+                airport: temp_airports.length == 0 ? '' : temp_airports[0].name,
+                date: ''
             });
         });
+    }
+
+    selectedDate(event: any, index: number)
+    {
+        this.countriesWithAirports[index].date = event.target.value;
     }
 
     selectedAirport(event: any, index: number){

@@ -1957,8 +1957,15 @@ namespace SND.SMP.Dispatches
                 dispatchInfo.TotalWeight = entity.PostCheckTotalWeight is not null ? entity.PostCheckTotalWeight : entity.TotalWeight;
 
                 var bags = await _bagRepository.GetAllListAsync(x => x.DispatchId.Equals(entity.Id));
-                dispatchInfo.TotalCountry = bags.GroupBy(x => x.CountryCode).Count();
-                dispatchInfo.Countries = bags.GroupBy(x => x.CountryCode).Select(y => y.Key).ToList();
+                var countries = bags.GroupBy(x => x.CountryCode);
+                dispatchInfo.TotalCountry = countries.Count();
+                dispatchInfo.Countries = [];
+
+                foreach (var country in countries)
+                {
+                    var item = await _itemRepository.FirstOrDefaultAsync(x => x.DispatchID.Equals(entity.Id) && x.CountryCode.Equals(country.Key) && x.DateStage4 == null);
+                    if (item != null) dispatchInfo.Countries.Add(item.CountryCode);
+                }
 
                 int status = (int)entity.Status;
                 dispatchInfo.Status = status switch
@@ -2760,26 +2767,30 @@ namespace SND.SMP.Dispatches
         public async Task<bool> Stage4Update(Stage4Update input)
         {
             var dispatch = await _dispatchRepository.FirstOrDefaultAsync(x => x.DispatchNo.Equals(input.DispatchNo)) ?? throw new UserFriendlyException("No Dispatch Found");
-            dispatch.Status = 4;
 
             var dispatchItems = await _itemRepository.GetAllListAsync(x => x.DispatchID.Equals(dispatch.Id));
 
             if (dispatchItems.Count == 0) throw new UserFriendlyException($"No Items Found in Dispatch {input.DispatchNo}");
 
-            DateTime stage4DateTime = DateTime.Now;
             List<Item> itemForUpdates = [];
             foreach (var country in input.CountryWithAirports)
             {
                 if (country.Airport.Length > 0)
                 {
+                    var date = country.Date ?? DateTime.Now;
                     var itemsForCountry = dispatchItems.Where(x => x.CountryCode.Equals(country.Country));
                     foreach (var item in itemsForCountry)
                     {
-                        item.DateStage4 = stage4DateTime;
-                        item.Stage4StatusDesc = $"Arrived at {country.Airport} on {stage4DateTime.ToString("dd/MM/yyyy HH:mm tt")}";
+                        item.DateStage4 = date;
+                        item.Stage4StatusDesc = $"Arrived at {country.Airport} on {date.ToString("dd/MM/yyyy HH:mm tt")}";
                         itemForUpdates.Add(item);
                     }
                 }
+            }
+
+            if (!input.CountryWithAirports.Any(x => x.Airport.Length == 0))
+            {
+                dispatch.Status = 4;
             }
 
             _itemRepository.GetDbContext().UpdateRange(itemForUpdates);

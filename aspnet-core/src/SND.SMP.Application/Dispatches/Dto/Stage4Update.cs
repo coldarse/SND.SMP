@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 public class Stage4Update
@@ -10,4 +11,5 @@ public class CountryWithAirport
 {
     public string Country { get; set; }
     public string Airport { get; set; }
+    public DateTime? Date { get; set; }
 }

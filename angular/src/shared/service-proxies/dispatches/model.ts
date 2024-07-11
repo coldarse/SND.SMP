@@ -190,4 +190,5 @@ export interface Stage4Update {
 export interface CountryWithAirport {
   country: string;
   airport: string;
+  date: string;
 }
