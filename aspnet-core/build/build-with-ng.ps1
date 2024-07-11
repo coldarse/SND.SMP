@@ -2,18 +2,18 @@ echo " Welcome to docker build"
 echo ""
 echo ""
 
-$ABP_HOST="dannychen98/tfs_api:v1.0.6"
+$ABP_HOST="dannychen98/tfs_api:v1.1.0"
 $ABP_HOST_DOCKERFILE_PATH="src/SND.SMP.Web.Host/Dockerfile"
 $SMP_DISPATCH_DOCKERFILE_PATH="src/SND.SMP.DispatchConsole/Dockerfile"
-$ABP_NG="dannychen98/tfs_ms:v1.0.6"
-$SMP_DISPATCH="dannychen98/tfs_dispatch_console:v1.0.6"
+$ABP_NG="dannychen98/tfs_ms:v1.1.0"
+$SMP_DISPATCH="dannychen98/tfs_dispatch_console:v1.1.0"
 
-cd ..
-echo " Building docker image $SMP_DISPATCH..."
-docker build -t $SMP_DISPATCH -f $SMP_DISPATCH_DOCKERFILE_PATH . 
-echo " Done. -- Building docker image $SMP_DISPATCH..."
-echo ""
-echo ""
+# cd ..
+# echo " Building docker image $SMP_DISPATCH..."
+# docker build -t $SMP_DISPATCH -f $SMP_DISPATCH_DOCKERFILE_PATH . 
+# echo " Done. -- Building docker image $SMP_DISPATCH..."
+# echo ""
+# echo ""
 
 # echo " Pushing docker image $SMP_DISPATCH..."
 # docker push $SMP_DISPATCH
