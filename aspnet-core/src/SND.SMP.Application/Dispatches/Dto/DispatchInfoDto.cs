@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 public class DispatchInfoDto
 {
@@ -17,4 +18,5 @@ public class DispatchInfoDto
     public int TotalCountry { get; set; }
     public string Status { get; set; }
     public string Path { get; set; }
+    public List<string> Countries { get; set; }
 }

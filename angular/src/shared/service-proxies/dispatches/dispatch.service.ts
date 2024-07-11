@@ -11,6 +11,7 @@ import {
   DispatchDto,
   GetPostCheck,
   Zip,
+  Stage4Update,
 } from "./model";
 import { AppConsts } from "@shared/AppConsts";
 import { ErrorMessage } from "../error-handling";
@@ -119,6 +120,51 @@ export class DispatchService {
       .post(
         this.url +
           `/api/services/app/Dispatch/UndoPostCheck?dispatchNo=${dispatchNo}`,
+        this.options_
+      )
+      .pipe(retry(1), catchError(this.errorMessage.HandleErrorResponse));
+  }
+
+  // Stage 3 Update
+  stage3Update(dispatchNo: string) {
+    return this.http
+      .post(
+        this.url +
+          `/api/services/app/Dispatch/Stage3Update?dispatchNo=${dispatchNo}`,
+        this.options_
+      )
+      .pipe(retry(1), catchError(this.errorMessage.HandleErrorResponse));
+  }
+
+  // Stage 3 Undo
+  stage3Undo(dispatchNo: string) {
+    return this.http
+      .post(
+        this.url +
+          `/api/services/app/Dispatch/Stage3Undo?dispatchNo=${dispatchNo}`,
+        this.options_
+      )
+      .pipe(retry(1), catchError(this.errorMessage.HandleErrorResponse));
+  }
+
+  // Stage 4 Update
+  stage4Update(body: Stage4Update) {
+    return this.http
+      .post(
+        this.url +
+          `/api/services/app/Dispatch/Stage4Update`,
+        body,
+        this.options_
+      )
+      .pipe(retry(1), catchError(this.errorMessage.HandleErrorResponse));
+  }
+
+  // Stage 4 Undo
+  stage4Undo(dispatchNo: string) {
+    return this.http
+      .post(
+        this.url +
+          `/api/services/app/Dispatch/Stage4Undo?dispatchNo=${dispatchNo}`,
         this.options_
       )
       .pipe(retry(1), catchError(this.errorMessage.HandleErrorResponse));

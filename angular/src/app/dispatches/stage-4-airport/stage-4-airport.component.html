@@ -1,0 +1,35 @@
+<abp-modal-header
+  [title]="'Update Stage 4' | localize"
+  (onCloseClick)="bsModalRef.hide()"
+></abp-modal-header>
+<div class="modal-body">
+    @for (country of countriesWithAirports; track $index) {
+        <div class='form-group row'>
+            <label class='col-md-3 col-form-label' for='airport'>
+                {{country.country}} {{ 'Airport' | localize }}
+            </label>
+            <div class='col-md-9'>
+                <select class="form-control" name="airportList" id="airportList" [(ngModel)]="country.airport" (change)="selectedAirport($event, $index)">
+                    <option value="">Do Not Update</option>
+                    <option *ngFor="let airport of country.airports" value="{{airport.name}}">{{airport.name}}</option>
+                </select>
+            </div>
+        </div>
+    }
+    <br/>
+    <div class="form-group row text-center">
+        <div class="col-2"></div>
+        <div class="col-4 text-right">
+            <button class="btn btn-secondary" (click)="bsModalRef.hide()">
+                Cancel
+            </button>
+        </div>
+        <div class="col-4 text-left">
+            <button class="btn btn-primary" (click)="okay()" [disabled]="disableUpdate">
+                Update
+            </button>
+        </div>
+        <div class="col-2"></div>
+    </div>
+</div>
+
