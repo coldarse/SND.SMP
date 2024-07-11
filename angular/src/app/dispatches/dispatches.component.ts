@@ -45,6 +45,7 @@ export class DispatchesComponent extends PagedListingComponentBase<DispatchDto> 
   isAdmin = true;
   isDownloadingManifest = false;
   isDownloadingBag = false;
+  isUndoingPostCheck = false;
   companyCode = "";
   airports: AirportDto[] = [];
 
