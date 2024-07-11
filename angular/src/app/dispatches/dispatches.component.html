@@ -178,7 +178,18 @@
                           class="bg-danger dropdown-item"
                           (click)="undoPostCheck(dispatch.dispatchNo)"
                         >
-                          Undo Post Check
+                          @if (!isUndoingPostCheck) {
+                            Undo Post Check
+                          }
+                          @else{
+                            <div
+                              class="spinner-border spinner-border-sm"
+                              role="status"
+                            >
+                              <span class="sr-only">Loading...</span>
+                            </div>
+                            &nbsp;Undoing Post Check 
+                          }
                         </button>
                         }
                       </div>

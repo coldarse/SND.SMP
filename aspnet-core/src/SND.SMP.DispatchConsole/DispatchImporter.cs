@@ -142,6 +142,7 @@ namespace SND.SMP.DispatchConsole
                     await db.SaveChangesAsync().ConfigureAwait(false);
 
                     var savedDispatch = await db.Dispatches.FirstOrDefaultAsync(x => x.DispatchNo.Equals(_dispatchProfile.DispatchNo));
+                    var customer = await db.Customers.FirstOrDefaultAsync(x => x.Code.Equals(_dispatchProfile.AccNo));
 
                     var rowTouched = 0;
                     var listItems = new List<DispatchItemDto>();
@@ -256,6 +257,7 @@ namespace SND.SMP.DispatchConsole
                                 if (blockMilestone == 0)
                                 {
                                     await db.Bags.AddRangeAsync(listBags.Where(u => u.Id == 0)).ConfigureAwait(false);
+                                    await db.SaveChangesAsync();
 
                                     await db.Items.AddRangeAsync(listItems.Select(u => new EF.Item
                                     {
@@ -350,8 +352,8 @@ namespace SND.SMP.DispatchConsole
                                                                 TrackingNo = a.TrackingNo,
                                                                 ApplicationId = 0,
                                                                 ReviewId = 0,
-                                                                CustomerCode = registeredItems[0].CustomerCode,
-                                                                CustomerId = registeredItems[0].CustomerId,
+                                                                CustomerCode = customer.Code,
+                                                                CustomerId = customer.Id,
                                                                 DateCreated = DateTime.MinValue,
                                                                 DateUsed = DateTime.Now,
                                                                 DispatchId = (int)savedDispatch.Id,
@@ -473,8 +475,8 @@ namespace SND.SMP.DispatchConsole
                                                     TrackingNo = a.TrackingNo,
                                                     ApplicationId = 0,
                                                     ReviewId = 0,
-                                                    CustomerCode = registeredItems[0].CustomerCode,
-                                                    CustomerId = registeredItems[0].CustomerId,
+                                                    CustomerCode = customer.Code,
+                                                    CustomerId = customer.Id,
                                                     DateCreated = DateTime.MinValue,
                                                     DateUsed = DateTime.Now,
                                                     DispatchId = (int)savedDispatch.Id,

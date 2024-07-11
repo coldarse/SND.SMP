@@ -454,12 +454,12 @@ namespace SND.SMP.DispatchConsole
 
                         if (validations.Count == 1 && validations[0].Category == "Insufficient Wallet Balance")
                         {
-                            await ValidationsHandling(validations, DispatchProfile.DispatchNo, CustomerCode);
+                            await ValidationsHandling(validations, DispatchProfile.DispatchNo, CustomerCode, true);
                         }
 
                         if (validations.Any(u => u.Category.Equals("Unregistered Tracking Number(s)")))
                         {
-                            await ValidationsHandling(validations, DispatchProfile.DispatchNo, CustomerCode);
+                            await ValidationsHandling(validations, DispatchProfile.DispatchNo, CustomerCode, true);
                         }
 
                         using var dbconn = new db();
@@ -575,7 +575,7 @@ namespace SND.SMP.DispatchConsole
             }
         }
 
-        private static async Task ValidationsHandling(List<DispatchValidateDto> validations, string dispatchNo, string customerCode)
+        private static async Task ValidationsHandling(List<DispatchValidateDto> validations, string dispatchNo, string customerCode, bool successEmail = false)
         {
             string validationJSON = JsonConvert.SerializeObject(validations);
 
@@ -637,11 +637,12 @@ namespace SND.SMP.DispatchConsole
                     validations = validations
                 };
 
+                var urlEndpoint = successEmail ? "services/app/EmailContent/SendPreAlertSuccessWithErrorsEmailAsync" : "services/app/EmailContent/SendPreAlertFailureEmail";
                 var content = new StringContent(JsonConvert.SerializeObject(preAlertFailureEmail), Encoding.UTF8, "application/json");
                 var emailrequest = new HttpRequestMessage
                 {
                     Method = HttpMethod.Post,
-                    RequestUri = new Uri(apiUrl.Value + "services/app/EmailContent/SendPreAlertFailureEmail"),
+                    RequestUri = new Uri(apiUrl.Value + urlEndpoint),
                     Content = content,
                 };
                 await emailclient.SendAsync(emailrequest).ConfigureAwait(false);
