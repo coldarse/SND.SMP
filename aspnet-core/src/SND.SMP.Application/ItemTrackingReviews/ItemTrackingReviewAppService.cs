@@ -25,6 +25,9 @@ using OfficeOpenXml;
 using System.Security.Cryptography;
 using System.Text;
 using Abp.UI;
+using SND.SMP.ApplicationSettings;
+using Newtonsoft.Json;
+using System.Net;
 
 
 namespace SND.SMP.ItemTrackingReviews
@@ -38,7 +41,8 @@ namespace SND.SMP.ItemTrackingReviews
         IRepository<Customer, long> customerRepository,
         IRepository<Dispatch, int> dispatchRepository,
         IRepository<Item, string> itemRepository,
-        IRepository<Postal, long> postalRepository
+        IRepository<Postal, long> postalRepository,
+        IRepository<ApplicationSetting, int> applicationSettingRepository
     ) : AsyncCrudAppService<ItemTrackingReview, ItemTrackingReviewDto, int, PagedItemTrackingReviewResultRequestDto>(repository)
     {
         private readonly IRepository<ItemTrackingApplication, int> _itemTrackingApplicationRepository = itemTrackingApplicationRepository;
@@ -49,6 +53,7 @@ namespace SND.SMP.ItemTrackingReviews
         private readonly IRepository<Dispatch, int> _dispatchRepository = dispatchRepository;
         private readonly IRepository<Item, string> _itemRepository = itemRepository;
         private readonly IRepository<Postal, long> _postalRepository = postalRepository;
+        private readonly IRepository<ApplicationSetting, int> _applicationSettingRepository = applicationSettingRepository;
 
         protected override IQueryable<ItemTrackingReview> CreateFilteredQuery(PagedItemTrackingReviewResultRequestDto input)
         {
@@ -62,6 +67,49 @@ namespace SND.SMP.ItemTrackingReviews
                     x.PrefixNo.Contains(input.Keyword) ||
                     x.Suffix.Contains(input.Keyword) ||
                     x.ProductCode.Contains(input.Keyword));
+        }
+
+        private async Task<string> GetAPGToken()
+        {
+            var TokenGenerationUrl = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_TokenGenerationUrl"));
+            var username = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_UserName"));
+            var password = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_Password"));
+
+            var apgTokenClient = new HttpClient();
+            apgTokenClient.DefaultRequestHeaders.Clear();
+
+            APGTokenRequest tokenRequest = new()
+            {
+                userName = username.Value,
+                passWord = password.Value
+            };
+
+            var content = new StringContent(JsonConvert.SerializeObject(tokenRequest), Encoding.UTF8, "application/json");
+            var apgTokenRequestMessage = new HttpRequestMessage
+            {
+                Method = HttpMethod.Post,
+                RequestUri = new Uri(TokenGenerationUrl.Value),
+                Content = content,
+            };
+            using var apgTokenResponse = await apgTokenClient.SendAsync(apgTokenRequestMessage);
+            apgTokenResponse.EnsureSuccessStatusCode();
+            var apgTokenBody = await apgTokenResponse.Content.ReadAsStringAsync();
+            var apgTokenResult = System.Text.Json.JsonSerializer.Deserialize<APGTokenResponse>(apgTokenBody);
+
+            if (apgTokenResult != null)
+            {
+                var token_expiration = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_TokenExpiration"));
+                token_expiration.Value = apgTokenResult.token.expiration;
+
+                var token = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_Token"));
+                token.Value = apgTokenResult.token.token;
+
+                await _applicationSettingRepository.UpdateAsync(token_expiration).ConfigureAwait(false);
+
+                return apgTokenResult.token.token;
+            }
+
+            return "";
         }
 
         public override async Task<ItemTrackingReviewDto> CreateAsync(ItemTrackingReviewDto input)
@@ -164,6 +212,181 @@ namespace SND.SMP.ItemTrackingReviews
         public async Task<OutPreRegisterItem> PreRegisterItemDO(InPreRegisterItem input)
         {
             return await PreRegisterItem(input, "DO");
+        }
+
+        [HttpPost]
+        [Route("api/PreRegisterItem/APG")]
+        public async Task<OutPreRegisterItem> PreRegisterItemAPG(InPreRegisterItem input)
+        {
+            const string SUCCESS = "success";
+            const string FAILED = "failed";
+
+            string customerCode = "";
+            string clientSecret = "";
+
+            var result = new OutPreRegisterItem();
+            var newResponseIDRaw = Guid.NewGuid().ToString();
+
+            result.ResponseID = GenerateMD5Hash(newResponseIDRaw);
+            result.RefNo = input.RefNo;
+            result.Status = FAILED;
+            result.Errors = [];
+            result.APIItemID = "";
+
+            var cust = await _customerRepository.FirstOrDefaultAsync(u => u.ClientKey == input.ClientKey);
+
+            if (cust is not null)
+            {
+                customerCode = cust.Code;
+                clientSecret = cust.ClientSecret;
+
+                string signHashRequest = input.SignatureHash.Trim().ToUpper();
+                string signHashRaw = string.Format("{0}-{1}-{2}-{3}", input.ItemID, input.RefNo, input.ClientKey, clientSecret);
+                string signHashServer = GenerateMD5Hash(signHashRaw).Trim().ToUpper();
+
+                var signMatched = signHashRequest.Equals(signHashServer);
+
+                if (signMatched)
+                {
+                    var ParcelGenerationUrl = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_ParcelGenerationUrl"));
+                    var sender_identification = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_SenderIdentification"));
+                    var token_expiration = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_TokenExpiration"));
+                    var token = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_Token"));
+
+                    string apgToken = token.Value;
+
+                    var token_expiration_date = DateTime.Parse(token_expiration.Value);
+                    if (token_expiration_date > DateTime.Now) apgToken = await GetAPGToken();
+
+                    var httpstatus = HttpStatusCode.Unauthorized;
+
+                    if (ParcelGenerationUrl != null)
+                    {
+                        do
+                        {
+                            var apgClient = new HttpClient();
+                            apgClient.DefaultRequestHeaders.Clear();
+                            apgClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", apgToken);
+
+                            List<Commodity> commodities = [];
+                            commodities.Add(new Commodity()
+                            {
+                                description = input.ItemDesc,
+                                value = input.ItemValue,
+                                weight = input.Weight,
+                                hsTariffNumber = input.HSCode,
+                                quantity = 1,
+                                countryOfGoods = ""
+                            });
+
+                            List<Package> packages = [];
+                            packages.Add(new Package()
+                            {
+                                preAlertCode = "",
+                                stamp = input.RefNo,
+                                senderCode = "",
+                                senderName = input.SenderName,
+                                senderIdentification = sender_identification.Value,
+                                senderCountry = "HK",
+                                receiverName = input.RecipientName,
+                                receiverIdentification = "",
+                                receiverAddress1 = input.RecipientAddress,
+                                receiverAddress2 = "",
+                                receiverAddress3 = "",
+                                receiverNeighborhood = "",
+                                receiverZipCode = input.RecipientPostcode,
+                                receiverCity = input.RecipientCity,
+                                receiverState = input.RecipientCity,
+                                receiverCountry = input.RecipientCountry,
+                                receiverPhoneNumber = input.RecipientContactNo,
+                                receiverEmail = input.RecipientEmail,
+                                receiverTaxId = "",
+                                division = 3,
+                                serviceValue = 1,
+                                serviceOptValue = 7,
+                                dimensionTypeValue = 1,
+                                weightTypeValue = 1,
+                                commodities = commodities
+                            });
+
+
+                            APGRequest apgRequest = new()
+                            {
+                                packages = packages
+                            };
+
+                            var content = new StringContent(JsonConvert.SerializeObject(apgRequest), Encoding.UTF8, "application/json");
+                            var apgRequestMessage = new HttpRequestMessage
+                            {
+                                Method = HttpMethod.Post,
+                                RequestUri = new Uri(ParcelGenerationUrl.Value),
+                                Content = content,
+                            };
+                            using var apgResponse = await apgClient.SendAsync(apgRequestMessage);
+                            httpstatus = apgResponse.StatusCode;
+
+                            if (httpstatus == HttpStatusCode.OK)
+                            {
+                                var apgBody = await apgResponse.Content.ReadAsStringAsync();
+                                var apgResult = System.Text.Json.JsonSerializer.Deserialize<APGResponse>(apgBody);
+
+                                if (apgResult != null)
+                                {
+                                    if (apgResult.status == "Successfully Saved")
+                                    {
+                                        result.APIItemID = apgResult.tracking;
+                                        result.Status = SUCCESS;
+                                        result.Errors.Clear();
+                                    }
+                                    else
+                                    {
+                                        result.APIItemID = apgResult.tracking;
+                                        result.Status = FAILED;
+                                        result.Errors.Add(apgResult.status);
+                                    }
+                                }
+                                else
+                                {
+                                    result.APIItemID = "";
+                                    result.Status = FAILED;
+                                    result.Errors.Add("Response was empty.");
+                                }
+
+                            }
+                            else
+                            {
+                                if (httpstatus == HttpStatusCode.Unauthorized) apgToken = await GetAPGToken();
+                                else
+                                {
+                                    result.APIItemID = "";
+                                    result.Status = FAILED;
+                                    result.Errors.Add(httpstatus.ToString());
+                                }
+                            }
+                        }
+                        while (httpstatus == HttpStatusCode.Unauthorized);
+                    }
+                    else
+                    {
+                        result.APIItemID = "";
+                        result.Status = FAILED;
+                        result.Errors.Add("Endpoint Not Found.");
+                    }
+                }
+                else
+                {
+                    result.APIItemID = "";
+                    result.Status = FAILED;
+                    result.Errors.Add("Invalid SignatureHash.");
+                }
+            }
+
+            string signHashRespRaw = string.Format("{0}-{1}-{2}-{3}-{4}", result.ResponseID, result.RefNo, result.APIItemID, input.ClientKey, clientSecret);
+            string signHashRespServer = GenerateMD5Hash(signHashRespRaw);
+
+            result.SignatureHash = signHashRespServer;
+
+            return result;
         }
 
         [HttpGet]
