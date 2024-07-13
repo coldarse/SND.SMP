@@ -104,7 +104,9 @@ namespace SND.SMP.ItemTrackingReviews
                 var token = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_Token"));
                 token.Value = apgTokenResult.token.token;
 
-                await _applicationSettingRepository.UpdateAsync(token_expiration).ConfigureAwait(false);
+                await _applicationSettingRepository.UpdateAsync(token_expiration);
+                await _applicationSettingRepository.UpdateAsync(token);
+                await _applicationSettingRepository.GetDbContext().SaveChangesAsync();
 
                 return apgTokenResult.token.token;
             }
@@ -253,10 +255,14 @@ namespace SND.SMP.ItemTrackingReviews
                     var token_expiration = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_TokenExpiration"));
                     var token = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_Token"));
 
-                    string apgToken = token.Value;
+                    string apgToken = token.Value.Trim() == "" ? await GetAPGToken() : token.Value.Trim();
 
-                    var token_expiration_date = DateTime.Parse(token_expiration.Value);
-                    if (token_expiration_date > DateTime.Now) apgToken = await GetAPGToken();
+                    if (token.Value.Trim() != "")
+                    {
+                        var dateString = token_expiration.Value.Replace(" UTC", "");
+                        var token_expiration_date = DateTime.Parse(dateString);
+                        if (token_expiration_date < DateTime.Now) apgToken = await GetAPGToken();
+                    }
 
                     var httpstatus = HttpStatusCode.Unauthorized;
 
@@ -328,21 +334,24 @@ namespace SND.SMP.ItemTrackingReviews
                             if (httpstatus == HttpStatusCode.OK)
                             {
                                 var apgBody = await apgResponse.Content.ReadAsStringAsync();
-                                var apgResult = System.Text.Json.JsonSerializer.Deserialize<APGResponse>(apgBody);
+                                var split = apgBody.Split(",");
+                                var concatinated = split[0] + ", " + split[1] + "}]";
+                                
+                                var apgResult = JsonConvert.DeserializeObject<List<APGResponse>>(concatinated);
 
                                 if (apgResult != null)
                                 {
-                                    if (apgResult.status == "Successfully Saved")
+                                    if (apgResult[0].status == "Successfully Saved")
                                     {
-                                        result.APIItemID = apgResult.tracking;
+                                        result.APIItemID = apgResult[0].tracking;
                                         result.Status = SUCCESS;
                                         result.Errors.Clear();
                                     }
                                     else
                                     {
-                                        result.APIItemID = apgResult.tracking;
+                                        result.APIItemID = apgResult[0].tracking;
                                         result.Status = FAILED;
-                                        result.Errors.Add(apgResult.status);
+                                        result.Errors.Add(apgResult[0].status);
                                     }
                                 }
                                 else

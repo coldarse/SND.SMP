@@ -242,7 +242,7 @@ namespace SND.SMP.EntityFrameworkCore
             {
                 b.ToTable(SMPConsts.DbTablePrefix + "ApplicationSettings");
                 b.Property(x => x.Name).HasColumnName(nameof(ApplicationSetting.Name)).HasMaxLength(64);
-                b.Property(x => x.Value).HasColumnName(nameof(ApplicationSetting.Value)).HasMaxLength(256);
+                b.Property(x => x.Value).HasColumnName(nameof(ApplicationSetting.Value));
                 b.HasKey(x => x.Id);
             });
 
