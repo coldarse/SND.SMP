@@ -445,104 +445,110 @@ namespace SND.SMP.ItemTrackingReviews
                             }
                             while (httpstatus == HttpStatusCode.Unauthorized);
 
-                            var newItem = await _itemRepository.FirstOrDefaultAsync(x =>
+
+
+                            if (result.Errors.Count == 0)
+                            {
+                                var newItem = await _itemRepository.FirstOrDefaultAsync(x =>
                                                                                         x.DispatchID.Equals(dispatchTemp.Id) &&
                                                                                         x.Id.Equals(input.ItemID)
                                                                                    );
 
-                            if (newItem is null && newItemIdFromSPS is not null)
-                            {
-                                newItem = await _itemRepository.InsertAsync(new Item
+
+                                if (newItem is null && newItemIdFromSPS is not null)
                                 {
-                                    Id = newItemIdFromSPS,
-                                    DispatchID = dispatchTemp.Id,
-                                    BagID = null,
-                                    DispatchDate = dispatchTemp.DispatchDate,
-                                    Month = 0,
-                                    PostalCode = input.ServiceCode,
-                                    ServiceCode = input.ServiceCode,
-                                    ProductCode = input.ProductCode,
-                                    CountryCode = input.RecipientCountry,
-                                    Weight = input.Weight,
-                                    BagNo = "",
-                                    SealNo = "",
-                                    Price = 0m,
-                                    ItemValue = input.ItemValue,
-                                    ItemDesc = input.ItemDesc,
-                                    RecpName = input.RecipientName,
-                                    TelNo = input.RecipientContactNo,
-                                    Email = input.RecipientEmail,
-                                    Address = input.RecipientAddress,
-                                    Postcode = input.RecipientPostcode,
-                                    City = input.RecipientCity,
-                                    Address2 = "",
-                                    AddressNo = "",
-                                    State = input.RecipientState,
-                                    Length = 0,
-                                    Width = 0,
-                                    Height = 0,
-                                    Qty = 0,
-                                    TaxPayMethod = "",
-                                    IdentityType = "",
-                                    PassportNo = input.IdentityNo
-                                });
+                                    newItem = await _itemRepository.InsertAsync(new Item
+                                    {
+                                        Id = newItemIdFromSPS,
+                                        DispatchID = dispatchTemp.Id,
+                                        BagID = null,
+                                        DispatchDate = dispatchTemp.DispatchDate,
+                                        Month = 0,
+                                        PostalCode = input.ServiceCode,
+                                        ServiceCode = input.ServiceCode,
+                                        ProductCode = input.ProductCode,
+                                        CountryCode = input.RecipientCountry,
+                                        Weight = input.Weight,
+                                        BagNo = "",
+                                        SealNo = "",
+                                        Price = 0m,
+                                        ItemValue = input.ItemValue,
+                                        ItemDesc = input.ItemDesc,
+                                        RecpName = input.RecipientName,
+                                        TelNo = input.RecipientContactNo,
+                                        Email = input.RecipientEmail,
+                                        Address = input.RecipientAddress,
+                                        Postcode = input.RecipientPostcode,
+                                        City = input.RecipientCity,
+                                        Address2 = "",
+                                        AddressNo = "",
+                                        State = input.RecipientState,
+                                        Length = 0,
+                                        Width = 0,
+                                        Height = 0,
+                                        Qty = 0,
+                                        TaxPayMethod = "",
+                                        IdentityType = "",
+                                        PassportNo = input.IdentityNo
+                                    });
 
-                                #region Item Topup Value
-                                var itemTopupValue = await GetItemTopupValueFromPostalMaintenance(input.PostalCode, input.ServiceCode, input.ProductCode);
-                                newItem.ItemValue = newItem.ItemValue is null ? 0m + itemTopupValue : (decimal)newItem.ItemValue + itemTopupValue;
+                                    #region Item Topup Value
+                                    var itemTopupValue = await GetItemTopupValueFromPostalMaintenance(input.PostalCode, input.ServiceCode, input.ProductCode);
+                                    newItem.ItemValue = newItem.ItemValue is null ? 0m + itemTopupValue : (decimal)newItem.ItemValue + itemTopupValue;
 
-                                #endregion
+                                    #endregion
 
-                            }
-                            else
-                            {
-                                newItem.DispatchID = dispatchTemp.Id;
-                                newItem.DispatchDate = dispatchTemp.DispatchDate;
-                                newItem.Weight = input.Weight;
-                                newItem.ItemValue = input.ItemValue;
-                                newItem.ItemDesc = input.ItemDesc;
-                                newItem.RecpName = input.RecipientName;
-                                newItem.TelNo = input.RecipientContactNo;
-                                newItem.Email = input.RecipientEmail;
-                                newItem.Address = input.RecipientAddress;
-                                newItem.City = input.RecipientCity;
-                                newItem.Postcode = input.RecipientPostcode;
-                                newItem.CountryCode = input.RecipientCountry;
-                                newItem.RefNo = input.RefNo;
-                                newItem.HSCode = input.HSCode;
-                                newItem.SenderName = input.SenderName;
-                                newItem.IOSSTax = input.IOSSTax;
-                                newItem.AddressNo = input.AddressNo;
-                                newItem.PassportNo = input.IdentityNo;
-                                newItem.IdentityType = input.IdentityType;
+                                }
+                                else
+                                {
+                                    newItem.DispatchID = dispatchTemp.Id;
+                                    newItem.DispatchDate = dispatchTemp.DispatchDate;
+                                    newItem.Weight = input.Weight;
+                                    newItem.ItemValue = input.ItemValue;
+                                    newItem.ItemDesc = input.ItemDesc;
+                                    newItem.RecpName = input.RecipientName;
+                                    newItem.TelNo = input.RecipientContactNo;
+                                    newItem.Email = input.RecipientEmail;
+                                    newItem.Address = input.RecipientAddress;
+                                    newItem.City = input.RecipientCity;
+                                    newItem.Postcode = input.RecipientPostcode;
+                                    newItem.CountryCode = input.RecipientCountry;
+                                    newItem.RefNo = input.RefNo;
+                                    newItem.HSCode = input.HSCode;
+                                    newItem.SenderName = input.SenderName;
+                                    newItem.IOSSTax = input.IOSSTax;
+                                    newItem.AddressNo = input.AddressNo;
+                                    newItem.PassportNo = input.IdentityNo;
+                                    newItem.IdentityType = input.IdentityType;
 
-                                #region Item Topup Value
-                                var itemTopupValue = await GetItemTopupValueFromPostalMaintenance(input.PostalCode, input.ServiceCode, input.ProductCode);
-                                newItem.ItemValue = newItem.ItemValue is null ? 0m + itemTopupValue : (decimal)newItem.ItemValue + itemTopupValue;
-                                #endregion
+                                    #region Item Topup Value
+                                    var itemTopupValue = await GetItemTopupValueFromPostalMaintenance(input.PostalCode, input.ServiceCode, input.ProductCode);
+                                    newItem.ItemValue = newItem.ItemValue is null ? 0m + itemTopupValue : (decimal)newItem.ItemValue + itemTopupValue;
+                                    #endregion
 
-                                newItem = await _itemRepository.UpdateAsync(newItem);
-                            }
+                                    newItem = await _itemRepository.UpdateAsync(newItem);
+                                }
 
-                            string apiItemId = newItem.Id;
+                                string apiItemId = newItem.Id;
 
-                            if (!string.IsNullOrWhiteSpace(apiItemId))
-                            {
-                                result.APIItemID = apiItemId;
+                                if (!string.IsNullOrWhiteSpace(apiItemId))
+                                {
+                                    result.APIItemID = apiItemId;
 
-                                result.Status = SUCCESS;
-                                result.Errors.Clear();
-                            }
-                            else
-                            {
-                                var newId = newItem.Id;
+                                    result.Status = SUCCESS;
+                                    result.Errors.Clear();
+                                }
+                                else
+                                {
+                                    var newId = newItem.Id;
 
-                                apiItemId = newItem.Id;
+                                    apiItemId = newItem.Id;
 
-                                result.APIItemID = apiItemId;
+                                    result.APIItemID = apiItemId;
 
-                                result.Status = SUCCESS;
-                                result.Errors.Clear();
+                                    result.Status = SUCCESS;
+                                    result.Errors.Clear();
+                                }
                             }
                         }
                     }
