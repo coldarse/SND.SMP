@@ -216,12 +216,29 @@ namespace SND.SMP.ItemTrackingReviews
             return await PreRegisterItem(input, "DO");
         }
 
+        [HttpGet]
+        [Route("api/GetHashCode")]
+        public async Task<string> GetHashCode(string itemId, string refNo, string clientKey)
+        {
+            string hash = "";
+            var cust = await _customerRepository.FirstOrDefaultAsync(u => u.ClientKey == clientKey);
+
+            if (cust is not null)
+            {
+                string signHashRaw = string.Format("{0}-{1}-{2}-{3}", itemId, refNo, clientKey, cust.ClientSecret);
+                hash = GenerateMD5Hash(signHashRaw).Trim().ToUpper();
+            }
+
+            return hash;
+        }
+
         [HttpPost]
         [Route("api/PreRegisterItem/APG")]
         public async Task<OutPreRegisterItem> PreRegisterItemAPG(InPreRegisterItem input)
         {
             const string SUCCESS = "success";
             const string FAILED = "failed";
+            string auto = "auto";
 
             string customerCode = "";
             string clientSecret = "";
@@ -250,6 +267,15 @@ namespace SND.SMP.ItemTrackingReviews
 
                 if (signMatched)
                 {
+                    var isItemIDAutoMandatory = true;
+                    if (isItemIDAutoMandatory)
+                    {
+                        if ((string.IsNullOrWhiteSpace(input.ItemID) ? "" : input.ItemID.ToLower().Trim()) != auto.ToLower().Trim())
+                        {
+                            result.Errors.Add("Invalid ItemID value. ItemID must be set to 'auto'");
+                        }
+                    }
+
                     var ParcelGenerationUrl = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_ParcelGenerationUrl"));
                     var sender_identification = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_SenderIdentification"));
                     var token_expiration = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_TokenExpiration"));
@@ -268,112 +294,257 @@ namespace SND.SMP.ItemTrackingReviews
 
                     if (ParcelGenerationUrl != null)
                     {
-                        do
+                        if (result.Errors.Count == 0)
                         {
-                            var apgClient = new HttpClient();
-                            apgClient.DefaultRequestHeaders.Clear();
-                            apgClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", apgToken);
+                            //---- Create a Temporary Dispatch to insert Items ----//
+                            string dispNo = string.Format("TempDisp-{0}-{1}-{2}-{3}", customerCode, input.PostalCode, input.ServiceCode, input.ProductCode);
 
-                            List<Commodity> commodities = [];
-                            commodities.Add(new Commodity()
+                            var dispatchTemp = await _dispatchRepository.FirstOrDefaultAsync(x =>
+                                                                                                x.DispatchNo.Equals(dispNo) &&
+                                                                                                x.CustomerCode.Equals(customerCode)
+                                                                                            );
+                            if (dispatchTemp == null)
                             {
-                                description = input.ItemDesc,
-                                value = input.ItemValue,
-                                weight = input.Weight,
-                                hsTariffNumber = input.HSCode,
-                                quantity = 1,
-                                countryOfGoods = ""
-                            });
-
-                            List<Package> packages = [];
-                            packages.Add(new Package()
-                            {
-                                preAlertCode = "",
-                                stamp = input.RefNo,
-                                senderCode = "",
-                                senderName = input.SenderName,
-                                senderIdentification = sender_identification.Value,
-                                senderCountry = "HK",
-                                receiverName = input.RecipientName,
-                                receiverIdentification = "",
-                                receiverAddress1 = input.RecipientAddress,
-                                receiverAddress2 = "",
-                                receiverAddress3 = "",
-                                receiverNeighborhood = "",
-                                receiverZipCode = input.RecipientPostcode,
-                                receiverCity = input.RecipientCity,
-                                receiverState = input.RecipientCity,
-                                receiverCountry = input.RecipientCountry,
-                                receiverPhoneNumber = input.RecipientContactNo,
-                                receiverEmail = input.RecipientEmail,
-                                receiverTaxId = "",
-                                division = 3,
-                                serviceValue = 1,
-                                serviceOptValue = 7,
-                                dimensionTypeValue = 1,
-                                weightTypeValue = 1,
-                                commodities = commodities
-                            });
-
-
-                            APGRequest apgRequest = new()
-                            {
-                                packages = packages
-                            };
-
-                            var content = new StringContent(JsonConvert.SerializeObject(apgRequest), Encoding.UTF8, "application/json");
-                            var apgRequestMessage = new HttpRequestMessage
-                            {
-                                Method = HttpMethod.Post,
-                                RequestUri = new Uri(ParcelGenerationUrl.Value),
-                                Content = content,
-                            };
-                            using var apgResponse = await apgClient.SendAsync(apgRequestMessage);
-                            httpstatus = apgResponse.StatusCode;
-
-                            if (httpstatus == HttpStatusCode.OK)
-                            {
-                                var apgBody = await apgResponse.Content.ReadAsStringAsync();
-                                var split = apgBody.Split(",");
-                                var concatinated = split[0] + ", " + split[1] + "}]";
-                                
-                                var apgResult = JsonConvert.DeserializeObject<List<APGResponse>>(concatinated);
-
-                                if (apgResult != null)
+                                dispatchTemp = await _dispatchRepository.InsertAsync(new Dispatch
                                 {
-                                    if (apgResult[0].status == "Successfully Saved")
+                                    DispatchNo = dispNo,
+                                    CustomerCode = customerCode,
+                                    PostalCode = input.PostalCode,
+                                    ServiceCode = input.ServiceCode,
+                                    ProductCode = input.ProductCode,
+                                    DispatchDate = null,
+                                    BatchId = "",
+                                    TransactionDateTime = DateTime.Now
+                                });
+
+                                await _dispatchRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
+                            }
+
+                            string newItemIdFromSPS = null;
+
+                            do
+                            {
+                                var apgClient = new HttpClient();
+                                apgClient.DefaultRequestHeaders.Clear();
+                                apgClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", apgToken);
+
+                                List<Commodity> commodities = [];
+                                commodities.Add(new Commodity()
+                                {
+                                    description = input.ItemDesc,
+                                    value = input.ItemValue,
+                                    weight = input.Weight,
+                                    hsTariffNumber = input.HSCode,
+                                    quantity = 1,
+                                    countryOfGoods = ""
+                                });
+
+                                List<Package> packages = [];
+                                packages.Add(new Package()
+                                {
+                                    preAlertCode = "",
+                                    stamp = input.RefNo,
+                                    senderCode = "",
+                                    senderName = input.SenderName,
+                                    senderIdentification = sender_identification.Value,
+                                    senderCountry = "HK",
+                                    receiverName = input.RecipientName,
+                                    receiverIdentification = "",
+                                    receiverAddress1 = input.RecipientAddress,
+                                    receiverAddress2 = "",
+                                    receiverAddress3 = "",
+                                    receiverNeighborhood = "",
+                                    receiverZipCode = input.RecipientPostcode,
+                                    receiverCity = input.RecipientCity,
+                                    receiverState = input.RecipientCity,
+                                    receiverCountry = input.RecipientCountry,
+                                    receiverPhoneNumber = input.RecipientContactNo,
+                                    receiverEmail = input.RecipientEmail,
+                                    receiverTaxId = "",
+                                    division = 3,
+                                    serviceValue = 1,
+                                    serviceOptValue = 7,
+                                    dimensionTypeValue = 1,
+                                    weightTypeValue = 1,
+                                    commodities = commodities
+                                });
+
+
+                                APGRequest apgRequest = new()
+                                {
+                                    packages = packages
+                                };
+
+                                var content = new StringContent(JsonConvert.SerializeObject(apgRequest), Encoding.UTF8, "application/json");
+                                var apgRequestMessage = new HttpRequestMessage
+                                {
+                                    Method = HttpMethod.Post,
+                                    RequestUri = new Uri(ParcelGenerationUrl.Value),
+                                    Content = content,
+                                };
+                                using var apgResponse = await apgClient.SendAsync(apgRequestMessage);
+                                httpstatus = apgResponse.StatusCode;
+
+                                if (httpstatus == HttpStatusCode.OK)
+                                {
+                                    var apgBody = await apgResponse.Content.ReadAsStringAsync();
+                                    var split = apgBody.Split(",");
+                                    var concatinated = split[0] + ", " + split[1] + "}]";
+
+                                    var apgResult = JsonConvert.DeserializeObject<List<APGResponse>>(concatinated);
+
+                                    if (apgResult != null)
                                     {
-                                        result.APIItemID = apgResult[0].tracking;
-                                        result.Status = SUCCESS;
-                                        result.Errors.Clear();
+                                        if (apgResult[0].status == "Successfully Saved")
+                                        {
+                                            newItemIdFromSPS = apgResult[0].tracking;
+
+                                            if (string.IsNullOrWhiteSpace(newItemIdFromSPS)) result.Errors.Add("Insufficient Pool Item ID");
+                                            else
+                                            {
+                                                try
+                                                {
+                                                    await InsertUpdateTrackingNumber(newItemIdFromSPS, customerCode, cust.Id, input.ProductCode, isSelfGenerated: false);
+
+                                                    result.ItemID = newItemIdFromSPS;
+                                                    result.Status = SUCCESS;
+                                                }
+                                                catch (Exception ex)
+                                                {
+                                                    result.Status = FAILED;
+                                                    result.Errors.Add(ex.Message);
+                                                }
+                                                input.ItemID = newItemIdFromSPS;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            result.APIItemID = apgResult[0].tracking;
+                                            result.Status = FAILED;
+                                            result.Errors.Add(apgResult[0].status);
+                                        }
                                     }
                                     else
                                     {
-                                        result.APIItemID = apgResult[0].tracking;
+                                        result.APIItemID = "";
                                         result.Status = FAILED;
-                                        result.Errors.Add(apgResult[0].status);
+                                        result.Errors.Add("Response was empty.");
                                     }
+
                                 }
                                 else
                                 {
-                                    result.APIItemID = "";
-                                    result.Status = FAILED;
-                                    result.Errors.Add("Response was empty.");
+                                    if (httpstatus == HttpStatusCode.Unauthorized) apgToken = await GetAPGToken();
+                                    else
+                                    {
+                                        result.APIItemID = "";
+                                        result.Status = FAILED;
+                                        result.Errors.Add(httpstatus.ToString());
+                                    }
                                 }
+                            }
+                            while (httpstatus == HttpStatusCode.Unauthorized);
+
+                            var newItem = await _itemRepository.FirstOrDefaultAsync(x =>
+                                                                                        x.DispatchID.Equals(dispatchTemp.Id) &&
+                                                                                        x.Id.Equals(input.ItemID)
+                                                                                   );
+
+                            if (newItem is null && newItemIdFromSPS is not null)
+                            {
+                                newItem = await _itemRepository.InsertAsync(new Item
+                                {
+                                    Id = newItemIdFromSPS,
+                                    DispatchID = dispatchTemp.Id,
+                                    BagID = null,
+                                    DispatchDate = dispatchTemp.DispatchDate,
+                                    Month = 0,
+                                    PostalCode = input.ServiceCode,
+                                    ServiceCode = input.ServiceCode,
+                                    ProductCode = input.ProductCode,
+                                    CountryCode = input.RecipientCountry,
+                                    Weight = input.Weight,
+                                    BagNo = "",
+                                    SealNo = "",
+                                    Price = 0m,
+                                    ItemValue = input.ItemValue,
+                                    ItemDesc = input.ItemDesc,
+                                    RecpName = input.RecipientName,
+                                    TelNo = input.RecipientContactNo,
+                                    Email = input.RecipientEmail,
+                                    Address = input.RecipientAddress,
+                                    Postcode = input.RecipientPostcode,
+                                    City = input.RecipientCity,
+                                    Address2 = "",
+                                    AddressNo = "",
+                                    State = input.RecipientState,
+                                    Length = 0,
+                                    Width = 0,
+                                    Height = 0,
+                                    Qty = 0,
+                                    TaxPayMethod = "",
+                                    IdentityType = "",
+                                    PassportNo = input.IdentityNo
+                                });
+
+                                #region Item Topup Value
+                                var itemTopupValue = await GetItemTopupValueFromPostalMaintenance(input.PostalCode, input.ServiceCode, input.ProductCode);
+                                newItem.ItemValue = newItem.ItemValue is null ? 0m + itemTopupValue : (decimal)newItem.ItemValue + itemTopupValue;
+
+                                #endregion
 
                             }
                             else
                             {
-                                if (httpstatus == HttpStatusCode.Unauthorized) apgToken = await GetAPGToken();
-                                else
-                                {
-                                    result.APIItemID = "";
-                                    result.Status = FAILED;
-                                    result.Errors.Add(httpstatus.ToString());
-                                }
+                                newItem.DispatchID = dispatchTemp.Id;
+                                newItem.DispatchDate = dispatchTemp.DispatchDate;
+                                newItem.Weight = input.Weight;
+                                newItem.ItemValue = input.ItemValue;
+                                newItem.ItemDesc = input.ItemDesc;
+                                newItem.RecpName = input.RecipientName;
+                                newItem.TelNo = input.RecipientContactNo;
+                                newItem.Email = input.RecipientEmail;
+                                newItem.Address = input.RecipientAddress;
+                                newItem.City = input.RecipientCity;
+                                newItem.Postcode = input.RecipientPostcode;
+                                newItem.CountryCode = input.RecipientCountry;
+                                newItem.RefNo = input.RefNo;
+                                newItem.HSCode = input.HSCode;
+                                newItem.SenderName = input.SenderName;
+                                newItem.IOSSTax = input.IOSSTax;
+                                newItem.AddressNo = input.AddressNo;
+                                newItem.PassportNo = input.IdentityNo;
+                                newItem.IdentityType = input.IdentityType;
+
+                                #region Item Topup Value
+                                var itemTopupValue = await GetItemTopupValueFromPostalMaintenance(input.PostalCode, input.ServiceCode, input.ProductCode);
+                                newItem.ItemValue = newItem.ItemValue is null ? 0m + itemTopupValue : (decimal)newItem.ItemValue + itemTopupValue;
+                                #endregion
+
+                                newItem = await _itemRepository.UpdateAsync(newItem);
+                            }
+
+                            string apiItemId = newItem.Id;
+
+                            if (!string.IsNullOrWhiteSpace(apiItemId))
+                            {
+                                result.APIItemID = apiItemId;
+
+                                result.Status = SUCCESS;
+                                result.Errors.Clear();
+                            }
+                            else
+                            {
+                                var newId = newItem.Id;
+
+                                apiItemId = newItem.Id;
+
+                                result.APIItemID = apiItemId;
+
+                                result.Status = SUCCESS;
+                                result.Errors.Clear();
                             }
                         }
-                        while (httpstatus == HttpStatusCode.Unauthorized);
                     }
                     else
                     {
@@ -567,7 +738,7 @@ namespace SND.SMP.ItemTrackingReviews
 
                                 try
                                 {
-                                    await InsertUpdateTrackingNumber(newItemIdFromSPS, customerCode, cust.Id, input.PostalCode, false);
+                                    await InsertUpdateTrackingNumber(newItemIdFromSPS, customerCode, cust.Id, input.ProductCode, false);
 
                                     await AlertIfLowThreshold(postalCode, threshold);
 
@@ -602,7 +773,7 @@ namespace SND.SMP.ItemTrackingReviews
                                             {
                                                 try
                                                 {
-                                                    await InsertUpdateTrackingNumber(newItemIdFromSPS, customerCode, cust.Id, input.PostalCode);
+                                                    await InsertUpdateTrackingNumber(newItemIdFromSPS, customerCode, cust.Id, input.ProductCode);
 
                                                     await AlertIfLowThreshold(postalCode, threshold);
 
@@ -627,7 +798,7 @@ namespace SND.SMP.ItemTrackingReviews
                                                 {
                                                     try
                                                     {
-                                                        await InsertUpdateTrackingNumber(newItemIdFromSPS, customerCode, cust.Id, input.PostalCode);
+                                                        await InsertUpdateTrackingNumber(newItemIdFromSPS, customerCode, cust.Id, input.ProductCode);
 
                                                         await AlertIfLowThreshold(postalCode, threshold);
 
@@ -825,7 +996,7 @@ namespace SND.SMP.ItemTrackingReviews
                                         {
                                             try
                                             {
-                                                await InsertUpdateTrackingNumber(newItemIdFromSPS, customerCode, cust.Id, input.PostalCode);
+                                                await InsertUpdateTrackingNumber(newItemIdFromSPS, customerCode, cust.Id, input.ProductCode);
 
                                                 await AlertIfLowThreshold(postalCode, threshold);
 
@@ -851,7 +1022,7 @@ namespace SND.SMP.ItemTrackingReviews
                                             {
                                                 try
                                                 {
-                                                    await InsertUpdateTrackingNumber(newItemIdFromSPS, customerCode, cust.Id, input.PostalCode);
+                                                    await InsertUpdateTrackingNumber(newItemIdFromSPS, customerCode, cust.Id, input.ProductCode);
 
                                                     await AlertIfLowThreshold(postalCode, threshold);
 
@@ -1279,7 +1450,7 @@ namespace SND.SMP.ItemTrackingReviews
 
             return postal is not null ? postal.ItemTopUpValue : 0m;
         }
-        private async Task InsertUpdateTrackingNumber(string trackingNo, string customerCode, long customerId, string postalCode, bool isAnyAccount = true)
+        private async Task InsertUpdateTrackingNumber(string trackingNo, string customerCode, long customerId, string productCode, bool isAnyAccount = true, bool isSelfGenerated = true)
         {
             var item = await _itemTrackingRepository.FirstOrDefaultAsync(x => x.TrackingNo.Equals(trackingNo));
 
@@ -1287,25 +1458,42 @@ namespace SND.SMP.ItemTrackingReviews
             {
                 item.CustomerCode = customerCode;
                 item.CustomerId = customerId;
-                item.ProductCode = postalCode;
+                item.ProductCode = productCode;
             }
             else
             {
-                var itemIdDetails = await GetItemTrackingFile(isAnyAccount ? "Any Account" : customerCode, trackingNo);
-
-                if (itemIdDetails is not null)
+                if (isSelfGenerated)
                 {
-                    var matched = itemIdDetails.ItemWithPath.FirstOrDefault(x => x.ExcelPath.Equals(itemIdDetails.Path));
+                    var itemIdDetails = await GetItemTrackingFile(isAnyAccount ? "Any Account" : customerCode, trackingNo);
 
+                    if (itemIdDetails is not null)
+                    {
+                        var matched = itemIdDetails.ItemWithPath.FirstOrDefault(x => x.ExcelPath.Equals(itemIdDetails.Path));
+
+                        await _itemTrackingRepository.InsertAsync(new ItemTracking()
+                        {
+                            TrackingNo = trackingNo,
+                            ApplicationId = matched.ApplicationId,
+                            ReviewId = matched.ReviewId,
+                            CustomerId = customerId,
+                            CustomerCode = customerCode,
+                            DateCreated = matched.DateCreated,
+                            ProductCode = matched.ProductCode,
+                            DispatchNo = ""
+                        }).ConfigureAwait(false);
+                    }
+                }
+                else
+                {
                     await _itemTrackingRepository.InsertAsync(new ItemTracking()
                     {
                         TrackingNo = trackingNo,
-                        ApplicationId = matched.ApplicationId,
-                        ReviewId = matched.ReviewId,
+                        ApplicationId = 0,
+                        ReviewId = 0,
                         CustomerId = customerId,
                         CustomerCode = customerCode,
-                        DateCreated = matched.DateCreated,
-                        ProductCode = matched.ProductCode,
+                        DateCreated = DateTime.Now,
+                        ProductCode = productCode,
                         DispatchNo = ""
                     }).ConfigureAwait(false);
                 }
