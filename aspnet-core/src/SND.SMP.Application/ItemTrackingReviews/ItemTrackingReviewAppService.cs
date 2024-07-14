@@ -28,6 +28,7 @@ using Abp.UI;
 using SND.SMP.ApplicationSettings;
 using Newtonsoft.Json;
 using System.Net;
+using SND.SMP.APIRequestResponses;
 
 
 namespace SND.SMP.ItemTrackingReviews
@@ -42,7 +43,8 @@ namespace SND.SMP.ItemTrackingReviews
         IRepository<Dispatch, int> dispatchRepository,
         IRepository<Item, string> itemRepository,
         IRepository<Postal, long> postalRepository,
-        IRepository<ApplicationSetting, int> applicationSettingRepository
+        IRepository<ApplicationSetting, int> applicationSettingRepository,
+        IRepository<APIRequestResponse, long> apiRequestResponseRepository
     ) : AsyncCrudAppService<ItemTrackingReview, ItemTrackingReviewDto, int, PagedItemTrackingReviewResultRequestDto>(repository)
     {
         private readonly IRepository<ItemTrackingApplication, int> _itemTrackingApplicationRepository = itemTrackingApplicationRepository;
@@ -54,6 +56,7 @@ namespace SND.SMP.ItemTrackingReviews
         private readonly IRepository<Item, string> _itemRepository = itemRepository;
         private readonly IRepository<Postal, long> _postalRepository = postalRepository;
         private readonly IRepository<ApplicationSetting, int> _applicationSettingRepository = applicationSettingRepository;
+        private readonly IRepository<APIRequestResponse, long> _apiRequestResponseRepository = apiRequestResponseRepository;
 
         protected override IQueryable<ItemTrackingReview> CreateFilteredQuery(PagedItemTrackingReviewResultRequestDto input)
         {
@@ -84,6 +87,13 @@ namespace SND.SMP.ItemTrackingReviews
                 passWord = password.Value
             };
 
+            APIRequestResponse apiRequestResponse = new()
+            {
+                URL = TokenGenerationUrl.Value,
+                RequestBody = JsonConvert.SerializeObject(tokenRequest),
+                RequestDateTime = DateTime.Now
+            };
+
             var content = new StringContent(JsonConvert.SerializeObject(tokenRequest), Encoding.UTF8, "application/json");
             var apgTokenRequestMessage = new HttpRequestMessage
             {
@@ -94,6 +104,13 @@ namespace SND.SMP.ItemTrackingReviews
             using var apgTokenResponse = await apgTokenClient.SendAsync(apgTokenRequestMessage);
             apgTokenResponse.EnsureSuccessStatusCode();
             var apgTokenBody = await apgTokenResponse.Content.ReadAsStringAsync();
+
+            apiRequestResponse.ResponseBody = apgTokenBody;
+            apiRequestResponse.ResponseDateTime = DateTime.Now;
+            apiRequestResponse.Duration = (apiRequestResponse.ResponseDateTime - apiRequestResponse.RequestDateTime).Seconds;
+
+            await _apiRequestResponseRepository.InsertAsync(apiRequestResponse).ConfigureAwait(false);
+
             var apgTokenResult = System.Text.Json.JsonSerializer.Deserialize<APGTokenResponse>(apgTokenBody);
 
             if (apgTokenResult != null)
@@ -375,6 +392,13 @@ namespace SND.SMP.ItemTrackingReviews
                                     packages = packages
                                 };
 
+                                APIRequestResponse apiRequestResponse = new()
+                                {
+                                    URL = ParcelGenerationUrl.Value,
+                                    RequestBody = JsonConvert.SerializeObject(apgRequest),
+                                    RequestDateTime = DateTime.Now
+                                };
+
                                 var content = new StringContent(JsonConvert.SerializeObject(apgRequest), Encoding.UTF8, "application/json");
                                 var apgRequestMessage = new HttpRequestMessage
                                 {
@@ -385,9 +409,17 @@ namespace SND.SMP.ItemTrackingReviews
                                 using var apgResponse = await apgClient.SendAsync(apgRequestMessage);
                                 httpstatus = apgResponse.StatusCode;
 
+                                var apgBody = await apgResponse.Content.ReadAsStringAsync();
+                                
+                                apiRequestResponse.ResponseBody = apgBody;
+                                apiRequestResponse.ResponseDateTime = DateTime.Now;
+                                apiRequestResponse.Duration = (apiRequestResponse.ResponseDateTime - apiRequestResponse.RequestDateTime).Seconds;
+
+                                await _apiRequestResponseRepository.InsertAsync(apiRequestResponse).ConfigureAwait(false);
+
                                 if (httpstatus == HttpStatusCode.OK)
                                 {
-                                    var apgBody = await apgResponse.Content.ReadAsStringAsync();
+
                                     var split = apgBody.Split(",");
                                     var concatinated = split[0] + ", " + split[1] + "}]";
 
