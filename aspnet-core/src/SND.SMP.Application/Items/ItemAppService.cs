@@ -9,11 +9,19 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using SND.SMP.Items.Dto;
+using SND.SMP.ItemTrackings;
+using SND.SMP.ApplicationSettings;
 
 namespace SND.SMP.Items
 {
-    public class ItemAppService(IRepository<Item, string> repository) : AsyncCrudAppService<Item, ItemDto, string, PagedItemResultRequestDto>(repository)
+    public class ItemAppService(
+        IRepository<Item, string> repository,
+        IRepository<ItemTracking, int> itemTrackingRepository,
+        IRepository<ApplicationSetting, int> applicationSettingRepository 
+    ) : AsyncCrudAppService<Item, ItemDto, string, PagedItemResultRequestDto>(repository)
     {
+        private readonly IRepository<ItemTracking, int> _itemTrackingRepository = itemTrackingRepository;
+        private readonly IRepository<ApplicationSetting, int> _applicationSettingRepository = applicationSettingRepository;
         protected override IQueryable<Item> CreateFilteredQuery(PagedItemResultRequestDto input)
         {
             return Repository.GetAllIncluding()
@@ -72,5 +80,7 @@ namespace SND.SMP.Items
                     x.CityId                        .Contains(input.Keyword) ||
                     x.FinalOfficeId                 .Contains(input.Keyword));
         }
+    
+        
     }
 }
