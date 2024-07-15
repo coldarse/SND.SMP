@@ -152,19 +152,22 @@ namespace SND.SMP.Items
                 var filtered_pendingItems = pendingItems.Where(x => x.DispatchDate.Equals(currentDate)).ToList();
                 var filtered_unregisteredItems = unregisteredItems.Where(x => x.DispatchDate.Equals(currentDate)).ToList();
 
-                result.Add(new APIItemIdByDistinctAndDay()
-                {   
-                    TotalItems_Uploaded = filtered_uploadedItems.Count,
-                    TotalItems_Pending = filtered_pendingItems.Count,
-                    TotalItems_Unregistered = filtered_unregisteredItems.Count,
-                    TotalWeight_Uploaded = Math.Round((decimal)filtered_uploadedItems.Sum(x => x.Weight), 3),
-                    TotalWeight_Pending = Math.Round((decimal)filtered_pendingItems.Sum(x => x.Weight), 3),
-                    TotalWeight_Unregistered = Math.Round((decimal)filtered_unregisteredItems.Sum(x => x.Weight), 3),
-                    AverageValue_Uploaded = Math.Round((decimal)filtered_uploadedItems.Sum(x => x.ItemValue), 3),
-                    AverageValue_Pending = Math.Round((decimal)filtered_pendingItems.Sum(x => x.ItemValue), 3),
-                    AverageValue_Unregistered = Math.Round((decimal)filtered_unregisteredItems.Sum(x => x.ItemValue), 3),
-                    Date = currentDate.ToString()
-                });
+                if (filtered_uploadedItems.Count > 0 || filtered_pendingItems.Count > 0 || filtered_unregisteredItems.Count > 0)
+                {
+                    result.Add(new APIItemIdByDistinctAndDay()
+                    {
+                        TotalItems_Uploaded = filtered_uploadedItems.Count,
+                        TotalItems_Pending = filtered_pendingItems.Count,
+                        TotalItems_Unregistered = filtered_unregisteredItems.Count,
+                        TotalWeight_Uploaded = Math.Round((decimal)filtered_uploadedItems.Sum(x => x.Weight), 3),
+                        TotalWeight_Pending = Math.Round((decimal)filtered_pendingItems.Sum(x => x.Weight), 3),
+                        TotalWeight_Unregistered = Math.Round((decimal)filtered_unregisteredItems.Sum(x => x.Weight), 3),
+                        AverageValue_Uploaded = Math.Round((decimal)filtered_uploadedItems.Sum(x => x.ItemValue), 3),
+                        AverageValue_Pending = Math.Round((decimal)filtered_pendingItems.Sum(x => x.ItemValue), 3),
+                        AverageValue_Unregistered = Math.Round((decimal)filtered_unregisteredItems.Sum(x => x.ItemValue), 3),
+                        Date = currentDate.ToString()
+                    });
+                }
             }
 
             return result;
