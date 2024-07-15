@@ -16,20 +16,22 @@
           <div class="row">
             <div class="col-md-7">&emsp;</div>
             <div class="col-md-2">
-              <select
-                name="country"
-                id="country"
-                class="form-control m-1"
-                (change)="selectCountry($event)"
-              >
-                <option value="">Select Country</option>
-                <option *ngFor="let country of countries" value="{{ country }}">
-                  {{ country }}
-                </option>
-              </select>
+              <div class="input-group">
+                <select
+                  name="country"
+                  id="country"
+                  class="form-control m-1"
+                  (change)="selectCountry($event)"
+                >
+                  <option value="">Select Country</option>
+                  <option *ngFor="let country of countries" value="{{ country }}">
+                    {{ country }}
+                  </option>
+                </select>
+              </div>
             </div>
             <div class="col-md-3">
-              <div class="input-group">
+              <div class="input-group m-1">
                 <div class="input-group-prepend">
                   <button
                     type="button"
@@ -43,7 +45,7 @@
                   type="text"
                   class="form-control"
                   name="keyword"
-                  [placeholder]="'SearchWithThreeDot' | localize"
+                  [placeholder]="'Search Dispatch Number' | localize"
                   [(ngModel)]="keyword"
                   (keyup.enter)="search()"
                 />

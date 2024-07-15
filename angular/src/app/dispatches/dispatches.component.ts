@@ -196,7 +196,7 @@ export class DispatchesComponent extends PagedListingComponentBase<DispatchDto> 
   undoPostCheck(dispatchNo: string) {
     this._dispatchService.undoPostCheck(dispatchNo).subscribe(() => {
       abp.notify.success(this.l("Successfully Undo Postcheck"));
-      this.getDataPage(1);
+      this.refresh();
     });
   }
 

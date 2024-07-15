@@ -5,6 +5,7 @@ import {
 } from "@shared/paged-listing-component-base";
 import { AirportService } from "@shared/service-proxies/airports/airport.service";
 import { AirportDto } from "@shared/service-proxies/airports/model";
+import { ChibiService } from "@shared/service-proxies/chibis/chibis.service";
 import { DispatchService } from "@shared/service-proxies/dispatches/dispatch.service";
 import {
   DispatchBag,
@@ -36,6 +37,7 @@ export class DispatchTrackingComponent
   constructor(
     private _dispatchService: DispatchService,
     private _airportService: AirportService,
+    private _chibiService: ChibiService,
     injector: Injector
   ) {
     super(injector);
@@ -120,42 +122,39 @@ export class DispatchTrackingComponent
     let selected =
       this.dispatches[indexC].dispatchCountries[indexB].dispatchBags[indexZ]
         .custom;
-    let bagNo =
-      this.dispatches[indexC].dispatchCountries[indexB].dispatchBags[indexZ]
-        .bagNo;
 
     if (selected) {
       let airport = this.airports.find((x) => x.country === countryCode);
 
+      var bagStage = this.dispatches[indexC].dispatchCountries[indexB].dispatchBags[indexZ].stages;
+
+      var stageAirport = bagStage != undefined ? 
+                                  this.airports.find((x) => x.name === bagStage.airport) != undefined ? 
+                                            this.airports.find((x) => x.name === bagStage.airport).code : airport != undefined ? airport.code : "" : "";
+
       let stage: Stage = {
-        stage1Desc: "",
-        stage2Desc: "",
-        stage3Desc: "",
-        stage4Desc: "",
-        stage5Desc: "",
-        stage6Desc: "",
-        stage7Desc: "",
-        stage1DateTime: "",
-        stage2DateTime: "",
-        stage3DateTime: "",
-        stage4DateTime: "",
-        stage5DateTime: "",
-        stage6DateTime: "",
-        stage7DateTime: "",
-        airport: airport != undefined ? airport.code : "",
-        airportDateTime: "",
-        bagNo: bagNo,
+        stage1Desc: bagStage != undefined ? bagStage.stage1Desc : "",
+        stage2Desc: bagStage != undefined ? bagStage.stage2Desc : "",
+        stage3Desc: bagStage != undefined ? bagStage.stage3Desc : "",
+        stage4Desc: bagStage != undefined ? bagStage.stage4Desc : "",
+        stage5Desc: bagStage != undefined ? bagStage.stage5Desc : "",
+        stage6Desc: bagStage != undefined ? bagStage.stage6Desc : "",
+        stage7Desc: bagStage != undefined ? bagStage.stage7Desc : "",
+        stage1DateTime: bagStage != undefined ? bagStage.stage1DateTime.substring(0, 19) : "",
+        stage2DateTime: bagStage != undefined ? bagStage.stage2DateTime.substring(0, 19) : "",
+        stage3DateTime: bagStage != undefined ? bagStage.stage3DateTime.substring(0, 19) : "",
+        stage4DateTime: bagStage != undefined ? bagStage.stage4DateTime.substring(0, 19) : "",
+        stage5DateTime: bagStage != undefined ? bagStage.stage5DateTime.substring(0, 19) : "",
+        stage6DateTime: bagStage != undefined ? bagStage.stage6DateTime.substring(0, 19) : "",
+        stage7DateTime: bagStage != undefined ? bagStage.stage7DateTime.substring(0, 19) : "",
+        airport: stageAirport,
+        airportDateTime: bagStage != undefined ? bagStage.airportDateTime : "",
+        bagNo: bagStage != undefined ? bagStage.bagNo : "",
         dispatchNo: dispatchNo,
         countryCode: countryCode,
       };
 
-      this.dispatches[indexC].dispatchCountries[indexB].dispatchBags[
-        indexZ
-      ].stages = stage;
-    } else {
-      this.dispatches[indexC].dispatchCountries[indexB].dispatchBags[
-        indexZ
-      ].stages = undefined;
+      this.dispatches[indexC].dispatchCountries[indexB].dispatchBags[indexZ].stages = stage;
     }
   }
 
@@ -174,31 +173,35 @@ export class DispatchTrackingComponent
     if (selected) {
       let airport = this.airports.find((x) => x.country === countryCode);
 
+      var countryStage = this.dispatches[indexC].dispatchCountries[indexY].stages;
+
+      var stageAirport = countryStage != undefined ? 
+                                  this.airports.find((x) => x.name === countryStage.airport) != undefined ? 
+                                            this.airports.find((x) => x.name === countryStage.airport).code : airport != undefined ? airport.code : "" : "";
+
+
       let stage: Stage = {
-        stage1Desc: "",
-        stage2Desc: "",
-        stage3Desc: "",
-        stage4Desc: "",
-        stage5Desc: "",
-        stage6Desc: "",
-        stage7Desc: "",
-        stage1DateTime: "",
-        stage2DateTime: "",
-        stage3DateTime: "",
-        stage4DateTime: "",
-        stage5DateTime: "",
-        stage6DateTime: "",
-        stage7DateTime: "",
-        airport: airport != undefined ? airport.code : "",
-        airportDateTime: "",
-        bagNo: "",
+        stage1Desc: countryStage != undefined ? countryStage.stage1Desc : "",
+        stage2Desc: countryStage != undefined ? countryStage.stage2Desc : "",
+        stage3Desc: countryStage != undefined ? countryStage.stage3Desc : "",
+        stage4Desc: countryStage != undefined ? countryStage.stage4Desc : "",
+        stage5Desc: countryStage != undefined ? countryStage.stage5Desc : "",
+        stage6Desc: countryStage != undefined ? countryStage.stage6Desc : "",
+        stage7Desc: countryStage != undefined ? countryStage.stage7Desc : "",
+        stage1DateTime: countryStage != undefined ? countryStage.stage1DateTime.substring(0, 19) : "",
+        stage2DateTime: countryStage != undefined ? countryStage.stage2DateTime.substring(0, 19) : "",
+        stage3DateTime: countryStage != undefined ? countryStage.stage3DateTime.substring(0, 19) : "",
+        stage4DateTime: countryStage != undefined ? countryStage.stage4DateTime.substring(0, 19) : "",
+        stage5DateTime: countryStage != undefined ? countryStage.stage5DateTime.substring(0, 19) : "",
+        stage6DateTime: countryStage != undefined ? countryStage.stage6DateTime.substring(0, 19) : "",
+        stage7DateTime: countryStage != undefined ? countryStage.stage7DateTime.substring(0, 19) : "",
+        airport: stageAirport,
+        airportDateTime: countryStage != undefined ? countryStage.airportDateTime : "",
+        bagNo: countryStage != undefined ? countryStage.bagNo : "",
         dispatchNo: dispatchNo,
         countryCode: countryCode,
       };
-
       this.dispatches[indexC].dispatchCountries[indexY].stages = stage;
-    } else {
-      this.dispatches[indexC].dispatchCountries[indexY].stages = undefined;
     }
   }
 
@@ -279,8 +282,12 @@ export class DispatchTrackingComponent
     }
   }
 
-  submitItemTracking(){
-    
+  submitItemTracking() {
+    this.dispatches = this.dispatches.filter(di => di.dispatchCountries.some(dc => dc.select));
+    this._chibiService.createTrackingFileForDispatches(this.dispatches).subscribe(() => {
+      abp.notify.success(this.l('Successfully Queued For Update'));
+      this.refresh();
+    });
   }
 
   protected list(

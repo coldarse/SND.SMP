@@ -42,6 +42,7 @@ using SND.SMP.DispatchValidations;
 using System.Reflection;
 using System.Globalization;
 using System.Threading;
+using Microsoft.EntityFrameworkCore;
 
 namespace SND.SMP.Dispatches
 {
@@ -2702,7 +2703,14 @@ namespace SND.SMP.Dispatches
             List<DispatchInfo> result = [];
             List<string> countries = [];
 
-            var dispatches = await Repository.GetAllListAsync(x => !x.DispatchNo.Contains("Temp"));
+            var dispatches = await Repository
+                                    .GetAll()
+                                    .Where(x => !x.DispatchNo.Contains("Temp"))
+                                    .OrderByDescending(x => x.DispatchDate)
+                                    .WhereIf(!string.IsNullOrWhiteSpace(filter), x => x.DispatchNo.ToLower().Contains(filter.ToLower()))
+                                    .Take(10)
+                                    .ToListAsync();
+
             var bags = await _bagRepository.GetAllListAsync();
 
             foreach (var dispatch in dispatches)
@@ -2732,11 +2740,45 @@ namespace SND.SMP.Dispatches
                 {
                     foreach (var country in distinctedCountryCode)
                     {
-                        var bagsInCountry = bags.Where(x => x.CountryCode.Equals(country.CountryCode)).ToList();
+                        var bagsInCountry = dispatchBags.Where(x => x.CountryCode.Equals(country.CountryCode)).ToList();
 
                         List<DispatchBag> db = [];
+                        int noOfBagsStartedTracking = 0;
                         foreach (var bag in bagsInCountry)
                         {
+                            var item = await _itemRepository.FirstOrDefaultAsync(x => x.BagID.Equals(bag.Id));
+                            bool hasStartedTracking = HasStartedTracking(item);
+
+                            Stage stage = new();
+
+                            if (hasStartedTracking)
+                            {
+                                stage = new()
+                                {
+                                    DispatchNo = dispatch.DispatchNo,
+                                    CountryCode = country.CountryCode,
+                                    BagNo = bag.BagNo,
+                                    Stage1Desc = item.Stage1StatusDesc,
+                                    Stage1DateTime = item.DateStage1 ?? DateTime.MinValue,
+                                    Stage2Desc = item.Stage2StatusDesc,
+                                    Stage2DateTime = item.DateStage2 ?? DateTime.MinValue,
+                                    Stage3Desc = item.Stage3StatusDesc,
+                                    Stage3DateTime = item.DateStage3 ?? DateTime.MinValue,
+                                    Stage4Desc = item.Stage4StatusDesc,
+                                    Stage4DateTime = item.DateStage4 ?? DateTime.MinValue,
+                                    Stage5Desc = item.Stage5StatusDesc,
+                                    Stage5DateTime = item.DateStage5 ?? DateTime.MinValue,
+                                    Stage6Desc = item.Stage6StatusDesc,
+                                    Stage6DateTime = item.DateStage6 ?? DateTime.MinValue,
+                                    Airport = item.Stage7StatusDesc,
+                                    AirportDateTime = item.DateStage7 ?? DateTime.MinValue,
+                                    Stage7Desc = item.Stage8StatusDesc,
+                                    Stage7DateTime = item.DateStage8 ?? DateTime.MinValue
+                                };
+
+                                noOfBagsStartedTracking++;
+                            }
+
                             db.Add(new DispatchBag()
                             {
                                 BagId = bag.Id,
@@ -2744,9 +2786,11 @@ namespace SND.SMP.Dispatches
                                 ItemCount = bag.ItemCountPost == null ? 0 : (int)bag.ItemCountPost,
                                 Select = false,
                                 Custom = false,
-                                Stages = null
+                                Stages = hasStartedTracking ? stage : null
                             });
                         }
+
+                        bool allBagsTracked = noOfBagsStartedTracking == dispatchBags.Count;
 
                         dc.Add(new DispatchCountry()
                         {
@@ -2765,20 +2809,34 @@ namespace SND.SMP.Dispatches
                 }
             }
 
-            if (filter is not null)
-            {
-                result = result.Where(x =>
-                            x.Dispatch.Contains(filter) ||
-                            x.PostalCode.Contains(filter) ||
-                            x.Customer.Contains(filter)
-                        ).ToList();
-            }
+            
 
             return new DispatchTracking()
             {
                 Dispatches = result,
                 Countries = countries.Distinct().ToList()
             };
+        }
+
+        private static bool HasStartedTracking(Item item)
+        {
+            bool hasStartedTracking = false;
+            if (
+                item.DateStage1 != null ||
+                item.DateStage2 != null ||
+                item.DateStage3 != null ||
+                item.DateStage4 != null ||
+                item.DateStage5 != null ||
+                item.DateStage6 != null ||
+                item.DateStage7 != null ||
+                item.DateStage8 != null ||
+                item.DateStage9 != null
+            )
+            {
+                hasStartedTracking = true;
+            }
+
+            return hasStartedTracking;
         }
     }
 }
