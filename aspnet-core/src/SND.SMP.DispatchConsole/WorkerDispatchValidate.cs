@@ -34,14 +34,12 @@ public class WorkerDispatchValidate : BackgroundService
         while (!stoppingToken.IsCancellationRequested)
         {
             var pollInMs = _configuration.GetValue<int>("Validate:DispatchValidatePollInSec") * 1000;
-            string dirPath = _configuration.GetValue<string>("Validate:DirPath");
             string fileType = _configuration.GetValue<string>("Validate:FileType");
-            int batchSize = _configuration.GetValue<int>("Validate:BatchSize");
             int blockSize = _configuration.GetValue<int>("Validate:BlockSize");
 
             DispatchValidator dispatchValidator = new DispatchValidator();
 
-            await dispatchValidator.DiscoverAndValidate(dirPath: dirPath, fileType: fileType, batchSize: batchSize, blockSize: blockSize);
+            await dispatchValidator.DiscoverAndValidate(fileType: fileType, blockSize: blockSize);
 
             #region Logger
             if (_logger.IsEnabled(LogLevel.Information))

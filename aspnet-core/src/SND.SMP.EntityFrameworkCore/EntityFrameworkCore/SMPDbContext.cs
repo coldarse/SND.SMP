@@ -4,6 +4,8 @@ using SND.SMP.Authorization.Roles;
 using SND.SMP.Authorization.Users;
 using SND.SMP.MultiTenancy;
 /* Using Definition */
+using SND.SMP.TrackingNoForUpdates;
+using SND.SMP.APIRequestResponses;
 using SND.SMP.EmailContents;
 using SND.SMP.DispatchUsedAmounts;
 using SND.SMP.Airports;
@@ -70,6 +72,8 @@ namespace SND.SMP.EntityFrameworkCore
         public DbSet<Airport> Airports { get; set; }
         public DbSet<DispatchUsedAmount> DispatchUsedAmounts { get; set; }
         public DbSet<EmailContent> EmailContents { get; set; }
+        public DbSet<APIRequestResponse> APIRequestResponses { get; set; }
+        public DbSet<TrackingNoForUpdate> TrackingNoForUpdates { get; set; }
         /* Define a DbSet for each entity of the application */
 
         public SMPDbContext(DbContextOptions<SMPDbContext> options)
@@ -82,6 +86,27 @@ namespace SND.SMP.EntityFrameworkCore
             base.OnModelCreating(builder);
 
             /* Define Tables */
+            builder.Entity<TrackingNoForUpdate>(b =>
+            {
+                b.ToTable(SMPConsts.DbTablePrefix + "TrackingNoForUpdates");
+                b.Property(x => x.TrackingNo).HasColumnName(nameof(TrackingNoForUpdate.TrackingNo)).HasMaxLength(20);
+                b.Property(x => x.DispatchNo).HasColumnName(nameof(TrackingNoForUpdate.DispatchNo)).HasMaxLength(40);
+                b.Property(x => x.ProcessType).HasColumnName(nameof(TrackingNoForUpdate.ProcessType)).HasMaxLength(20);
+                b.HasKey(x => x.Id);
+            });
+
+            builder.Entity<APIRequestResponse>(b =>
+            {
+                b.ToTable(SMPConsts.DbTablePrefix + "APIRequestResponses");
+                b.Property(x => x.URL).HasColumnName(nameof(APIRequestResponse.URL)).HasMaxLength(255);
+                b.Property(x => x.RequestBody).HasColumnName(nameof(APIRequestResponse.RequestBody));
+                b.Property(x => x.ResponseBody).HasColumnName(nameof(APIRequestResponse.ResponseBody));
+                b.Property(x => x.RequestDateTime).HasColumnName(nameof(APIRequestResponse.RequestDateTime));
+                b.Property(x => x.ResponseDateTime).HasColumnName(nameof(APIRequestResponse.ResponseDateTime));
+                b.Property(x => x.Duration).HasColumnName(nameof(APIRequestResponse.Duration));
+                b.HasKey(x => x.Id);
+            });
+
             builder.Entity<EmailContent>(b =>
             {
                 b.ToTable(SMPConsts.DbTablePrefix + "EmailContents");
@@ -131,8 +156,8 @@ namespace SND.SMP.EntityFrameworkCore
             builder.Entity<ItemIdRunningNo>(b =>
             {
                 b.ToTable(SMPConsts.DbTablePrefix + "ItemIdRunningNos");
-                b.Property(x => x.Prefix).HasColumnName(nameof(ItemIdRunningNo.Prefix)).HasMaxLength(2);
-                b.Property(x => x.PrefixNo).HasColumnName(nameof(ItemIdRunningNo.PrefixNo)).HasMaxLength(4);
+                b.Property(x => x.Prefix).HasColumnName(nameof(ItemIdRunningNo.Prefix)).HasMaxLength(3);
+                b.Property(x => x.PrefixNo).HasColumnName(nameof(ItemIdRunningNo.PrefixNo)).HasMaxLength(7);
                 b.Property(x => x.Suffix).HasColumnName(nameof(ItemIdRunningNo.Suffix)).HasMaxLength(2);
                 b.Property(x => x.RunningNo).HasColumnName(nameof(ItemIdRunningNo.RunningNo));
                 b.Property(x => x.Customer).HasColumnName(nameof(ItemIdRunningNo.Customer)).HasMaxLength(128);

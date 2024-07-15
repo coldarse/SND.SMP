@@ -1,6 +1,7 @@
 using System.Net.Http.Headers;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
+using SND.SMP.Chibis;
 using SND.SMP.DispatchConsole.EF;
 
 namespace SND.SMP.DispatchConsole
@@ -128,6 +129,55 @@ namespace SND.SMP.DispatchConsole
         }
 
 
+        public static async Task<ChibiUpload> InsertExcelFileToChibi(Stream excel, string fileName, string originalName = null, string postalCode = null, string productCode = null)
+        {
+            using db dbconn = new();
+            var obj_ChibiKey = await dbconn.ApplicationSettings.FirstOrDefaultAsync(x => x.Name.Equals("ChibiKey"));
+            var obj_ChibiURL = await dbconn.ApplicationSettings.FirstOrDefaultAsync(x => x.Name.Equals("ChibiURL"));
+
+            var client = new HttpClient();
+            client.DefaultRequestHeaders.Clear();
+            client.DefaultRequestHeaders.Add("x-api-key", obj_ChibiKey.Value);
+            var formData = new MultipartFormDataContent();
+
+            var xlsxContent = new StreamContent(excel);
+            xlsxContent.Headers.ContentType = MediaTypeHeaderValue.Parse("multipart/form-data");
+            formData.Add(xlsxContent, "file", fileName);
+
+            var request = new HttpRequestMessage
+            {
+                Method = HttpMethod.Post,
+                RequestUri = new Uri(obj_ChibiURL.Value + "upload"),
+                Content = formData,
+            };
+
+            using var response = await client.SendAsync(request);
+
+            response.EnsureSuccessStatusCode();
+            var body = await response.Content.ReadAsStringAsync();
+            var result = JsonSerializer.Deserialize<ChibiUpload>(body);
+
+            if (result != null)
+            {
+                result.originalName = fileName.Replace(".xlsx", "") + $"_{result.name}";
+                //Insert to DB
+                Chibi entity = new()
+                {
+                    FileName = result.name == null ? "" : DateTime.Now.ToString("yyyyMMdd") + "_" + result.name,
+                    UUID = result.uuid ?? "",
+                    URL = result.url ?? "",
+                    OriginalName = originalName is null ? result.originalName : originalName,
+                    GeneratedName = result.name ?? ""
+                };
+
+                await dbconn.Chibis.AddAsync(entity).ConfigureAwait(false);
+                await dbconn.SaveChangesAsync();
+
+                await FileServer.InsertFileToAlbum(result.uuid, false, dbconn, postalCode, null, productCode);
+            }
+
+            return result;
+        }
 
         public static async Task<bool> InsertFileToAlbum(string file_uuid, bool isError, db dbconn, string postalCode = null, string serviceCode = null, string productCode = null)
         {

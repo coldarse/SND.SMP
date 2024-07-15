@@ -49,7 +49,7 @@
       <label><strong>Date of Application</strong></label>
     </div>
     <div class="col-6">
-      <label>{{ application.dateCreated | date : "short" }}</label>
+      <label>{{ application.dateCreated | date : "dd/MM/yyyy" }}</label>
     </div>
     <div class="col-1"></div>
   </div>
@@ -130,7 +130,7 @@
           class="col-2"
           [(ngModel)]="prefix"
           placeholder="RS"
-          maxlength="2"
+          [maxlength]="prefixMaxLength"
           oninput="let p=this.selectionStart;this.value=this.value.toUpperCase();this.setSelectionRange(p, p);"
         />
         <input

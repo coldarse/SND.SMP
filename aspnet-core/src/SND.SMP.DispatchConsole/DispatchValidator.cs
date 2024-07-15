@@ -16,6 +16,7 @@ using SND.SMP.CustomerTransactions;
 using SND.SMP.DispatchUsedAmounts;
 using System.Text;
 using OfficeOpenXml;
+using SND.SMP.ItemTrackingReviews;
 
 namespace SND.SMP.DispatchConsole
 {
@@ -26,7 +27,6 @@ namespace SND.SMP.DispatchConsole
         private const int ID_LENGTH = 13;
 
         private uint QueueId { get; set; }
-        private string DirPath { get; set; }
         private string FilePath { get; set; }
         private string FileType { get; set; }
         private string CustomerCode { get; set; }
@@ -39,16 +39,15 @@ namespace SND.SMP.DispatchConsole
         private DispatchProfileDto DispatchProfile { get; set; }
 
         private string Currency { get; set; }
-        private int BatchSize { get; set; }
+
+        
 
 
         public DispatchValidator() { }
 
-        public async Task DiscoverAndValidate(string dirPath, string fileType, int batchSize = 750, int blockSize = 50)
+        public async Task DiscoverAndValidate(string fileType, int blockSize = 50)
         {
-            DirPath = dirPath;
             FileType = fileType;
-            BatchSize = batchSize;
             BlockSize = blockSize;
 
             using db db = new();
@@ -151,6 +150,7 @@ namespace SND.SMP.DispatchConsole
             DispatchValidateDto validationResult_country_HasInvalidCountry = new() { Category = "Invalid Country Code" };
             DispatchValidateDto validationResult_wallet_InsufficientBalance = new() { Category = "Insufficient Wallet Balance" };
             DispatchValidateDto validationResult_ioss_missing = new() { Category = "Missing IOSS" };
+            DispatchValidateDto validationResult_trackingno_IsPreRegistered = new() { Category = "Unregistered Tracking Number(s)" };
             DispatchValidateDto validationResult_Others = new() { Category = "Caught Error" };
 
             using db db = new();
@@ -213,7 +213,7 @@ namespace SND.SMP.DispatchConsole
                 var listIOSSChecking = new List<DispatchValidateIOSSDto>();
                 var listCountryCodes = new List<DispatchValidateCountryDto>();
                 var listParticulars = new List<DispatchValidateParticularsDto>();
-
+                var listItemIdsForUpdate = new List<string>();
                 do
                 {
                     while (reader.Read())
@@ -262,6 +262,7 @@ namespace SND.SMP.DispatchConsole
                             totalPrice += price;
 
                             listItemIds.Add(itemId);
+                            listItemIdsForUpdate.Add(itemId);
                             if (!listBagNos.Contains(bagNo)) listBagNos.Add(bagNo);
                             listIOSSChecking.Add(new DispatchValidateIOSSDto { Row = rowTouched, TrackingNo = itemId, CountryCode = countryCode, IOSS = taxPaymentMethod });
                             listCountryCodes.Add(new DispatchValidateCountryDto { Id = itemId, CountryCode = countryCode });
@@ -280,6 +281,7 @@ namespace SND.SMP.DispatchConsole
                                     () => Id_HasInvalidPrefixSuffix(ref validationResult_id_HasInvalidPrefixSuffix, listItemIds),
                                     () => Id_HasInvalidCheckDigit(ref validationResult_id_HasInvalidCheckDigit, listItemIds),
                                     () => Country_IsInvalidCountry(ref validationResult_country_HasInvalidCountry, listCountryCodes),
+                                    () => TrackingNo_IsPreRegistered(ref validationResult_trackingno_IsPreRegistered, listItemIds, CustomerCode, DispatchProfile.ProductCode),
                                     () => Dispatch_IsParticularsNotTally(ref validationResult_dispatch_IsParticularsNotTally, listParticulars));
 
                                 listItemIds.Clear();
@@ -325,7 +327,7 @@ namespace SND.SMP.DispatchConsole
                     }
                 } while (reader.NextResult());
 
-                
+
 
                 if (listItemIds.Count != 0)
                 {
@@ -339,6 +341,7 @@ namespace SND.SMP.DispatchConsole
                         () => Id_HasInvalidPrefixSuffix(ref validationResult_id_HasInvalidPrefixSuffix, listItemIds),
                         () => Id_HasInvalidCheckDigit(ref validationResult_id_HasInvalidCheckDigit, listItemIds),
                         () => Country_IsInvalidCountry(ref validationResult_country_HasInvalidCountry, listCountryCodes),
+                        () => TrackingNo_IsPreRegistered(ref validationResult_trackingno_IsPreRegistered, listItemIds, CustomerCode, DispatchProfile.ProductCode),
                         () => Dispatch_IsParticularsNotTally(ref validationResult_dispatch_IsParticularsNotTally, listParticulars));
                 }
 
@@ -359,11 +362,13 @@ namespace SND.SMP.DispatchConsole
                 #endregion
 
                 bool allowUploadIfInsufficientFund = false;
-                var appSetting = db.ApplicationSettings.FirstOrDefault(u => u.Name.Equals("AllowUploadIfInsufficientFund"));
-                if (appSetting is not null) 
-                {
-                    allowUploadIfInsufficientFund = appSetting.Value.ToString() == "true";
-                }
+                bool allowUploadIfUnregisteredIds = true;
+
+                var appSetting_insufficientFund = db.ApplicationSettings.FirstOrDefault(u => u.Name.Equals("AllowUploadIfInsufficientFund"));
+                var appSetting_unregisteredId = db.ApplicationSettings.FirstOrDefault(u => u.Name.Equals("AllowUploadIfUnregisteredIds"));
+
+                if (appSetting_insufficientFund is not null) allowUploadIfInsufficientFund = appSetting_insufficientFund.Value.ToString() == "true";
+                if (appSetting_unregisteredId is not null) allowUploadIfUnregisteredIds = appSetting_unregisteredId.Value.ToString() == "true";
 
                 #region Dispatch Validation
 
@@ -434,15 +439,27 @@ namespace SND.SMP.DispatchConsole
                         validations.Add(validationResult_wallet_InsufficientBalance);
                     }
 
+                    if (validationResult_trackingno_IsPreRegistered.ItemIds.Count != 0 || !string.IsNullOrWhiteSpace(validationResult_trackingno_IsPreRegistered.Message))
+                    {
+                        isValid = allowUploadIfUnregisteredIds;
+                        validations.Add(validationResult_trackingno_IsPreRegistered);
+                    }
+
                     if (!isValid)
                     {
                         await ValidationsHandling(validations, DispatchProfile.DispatchNo, CustomerCode);
                     }
                     else //---- Deduct Amount If Valid ----//
                     {
-                        if(validations.Count == 1 && validations[0].Category == "Insufficient Wallet Balance")
+
+                        if (validations.Count == 1 && validations[0].Category == "Insufficient Wallet Balance")
                         {
-                            await ValidationsHandling(validations, DispatchProfile.DispatchNo, CustomerCode);
+                            await ValidationsHandling(validations, DispatchProfile.DispatchNo, CustomerCode, true);
+                        }
+
+                        if (validations.Any(u => u.Category.Equals("Unregistered Tracking Number(s)")))
+                        {
+                            await ValidationsHandling(validations, DispatchProfile.DispatchNo, CustomerCode, true);
                         }
 
                         using var dbconn = new db();
@@ -523,7 +540,7 @@ namespace SND.SMP.DispatchConsole
 
                     if (isValid)
                     {
-                        if (isFundLack == false)
+                        if (isFundLack == false || allowUploadIfInsufficientFund == true)
                         {
                             await db.Queues.AddAsync(new Queue
                             {
@@ -558,7 +575,7 @@ namespace SND.SMP.DispatchConsole
             }
         }
 
-        private static async Task ValidationsHandling(List<DispatchValidateDto> validations, string dispatchNo, string customerCode)
+        private static async Task ValidationsHandling(List<DispatchValidateDto> validations, string dispatchNo, string customerCode, bool successEmail = false)
         {
             string validationJSON = JsonConvert.SerializeObject(validations);
 
@@ -620,11 +637,12 @@ namespace SND.SMP.DispatchConsole
                     validations = validations
                 };
 
+                var urlEndpoint = successEmail ? "services/app/EmailContent/SendPreAlertSuccessWithErrorsEmailAsync" : "services/app/EmailContent/SendPreAlertFailureEmail";
                 var content = new StringContent(JsonConvert.SerializeObject(preAlertFailureEmail), Encoding.UTF8, "application/json");
                 var emailrequest = new HttpRequestMessage
                 {
                     Method = HttpMethod.Post,
-                    RequestUri = new Uri(apiUrl.Value + "services/app/EmailContent/SendPreAlertFailureEmail"),
+                    RequestUri = new Uri(apiUrl.Value + urlEndpoint),
                     Content = content,
                 };
                 await emailclient.SendAsync(emailrequest).ConfigureAwait(false);
@@ -877,6 +895,27 @@ namespace SND.SMP.DispatchConsole
             return result;
         }
 
+        private static bool TrackingNo_IsPreRegistered(ref Dto.DispatchValidateDto validationResult, List<string> model, string customerCode, string productCode)
+        {
+            var result = false;
+
+            using db db = new();
+            db.ChangeTracker.AutoDetectChangesEnabled = false;
+
+            var registeredItems = db.ItemTrackings.Where(u => u.CustomerCode.Equals(customerCode) &&
+                                                              u.ProductCode .Equals(productCode)
+                                                        ).ToList();
+            
+            var unregisteredItems = model.Where(a => !registeredItems.Any(b => b.TrackingNo.Equals(a)))
+                                        .Select(u => $"Tracking No {u} has not been registered.").ToList();
+
+            validationResult.ItemIds.AddRange(unregisteredItems);
+
+            result = unregisteredItems.Count != 0;
+
+            return result;
+        }
+
         private static DataTable ConvertToDatatable(Stream ms)
         {
             DataTable dataTable = new();
@@ -911,6 +950,20 @@ namespace SND.SMP.DispatchConsole
 
             return dataTable;
         }
+
+        private static async Task<Stream> GetFileStream(string url)
+        {
+            using var httpClient = new HttpClient();
+            using var response = await httpClient.GetAsync(url);
+            if (response.IsSuccessStatusCode)
+            {
+                var contentByteArray = await response.Content.ReadAsByteArrayAsync();
+                return new MemoryStream(contentByteArray);
+            }
+            return null;
+        }
+
+        
     }
 }
 

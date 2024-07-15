@@ -1320,6 +1320,42 @@ namespace SND.SMP.Migrations
                     b.ToTable("AbpWebhookSubscriptions");
                 });
 
+            modelBuilder.Entity("SND.SMP.APIRequestResponses.APIRequestResponse", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("Duration")
+                        .HasColumnType("int")
+                        .HasColumnName("Duration");
+
+                    b.Property<string>("RequestBody")
+                        .HasColumnType("longtext")
+                        .HasColumnName("RequestBody");
+
+                    b.Property<DateTime>("RequestDateTime")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("RequestDateTime");
+
+                    b.Property<string>("ResponseBody")
+                        .HasColumnType("longtext")
+                        .HasColumnName("ResponseBody");
+
+                    b.Property<DateTime>("ResponseDateTime")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("ResponseDateTime");
+
+                    b.Property<string>("URL")
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("URL");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("APIRequestResponses", (string)null);
+                });
+
             modelBuilder.Entity("SND.SMP.Airports.Airport", b =>
                 {
                     b.Property<int>("Id")
@@ -2410,13 +2446,13 @@ namespace SND.SMP.Migrations
                         .HasColumnName("Customer");
 
                     b.Property<string>("Prefix")
-                        .HasMaxLength(2)
-                        .HasColumnType("varchar(2)")
+                        .HasMaxLength(3)
+                        .HasColumnType("varchar(3)")
                         .HasColumnName("Prefix");
 
                     b.Property<string>("PrefixNo")
-                        .HasMaxLength(4)
-                        .HasColumnType("varchar(4)")
+                        .HasMaxLength(7)
+                        .HasColumnType("varchar(7)")
                         .HasColumnName("PrefixNo");
 
                     b.Property<int>("RunningNo")
@@ -3488,6 +3524,32 @@ namespace SND.SMP.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Refunds", (string)null);
+                });
+
+            modelBuilder.Entity("SND.SMP.TrackingNoForUpdates.TrackingNoForUpdate", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("DispatchNo")
+                        .HasMaxLength(40)
+                        .HasColumnType("varchar(40)")
+                        .HasColumnName("DispatchNo");
+
+                    b.Property<string>("ProcessType")
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("ProcessType");
+
+                    b.Property<string>("TrackingNo")
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("TrackingNo");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("TrackingNoForUpdates", (string)null);
                 });
 
             modelBuilder.Entity("SND.SMP.Wallets.Wallet", b =>

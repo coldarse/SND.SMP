@@ -14,8 +14,9 @@ import {
 import { DispatchService } from "@shared/service-proxies/dispatches/dispatch.service";
 import { CreateUpdateDispatchComponent } from "../dispatches/create-update-dispatch/create-update-dispatch.component";
 import { Router } from "@angular/router";
-import { HttpResponse } from "@angular/common/http";
+import { HttpErrorResponse, HttpResponse } from "@angular/common/http";
 import { PrePostCheckWeightComponent } from "./pre-post-check-weight/pre-post-check-weight.component";
+import { ErrorModalComponent } from "@shared/components/error-modal/error-modal.component";
 
 class PagedDispatchesRequestDto extends PagedRequestDto {
   keyword: string;
@@ -40,6 +41,7 @@ export class DispatchesComponent extends PagedListingComponentBase<DispatchDto> 
   isAdmin = true;
   isDownloadingManifest = false;
   isDownloadingBag = false;
+  isUndoingPostCheck = false;
   companyCode = "";
 
   constructor(
@@ -194,9 +196,34 @@ export class DispatchesComponent extends PagedListingComponentBase<DispatchDto> 
   }
 
   undoPostCheck(dispatchNo: string) {
-    this._dispatchService.undoPostCheck(dispatchNo).subscribe(() => {
-      abp.notify.success(this.l("Successfully Undo Postcheck"));
-      this.refresh();
+    abp.message.confirm(`Undo Post Check for ${dispatchNo}`, undefined, (result: boolean) => {
+      if (result) {
+        this.isUndoingPostCheck = true;
+        this._dispatchService.undoPostCheck(dispatchNo)
+        .pipe(
+          finalize(() => {
+            this.isUndoingPostCheck = false;
+          })
+        )
+        .subscribe(() => {
+          abp.notify.success(this.l("Successfully Undo Postcheck"));
+          this.getDataPage(1);
+        },
+        (error: HttpErrorResponse) => {
+          //Handle error
+          let cc: BsModalRef;
+          cc = this._modalService.show(
+            ErrorModalComponent,
+            {
+              class: 'modal-lg',
+              initialState: {
+                title: "",
+                errorMessage: error.message,
+              },
+            }
+          )
+        });
+      }
     });
   }
 

@@ -72,6 +72,10 @@ public partial class db : DbContext
     public virtual DbSet<SND.SMP.ItemIdRunningNos.ItemIdRunningNo> ItemIdRunningNos { get; set; }
 
     public virtual DbSet<SND.SMP.DispatchUsedAmounts.DispatchUsedAmount> DispatchUsedAmounts { get; set; }
+    
+    public virtual DbSet<SND.SMP.TrackingNoForUpdates.TrackingNoForUpdate> TrackingNoForUpdates { get; set; }
+
+    public virtual DbSet<SND.SMP.ItemTrackings.ItemTracking> ItemTrackings { get; set; }
 
 
 

@@ -236,7 +236,8 @@ namespace SND.SMP.ItemTrackingReviews
                         if (postalSupported == "KG")
                         {
                             #region Product Code
-                            if (!string.Equals(input.ProductCode.Trim(), "OMT", StringComparison.OrdinalIgnoreCase) && !string.Equals(input.ProductCode.Trim(), "PRT", StringComparison.OrdinalIgnoreCase))
+                            if (!string.Equals(input.ProductCode.Trim(), "OMT", StringComparison.OrdinalIgnoreCase) &&
+                                !string.Equals(input.ProductCode.Trim(), "PRT", StringComparison.OrdinalIgnoreCase))
                             {
                                 result.Errors.Add("Invalid product code");
                             }
@@ -652,7 +653,7 @@ namespace SND.SMP.ItemTrackingReviews
                                     BagID = null,
                                     DispatchDate = dispatchTemp.DispatchDate,
                                     Month = 0,
-                                    PostalCode = input.ServiceCode,
+                                    PostalCode = input.PostalCode,
                                     ServiceCode = input.ServiceCode,
                                     ProductCode = input.ProductCode,
                                     CountryCode = input.RecipientCountry,
@@ -814,7 +815,26 @@ namespace SND.SMP.ItemTrackingReviews
 
             return dataTable;
         }
-        public async Task<bool> IsTrackingNoOwner(string customerCode, string trackingNo, string productCode)
+        private static DataTable ConcatenateDataTables(params DataTable[] tables)
+        {
+            if (tables == null || tables.Length == 0)
+                throw new ArgumentException("At least one DataTable must be provided", nameof(tables));
+
+            // Clone the schema of the first table (assuming all tables have the same schema)
+            DataTable mergedTable = tables[0].Clone();
+
+            // Import rows from each table into the merged table
+            foreach (DataTable table in tables)
+            {
+                foreach (DataRow row in table.Rows)
+                {
+                    mergedTable.ImportRow(row);
+                }
+            }
+
+            return mergedTable;
+        }
+        private async Task<bool> IsTrackingNoOwner(string customerCode, string trackingNo, string productCode)
         {
             //---- Checks if Item Tracking Id is already used, retrieves from used table. ----//
             var itemtrackingid = await _itemTrackingRepository.FirstOrDefaultAsync(x =>
@@ -837,7 +857,7 @@ namespace SND.SMP.ItemTrackingReviews
             return true;
 
         }
-        public async Task<ItemIds> GetItemTrackingFile(string customerCode, string trackingNo = "", string postalCode = null, string productCode = null)
+        private async Task<ItemIds> GetItemTrackingFile(string customerCode, string trackingNo = "", string postalCode = null, string productCode = null)
         {
             List<ItemTrackingReview> reviews = [];
 
@@ -845,12 +865,10 @@ namespace SND.SMP.ItemTrackingReviews
             if (!string.IsNullOrWhiteSpace(trackingNo))
             {
                 string prefix = trackingNo[..2];
-                // string prefixNo = trackingNo.Substring(2, 2);
                 string suffix = trackingNo[^2..];
 
                 reviews = await _itemTrackingReviewRepository.GetAllListAsync(x =>
                                                                                     x.Prefix.Equals(prefix) &&
-                                                                                    // x.PrefixNo.Equals(prefixNo) &&
                                                                                     x.Suffix.Equals(suffix) &&
                                                                                     x.CustomerCode.Equals(customerCode)
                                                                                  );
@@ -932,7 +950,7 @@ namespace SND.SMP.ItemTrackingReviews
                 Path = itemIdFilePath
             };
         }
-        public async Task<UnusedItemIds> GetUnusedTrackingId(string trackingNo = "", string postalCode = null, string productCode = null, string customerCode = null)
+        private async Task<UnusedItemIds> GetUnusedTrackingId(string trackingNo = "", string postalCode = null, string productCode = null, string customerCode = null)
         {
             var ItemIds = await GetItemTrackingFile(customerCode ?? "Any Account", trackingNo, postalCode, productCode);
 
@@ -973,7 +991,7 @@ namespace SND.SMP.ItemTrackingReviews
                 UnusedList = unusedList,
             };
         }
-        public async Task<string> GetNextAvailableTrackingNumber(string postalCode, bool? willUpdate = false, string productCode = null, string customerCode = null)
+        private async Task<string> GetNextAvailableTrackingNumber(string postalCode, bool? willUpdate = false, string productCode = null, string customerCode = null)
         {
             string result = null;
 
@@ -1019,55 +1037,7 @@ namespace SND.SMP.ItemTrackingReviews
 
             return result;
         }
-
-        // public async Task<string> GetNextAvailableAnyAccountTrackingNumber(string postalCode, bool? willUpdate = false, string productCode = null)
-        // {
-        //     string result = null;
-
-        //     var anyAccountLists = await GetUnusedTrackingId("", postalCode, productCode, null);
-
-        //     if (anyAccountLists is null) return null;
-
-        //     var randomIndex = 0;
-        //     var count = anyAccountLists.UnusedList.Count;
-
-        //     if (count > 1)
-        //     {
-        //         var maxRan = count - 1;
-        //         randomIndex = new Random().Next(0, maxRan);
-        //     }
-
-        //     var randomTrackingNo = anyAccountLists.UnusedList
-        //         .OrderBy(u => u)
-        //         .Skip(randomIndex)
-        //         .Take(1)
-        //         .FirstOrDefault();
-
-        //     var itemPath = anyAccountLists.ItemWithPath.FirstOrDefault(x => x.ItemIds.Any(y => y.TrackingNo.Equals(randomTrackingNo)));
-
-        //     if (randomTrackingNo is not null)
-        //     {
-        //         result = randomTrackingNo;
-
-        //         if (willUpdate.GetValueOrDefault())
-        //         {
-        //             await _itemTrackingRepository.InsertAsync(new ItemTracking()
-        //             {
-        //                 TrackingNo = randomTrackingNo,
-        //                 ApplicationId = itemPath.ApplicationId,
-        //                 ReviewId = itemPath.ReviewId,
-        //                 CustomerId = itemPath.CustomerId,
-        //                 CustomerCode = itemPath.CustomerCode,
-        //                 DateCreated = itemPath.DateCreated,
-        //                 ProductCode = itemPath.ProductCode,
-        //             }).ConfigureAwait(false);
-        //         }
-        //     }
-
-        //     return result;
-        // }
-
-        public async Task<decimal> GetItemTopupValueFromPostalMaintenance(string postalCode, string serviceCode, string productCode)
+        private async Task<decimal> GetItemTopupValueFromPostalMaintenance(string postalCode, string serviceCode, string productCode)
         {
             var postal = await _postalRepository.FirstOrDefaultAsync(x =>
                                                                         x.PostalCode.Equals(postalCode) &&
@@ -1077,7 +1047,7 @@ namespace SND.SMP.ItemTrackingReviews
 
             return postal is not null ? postal.ItemTopUpValue : 0m;
         }
-        public async Task InsertUpdateTrackingNumber(string trackingNo, string customerCode, long customerId, string postalCode, bool isAnyAccount = true)
+        private async Task InsertUpdateTrackingNumber(string trackingNo, string customerCode, long customerId, string postalCode, bool isAnyAccount = true)
         {
             var item = await _itemTrackingRepository.FirstOrDefaultAsync(x => x.TrackingNo.Equals(trackingNo));
 
@@ -1109,7 +1079,7 @@ namespace SND.SMP.ItemTrackingReviews
                 }
             }
         }
-        public static async Task AlertIfLowThreshold(string postalCode, int threshold, string productCode = null)
+        private static async Task AlertIfLowThreshold(string postalCode, int threshold, string productCode = null)
         {
             // threshold = 50000; //default
 
@@ -1188,7 +1158,7 @@ namespace SND.SMP.ItemTrackingReviews
             //     #endregion
             // }
         }
-        public async Task<int> GetLastRunningNo(string prefix, string prefixNo, string suffix)
+        private async Task<int> GetLastRunningNo(string prefix, string prefixNo, string suffix)
         {
             int lastRunningNo = 0;
 
@@ -1271,7 +1241,7 @@ namespace SND.SMP.ItemTrackingReviews
 
             return false;
         }
-        public async Task<List<string>> GenerateTrackingNumbers(int startNo, int totalRequested, string suffix, string prefixNo, string prefix)
+        private async Task<List<string>> GenerateTrackingNumbers(int startNo, int totalRequested, string suffix, string prefixNo, string prefix)
         {
             List<string> result = [];
 

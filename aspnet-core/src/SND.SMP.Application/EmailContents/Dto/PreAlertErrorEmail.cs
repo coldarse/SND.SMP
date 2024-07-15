@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-public class PreAlertFailureEmail
+public class PreAlertErrorEmail
 {
     public string customerCode { get; set; }
     public string dispatchNo { get; set; }

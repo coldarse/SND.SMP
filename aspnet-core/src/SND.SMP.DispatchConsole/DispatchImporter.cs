@@ -9,6 +9,8 @@ using Humanizer;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using System.Text;
+using SND.SMP.DispatchConsole.EF;
+using SND.SMP.ItemTrackings;
 
 namespace SND.SMP.DispatchConsole
 {
@@ -138,6 +140,9 @@ namespace SND.SMP.DispatchConsole
 
                     await db.Dispatches.AddAsync(dispatch);
                     await db.SaveChangesAsync().ConfigureAwait(false);
+
+                    var savedDispatch = await db.Dispatches.FirstOrDefaultAsync(x => x.DispatchNo.Equals(_dispatchProfile.DispatchNo));
+                    var customer = await db.Customers.FirstOrDefaultAsync(x => x.Code.Equals(_dispatchProfile.AccNo));
 
                     var rowTouched = 0;
                     var listItems = new List<DispatchItemDto>();
@@ -310,9 +315,58 @@ namespace SND.SMP.DispatchConsole
                                         Status = (int)DispatchEnumConst.Status.Stage1
                                     })).ConfigureAwait(false);
 
+                                    await db.TrackingNoForUpdates.AddRangeAsync(listItems.Select(u => new TrackingNoForUpdates.TrackingNoForUpdate
+                                    {
+                                        TrackingNo = u.TrackingNo,
+                                        DispatchNo = _dispatchProfile.DispatchNo,
+                                        ProcessType = TrackingNoForUpdateConst.STATUS_UPDATE,
+                                    })).ConfigureAwait(false);
+
+                                    var itemTrackings = db.ItemTrackings.Where(u => u.CustomerCode.Equals(_dispatchProfile.AccNo) &&
+                                                                                    u.ProductCode.Equals(_dispatchProfile.ProductCode)).ToList();
+
+                                    var registeredItems = itemTrackings
+                                                            .Where(a => listItems.Any(b => b.TrackingNo == a.TrackingNo))
+                                                            .Select(a => new ItemTracking
+                                                            {
+                                                                Id = a.Id,
+                                                                TrackingNo = a.TrackingNo,
+                                                                ApplicationId = a.ApplicationId,
+                                                                ReviewId = a.ReviewId,
+                                                                CustomerCode = a.CustomerCode,
+                                                                CustomerId = a.CustomerId,
+                                                                DateCreated = a.DateCreated,
+                                                                DateUsed = DateTime.Now,
+                                                                DispatchId = (int)savedDispatch.Id,
+                                                                DispatchNo = _dispatchProfile.DispatchNo,
+                                                                ProductCode = a.ProductCode
+                                                            })
+                                                            .ToList();
+
+                                    db.ItemTrackings.UpdateRange(registeredItems);
+
+                                    var unregistered = listItems
+                                                            .Where(b => !itemTrackings.Any(a => a.TrackingNo == b.TrackingNo))
+                                                            .Select(a => new ItemTracking
+                                                            {
+                                                                TrackingNo = a.TrackingNo,
+                                                                ApplicationId = 0,
+                                                                ReviewId = 0,
+                                                                CustomerCode = customer.Code,
+                                                                CustomerId = customer.Id,
+                                                                DateCreated = DateTime.MinValue,
+                                                                DateUsed = DateTime.Now,
+                                                                DispatchId = (int)savedDispatch.Id,
+                                                                DispatchNo = _dispatchProfile.DispatchNo,
+                                                                ProductCode = a.ProductCode
+                                                            })
+                                                            .ToList();
+
+                                    await db.ItemTrackings.AddRangeAsync(unregistered);
+
                                     dispatch.ImportProgress = Convert.ToInt32(Convert.ToDecimal(itemCount / Convert.ToDecimal(rowCount)) * 100);
 
-                                    await db.SaveChangesAsync();
+                                    await db.SaveChangesAsync().ConfigureAwait(false);
 
                                     //reset and next batch
                                     listItems.Clear();
@@ -384,7 +438,56 @@ namespace SND.SMP.DispatchConsole
                             Status = (int)DispatchEnumConst.Status.Stage1
                         })).ConfigureAwait(false);
 
-                        await db.SaveChangesAsync();
+                        await db.TrackingNoForUpdates.AddRangeAsync(listItems.Select(u => new TrackingNoForUpdates.TrackingNoForUpdate
+                        {
+                            TrackingNo = u.TrackingNo,
+                            DispatchNo = _dispatchProfile.DispatchNo,
+                            ProcessType = TrackingNoForUpdateConst.STATUS_UPDATE
+                        })).ConfigureAwait(false);
+
+                        var itemTrackings = db.ItemTrackings.Where(u => u.CustomerCode.Equals(_dispatchProfile.AccNo) &&
+                                                                                    u.ProductCode.Equals(_dispatchProfile.ProductCode)).ToList();
+
+                        var registeredItems = itemTrackings
+                                                .Where(a => listItems.Any(b => b.TrackingNo == a.TrackingNo))
+                                                .Select(a => new ItemTracking
+                                                {
+                                                    Id = a.Id,
+                                                    TrackingNo = a.TrackingNo,
+                                                    ApplicationId = a.ApplicationId,
+                                                    ReviewId = a.ReviewId,
+                                                    CustomerCode = a.CustomerCode,
+                                                    CustomerId = a.CustomerId,
+                                                    DateCreated = a.DateCreated,
+                                                    DateUsed = DateTime.Now,
+                                                    DispatchId = (int)savedDispatch.Id,
+                                                    DispatchNo = _dispatchProfile.DispatchNo,
+                                                    ProductCode = a.ProductCode
+                                                })
+                                                .ToList();
+
+                        db.ItemTrackings.UpdateRange(registeredItems);
+
+                        var unregistered = listItems
+                                                .Where(b => !itemTrackings.Any(a => a.TrackingNo == b.TrackingNo))
+                                                .Select(a => new ItemTracking
+                                                {
+                                                    TrackingNo = a.TrackingNo,
+                                                    ApplicationId = 0,
+                                                    ReviewId = 0,
+                                                    CustomerCode = customer.Code,
+                                                    CustomerId = customer.Id,
+                                                    DateCreated = DateTime.MinValue,
+                                                    DateUsed = DateTime.Now,
+                                                    DispatchId = (int)savedDispatch.Id,
+                                                    DispatchNo = _dispatchProfile.DispatchNo,
+                                                    ProductCode = a.ProductCode
+                                                })
+                                                .ToList();
+
+                        await db.ItemTrackings.AddRangeAsync(unregistered);
+
+                        await db.SaveChangesAsync().ConfigureAwait(false);
                     }
                     #endregion
 
@@ -408,6 +511,19 @@ namespace SND.SMP.DispatchConsole
                         queueTask.StartTime = dateImportStart;
                         queueTask.EndTime = dateImportCompleted;
                     }
+
+                    await db.Queues.AddAsync(new Queue
+                    {
+                        EventType = "Update Tracking",
+                        FilePath = _dispatchProfile.DispatchNo,
+                        Status = QueueEnumConst.STATUS_NEW,
+                        DateCreated = DateTime.Now,
+                        DeleteFileOnFailed = 0,
+                        DeleteFileOnSuccess = 0,
+                        StartTime = DateTime.Now,
+                        EndTime = DateTime.MinValue,
+                        TookInSec = 0,
+                    }).ConfigureAwait(false);
 
                     var apiUrl = await db.ApplicationSettings.FirstOrDefaultAsync(x => x.Name.Equals("APIURL"));
 

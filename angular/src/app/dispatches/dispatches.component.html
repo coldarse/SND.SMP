@@ -82,7 +82,7 @@
                 >
                   <td>{{ dispatch.customerName }}</td>
                   <td>{{ dispatch.postalDesc }}</td>
-                  <td>{{ dispatch.dispatchDate }}</td>
+                  <td>{{ dispatch.dispatchDate | date : "dd/MM/yyyy" }}</td>
                   <td>{{ dispatch.dispatchNo }}</td>
                   <td>{{ dispatch.serviceDesc }}</td>
                   <td>{{ dispatch.productDesc }}</td>
@@ -177,7 +177,18 @@
                           class="bg-danger dropdown-item"
                           (click)="undoPostCheck(dispatch.dispatchNo)"
                         >
-                          Undo Post Check
+                          @if (!isUndoingPostCheck) {
+                            Undo Post Check
+                          }
+                          @else{
+                            <div
+                              class="spinner-border spinner-border-sm"
+                              role="status"
+                            >
+                              <span class="sr-only">Loading...</span>
+                            </div>
+                            &nbsp;Undoing Post Check 
+                          }
                         </button>
                         }
                       </div>

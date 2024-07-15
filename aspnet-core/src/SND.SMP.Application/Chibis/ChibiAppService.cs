@@ -37,6 +37,9 @@ using SND.SMP.Wallets;
 using SND.SMP.CustomerTransactions;
 using SND.SMP.EWalletTypes;
 using SND.SMP.Currencies;
+using SND.SMP.ItemTrackingApplications;
+using SND.SMP.TrackingNoForUpdates;
+using static SND.SMP.Shared.EnumConst;
 
 namespace SND.SMP.Chibis
 {
@@ -56,7 +59,10 @@ namespace SND.SMP.Chibis
         IRepository<DispatchUsedAmount, int> dispatchUsedAmountRepository,
         IRepository<CustomerTransaction, long> customerTransactionRepository,
         IRepository<EWalletType, long> ewalletTypeRepository,
-        IRepository<Currency, long> currencyRepository
+        IRepository<Currency, long> currencyRepository,
+        IRepository<ItemTrackingApplication, int> itemTrackingApplicationRepository,
+        IRepository<ItemTrackingReview, int> itemTrackingReviewRepository,
+        IRepository<TrackingNoForUpdate, long> trackingNoForUpdateRepository
     ) : AsyncCrudAppService<Chibi, ChibiDto, long, PagedChibiResultRequestDto>(repository)
     {
         private readonly IRepository<Queue, long> _queueRepository = queueRepository;
@@ -74,6 +80,9 @@ namespace SND.SMP.Chibis
         private readonly IRepository<CustomerTransaction, long> _customerTransactionRepository = customerTransactionRepository;
         private readonly IRepository<EWalletType, long> _ewalletTypeRepository = ewalletTypeRepository;
         private readonly IRepository<Currency, long> _currencyRepository = currencyRepository;
+        private readonly IRepository<ItemTrackingApplication, int> _itemTrackingApplicationRepository = itemTrackingApplicationRepository;
+        private readonly IRepository<ItemTrackingReview, int> _itemTrackingReviewRepository = itemTrackingReviewRepository;
+        private readonly IRepository<TrackingNoForUpdate, long> _trackingNoForUpdateRepository = trackingNoForUpdateRepository;
 
         private static async Task<string> GetFileStreamAsString(string url)
         {
@@ -104,6 +113,41 @@ namespace SND.SMP.Chibis
             _memoryCache.Set(EnumConst.GlobalConst.Albums, albumsDict);
 
             return albumsDict;
+        }
+
+        private static DataTable ConvertToDatatable(Stream ms)
+        {
+            DataTable dataTable = new();
+
+            ExcelPackage.LicenseContext = OfficeOpenXml.LicenseContext.NonCommercial;
+
+            using (var package = new ExcelPackage(ms))
+            {
+                ExcelWorksheet worksheet = package.Workbook.Worksheets[0];
+
+                // Assuming the first row is the header
+                for (int i = 1; i <= worksheet.Dimension.End.Column; i++)
+                {
+                    string columnName = worksheet.Cells[1, i].Value?.ToString();
+                    if (!string.IsNullOrEmpty(columnName))
+                    {
+                        dataTable.Columns.Add(columnName);
+                    }
+                }
+
+                // Populate DataTable with data from Excel
+                for (int row = 2; row <= worksheet.Dimension.End.Row; row++)
+                {
+                    DataRow dataRow = dataTable.NewRow();
+                    for (int col = 1; col <= worksheet.Dimension.End.Column; col++)
+                    {
+                        dataRow[col - 1] = worksheet.Cells[row, col].Value;
+                    }
+                    dataTable.Rows.Add(dataRow);
+                }
+            }
+
+            return dataTable;
         }
 
         private async Task<List<Album>> GetDictAlbums()
@@ -349,6 +393,224 @@ namespace SND.SMP.Chibis
             return null;
         }
 
+        private async Task UpdateItemTrackingFile(string customerCode, List<string> trackingNos)
+        {
+            var itemIdPathWithDatatables = await GetItemTrackingFiles(customerCode, trackingNos);
+            List<ItemIdPath> itemIdPaths = itemIdPathWithDatatables.ItemIdPaths;
+            List<DataTable> DataTablesByPath = itemIdPathWithDatatables.DataTablesByPath;
+            List<string> editedTablePaths = [];
+
+            var distinctedPaths = itemIdPaths.DistinctBy(x => x.Path).ToList();
+
+            foreach (var itemId in itemIdPaths)
+            {
+                var splits = itemId.Path.Split(",");
+                DataTable foundTable = DataTablesByPath.FirstOrDefault(dt => dt.TableName == splits[0].ToString());
+
+                if (foundTable != null)
+                {
+                    DataRow[] rowsToUpdate = foundTable.Select($"TrackingNo = '{itemId.ItemId}'");
+
+                    foreach (DataRow rowToUpdate in rowsToUpdate)
+                    {
+                        rowToUpdate["DateUsed"] = "";
+                        rowToUpdate["DispatchNo"] = "";
+                    }
+
+                    if (rowsToUpdate.Length > 0)
+                    {
+                        if (!editedTablePaths.Contains(splits[0].ToString()))
+                            editedTablePaths.Add(splits[0].ToString());
+                    }
+
+                    foundTable.AcceptChanges();
+                }
+            }
+
+            var chibis = await Repository.GetAllListAsync();
+            var itemTrackingApplications = await _itemTrackingApplicationRepository.GetAllListAsync();
+            var itemTrackingReviews = await _itemTrackingReviewRepository.GetAllListAsync();
+
+            foreach (DataTable dataTableByPath in DataTablesByPath)
+            {
+                if (editedTablePaths.Contains(dataTableByPath.TableName))
+                {
+                    ExcelPackage.LicenseContext = OfficeOpenXml.LicenseContext.NonCommercial;
+                    using ExcelPackage package = new();
+                    ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("Tracking Numbers");
+
+                    for (int i = 0; i < dataTableByPath.Columns.Count; i++)
+                    {
+                        worksheet.Cells[1, i + 1].Value = dataTableByPath.Columns[i].ColumnName;
+                    }
+                    for (int i = 0; i < dataTableByPath.Rows.Count; i++)
+                    {
+                        for (int j = 0; j < dataTableByPath.Columns.Count; j++)
+                        {
+                            worksheet.Cells[i + 2, j + 1].Value = dataTableByPath.Rows[i][j];
+                        }
+                    }
+
+                    Stream excelStream = new MemoryStream();
+                    package.SaveAs(excelStream);
+                    excelStream.Position = 0;
+
+                    var chibiFile = chibis.FirstOrDefault(x => x.URL.Equals(dataTableByPath.TableName));
+                    var generatedName = chibiFile.GeneratedName;
+                    var fileName = chibiFile.OriginalName.Replace("_" + generatedName, "") + ".xlsx";
+                    var application = itemTrackingApplications.FirstOrDefault(x => x.Path.Equals(dataTableByPath.TableName));
+
+                    var review = itemTrackingReviews.FirstOrDefault(x => x.ApplicationId.Equals(application.Id));
+
+                    ChibiUpload uploadExcel = await InsertExcelFileToChibi(excelStream, fileName, originalName: null, postalCode: review.PostalCode, productCode: review.ProductCode);
+
+                    await Repository.DeleteAsync(chibiFile).ConfigureAwait(false);
+
+                    application.Path = uploadExcel.url;
+
+                    await _itemTrackingApplicationRepository.UpdateAsync(application).ConfigureAwait(false);
+                }
+            }
+        }
+
+        private async Task<ChibiUpload> InsertExcelFileToChibi(Stream excel, string fileName, string originalName = null, string postalCode = null, string productCode = null)
+        {
+            var chibiKey = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("ChibiKey"));
+            var chibiURL = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("ChibiURL"));
+
+            var client = new HttpClient();
+            client.DefaultRequestHeaders.Clear();
+            client.DefaultRequestHeaders.Add("x-api-key", chibiKey.Value);
+            var formData = new MultipartFormDataContent();
+
+            var xlsxContent = new StreamContent(excel);
+            xlsxContent.Headers.ContentType = MediaTypeHeaderValue.Parse("multipart/form-data");
+            formData.Add(xlsxContent, "file", fileName);
+
+            var request = new HttpRequestMessage
+            {
+                Method = HttpMethod.Post,
+                RequestUri = new Uri(chibiURL.Value + "upload"),
+                Content = formData,
+            };
+
+            using var response = await client.SendAsync(request);
+
+            response.EnsureSuccessStatusCode();
+            var body = await response.Content.ReadAsStringAsync();
+            var result = System.Text.Json.JsonSerializer.Deserialize<ChibiUpload>(body);
+
+            if (result != null)
+            {
+                result.originalName = fileName.Replace(".xlsx", "") + $"_{result.name}";
+                //Insert to DB
+                Chibi entity = new()
+                {
+                    FileName = result.name == null ? "" : DateTime.Now.ToString("yyyyMMdd") + "_" + result.name,
+                    UUID = result.uuid ?? "",
+                    URL = result.url ?? "",
+                    OriginalName = originalName is null ? result.originalName : originalName,
+                    GeneratedName = result.name ?? ""
+                };
+
+                await Repository.InsertAsync(entity).ConfigureAwait(false);
+
+                await InsertFileToAlbum(result.uuid, false, false, postalCode, null, productCode);
+            }
+
+            return result;
+        }
+
+        private async Task<ItemIdPathWithDatatables> GetItemTrackingFiles(string customerCode, List<string> trackingNos)
+        {
+            List<DataTable> DataTablesByPath = [];
+
+            List<ItemTrackingReview> reviews = [];
+
+            List<PrefixSuffixCustomerCode> prefixSuffixCustomerCodes = [];
+
+            foreach (var trackingNo in trackingNos)
+            {
+                string prefix = trackingNo[..2];
+                string suffix = trackingNo[^2..];
+
+                prefixSuffixCustomerCodes.Add(new PrefixSuffixCustomerCode
+                {
+                    Prefix = prefix,
+                    Suffix = suffix,
+                    CustomerCode = customerCode
+                });
+            }
+
+            prefixSuffixCustomerCodes = prefixSuffixCustomerCodes
+                                        .GroupBy(x => new { x.CustomerCode, x.Prefix, x.Suffix })
+                                        .Select(g => g.First())
+                                        .ToList();
+
+            foreach (var prefixSuffixCustomerCode in prefixSuffixCustomerCodes)
+            {
+                prefixSuffixCustomerCodes.Add(new PrefixSuffixCustomerCode
+                {
+                    Prefix = prefixSuffixCustomerCode.Prefix,
+                    Suffix = prefixSuffixCustomerCode.Suffix,
+                    CustomerCode = "Any Account"
+                });
+            }
+
+            var reviewList = await _itemTrackingReviewRepository.GetAllListAsync();
+
+            foreach (var prefixSuffixCustomerCode in prefixSuffixCustomerCodes)
+            {
+                var tempReviews = reviewList.Where(x => x.Prefix.Equals(prefixSuffixCustomerCode.Prefix) &&
+                                                            x.Suffix.Equals(prefixSuffixCustomerCode.Suffix) &&
+                                                            x.CustomerCode.Equals(prefixSuffixCustomerCode.CustomerCode)).ToList();
+
+                if (tempReviews.Count > 0) foreach (var review in tempReviews) reviews.Add(review);
+            }
+
+
+            List<string> paths = [];
+            List<ItemIdPath> itemIdFilePath = [];
+
+            var applications = await _itemTrackingApplicationRepository.GetAllListAsync();
+
+            foreach (var review in reviews)
+            {
+                var application = applications.FirstOrDefault(x => x.Id.Equals(review.ApplicationId));
+
+                if (application is not null) paths.Add(application.Path + "," + review.PostalCode + "," + review.ProductCode);
+            }
+
+            if (!paths.Count.Equals(0))
+            {
+                //---- Gets all Excel files and retrieves its info to create the object ItemIds ----//
+                foreach (var path in paths)
+                {
+                    string[] splits = path.Split(",");
+                    ItemTrackingWithPath itemWithPath = new();
+                    Stream excel_stream = await GetFileStream(splits[0].ToString());
+                    DataTable dataTable = ConvertToDatatable(excel_stream);
+                    dataTable.TableName = splits[0].ToString();
+                    DataTablesByPath.Add(dataTable);
+
+                    foreach (DataRow dr in dataTable.Rows)
+                    {
+                        if (dr.ItemArray[0].ToString() != "")
+                        {
+                            if (trackingNos.Contains(dr.ItemArray[0].ToString())) itemIdFilePath.Add(
+                                new ItemIdPath
+                                {
+                                    ItemId = dr.ItemArray[0].ToString(),
+                                    Path = path,
+                                });
+                        }
+                    }
+                }
+            }
+
+            return new ItemIdPathWithDatatables { ItemIdPaths = itemIdFilePath, DataTablesByPath = DataTablesByPath };
+        }
+
         protected override IQueryable<Chibi> CreateFilteredQuery(PagedChibiResultRequestDto input)
         {
             return Repository.GetAllIncluding()
@@ -443,17 +705,46 @@ namespace SND.SMP.Chibis
                 if (items.Count > 0)
                 {
                     List<ItemTracking> itemTrackingsList = [];
+                    List<TrackingNoForUpdate> trackingNoForUpdates = [];
                     foreach (var item in items)
                     {
                         var itemTracking = itemTrackings.FirstOrDefault(x => x.TrackingNo.Equals(item.Id));
-                        if (itemTracking is not null) itemTrackingsList.Add(itemTracking);
+                        if (itemTracking is not null)
+                        {
+                            itemTracking.DispatchId = 0;
+                            itemTracking.DispatchNo = "";
+                            itemTracking.DateUsed = DateTime.MinValue;
+
+                            itemTrackingsList.Add(itemTracking);
+                        }
+                        trackingNoForUpdates.Add(new TrackingNoForUpdate()
+                        {
+                            TrackingNo = item.Id,
+                            DispatchNo = dispatch.DispatchNo,
+                            ProcessType = TrackingNoForUpdateConst.STATUS_DELETE,
+                        });
                     }
-                    _itemTrackingsRepository.RemoveRange(itemTrackingsList);
+                    _itemTrackingsRepository.GetDbContext().UpdateRange(itemTrackingsList);
                     await _itemTrackingsRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
 
                     _itemsRepository.RemoveRange(items);
                     await _itemsRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
 
+                    _trackingNoForUpdateRepository.InsertRange(trackingNoForUpdates);
+                    await _trackingNoForUpdateRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
+
+                    await _queueRepository.InsertAsync(new Queue()
+                    {
+                        EventType = "Update Tracking",
+                        FilePath = dispatch.DispatchNo,
+                        Status = QueueEnumConst.STATUS_NEW,
+                        DateCreated = DateTime.Now,
+                        DeleteFileOnFailed = false,
+                        DeleteFileOnSuccess = false,
+                        StartTime = DateTime.Now,
+                        EndTime = DateTime.MinValue,
+                        TookInSec = 0,
+                    }).ConfigureAwait(false);
                 }
 
                 var itemMins = await _itemMinsRepository.GetAllListAsync(x => x.DispatchID.Equals(dispatch.Id));
@@ -501,10 +792,11 @@ namespace SND.SMP.Chibis
                     await _dispatchUsedAmountRepository.DeleteAsync(dispatchUsedAmount).ConfigureAwait(false);
                 }
 
-                await _dispatchRepository.DeleteAsync(dispatch).ConfigureAwait(false);
+                dispatch.IsActive = false;
+                await _dispatchRepository.UpdateAsync(dispatch).ConfigureAwait(false);
             }
 
-            var queues = await _queueRepository.GetAllListAsync(x => x.FilePath.Equals(excelDispatchFile.URL));
+            var queues = await _queueRepository.GetAllListAsync(x => x.FilePath.Equals(excelDispatchFile.URL) && x.FilePath.Equals(dispatch.DispatchNo));
             if (queues.Count > 0)
             {
                 foreach (var queue in queues) await _queueRepository.DeleteAsync(queue).ConfigureAwait(false);
