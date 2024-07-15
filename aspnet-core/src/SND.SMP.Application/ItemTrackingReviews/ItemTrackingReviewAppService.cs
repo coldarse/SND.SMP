@@ -329,7 +329,7 @@ namespace SND.SMP.ItemTrackingReviews
                                     PostalCode = input.PostalCode,
                                     ServiceCode = input.ServiceCode,
                                     ProductCode = input.ProductCode,
-                                    DispatchDate = null,
+                                    DispatchDate = DateOnly.FromDateTime(DateTime.Now),
                                     BatchId = "",
                                     TransactionDateTime = DateTime.Now
                                 });
@@ -758,7 +758,7 @@ namespace SND.SMP.ItemTrackingReviews
                                     PostalCode = input.PostalCode,
                                     ServiceCode = input.ServiceCode,
                                     ProductCode = input.ProductCode,
-                                    DispatchDate = null,
+                                    DispatchDate = DateOnly.FromDateTime(DateTime.Now),
                                     BatchId = "",
                                     TransactionDateTime = DateTime.Now
                                 });
