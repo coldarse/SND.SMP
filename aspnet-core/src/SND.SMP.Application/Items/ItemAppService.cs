@@ -132,6 +132,8 @@ namespace SND.SMP.Items
                                    item.DispatchDate
                                }).ToList();
 
+            joinedItems = joinedItems.DistinctBy(x => x.Id).ToList();
+
             foreach (var distincted in distinctedCombination)
             {
                 var filteredItems = joinedItems.Where(x => 
