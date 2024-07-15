@@ -89,13 +89,93 @@ namespace SND.SMP.Items
                     x.FinalOfficeId.Contains(input.Keyword));
         }
 
-        public async Task<List<APIItemIdDashboard>> GetAPIItemIdDashboard(string month)
+        public async Task<List<APIItemIdByDistinctAndDay>> GetAPIItemIdByDistinctAndDay(GetAPIItemIdDetail input)
+        {
+            List<APIItemIdByDistinctAndDay> result = [];
+            DateTime firstDayOfMonth = DateTime.ParseExact($"{input.Month} {input.Year}", "MMMM yyyy", CultureInfo.InvariantCulture);
+
+            DateTime lastDayOfMonth = firstDayOfMonth.AddMonths(1).AddDays(-1);
+
+            int daysBetween = (int)(lastDayOfMonth - firstDayOfMonth).TotalDays + 1;
+
+            var items = await Repository.GetAllListAsync(x =>
+                                        x.DispatchDate <= DateOnly.FromDateTime(lastDayOfMonth) &&
+                                        x.DispatchDate >= DateOnly.FromDateTime(firstDayOfMonth));
+
+            var dispatches = await _dispatchRepository.GetAllListAsync(x =>
+                                        x.DispatchDate <= DateOnly.FromDateTime(lastDayOfMonth) &&
+                                        x.DispatchDate >= DateOnly.FromDateTime(firstDayOfMonth));
+
+            var joinedItems = (from item in items
+                               join dispatch in dispatches on item.DispatchID equals dispatch.Id
+                               select new
+                               {
+                                   dispatch.CustomerCode,
+                                   item.ProductCode,
+                                   item.ServiceCode,
+                                   item.PostalCode,
+                                   item.Id,
+                                   item.DispatchDate,
+                                   item.DispatchID,
+                                   item.ItemValue,
+                                   item.Weight
+                               }).Where(x =>
+                                            x.CustomerCode.Equals(input.CustomerCode) &&
+                                            x.ProductCode.Equals(input.ProductCode) &&
+                                            x.ServiceCode.Equals(input.ServiceCode) &&
+                                            x.PostalCode.Equals(input.PostalCode)
+                               ).ToList();
+
+            var uploadedItems = joinedItems //done both pre-reg and uploaded
+                                    .GroupBy(item => item.Id)
+                                    .Where(group => group.Count() > 1)
+                                    .SelectMany(group => group)
+                                    .ToList();
+
+            var pendingItems = joinedItems //done pre-reg but not uploaded
+                                    .Where(item =>
+                                        dispatches.Any(d => d.Id == item.DispatchID && d.DispatchNo.Contains("Temp")) && // Registered under temp dispatch
+                                       !dispatches.Any(d => d.Id == item.DispatchID && !d.DispatchNo.StartsWith("Temp"))) // Not registered under normal dispatch
+                                    .ToList();
+
+            var unregisteredItems = joinedItems //not done pre-reg and uploaded
+                                    .Where(item =>
+                                        dispatches.Any(d => d.Id == item.DispatchID && !d.DispatchNo.Contains("Temp"))) // Registered under normal dispatch
+                                    .ToList();
+
+
+            for (int i = 0; i < daysBetween; i++)
+            {
+                DateOnly currentDate = DateOnly.FromDateTime(firstDayOfMonth.AddDays(i));
+
+                var filtered_uploadedItems = uploadedItems.Where(x => x.DispatchDate.Equals(currentDate)).ToList();
+                var filtered_pendingItems = pendingItems.Where(x => x.DispatchDate.Equals(currentDate)).ToList();
+                var filtered_unregisteredItems = unregisteredItems.Where(x => x.DispatchDate.Equals(currentDate)).ToList();
+
+                result.Add(new APIItemIdByDistinctAndDay()
+                {   
+                    TotalItems_Uploaded = filtered_uploadedItems.Count,
+                    TotalItems_Pending = filtered_pendingItems.Count,
+                    TotalItems_Unregistered = filtered_unregisteredItems.Count,
+                    TotalWeight_Uploaded = Math.Round((decimal)filtered_uploadedItems.Sum(x => x.Weight), 3),
+                    TotalWeight_Pending = Math.Round((decimal)filtered_pendingItems.Sum(x => x.Weight), 3),
+                    TotalWeight_Unregistered = Math.Round((decimal)filtered_unregisteredItems.Sum(x => x.Weight), 3),
+                    AverageValue_Uploaded = Math.Round((decimal)filtered_uploadedItems.Sum(x => x.ItemValue), 3),
+                    AverageValue_Pending = Math.Round((decimal)filtered_pendingItems.Sum(x => x.ItemValue), 3),
+                    AverageValue_Unregistered = Math.Round((decimal)filtered_unregisteredItems.Sum(x => x.ItemValue), 3),
+                    Date = currentDate.ToString()
+                });
+            }
+
+            return result;
+        }
+
+        public async Task<List<APIItemIdDashboard>> GetAPIItemIdDashboard(string month, string year)
         {
             List<APIItemIdDashboard> apiItemIdDashboard = [];
 
-            DateOnly firstDayOfMonth = DateOnly.FromDateTime(DateTime.ParseExact(month.ToUpper(), "MMMM", CultureInfo.InvariantCulture));
+            DateOnly firstDayOfMonth = DateOnly.FromDateTime(DateTime.ParseExact($"{month} {year}", "MMMM yyyy", CultureInfo.InvariantCulture));
 
-            // Get last day of the month
             DateOnly lastDayOfMonth = firstDayOfMonth.AddMonths(1).AddDays(-1);
 
             var postals = await _postalRepository.GetAllListAsync();
@@ -108,17 +188,15 @@ namespace SND.SMP.Items
                                         x.DispatchDate <= lastDayOfMonth &&
                                         x.DispatchDate >= firstDayOfMonth);
 
-            var distinctedCombination = (
-                                from item in items
-                                join dispatch in dispatches on item.DispatchID equals dispatch.Id
-                                select new
-                                {
-                                    dispatch.CustomerCode,
-                                    item.ProductCode,
-                                    item.ServiceCode,
-                                    item.PostalCode
-                                }
-                            ).Distinct().ToList();
+            var distinctedCombination = (from item in items
+                                         join dispatch in dispatches on item.DispatchID equals dispatch.Id
+                                         select new
+                                         {
+                                             dispatch.CustomerCode,
+                                             item.ProductCode,
+                                             item.ServiceCode,
+                                             item.PostalCode
+                                         }).Distinct().ToList();
 
             var joinedItems = (from item in items
                                join dispatch in dispatches on item.DispatchID equals dispatch.Id
@@ -136,7 +214,7 @@ namespace SND.SMP.Items
 
             foreach (var distincted in distinctedCombination)
             {
-                var filteredItems = joinedItems.Where(x => 
+                var filteredItems = joinedItems.Where(x =>
                                                         x.CustomerCode.Equals(distincted.CustomerCode) &&
                                                         x.ProductCode.Equals(distincted.ProductCode) &&
                                                         x.ServiceCode.Equals(distincted.ServiceCode) &&
@@ -149,9 +227,12 @@ namespace SND.SMP.Items
                 apiItemIdDashboard.Add(new APIItemIdDashboard()
                 {
                     CustomerCode = distincted.CustomerCode,
-                    Postal = postal is null ? distincted.PostalCode : postal.PostalDesc,
-                    Service = postal is null ? distincted.ServiceCode : postal.ServiceDesc,
-                    Product = postal is null ? distincted.ProductCode : postal.ProductDesc,
+                    PostalCode = postal is null ? distincted.PostalCode : postal.PostalCode,
+                    ServiceCode = postal is null ? distincted.ServiceCode : postal.ServiceCode,
+                    ProductCode = postal is null ? distincted.ProductCode : postal.ProductCode,
+                    PostalDesc = postal is null ? distincted.PostalCode : postal.PostalDesc,
+                    ServiceDesc = postal is null ? distincted.ServiceCode : postal.ServiceDesc,
+                    ProductDesc = postal is null ? distincted.ProductCode : postal.ProductDesc,
                     TotalItems = filteredItems.Count,
                     DateLastReceived = filteredItems[0].DispatchDate.ToString()
                 });
