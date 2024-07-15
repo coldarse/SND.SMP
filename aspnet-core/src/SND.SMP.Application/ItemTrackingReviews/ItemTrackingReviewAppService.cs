@@ -653,7 +653,7 @@ namespace SND.SMP.ItemTrackingReviews
                                     BagID = null,
                                     DispatchDate = dispatchTemp.DispatchDate,
                                     Month = 0,
-                                    PostalCode = input.ServiceCode,
+                                    PostalCode = input.PostalCode,
                                     ServiceCode = input.ServiceCode,
                                     ProductCode = input.ProductCode,
                                     CountryCode = input.RecipientCountry,
