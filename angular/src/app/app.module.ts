@@ -238,6 +238,7 @@ import { AngularEditorModule } from '@kolkov/angular-editor';
     PrePostCheckWeightComponent,
     CreateItemTrackingApplicationComponent,
     ReviewItemTrackingApplicationComponent,
+    Stage4AirportComponent,
     APIItemIdComponent,
   ],
   imports: [
