@@ -180,7 +180,7 @@ namespace SND.SMP.Chibis
             return true;
         }
 
-        private async Task<bool> InsertFileToAlbum(string file_uuid, bool isError, string postalCode = null, string serviceCode = null, string productCode = null)
+        private async Task<bool> InsertFileToAlbum(string file_uuid, bool isError, bool isDispatchTrackingUpdate, string postalCode = null, string serviceCode = null, string productCode = null)
         {
             List<Album> albums = await GetDictAlbums();
             if (isError)
@@ -196,6 +196,24 @@ namespace SND.SMP.Chibis
                     if (error_album == null)
                     {
                         var album = await CreateAlbumAsync("ErrorDetails");
+                        await AddFileToAlbum(album.album.uuid, file_uuid).ConfigureAwait(false);
+                    }
+                    else await AddFileToAlbum(error_album.uuid, file_uuid).ConfigureAwait(false);
+                }
+            }
+            else if (isDispatchTrackingUpdate)
+            {
+                if (albums.Count == 0)
+                {
+                    var album = await CreateAlbumAsync("DispatchTrackingUpdates");
+                    await AddFileToAlbum(album.album.uuid, file_uuid).ConfigureAwait(false);
+                }
+                else
+                {
+                    var error_album = albums.FirstOrDefault(a => a.name == "DispatchTrackingUpdates");
+                    if (error_album == null)
+                    {
+                        var album = await CreateAlbumAsync("DispatchTrackingUpdates");
                         await AddFileToAlbum(album.album.uuid, file_uuid).ConfigureAwait(false);
                     }
                     else await AddFileToAlbum(error_album.uuid, file_uuid).ConfigureAwait(false);
@@ -497,7 +515,7 @@ namespace SND.SMP.Chibis
 
                 await Repository.InsertAsync(entity).ConfigureAwait(false);
 
-                await InsertFileToAlbum(result.uuid, false, postalCode, null, productCode);
+                await InsertFileToAlbum(result.uuid, false, false, postalCode, null, productCode);
             }
 
             return result;
@@ -863,6 +881,42 @@ namespace SND.SMP.Chibis
             };
         }
 
+        public async Task<bool> CreateTrackingFileForDispatches(List<DispatchInfo> dispatchTracking)
+        {
+            var dispatches = dispatchTracking.Where(di => di.DispatchCountries.Any(dc => dc.Select)).ToList();
+            string json_dispatchTracking = Newtonsoft.Json.JsonConvert.SerializeObject(dispatches);
+
+            string dispatchNo_concatinated = "";
+            foreach (var dispatch in dispatches) dispatchNo_concatinated += dispatch.Dispatch + "_";
+
+            string fileName = dispatchNo_concatinated + DateTime.Now.ToString("ddMMyyyyHHmmss") + ".json";
+
+            ChibiUploadDto chibiUpload = new()
+            {
+                fileName = fileName,
+                fileType = "json",
+                json = json_dispatchTracking
+            };
+
+            var jsonFile = await UploadFile(chibiUpload, fileName);
+
+            await InsertFileToAlbum(jsonFile.uuid, false, true).ConfigureAwait(false);
+
+            var existingQueuesByPath = await _queueRepository.GetAllListAsync(x => x.FilePath.Equals(jsonFile.url));
+
+            foreach (var queue in existingQueuesByPath) await _queueRepository.DeleteAsync(queue);
+
+            await _queueRepository.InsertAsync(new Queue()
+            {
+                EventType = "Update Dispatch Tracking",
+                FilePath = jsonFile.url,
+                DateCreated = DateTime.Now,
+                Status = "New"
+            }).ConfigureAwait(false);
+
+            return true;
+        }
+
         [Consumes("multipart/form-data")]
         public async Task<bool> PreCheckRetryUpload([FromForm] PreCheckRetryDto uploadRetryPreCheck)
         {
@@ -908,8 +962,8 @@ namespace SND.SMP.Chibis
 
                 var deserializedFileString = Newtonsoft.Json.JsonConvert.DeserializeObject<PreCheckDetails>(fileString);
 
-                await InsertFileToAlbum(xlsxFile.uuid, false, deserializedFileString.PostalCode, deserializedFileString.ServiceCode, deserializedFileString.ProductCode).ConfigureAwait(false);
-                await InsertFileToAlbum(jsonFile.uuid, false, deserializedFileString.PostalCode, deserializedFileString.ServiceCode, deserializedFileString.ProductCode).ConfigureAwait(false);
+                await InsertFileToAlbum(xlsxFile.uuid, false, false, deserializedFileString.PostalCode, deserializedFileString.ServiceCode, deserializedFileString.ProductCode).ConfigureAwait(false);
+                await InsertFileToAlbum(jsonFile.uuid, false, false, deserializedFileString.PostalCode, deserializedFileString.ServiceCode, deserializedFileString.ProductCode).ConfigureAwait(false);
 
                 var queue = await _queueRepository.FirstOrDefaultAsync(x => (x.FilePath == uploadRetryPreCheck.path) && (x.EventType == "Validate Dispatch"));
 
@@ -956,7 +1010,7 @@ namespace SND.SMP.Chibis
 
                 var deserializedFileString = Newtonsoft.Json.JsonConvert.DeserializeObject<PreCheckDetails>(fileString);
 
-                await InsertFileToAlbum(jsonFile.uuid, false, deserializedFileString.PostalCode, deserializedFileString.ServiceCode, deserializedFileString.ProductCode).ConfigureAwait(false);
+                await InsertFileToAlbum(jsonFile.uuid, false, false, deserializedFileString.PostalCode, deserializedFileString.ServiceCode, deserializedFileString.ProductCode).ConfigureAwait(false);
 
                 var queue = await _queueRepository.FirstOrDefaultAsync(x => (x.FilePath == uploadRetryPreCheck.path) && (x.EventType == "Validate Dispatch"));
 
@@ -1065,8 +1119,8 @@ namespace SND.SMP.Chibis
                 uploadPreCheck.UploadFile.fileType = "json";
                 var jsonFile = await UploadFile(uploadPreCheck.UploadFile, xlsxFile.originalName);
 
-                await InsertFileToAlbum(xlsxFile.uuid, false, uploadPreCheck.Details.PostalCode, uploadPreCheck.Details.ServiceCode, uploadPreCheck.Details.ProductCode).ConfigureAwait(false);
-                await InsertFileToAlbum(jsonFile.uuid, false, uploadPreCheck.Details.PostalCode, uploadPreCheck.Details.ServiceCode, uploadPreCheck.Details.ProductCode).ConfigureAwait(false);
+                await InsertFileToAlbum(xlsxFile.uuid, false, false, uploadPreCheck.Details.PostalCode, uploadPreCheck.Details.ServiceCode, uploadPreCheck.Details.ProductCode).ConfigureAwait(false);
+                await InsertFileToAlbum(jsonFile.uuid, false, false, uploadPreCheck.Details.PostalCode, uploadPreCheck.Details.ServiceCode, uploadPreCheck.Details.ProductCode).ConfigureAwait(false);
 
                 var existingQueuesByPath = await _queueRepository.GetAllListAsync(x => x.FilePath.Equals(xlsxFile.url));
 

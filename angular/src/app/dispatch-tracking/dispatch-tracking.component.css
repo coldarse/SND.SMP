@@ -1,0 +1,18 @@
+.bagContainer {
+    position: relative;
+}
+
+.float-right {
+    float: right;
+}
+
+.cursor {
+    cursor: pointer;
+}
+
+.hover:hover {
+    background-color: darkslategray;
+    color: white;
+}
+
+

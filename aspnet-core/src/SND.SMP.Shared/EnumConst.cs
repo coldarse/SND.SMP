@@ -19,6 +19,9 @@ namespace SND.SMP.Shared
             public const string EVENT_TYPE_TRACKING_UPLOAD = "Upload Tracking";
 
             public const string EVENT_TYPE_TRACKING_UPDATE = "Update Tracking";
+            public const string EVENT_TYPE_DISPATCH_TRACKING_UPDATE = "Update Dispatch Tracking";
+
+            
 
 
         }

@@ -9,6 +9,7 @@ import { catchError, retry, throwError } from "rxjs";
 import { AppConsts } from "@shared/AppConsts";
 import { ErrorMessage } from "../error-handling";
 import { DispatchValidateDto } from "../dispatch-validations/model";
+import { DispatchInfo, DispatchTracking } from "../dispatches/model";
 
 @Injectable()
 export class ChibiService {
@@ -91,6 +92,15 @@ export class ChibiService {
     return this.http
       .delete(
         this.url + `/api/services/app/Chibi/DeleteDispatch?path=${path}&dispatchNo=${dispatchNo}`,
+        this.options_)
+      .pipe(retry(1), catchError(this.errorMessage.HandleErrorResponse));
+  }
+
+  createTrackingFileForDispatches(body: DispatchInfo[]) {
+    return this.http
+      .post(
+        this.url + `/api/services/app/Chibi/CreateTrackingFileForDispatches`,
+        body,
         this.options_)
       .pipe(retry(1), catchError(this.errorMessage.HandleErrorResponse));
   }

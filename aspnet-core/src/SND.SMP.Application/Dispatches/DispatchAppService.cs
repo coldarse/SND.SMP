@@ -47,6 +47,7 @@ using SND.SMP.ItemTrackingApplications;
 using SND.SMP.ItemTrackingReviews;
 using SND.SMP.Chibis.Dto;
 using SND.SMP.ApplicationSettings;
+using Microsoft.EntityFrameworkCore;
 
 namespace SND.SMP.Dispatches
 {
@@ -2703,6 +2704,147 @@ namespace SND.SMP.Dispatches
                 }
             }
             return true;
+        }
+
+        public async Task<DispatchTracking> GetDispatchesForTracking(string filter = null, string countryCode = null)
+        {
+            List<DispatchInfo> result = [];
+            List<string> countries = [];
+
+            var dispatches = await Repository
+                                    .GetAll()
+                                    .Where(x => !x.DispatchNo.Contains("Temp"))
+                                    .OrderByDescending(x => x.DispatchDate)
+                                    .WhereIf(!string.IsNullOrWhiteSpace(filter), x => x.DispatchNo.ToLower().Contains(filter.ToLower()))
+                                    .Take(10)
+                                    .ToListAsync();
+
+            var bags = await _bagRepository.GetAllListAsync();
+
+            foreach (var dispatch in dispatches)
+            {
+                DispatchInfo dt = new()
+                {
+                    Dispatch = dispatch.DispatchNo,
+                    DispatchId = dispatch.Id,
+                    DispatchDate = (DateOnly)dispatch.DispatchDate,
+                    PostalCode = dispatch.PostalCode,
+                    Status = (int)dispatch.Status,
+                    Customer = dispatch.CustomerCode,
+                    Open = false,
+                };
+
+                List<DispatchCountry> dc = [];
+
+                var dispatchBags = bags.Where(x => x.DispatchId.Equals(dispatch.Id)).ToList();
+
+                var distinctedCountryCode = dispatchBags.DistinctBy(x => x.CountryCode).ToList();
+
+                foreach (var country in distinctedCountryCode) countries.Add(country.CountryCode);
+
+                if (countryCode is not null) distinctedCountryCode = distinctedCountryCode.Where(x => x.CountryCode.Equals(countryCode)).ToList();
+
+                if (distinctedCountryCode.Count != 0)
+                {
+                    foreach (var country in distinctedCountryCode)
+                    {
+                        var bagsInCountry = dispatchBags.Where(x => x.CountryCode.Equals(country.CountryCode)).ToList();
+
+                        List<DispatchBag> db = [];
+                        int noOfBagsStartedTracking = 0;
+                        foreach (var bag in bagsInCountry)
+                        {
+                            var item = await _itemRepository.FirstOrDefaultAsync(x => x.BagID.Equals(bag.Id));
+                            bool hasStartedTracking = HasStartedTracking(item);
+
+                            Stage stage = new();
+
+                            if (hasStartedTracking)
+                            {
+                                stage = new()
+                                {
+                                    DispatchNo = dispatch.DispatchNo,
+                                    CountryCode = country.CountryCode,
+                                    BagNo = bag.BagNo,
+                                    Stage1Desc = item.Stage1StatusDesc,
+                                    Stage1DateTime = item.DateStage1 ?? DateTime.MinValue,
+                                    Stage2Desc = item.Stage2StatusDesc,
+                                    Stage2DateTime = item.DateStage2 ?? DateTime.MinValue,
+                                    Stage3Desc = item.Stage3StatusDesc,
+                                    Stage3DateTime = item.DateStage3 ?? DateTime.MinValue,
+                                    Stage4Desc = item.Stage4StatusDesc,
+                                    Stage4DateTime = item.DateStage4 ?? DateTime.MinValue,
+                                    Stage5Desc = item.Stage5StatusDesc,
+                                    Stage5DateTime = item.DateStage5 ?? DateTime.MinValue,
+                                    Stage6Desc = item.Stage6StatusDesc,
+                                    Stage6DateTime = item.DateStage6 ?? DateTime.MinValue,
+                                    Airport = item.Stage7StatusDesc,
+                                    AirportDateTime = item.DateStage7 ?? DateTime.MinValue,
+                                    Stage7Desc = item.Stage8StatusDesc,
+                                    Stage7DateTime = item.DateStage8 ?? DateTime.MinValue
+                                };
+
+                                noOfBagsStartedTracking++;
+                            }
+
+                            db.Add(new DispatchBag()
+                            {
+                                BagId = bag.Id,
+                                BagNo = bag.BagNo,
+                                ItemCount = bag.ItemCountPost == null ? 0 : (int)bag.ItemCountPost,
+                                Select = false,
+                                Custom = false,
+                                Stages = hasStartedTracking ? stage : null
+                            });
+                        }
+
+                        bool allBagsTracked = noOfBagsStartedTracking == dispatchBags.Count;
+
+                        dc.Add(new DispatchCountry()
+                        {
+                            CountryCode = country.CountryCode,
+                            BagCount = bagsInCountry.Count,
+                            DispatchBags = db,
+                            Select = false,
+                            Open = false,
+                            Stages = null
+                        });
+                    }
+
+                    dt.DispatchCountries = dc;
+
+                    result.Add(dt);
+                }
+            }
+
+            
+
+            return new DispatchTracking()
+            {
+                Dispatches = result,
+                Countries = countries.Distinct().ToList()
+            };
+        }
+
+        private static bool HasStartedTracking(Item item)
+        {
+            bool hasStartedTracking = false;
+            if (
+                item.DateStage1 != null ||
+                item.DateStage2 != null ||
+                item.DateStage3 != null ||
+                item.DateStage4 != null ||
+                item.DateStage5 != null ||
+                item.DateStage6 != null ||
+                item.DateStage7 != null ||
+                item.DateStage8 != null ||
+                item.DateStage9 != null
+            )
+            {
+                hasStartedTracking = true;
+            }
+
+            return hasStartedTracking;
         }
     }
 }

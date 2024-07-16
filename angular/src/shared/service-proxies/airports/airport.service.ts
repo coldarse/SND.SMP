@@ -103,4 +103,14 @@ export class AirportService {
             catchError(this.errorMessage.HandleErrorResponse),
         )
     }
+
+    getAirportList() {
+        return this.http.get(
+            this.url + `/api/services/app/Airport/GetAirportList`,
+            this.options_
+        ).pipe(
+            retry(1),
+            catchError(this.handleError),
+        )
+    }
 }

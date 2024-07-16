@@ -128,6 +128,26 @@ namespace SND.SMP.DispatchConsole
             return true;
         }
 
+        public static async Task<bool> DeleteFile(string uuid)
+        {
+            using db dbconn = new();
+            var obj_ChibiKey = await dbconn.ApplicationSettings.FirstOrDefaultAsync(x => x.Name.Equals("ChibiKey"));
+            var obj_ChibiURL = await dbconn.ApplicationSettings.FirstOrDefaultAsync(x => x.Name.Equals("ChibiURL"));
+            var client = new HttpClient();
+            client.DefaultRequestHeaders.Clear();
+            client.DefaultRequestHeaders.Add("x-api-key", obj_ChibiKey.Value);
+
+            var request = new HttpRequestMessage
+            {
+                Method = HttpMethod.Delete,
+                RequestUri = new Uri(obj_ChibiURL.Value + $"file/{uuid}"),
+            };
+
+            using var response = await client.SendAsync(request);
+            response.EnsureSuccessStatusCode();
+            return true;
+        }
+
 
         public static async Task<ChibiUpload> InsertExcelFileToChibi(Stream excel, string fileName, string originalName = null, string postalCode = null, string productCode = null)
         {

@@ -149,6 +149,7 @@ import { CreateItemTrackingApplicationComponent } from "./item-tracking-applicat
 import { ReviewItemTrackingApplicationComponent } from "./item-tracking-applications/review-item-tracking-application/review-item-tracking-application.component";
 import { APIItemIdComponent } from "./api-item-ids/api-item-id.component";
 
+import { DispatchTrackingComponent } from "./dispatch-tracking/dispatch-tracking.component";
 import { AngularEditorModule } from '@kolkov/angular-editor';
 
 @NgModule({
@@ -238,6 +239,7 @@ import { AngularEditorModule } from '@kolkov/angular-editor';
     CreateItemTrackingApplicationComponent,
     ReviewItemTrackingApplicationComponent,
     APIItemIdComponent,
+    DispatchTrackingComponent,
   ],
   imports: [
     CommonModule,

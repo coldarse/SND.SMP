@@ -35,6 +35,7 @@ import { CustomerTransactionsComponent } from "./customer-transactions/customer-
 import { PreAlertComponent } from "./pre-alerts/pre-alerts.component";
 import { PostChecksComponent } from "./post-checks/post-checks.component";
 import { APIItemIdComponent } from "./api-item-ids/api-item-id.component";
+import { DispatchTrackingComponent } from "./dispatch-tracking/dispatch-tracking.component";
 
 @NgModule({
   imports: [
@@ -150,6 +151,12 @@ import { APIItemIdComponent } from "./api-item-ids/api-item-id.component";
             path: "dispatches",
             data: { permission: "Pages.Dispatch" },
             component: DispatchesComponent,
+            canActivate: [AppRouteGuard],
+          },
+          {
+            path: "dispatch-tracking",
+            data: { permission: "Pages.Dispatch" },
+            component: DispatchTrackingComponent,
             canActivate: [AppRouteGuard],
           },
           {

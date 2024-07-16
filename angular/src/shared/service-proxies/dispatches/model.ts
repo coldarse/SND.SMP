@@ -180,3 +180,61 @@ export interface Zip {
   blob: Blob;
   filename: string;
 }
+
+export interface DispatchBag {
+  bagId: number;
+  bagNo: string;
+  itemCount: number;
+  select: boolean;
+  custom: boolean;
+  stages: Stage;
+}
+
+export interface DispatchCountry {
+  bagCount: number;
+  countryCode: string;
+  dispatchBags: DispatchBag[];
+  open: boolean;
+  select: boolean;
+  stages: Stage;
+}
+
+export interface DispatchInfo {
+  dispatch: string;
+  dispatchId: number;
+  dispatchDate: string;
+  postalCode: string;
+  status: number;
+  customer: string;
+  open: boolean;
+  dispatchCountries: DispatchCountry[];
+}
+
+export interface DispatchTracking {
+  dispatches: DispatchInfo[];
+  countries: string[]
+}
+
+export interface Stage {
+  stage1Desc: string;
+  stage2Desc: string;
+  stage3Desc: string;
+  stage4Desc: string;
+  stage5Desc: string;
+  stage6Desc: string;
+  stage7Desc: string;
+  stage1DateTime: string;
+  stage2DateTime: string;
+  stage3DateTime: string;
+  stage4DateTime: string;
+  stage5DateTime: string;
+  stage6DateTime: string;
+  stage7DateTime: string;
+  airport: string;
+  airportDateTime: string;
+  bagNo: string;
+  dispatchNo: string;
+  countryCode: string;
+}
+
+
