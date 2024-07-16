@@ -14,6 +14,7 @@ import {
   DispatchTracking,
   Stage,
 } from "@shared/service-proxies/dispatches/model";
+import { finalize } from "rxjs";
 
 @Component({
   selector: "app-dispatch-tracking",
@@ -44,7 +45,12 @@ export class DispatchTrackingComponent
   }
 
   ngOnInit(): void {
-    this._dispatchService.getDispatchesForTracking().subscribe((data: any) => {
+    this.isTableLoading = true;
+    this._dispatchService.getDispatchesForTracking()
+    .pipe(finalize(() => {
+      this.isTableLoading = false;
+    }))
+    .subscribe((data: any) => {
       this.dispatches = data.result.dispatches;
       this.countries = data.result.countries;
     });
@@ -126,11 +132,18 @@ export class DispatchTrackingComponent
     if (selected) {
       let airport = this.airports.find((x) => x.country === countryCode);
 
-      var bagStage = this.dispatches[indexC].dispatchCountries[indexB].dispatchBags[indexZ].stages;
+      var bagStage =
+        this.dispatches[indexC].dispatchCountries[indexB].dispatchBags[indexZ]
+          .stages;
 
-      var stageAirport = bagStage != undefined ? 
-                                  this.airports.find((x) => x.name === bagStage.airport) != undefined ? 
-                                            this.airports.find((x) => x.name === bagStage.airport).code : airport != undefined ? airport.code : "" : "";
+      var stageAirport =
+        bagStage != undefined
+          ? this.airports.find((x) => x.name === bagStage.airport) != undefined
+            ? this.airports.find((x) => x.name === bagStage.airport).code
+            : airport != undefined
+            ? airport.code
+            : ""
+          : "";
 
       let stage: Stage = {
         stage1Desc: bagStage != undefined ? bagStage.stage1Desc : "",
@@ -140,13 +153,20 @@ export class DispatchTrackingComponent
         stage5Desc: bagStage != undefined ? bagStage.stage5Desc : "",
         stage6Desc: bagStage != undefined ? bagStage.stage6Desc : "",
         stage7Desc: bagStage != undefined ? bagStage.stage7Desc : "",
-        stage1DateTime: bagStage != undefined ? bagStage.stage1DateTime.substring(0, 19) : "",
-        stage2DateTime: bagStage != undefined ? bagStage.stage2DateTime.substring(0, 19) : "",
-        stage3DateTime: bagStage != undefined ? bagStage.stage3DateTime.substring(0, 19) : "",
-        stage4DateTime: bagStage != undefined ? bagStage.stage4DateTime.substring(0, 19) : "",
-        stage5DateTime: bagStage != undefined ? bagStage.stage5DateTime.substring(0, 19) : "",
-        stage6DateTime: bagStage != undefined ? bagStage.stage6DateTime.substring(0, 19) : "",
-        stage7DateTime: bagStage != undefined ? bagStage.stage7DateTime.substring(0, 19) : "",
+        stage1DateTime:
+          bagStage != undefined ? bagStage.stage1DateTime.substring(0, 19) : "",
+        stage2DateTime:
+          bagStage != undefined ? bagStage.stage2DateTime.substring(0, 19) : "",
+        stage3DateTime:
+          bagStage != undefined ? bagStage.stage3DateTime.substring(0, 19) : "",
+        stage4DateTime:
+          bagStage != undefined ? bagStage.stage4DateTime.substring(0, 19) : "",
+        stage5DateTime:
+          bagStage != undefined ? bagStage.stage5DateTime.substring(0, 19) : "",
+        stage6DateTime:
+          bagStage != undefined ? bagStage.stage6DateTime.substring(0, 19) : "",
+        stage7DateTime:
+          bagStage != undefined ? bagStage.stage7DateTime.substring(0, 19) : "",
         airport: stageAirport,
         airportDateTime: bagStage != undefined ? bagStage.airportDateTime : "",
         bagNo: bagStage != undefined ? bagStage.bagNo : "",
@@ -154,7 +174,9 @@ export class DispatchTrackingComponent
         countryCode: countryCode,
       };
 
-      this.dispatches[indexC].dispatchCountries[indexB].dispatchBags[indexZ].stages = stage;
+      this.dispatches[indexC].dispatchCountries[indexB].dispatchBags[
+        indexZ
+      ].stages = stage;
     }
   }
 
@@ -164,6 +186,12 @@ export class DispatchTrackingComponent
 
     if (!this.dispatches[indexC].dispatchCountries[indexY].select)
       this.dispatches[indexC].dispatchCountries[indexY].open = false;
+    else
+      this.dispatches[indexC].dispatchCountries[indexY].dispatchBags.forEach(
+        (element: any) => {
+          element.select = true;
+        }
+      );
 
     let countryCode =
       this.dispatches[indexC].dispatchCountries[indexY].countryCode;
@@ -173,12 +201,18 @@ export class DispatchTrackingComponent
     if (selected) {
       let airport = this.airports.find((x) => x.country === countryCode);
 
-      var countryStage = this.dispatches[indexC].dispatchCountries[indexY].stages;
+      var countryStage =
+        this.dispatches[indexC].dispatchCountries[indexY].stages;
 
-      var stageAirport = countryStage != undefined ? 
-                                  this.airports.find((x) => x.name === countryStage.airport) != undefined ? 
-                                            this.airports.find((x) => x.name === countryStage.airport).code : airport != undefined ? airport.code : "" : "";
-
+      var stageAirport =
+        countryStage != undefined
+          ? this.airports.find((x) => x.name === countryStage.airport) !=
+            undefined
+            ? this.airports.find((x) => x.name === countryStage.airport).code
+            : airport != undefined
+            ? airport.code
+            : ""
+          : "";
 
       let stage: Stage = {
         stage1Desc: countryStage != undefined ? countryStage.stage1Desc : "",
@@ -188,15 +222,37 @@ export class DispatchTrackingComponent
         stage5Desc: countryStage != undefined ? countryStage.stage5Desc : "",
         stage6Desc: countryStage != undefined ? countryStage.stage6Desc : "",
         stage7Desc: countryStage != undefined ? countryStage.stage7Desc : "",
-        stage1DateTime: countryStage != undefined ? countryStage.stage1DateTime.substring(0, 19) : "",
-        stage2DateTime: countryStage != undefined ? countryStage.stage2DateTime.substring(0, 19) : "",
-        stage3DateTime: countryStage != undefined ? countryStage.stage3DateTime.substring(0, 19) : "",
-        stage4DateTime: countryStage != undefined ? countryStage.stage4DateTime.substring(0, 19) : "",
-        stage5DateTime: countryStage != undefined ? countryStage.stage5DateTime.substring(0, 19) : "",
-        stage6DateTime: countryStage != undefined ? countryStage.stage6DateTime.substring(0, 19) : "",
-        stage7DateTime: countryStage != undefined ? countryStage.stage7DateTime.substring(0, 19) : "",
+        stage1DateTime:
+          countryStage != undefined
+            ? countryStage.stage1DateTime.substring(0, 19)
+            : "",
+        stage2DateTime:
+          countryStage != undefined
+            ? countryStage.stage2DateTime.substring(0, 19)
+            : "",
+        stage3DateTime:
+          countryStage != undefined
+            ? countryStage.stage3DateTime.substring(0, 19)
+            : "",
+        stage4DateTime:
+          countryStage != undefined
+            ? countryStage.stage4DateTime.substring(0, 19)
+            : "",
+        stage5DateTime:
+          countryStage != undefined
+            ? countryStage.stage5DateTime.substring(0, 19)
+            : "",
+        stage6DateTime:
+          countryStage != undefined
+            ? countryStage.stage6DateTime.substring(0, 19)
+            : "",
+        stage7DateTime:
+          countryStage != undefined
+            ? countryStage.stage7DateTime.substring(0, 19)
+            : "",
         airport: stageAirport,
-        airportDateTime: countryStage != undefined ? countryStage.airportDateTime : "",
+        airportDateTime:
+          countryStage != undefined ? countryStage.airportDateTime : "",
         bagNo: countryStage != undefined ? countryStage.bagNo : "",
         dispatchNo: dispatchNo,
         countryCode: countryCode,
@@ -283,11 +339,15 @@ export class DispatchTrackingComponent
   }
 
   submitItemTracking() {
-    this.dispatches = this.dispatches.filter(di => di.dispatchCountries.some(dc => dc.select));
-    this._chibiService.createTrackingFileForDispatches(this.dispatches).subscribe(() => {
-      abp.notify.success(this.l('Successfully Queued For Update'));
-      this.refresh();
-    });
+    this.dispatches = this.dispatches.filter((di) =>
+      di.dispatchCountries.some((dc) => dc.select)
+    );
+    this._chibiService
+      .createTrackingFileForDispatches(this.dispatches)
+      .subscribe(() => {
+        abp.notify.success(this.l("Successfully Queued For Update"));
+        this.refresh();
+      });
   }
 
   protected list(
