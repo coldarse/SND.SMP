@@ -1,0 +1,183 @@
+<div [@routerTransition]>
+    <section class='content-header'>
+        <div class='container-fluid'>
+            <div class='row'>
+                <div class='col-12'>
+                    <h1>{{ 'Pre-Registered API Item ID' | localize }}</h1>
+                </div>
+                <div class="col-6">
+                    <div class="row">
+                        <div class='form-group col-4 mt-4'>
+                            <select class="form-control" name="month" id="month" [(ngModel)]="month">
+                                @for (month of months; track $index) {
+                                    <option value="{{month}}">{{month}}</option>
+                                }
+                            </select>
+                        </div>
+                        <div class='form-group col-4 mt-4'>
+                            <select class="form-control" name="year" id="year" [(ngModel)]="year">
+                                @for (year of years; track $index) {
+                                    <option value="{{year}}">{{year}}</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-4 mt-4">
+                            <button
+                                    type='button'
+                                    class="btn bg-danger"
+                                    (click)='getDataPage(1)'
+                            >
+                                <i class='fas fa-search'></i>
+                                &nbsp;
+                                Search
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <section class='content px-2'>
+        <div class='container-fluid'>
+            <div class='card'>
+                <!-- <div class='card-header'>
+                    <div class='row'>
+                        <div class='col-md-6'>&emsp;</div>
+                        <div class='col-md-6'>
+                            <div class='input-group'>
+                                <div class='input-group-prepend'>
+                                    <button
+                                            type='button'
+                                            class="btn bg-danger"
+                                            (click)='getDataPage(1)'
+                                    >
+                                        <i class='fas fa-search'></i>
+                                    </button>
+                                </div>
+                                <input
+                                        type='text'
+                                        class='form-control'
+                                        name='keyword'
+                                        [placeholder]='"SearchWithThreeDot" | localize'
+                                        [(ngModel)]='keyword'
+                                        (keyup.enter)='getDataPage(1)'
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </div> -->
+                <div class='card-body'>
+                    <div class='table-responsive'>
+                        <table class="table table-bordered" [busy]='isTableLoading'>
+                            <thead>
+                            <tr>
+                                <th>{{ 'Customer' | localize }}</th>
+                                <th>{{ 'Postal' | localize }}</th>
+                                <th>{{ 'Service' | localize }}</th>
+                                <th>{{ 'Product' | localize }}</th>
+                                <th class="text-right">{{ 'Total Items' | localize }}</th>
+                                <th>{{ 'Date Last Received' | localize }}</th>
+                                <th style='width: 310px;'>{{ 'Actions' | localize }}</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr
+                                    *ngFor='
+                  let apiItemId of apiItemIds
+                    | paginate
+                      : {
+                          id: "server",
+                          itemsPerPage: pageSize,
+                          currentPage: pageNumber,
+                          totalItems: totalItems
+                        }
+                '
+                            >
+                                <td>{{ apiItemId.customerCode }}</td>
+                                <td>{{ apiItemId.postalDesc }}</td>
+                                <td>{{ apiItemId.serviceDesc }}</td>
+                                <td>{{ apiItemId.productDesc }}</td>
+                                <td class="text-right">{{ apiItemId.totalItems | number: '1.' }}</td>
+                                <td>{{ apiItemId.dateLastReceived }}</td>
+                                <td>
+                                    <button
+                                            type='button'
+                                            class='btn btn-sm bg-secondary'
+                                            (click)='details(apiItemId)'
+                                            [disabled]="apiItemId.isLoading"
+                                    >
+                                        @if (!apiItemId.isLoading) { 
+                                            <i class='fas fa-info-circle'></i>
+                                            Details
+                                        }
+                                        @else {
+                                            <div
+                                                class="spinner-border spinner-border-sm"
+                                                role="status"
+                                            >
+                                                <span class="sr-only">Loading...</span>
+                                            </div>
+                                            Loading 
+                                        }
+                                    </button>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class='card-footer table-card-footer bg-light border-top'>
+                    <div class='row'>
+                        <div class='col-sm-4 col-12 text-sm-left text-center'>
+                            <button class='btn btn-secondary' (click)='refresh()'>
+                                <i class='fas fa-redo-alt'></i>
+                            </button>
+                        </div>
+                        <div class='col-sm-4 col-12 text-center'>
+                            <p class='mb-0 my-2'>
+                                {{ 'TotalRecordsCount' | localize: totalItems }}
+                            </p>
+                        </div>
+                        <div class='col-sm-4 col-12'>
+                            <div class='float-sm-right m-auto'>
+                                <abp-pagination-controls
+                                        id='server'
+                                        (pageChange)='getDataPage($event)'
+                                >
+                                </abp-pagination-controls>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <section class='content px-2' *ngIf="loadFinished">
+        <div class='container-fluid'>
+            <div class='card'>
+                <div class='card-body'>
+                    <div class='table-responsive'>
+                        <table class="table table-bordered">
+                            <thead>
+                            <tr>
+                                <th>{{ 'Day' | localize }}</th>
+                                <th>{{ 'Total Items Uploaded / Total Items Pending / Total Items Unregistered' | localize }}</th>
+                                <th>{{ 'Total Weight Uploaded / Total Weight Pending / Total Weight Unregistered' | localize }}</th>
+                                <th>{{ 'Average Value Uploaded / Average Value Pending / Average Value Unregistered' | localize }}</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr *ngFor='let distinctedApiItemId of distinctedApiItemIds'>
+                                <td>{{ distinctedApiItemId.date }}</td>
+                                <td>{{ distinctedApiItemId.totalItems_Uploaded | number: '1.' }} / {{ distinctedApiItemId.totalItems_Pending | number: '1.' }} / {{ distinctedApiItemId.totalItems_Unregistered | number: '1.' }}</td>                             
+                                <td>{{ distinctedApiItemId.totalWeight_Uploaded | number: '.3' }} / {{ distinctedApiItemId.totalWeight_Pending | number: '.3' }} / {{ distinctedApiItemId.totalWeight_Unregistered | number: '.3' }}</td>                             
+                                <td>{{ distinctedApiItemId.averageValue_Uploaded | number: '.2' }} / {{ distinctedApiItemId.averageValue_Pending | number: '.2' }} / {{ distinctedApiItemId.averageValue_Unregistered | number: '.2' }}</td>                             
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>

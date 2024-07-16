@@ -147,6 +147,7 @@ import { PrePostCheckWeightComponent } from "./dispatches/pre-post-check-weight/
 import { CardsComponent } from "./cards/cards.component";
 import { CreateItemTrackingApplicationComponent } from "./item-tracking-applications/create-item-tracking-application/create-item-tracking-application.component";
 import { ReviewItemTrackingApplicationComponent } from "./item-tracking-applications/review-item-tracking-application/review-item-tracking-application.component";
+import { APIItemIdComponent } from "./api-item-ids/api-item-id.component";
 
 import { AngularEditorModule } from '@kolkov/angular-editor';
 
@@ -236,6 +237,7 @@ import { AngularEditorModule } from '@kolkov/angular-editor';
     PrePostCheckWeightComponent,
     CreateItemTrackingApplicationComponent,
     ReviewItemTrackingApplicationComponent,
+    APIItemIdComponent,
   ],
   imports: [
     CommonModule,

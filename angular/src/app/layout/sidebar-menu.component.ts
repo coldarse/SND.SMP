@@ -87,6 +87,12 @@ export class SidebarMenuComponent extends AppComponentBase implements OnInit {
         "Pages.ItemTrackingApplication"
       ),
       new MenuItem(
+        this.l("API Item ID"),
+        "/app/api-item-ids",
+        "fas fa-compress-alt",
+        "Pages.Item"
+      ),
+      new MenuItem(
         this.l("Pre-Check Upload"),
         "/app/pre-alerts",
         "fas fa-bell"
