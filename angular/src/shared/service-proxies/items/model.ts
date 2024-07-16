@@ -152,3 +152,45 @@ export interface PagedItemResultRequestDto extends PagedAndSortedResultRequestDt
     cityId                        ?: string;
     finalOfficeId                 ?: string;
 }
+
+export interface APIItemIdDashboard {
+    customerCode: string;
+    postalCode: string;
+    serviceCode: string;
+    productCode: string;
+    postalDesc: string;
+    serviceDesc: string;
+    productDesc: string;
+    totalItems: number;
+    dateLastReceived: string;
+}
+
+export interface PagedAPIItemIdResultDto extends PagedAndSortedResultRequestDto {
+    month: string;
+    year: string;
+}
+
+export interface APIItemIdByDistinctAndDay {
+    totalItems_Uploaded: number;
+    totalItems_Pending: number;
+    totalItems_Unregistered: number;
+    totalWeight_Uploaded: number;
+    totalWeight_Pending: number;
+    totalWeight_Unregistered: number;
+    averageValue_Uploaded: number;
+    averageValue_Pending: number;
+    averageValue_Unregistered: number;
+    date: string;
+}
+
+export interface GetAPIItemIdDetail {
+    customerCode: string;
+    postalCode: string;
+    productCode: string;
+    serviceCode: string;
+    month: string;
+    year: string;
+}
+
+
+

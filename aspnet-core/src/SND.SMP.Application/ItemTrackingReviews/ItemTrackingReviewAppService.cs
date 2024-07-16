@@ -754,11 +754,11 @@ namespace SND.SMP.ItemTrackingReviews
                                 dispatchTemp = await _dispatchRepository.InsertAsync(new Dispatch
                                 {
                                     DispatchNo = dispNo,
+                                    DispatchDate = DateOnly.FromDateTime(DateTime.Now),
                                     CustomerCode = customerCode,
                                     PostalCode = input.PostalCode,
                                     ServiceCode = input.ServiceCode,
                                     ProductCode = input.ProductCode,
-                                    DispatchDate = DateOnly.FromDateTime(DateTime.Now),
                                     BatchId = "",
                                     TransactionDateTime = DateTime.Now
                                 });

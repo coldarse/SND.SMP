@@ -15,6 +15,9 @@ using Abp.EntityFrameworkCore.Repositories;
 using SND.SMP.Dispatches;
 using System.Globalization;
 using SND.SMP.Postals;
+using Abp.Application.Services.Dto;
+using Abp.Application.Services.Dto;
+using Microsoft.AspNetCore.Mvc;
 
 namespace SND.SMP.Items
 {
@@ -89,6 +92,7 @@ namespace SND.SMP.Items
                     x.FinalOfficeId.Contains(input.Keyword));
         }
 
+        [HttpPost]
         public async Task<List<APIItemIdByDistinctAndDay>> GetAPIItemIdByDistinctAndDay(GetAPIItemIdDetail input)
         {
             List<APIItemIdByDistinctAndDay> result = [];
@@ -162,18 +166,20 @@ namespace SND.SMP.Items
                         TotalWeight_Uploaded = Math.Round((decimal)filtered_uploadedItems.Sum(x => x.Weight), 3),
                         TotalWeight_Pending = Math.Round((decimal)filtered_pendingItems.Sum(x => x.Weight), 3),
                         TotalWeight_Unregistered = Math.Round((decimal)filtered_unregisteredItems.Sum(x => x.Weight), 3),
-                        AverageValue_Uploaded = Math.Round((decimal)filtered_uploadedItems.Sum(x => x.ItemValue), 3),
-                        AverageValue_Pending = Math.Round((decimal)filtered_pendingItems.Sum(x => x.ItemValue), 3),
-                        AverageValue_Unregistered = Math.Round((decimal)filtered_unregisteredItems.Sum(x => x.ItemValue), 3),
+                        AverageValue_Uploaded = Math.Round((decimal)filtered_uploadedItems.Sum(x => x.ItemValue), 2),
+                        AverageValue_Pending = Math.Round((decimal)filtered_pendingItems.Sum(x => x.ItemValue), 2),
+                        AverageValue_Unregistered = Math.Round((decimal)filtered_unregisteredItems.Sum(x => x.ItemValue), 2),
                         Date = currentDate.ToString()
                     });
                 }
             }
 
+            result = [.. result.OrderByDescending(x => x.Date)];
+
             return result;
         }
 
-        public async Task<List<APIItemIdDashboard>> GetAPIItemIdDashboard(string month, string year)
+        public async Task<PagedResultDto<APIItemIdDashboard>> GetAPIItemIdDashboard(string month, string year, int MaxResultCount, int SkipCount)
         {
             List<APIItemIdDashboard> apiItemIdDashboard = [];
 
@@ -201,6 +207,10 @@ namespace SND.SMP.Items
                                              item.PostalCode
                                          }).Distinct().ToList();
 
+            int totalCount = distinctedCombination.Count;
+
+            distinctedCombination = distinctedCombination.Skip(SkipCount).Take(MaxResultCount).ToList();
+
             var joinedItems = (from item in items
                                join dispatch in dispatches on item.DispatchID equals dispatch.Id
                                select new
@@ -215,17 +225,36 @@ namespace SND.SMP.Items
 
             joinedItems = joinedItems.DistinctBy(x => x.Id).ToList();
 
+            var postalDistinctedByProductCode = postals.DistinctBy(x => x.ProductCode).ToList();
+            var postalDistinctedByServiceCode = postals.DistinctBy(x => x.ServiceCode).ToList();
+
             foreach (var distincted in distinctedCombination)
             {
                 var filteredItems = joinedItems.Where(x =>
-                                                        x.CustomerCode.Equals(distincted.CustomerCode) &&
-                                                        x.ProductCode.Equals(distincted.ProductCode) &&
-                                                        x.ServiceCode.Equals(distincted.ServiceCode) &&
-                                                        x.PostalCode.Equals(distincted.PostalCode))
+                                                        x.CustomerCode.Trim().Equals(distincted.CustomerCode.Trim()) &&
+                                                        x.ProductCode.Trim().Equals(distincted.ProductCode.Trim()) &&
+                                                        x.ServiceCode.Trim().Equals(distincted.ServiceCode.Trim()) &&
+                                                        x.PostalCode.Trim().Equals(distincted.PostalCode.Trim()))
                                                         .OrderByDescending(x => x.DispatchDate)
                                                         .ToList();
 
-                var postal = postals.FirstOrDefault(x => x.PostalCode.Equals(distincted.PostalCode));
+                var postal = postals.FirstOrDefault(x => x.PostalCode.Trim().Equals(distincted.PostalCode.Trim()) &&
+                                                         x.ProductCode.Trim().Equals(distincted.ProductCode.Trim()) &&
+                                                         x.ServiceCode.Trim().Equals(distincted.ServiceCode.Trim()));
+
+                string productDesc = distincted.ProductCode;
+                string serviceDesc = distincted.ServiceCode;
+
+                if (postal is null)
+                {
+                    productDesc = postalDistinctedByProductCode.FirstOrDefault(x => x.ProductCode.Equals(distincted.ProductCode)).ProductDesc;
+                    serviceDesc = postalDistinctedByServiceCode.FirstOrDefault(x => x.ServiceCode.Equals(distincted.ServiceCode)).ServiceDesc;
+                }
+                else
+                {
+                    productDesc = postal.ProductDesc;
+                    serviceDesc = postal.ServiceDesc;
+                }
 
                 apiItemIdDashboard.Add(new APIItemIdDashboard()
                 {
@@ -234,15 +263,19 @@ namespace SND.SMP.Items
                     ServiceCode = postal is null ? distincted.ServiceCode : postal.ServiceCode,
                     ProductCode = postal is null ? distincted.ProductCode : postal.ProductCode,
                     PostalDesc = postal is null ? distincted.PostalCode : postal.PostalDesc,
-                    ServiceDesc = postal is null ? distincted.ServiceCode : postal.ServiceDesc,
-                    ProductDesc = postal is null ? distincted.ProductCode : postal.ProductDesc,
+                    ServiceDesc = serviceDesc.Trim(),
+                    ProductDesc = productDesc.Trim(),
                     TotalItems = filteredItems.Count,
                     DateLastReceived = filteredItems[0].DispatchDate.ToString()
                 });
+
+                apiItemIdDashboard = [.. apiItemIdDashboard.OrderByDescending(x => x.DateLastReceived)];
             }
 
-
-            return apiItemIdDashboard;
+            return new PagedResultDto<APIItemIdDashboard>(
+                totalCount,
+                apiItemIdDashboard
+            );
         }
     }
 }

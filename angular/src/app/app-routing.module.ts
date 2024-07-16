@@ -34,6 +34,7 @@ import { RateItemsComponent } from "./rate-items/rate-items.component";
 import { CustomerTransactionsComponent } from "./customer-transactions/customer-transactions.component";
 import { PreAlertComponent } from "./pre-alerts/pre-alerts.component";
 import { PostChecksComponent } from "./post-checks/post-checks.component";
+import { APIItemIdComponent } from "./api-item-ids/api-item-id.component";
 
 @NgModule({
   imports: [
@@ -125,6 +126,12 @@ import { PostChecksComponent } from "./post-checks/post-checks.component";
             path: "items",
             data: { permission: "Pages.Item" },
             component: ItemsComponent,
+            canActivate: [AppRouteGuard],
+          },
+          {
+            path: "api-item-ids",
+            data: { permission: "Pages.Item" },
+            component: APIItemIdComponent,
             canActivate: [AppRouteGuard],
           },
           {
