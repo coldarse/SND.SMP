@@ -28,9 +28,9 @@ public class WorkerDispatchTrackingUpdate : BackgroundService
             var pollInMs = _configuration.GetValue<int>("Update:TrackingNoUpdatePollInSec") * 1000;
             int blockSize = _configuration.GetValue<int>("Import:BlockSize");
 
-            TrackingNoUpdater trackingNoUpdater = new TrackingNoUpdater();
+            DispatchTrackingUpdater dispatchTrackingUpdater = new DispatchTrackingUpdater();
 
-            await trackingNoUpdater.DiscoverAndUpdate(blockSize);
+            await dispatchTrackingUpdater.DiscoverAndUpdate(blockSize);
 
             #region Logger
             if (_logger.IsEnabled(LogLevel.Information))
