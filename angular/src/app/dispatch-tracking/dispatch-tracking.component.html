@@ -35,7 +35,7 @@
                 <div class="input-group-prepend">
                   <button
                     type="button"
-                    class="btn bg-danger"
+                    class="btn bg-olive"
                     (click)="search()"
                   >
                     <i class="fas fa-search"></i>
@@ -116,7 +116,7 @@
                             @for (country of dispatch.dispatchCountries; track country; let indexB = $index) {
                               @if(country.select)
                               {
-                                <tr style="background-color: #ffe1e1">
+                                <tr class="dispatch-country">
                                   <td
                                     class="leftSticky"
                                   >
@@ -303,7 +303,7 @@
                                 @for (bag of country.dispatchBags; track bag; let indexS = $index) {
                                   @if(bag.custom)
                                   {
-                                    <tr style="background-color: #fff4f4">
+                                    <tr class="dispatch-bag">
                                       <td
                                         class="leftBagSticky"
                                         (click)="selectBag(indexC, indexB, indexS)"
@@ -536,7 +536,7 @@
             <div class="col-sm-4 col-12"></div>
             <div class="col-sm-4 col-12"></div>
             <div class="col-sm-4 col-12 text-sm-right text-center">
-              <button class="btn btn-primary" (click)="submitItemTracking()">
+              <button class="btn bg-olive" (click)="submitItemTracking()">
                 <i class="fas fa-save"></i>
                 Submit
               </button>

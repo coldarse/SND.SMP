@@ -110,7 +110,7 @@ th {
 
 thead {
     /* background-color: #dc3545; */
-    background-color: #28a745;
+    background-color: #636B2F;
     color: white;
 }
 
@@ -123,7 +123,7 @@ thead {
 
 .parentTableHead th {
     z-index: 1;
-    background-color: #28a745;
+    background-color: #636B2F;
     position: sticky;
     top: 0;
 }
@@ -135,7 +135,7 @@ thead {
 
 .childTableHead thead th {
     z-index: 2;
-    background-color: #28a745;
+    background-color: #636B2F;
     position: sticky;
     top: 0;
 }
@@ -148,7 +148,7 @@ thead {
     -webkit-box-shadow: 5px 0px 15px 0px rgba(0, 0, 0);
     -moz-box-shadow: 5px 0px 15px 0px rgba(0, 0, 0);
     box-shadow: 5px 0px 15px 0px rgba(0, 0, 0);
-    background-color: #89f9a3;
+    background-color: #BAC095;
 }
 
 .leftBagSticky {
@@ -159,7 +159,7 @@ thead {
     -webkit-box-shadow: 5px 0px 15px 0px rgba(0, 0, 0);
     -moz-box-shadow: 5px 0px 15px 0px rgba(0, 0, 0);
     box-shadow: 5px 0px 15px 0px rgba(0, 0, 0);
-    background-color: #b9fdc7;
+    background-color: #d4de95;
     white-space: wrap;
 }
 
@@ -171,7 +171,7 @@ thead {
     -webkit-box-shadow: 5px 0px 15px 0px rgba(0, 0, 0);
     -moz-box-shadow: 5px 0px 15px 0px rgba(0, 0, 0);
     box-shadow: 5px 0px 15px 0px rgba(0, 0, 0);
-    background-color: #b9fdc7;
+    background-color: #d4de95;
 }
 
 .margin_left_right {
@@ -179,6 +179,56 @@ thead {
     margin-right: 2px;
 }
 
-.sgbus {
-    background-color: #55DD33;
+.nav-link.active {
+    background-color: #636B2F !important; 
+    color: #fff;
 }
+
+.badge-olive {
+    color: #fff;
+    background-color: #636B2F !important;
+}
+
+.dispatch-country {
+    background-color: #6d7444
+}
+
+.dispatch-bag {
+    background-color: #949e5a
+}
+
+.bg-olive {
+    background-color: #636B2F !important;
+    color: white;
+}
+
+.page-item.active .page-link {
+    z-index: 3;
+    color: #fff !important;
+    background-color: #636B2F !important;
+    border-color: #636B2F !important;
+}
+
+.page-link {
+    position: relative;
+    display: block;
+    padding: .5rem .75rem;
+    margin-left: -1px;
+    line-height: 1.25;
+    color: #636B2F !important;
+    background-color: #fff;
+    border: 1px solid #dee2e6;
+}
+
+.info-btn {
+    background-color: #BAC095 !important;
+    color: black;
+}
+
+.info-light {
+    background-color: #d4de95 !important;
+    color: black;
+}
+
+
+

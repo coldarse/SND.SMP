@@ -25,7 +25,7 @@
                 <div class="input-group-prepend">
                   <button
                     type="button"
-                    class="btn bg-success"
+                    class="btn bg-olive"
                     (click)="getDataPage(1)"
                   >
                     <i class="fas fa-search"></i>
@@ -127,7 +127,7 @@
                     <div class="progress">
                       <div
                         class="progress-bar progress-bar-striped"
-                        [class.bg-success]="
+                        [class.info-light]="
                           dispatchvalidation.validationProgress == 100
                         "
                         [class.progress-bar-animated]="
@@ -220,7 +220,7 @@
             } @else if (!showPagination) {
             <div class="col-sm-4 col-12">
               <div class="float-sm-right m-auto">
-                <button class="btn btn-info" (click)="rerouteToModule()">
+                <button class="btn info-btn" (click)="rerouteToModule()">
                   <i class="far fa-file-alt"></i>
                   Show More
                 </button>

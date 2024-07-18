@@ -6,15 +6,15 @@
                     <h1>{{ 'Postals' | localize }}</h1>
                 </div>
                 <div class='col-6 text-right' *ngIf='isButtonVisible("Create")'>
-                    <a href='javascript:;' class='btn bg-info' (click)='downloadTemplate()'>
+                    <a href='javascript:;' class='btn info-btn' (click)='downloadTemplate()'>
                         <i class="fa fa-file-download"></i>
                         {{ 'Download Template' | localize }}
                     </a>
-                    <a href='javascript:;' class='btn bg-blue ml-1' (click)='uploadPostal()'>
+                    <a href='javascript:;' class='btn bg-olive ml-1' (click)='uploadPostal()'>
                         <i class='fa fa-file-arrow-up'></i>
                         {{ 'Upload' | localize }}
                     </a>
-                    <a href='javascript:;' class='btn bg-blue ml-1' (click)='createPostal()'>
+                    <a href='javascript:;' class='btn bg-olive ml-1' (click)='createPostal()'>
                         <i class='fa fa-plus-square'></i>
                         {{ 'Create' | localize }}
                     </a>
@@ -33,7 +33,7 @@
                                 <div class='input-group-prepend'>
                                     <button
                                             type='button'
-                                            class="btn bg-success"
+                                            class="btn bg-olive"
                                             (click)='getDataPage(1)'
                                     >
                                         <i class='fas fa-search'></i>

@@ -7,7 +7,7 @@
       <div class="card-body">
         <h5
           class="card-title badge"
-          [ngClass]="selected == '1' ? 'badge-success' : 'badge-light'"
+          [ngClass]="selected == '1' ? 'badge-olive' : 'badge-light'"
         >
           <strong>Dispatches</strong>
         </h5>
@@ -30,13 +30,13 @@
             </span>
           </div>
           <div class="col-sm-12 mb-3">
-            <span class="badge badge-pill badge-info ml-1">{{
+            <span class="badge badge-pill info-btn ml-1">{{
               dispatch.postalDesc
             }}</span>
-            <span class="badge badge-pill badge-info ml-1">{{
+            <span class="badge badge-pill info-btn ml-1">{{
               dispatch.serviceDesc
             }}</span>
-            <span class="badge badge-pill badge-info ml-1">{{
+            <span class="badge badge-pill info-btn ml-1">{{
               dispatch.productDesc
             }}</span>
           </div>
@@ -51,7 +51,7 @@
       <div class="card-body">
         <h5
           class="card-title badge"
-          [ngClass]="selected == '2' ? 'badge-success' : 'badge-light'"
+          [ngClass]="selected == '2' ? 'badge-olive' : 'badge-light'"
         >
           <strong>Dispatch Validation</strong>
         </h5>
@@ -68,7 +68,7 @@
             <div class="progress">
               <div
                 class="progress-bar progress-bar-striped"
-                [class.bg-success]="validation.validationProgress == 100"
+                [class.info-light]="validation.validationProgress == 100"
                 [class.progress-bar-animated]="
                   validation.validationProgress < 100
                 "
@@ -88,15 +88,15 @@
               >Insufficient Fund</span
             >
             } @else if (!validation.isFundLack) {
-            <span class="badge badge-pill badge-success ml-1"
+            <span class="badge badge-pill info-light ml-1"
               >Sufficient Fund</span
             >
             } @if (validation.isValid) {
-            <span class="badge badge-pill badge-success ml-1">Valid</span>
+            <span class="badge badge-pill info-light ml-1">Valid</span>
             } @else if (!validation.isValid) {
             <span class="badge badge-pill badge-danger ml-1">Invalid</span>
             }
-            <span class="badge badge-pill badge-info ml-1">
+            <span class="badge badge-pill bg-olive ml-1">
               {{ validation.tookInSec }}s <i class="fas fa-stopwatch"></i>
             </span>
           </div>
@@ -111,7 +111,7 @@
       <div class="card-body">
         <h5
           class="card-title badge"
-          [ngClass]="selected == '3' ? 'badge-success' : 'badge-light'"
+          [ngClass]="selected == '3' ? 'badge-olive' : 'badge-light'"
         >
           <strong>Fund Monitoring</strong>
         </h5>
@@ -138,13 +138,13 @@
           </div>
           }
           <div class="col-sm-12 mb-3">
-            <span class="badge badge-pill badge-info ml-1">{{
+            <span class="badge badge-pill info-light ml-1">{{
               transaction.paymentMode
             }}</span>
-            <span class="badge badge-pill badge-info ml-1">{{
+            <span class="badge badge-pill info-light ml-1">{{
               transaction.wallet
             }}</span>
-            <span class="badge badge-pill badge-info ml-1">{{
+            <span class="badge badge-pill info-light ml-1">{{
               transaction.currency
             }}</span>
           </div>

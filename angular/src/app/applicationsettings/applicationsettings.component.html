@@ -6,7 +6,7 @@
                     <h1>{{ 'Application Settings' | localize }}</h1>
                 </div>
                 <div class='col-6 text-right' *ngIf='isButtonVisible("Create")'>
-                    <a href='javascript:;' class="btn bg-danger" (click)='createApplicationSetting()'>
+                    <a href='javascript:;' class="btn bg-olive" (click)='createApplicationSetting()'>
                         <i class='fa fa-plus-square'></i>
                         {{ 'Create' | localize }}
                     </a>
@@ -25,7 +25,7 @@
                                 <div class='input-group-prepend'>
                                     <button
                                             type='button'
-                                            class="btn bg-danger"
+                                            class="btn bg-olive"
                                             (click)='getDataPage(1)'
                                     >
                                         <i class='fas fa-search'></i>

@@ -7,11 +7,11 @@
                     <h1>{{ 'Transhipment (TS) Rates' | localize }}</h1>
                 </div>
                 <div class='col-6 text-right' *ngIf='isButtonVisible("Create")'>
-                    <a href='javascript:;' class='btn bg-info' (click)='downloadTemplate()'>
+                    <a href='javascript:;' class='btn info-btn' (click)='downloadTemplate()'>
                         <i class="fa fa-file-download"></i>
                         {{ 'Download Template' | localize }}
                     </a>
-                    <a href='javascript:;' class='btn bg-blue ml-1' (click)='uploadRateItem()'>
+                    <a href='javascript:;' class='btn bg-olive ml-1' (click)='uploadRateItem()'>
                         <i class='fa fa-file-arrow-up'></i>
                         {{ 'Upload' | localize }}
                     </a>
@@ -53,7 +53,7 @@
                         </div> -->
                         <div class="col-md-12">
                             @for (rate of rates; track $index) {
-                                <button class="btn btn-danger mr-1" (click)='filter(rate.id)'>
+                                <button class="btn info-btn mr-1" (click)='filter(rate.id)'>
                                     {{rate.cardName}} ({{rate.count}})
                                 </button>
                             }

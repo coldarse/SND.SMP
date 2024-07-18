@@ -6,13 +6,13 @@
           <h1>{{ "Direct Entry (DE) Rates" | localize }}</h1>
         </div>
         <div class="col-6 text-right" *ngIf="isButtonVisible('Create')">
-          <a href='javascript:;' class='btn bg-info' (click)='downloadTemplate()'>
+          <a href='javascript:;' class='btn info-btn' (click)='downloadTemplate()'>
             <i class="fa fa-file-download"></i>
             {{ 'Download Template' | localize }}
         </a>
           <a
             href="javascript:;"
-            class="btn bg-blue ml-1"
+            class="btn bg-olive ml-1"
             (click)="uploadRateWeightBreakExcel()"
           >
             <i class="fa fa-file-arrow-up"></i>
@@ -33,7 +33,7 @@
             <div class="col-md-12">
               @for (rate of rates; track $index) {
               <button
-                class="btn btn-danger mr-1 mb-1"
+                class="btn btn-olive mr-1 mb-1"
                 (click)="filter(rate.id)"
               >
                 {{ rate.cardName }}
