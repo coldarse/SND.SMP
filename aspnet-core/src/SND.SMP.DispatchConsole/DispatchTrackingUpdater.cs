@@ -104,31 +104,34 @@ namespace SND.SMP.DispatchConsole
 
                     foreach (var country in dispatchCountries)
                     {
-                        var customEditBags = country.DispatchBags.Where(x => x.Select == true && x.Custom == true).ToList();
-                        var nonCustomEditBags = country.DispatchBags.Where(x => x.Select == true && x.Custom == false).ToList();
-
-                        if (customEditBags.Count > 0)
+                        if (country.Select)
                         {
-                            foreach (var bag in customEditBags)
+                            var customEditBags = country.DispatchBags.Where(x => x.Select == true && x.Custom == true).ToList();
+                            var nonCustomEditBags = country.DispatchBags.Where(x => x.Select == true && x.Custom == false).ToList();
+
+                            if (customEditBags.Count > 0)
                             {
-                                var items = await db.Items.Where(x => x.BagId.Equals(bag.BagId)).ToListAsync();
-                                foreach (var item in items)
+                                foreach (var bag in customEditBags)
                                 {
-                                    var updatedItem = UpdatedItemTracking(item, bag.Stages);
-                                    customEditItems.Add(updatedItem);
+                                    var items = db.Items.Where(x => x.BagId == bag.BagId).ToList();
+                                    foreach (var item in items)
+                                    {
+                                        var updatedItem = UpdatedItemTracking(item, bag.Stages);
+                                        customEditItems.Add(updatedItem);
+                                    }
                                 }
                             }
-                        }
 
-                        if (nonCustomEditBags.Count > 0)
-                        {
-                            foreach (var bag in nonCustomEditBags)
+                            if (nonCustomEditBags.Count > 0)
                             {
-                                var items = await db.Items.Where(x => x.BagId.Equals(bag.BagId)).ToListAsync();
-                                foreach (var item in items)
+                                foreach (var bag in nonCustomEditBags)
                                 {
-                                    var updatedItem = UpdatedItemTracking(item, country.Stages);
-                                    nonCustomEditItems.Add(updatedItem);
+                                    var items = db.Items.Where(x => x.BagId == bag.BagId).ToList();
+                                    foreach (var item in items)
+                                    {
+                                        var updatedItem = UpdatedItemTracking(item, country.Stages);
+                                        nonCustomEditItems.Add(updatedItem);
+                                    }
                                 }
                             }
                         }
