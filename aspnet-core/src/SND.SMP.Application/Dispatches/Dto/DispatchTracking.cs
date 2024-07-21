@@ -11,7 +11,7 @@ public class DispatchInfo
 {
     public string Dispatch { get; set; }
     public int DispatchId { get; set; }
-    public DateOnly DispatchDate { get; set; }
+    public string DispatchDate { get; set; }
     public string PostalCode { get; set; }
     public int Status { get; set; }
     public string Customer { get; set; }

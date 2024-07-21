@@ -293,6 +293,7 @@ namespace SND.SMP.DispatchConsole
                                         TaxPayMethod = u.TaxPaymentMethod,
                                         IdentityType = u.IdentityType,
                                         PassportNo = u.IdentityNo,
+                                        Stage1StatusDesc = "Pre Check",
                                         DateStage1 = DateTime.Now,
                                         Status = (int)DispatchEnumConst.Status.Stage1
                                     })).ConfigureAwait(false);
@@ -416,6 +417,7 @@ namespace SND.SMP.DispatchConsole
                             TaxPayMethod = u.TaxPaymentMethod,
                             IdentityType = u.IdentityType,
                             PassportNo = u.IdentityNo,
+                            Stage1StatusDesc = "Pre Check",
                             DateStage1 = DateTime.Now,
                             Status = (int)DispatchEnumConst.Status.Stage1
                         })).ConfigureAwait(false);

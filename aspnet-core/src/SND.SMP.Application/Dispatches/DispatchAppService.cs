@@ -90,7 +90,7 @@ namespace SND.SMP.Dispatches
         private readonly IRepository<Currency, long> _currencyRepository = currencyRepository;
         private readonly IRepository<DispatchUsedAmount, int> _dispatchUsedAmountRepository = dispatchUsedAmountRepository;
         private readonly IRepository<DispatchValidation, string> _dispatchValidationRepository = dispatchValidationRepository;
-        
+
 
         [System.Text.RegularExpressions.GeneratedRegex(@"[a-zA-Z]")]
         private static partial System.Text.RegularExpressions.Regex MyRegex();
@@ -844,7 +844,7 @@ namespace SND.SMP.Dispatches
             if (!string.IsNullOrWhiteSpace(countryCode))
                 items = items.Where(x => x.CountryCode.Equals(countryCode)).ToList();
 
-            var dispatchDate = dispatch.DispatchDate.GetValueOrDefault().ToString("yyyy-MM-dd");
+            var dispatchDate = dispatch.DispatchDate.GetValueOrDefault().ToString("dd/MM/yyyy");
 
             List<BagWeights> bagList = [];
 
@@ -899,7 +899,7 @@ namespace SND.SMP.Dispatches
 
             if (!string.IsNullOrWhiteSpace(countryCode)) items = items.Where(x => x.CountryCode.Equals(countryCode)).ToList();
 
-            var dispatchDate = dispatch.DispatchDate.GetValueOrDefault().ToString("yyyy-MM-dd");
+            var dispatchDate = dispatch.DispatchDate.GetValueOrDefault().ToString("dd/MM/yyyy");
 
             List<BagWeights> bagList = [];
 
@@ -951,7 +951,7 @@ namespace SND.SMP.Dispatches
         {
             List<SLBag> slBag = [];
 
-            var dispatchDate = dispatch.DispatchDate.GetValueOrDefault().ToString("yyyy-MM-dd");
+            var dispatchDate = dispatch.DispatchDate.GetValueOrDefault().ToString("dd/MM/yyyy");
 
             List<BagWeights> bagList = [];
 
@@ -1015,7 +1015,7 @@ namespace SND.SMP.Dispatches
 
             if (!string.IsNullOrWhiteSpace(countryCode)) items = items.Where(x => x.CountryCode.Equals(countryCode)).ToList();
 
-            var dispatchDate = dispatch.DispatchDate.GetValueOrDefault().ToString("yyyy-MM-dd");
+            var dispatchDate = dispatch.DispatchDate.GetValueOrDefault().ToString("dd/MM/yyyy");
 
             List<BagWeights> bagList = [];
 
@@ -1215,7 +1215,7 @@ namespace SND.SMP.Dispatches
 
             return result;
         }
-        
+
         protected override IQueryable<Dispatch> CreateFilteredQuery(PagedDispatchResultRequestDto input)
         {
             return input.isAdmin ?
@@ -1351,6 +1351,7 @@ namespace SND.SMP.Dispatches
             foreach (var item in items)
             {
                 item.DateStage2 = DateTime.MinValue;
+                item.Stage2StatusDesc = "";
             }
 
             var wa_ud = await _weightAdjustmentRepository.FirstOrDefaultAsync(x =>
@@ -1458,6 +1459,7 @@ namespace SND.SMP.Dispatches
                         for (int j = 0; j < bagItems.Count; j++)
                         {
                             bagItems[j].DateStage2 = DateTime.Now.AddMilliseconds(random.Next(5000, 60000));
+                            bagItems[j].Stage2StatusDesc = "Post Check";
                         }
                         _itemRepository.GetDbContext().AttachRange(bagItems);
                         _itemRepository.GetDbContext().UpdateRange(bagItems);
@@ -2714,7 +2716,7 @@ namespace SND.SMP.Dispatches
             var dispatches = await Repository
                                     .GetAll()
                                     .Where(x => !x.DispatchNo.Contains("Temp"))
-                                    .OrderByDescending(x => x.DispatchDate)
+                                    .OrderByDescending(x => x.Id)
                                     .WhereIf(!string.IsNullOrWhiteSpace(filter), x => x.DispatchNo.ToLower().Contains(filter.ToLower()))
                                     .Take(10)
                                     .ToListAsync();
@@ -2727,7 +2729,7 @@ namespace SND.SMP.Dispatches
                 {
                     Dispatch = dispatch.DispatchNo,
                     DispatchId = dispatch.Id,
-                    DispatchDate = (DateOnly)dispatch.DispatchDate,
+                    DispatchDate = $"{dispatch.DispatchDate:dd/MM/yyyy}",
                     PostalCode = dispatch.PostalCode,
                     Status = (int)dispatch.Status,
                     Customer = dispatch.CustomerCode,
@@ -2752,37 +2754,26 @@ namespace SND.SMP.Dispatches
 
                         List<DispatchBag> db = [];
                         int noOfBagsStartedTracking = 0;
+                        int maxStagesUpdated = 0;
+                        var itemWithMostStagesUpdated = new Item();
                         foreach (var bag in bagsInCountry)
                         {
                             var item = await _itemRepository.FirstOrDefaultAsync(x => x.BagID.Equals(bag.Id));
                             bool hasStartedTracking = HasStartedTracking(item);
 
-                            Stage stage = new();
+                            int stagesUpdated = CountUpdatedStages(item);
+
+                            if (stagesUpdated > maxStagesUpdated)
+                            {
+                                maxStagesUpdated = stagesUpdated;
+                                itemWithMostStagesUpdated = item;
+                            }
+
+                            Stage tempStage = new();
 
                             if (hasStartedTracking)
                             {
-                                stage = new()
-                                {
-                                    DispatchNo = dispatch.DispatchNo,
-                                    CountryCode = country.CountryCode,
-                                    BagNo = bag.BagNo,
-                                    Stage1Desc = item.Stage1StatusDesc,
-                                    Stage1DateTime = item.DateStage1 ?? DateTime.MinValue,
-                                    Stage2Desc = item.Stage2StatusDesc,
-                                    Stage2DateTime = item.DateStage2 ?? DateTime.MinValue,
-                                    Stage3Desc = item.Stage3StatusDesc,
-                                    Stage3DateTime = item.DateStage3 ?? DateTime.MinValue,
-                                    Stage4Desc = item.Stage4StatusDesc,
-                                    Stage4DateTime = item.DateStage4 ?? DateTime.MinValue,
-                                    Stage5Desc = item.Stage5StatusDesc,
-                                    Stage5DateTime = item.DateStage5 ?? DateTime.MinValue,
-                                    Stage6Desc = item.Stage6StatusDesc,
-                                    Stage6DateTime = item.DateStage6 ?? DateTime.MinValue,
-                                    Airport = item.Stage7StatusDesc,
-                                    AirportDateTime = item.DateStage7 ?? DateTime.MinValue,
-                                    Stage7Desc = item.Stage8StatusDesc,
-                                    Stage7DateTime = item.DateStage8 ?? DateTime.MinValue
-                                };
+                                tempStage = CreateStage(item, dispatch.DispatchNo, country.CountryCode, bag.BagNo);
 
                                 noOfBagsStartedTracking++;
                             }
@@ -2794,11 +2785,18 @@ namespace SND.SMP.Dispatches
                                 ItemCount = bag.ItemCountPost == null ? 0 : (int)bag.ItemCountPost,
                                 Select = false,
                                 Custom = false,
-                                Stages = hasStartedTracking ? stage : null
+                                Stages = hasStartedTracking ? tempStage : null
                             });
                         }
 
                         bool allBagsTracked = noOfBagsStartedTracking == dispatchBags.Count;
+
+                        Stage stage = new();
+                        if (itemWithMostStagesUpdated.BagID is not null)
+                        {
+                            Bag majorityBag = bagsInCountry.FirstOrDefault(x => x.Id == itemWithMostStagesUpdated.BagID);
+                            stage = CreateStage(itemWithMostStagesUpdated, dispatch.DispatchNo, country.CountryCode, majorityBag.BagNo);
+                        }
 
                         dc.Add(new DispatchCountry()
                         {
@@ -2807,7 +2805,7 @@ namespace SND.SMP.Dispatches
                             DispatchBags = db,
                             Select = false,
                             Open = false,
-                            Stages = null
+                            Stages = stage
                         });
                     }
 
@@ -2817,12 +2815,38 @@ namespace SND.SMP.Dispatches
                 }
             }
 
-            
+
 
             return new DispatchTracking()
             {
                 Dispatches = result,
                 Countries = countries.Distinct().ToList()
+            };
+        }
+
+        private static Stage CreateStage(Item item, string dispatchNo, string countryCode, string bagNo)
+        {
+            return new Stage()
+            {
+                DispatchNo = dispatchNo,
+                CountryCode = countryCode,
+                BagNo = bagNo,
+                Stage1Desc = item.Stage1StatusDesc,
+                Stage1DateTime = item.DateStage1 ?? DateTime.MinValue,
+                Stage2Desc = item.Stage2StatusDesc,
+                Stage2DateTime = item.DateStage2 ?? DateTime.MinValue,
+                Stage3Desc = item.Stage3StatusDesc,
+                Stage3DateTime = item.DateStage3 ?? DateTime.MinValue,
+                Stage4Desc = item.Stage4StatusDesc,
+                Stage4DateTime = item.DateStage4 ?? DateTime.MinValue,
+                Stage5Desc = item.Stage5StatusDesc,
+                Stage5DateTime = item.DateStage5 ?? DateTime.MinValue,
+                Stage6Desc = item.Stage6StatusDesc,
+                Stage6DateTime = item.DateStage6 ?? DateTime.MinValue,
+                Airport = item.Stage7StatusDesc,
+                AirportDateTime = item.DateStage7 ?? DateTime.MinValue,
+                Stage7Desc = item.Stage8StatusDesc,
+                Stage7DateTime = item.DateStage8 ?? DateTime.MinValue
             };
         }
 
@@ -2845,6 +2869,20 @@ namespace SND.SMP.Dispatches
             }
 
             return hasStartedTracking;
+        }
+
+        private static int CountUpdatedStages(Item item)
+        {
+            int count = 0;
+            if (item.DateStage1 != null) count++;
+            if (item.DateStage2 != null) count++;
+            if (item.DateStage3 != null) count++;
+            if (item.DateStage4 != null) count++;
+            if (item.DateStage5 != null) count++;
+            if (item.DateStage6 != null) count++;
+            if (item.DateStage7 != null) count++;
+            if (item.DateStage8 != null) count++;
+            return count;
         }
     }
 }

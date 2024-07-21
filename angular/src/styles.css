@@ -230,5 +230,21 @@ thead {
     color: black;
 }
 
+.freeze-ui:before {
+    content: "";
+    display: block;
+    width: 75px;
+    height: 75px;
+    border-radius: 50%;
+    border-width: 10px;
+    border-style: solid;
+    border-color: transparent #636B2F #636B2F !important;
+    position: absolute;
+    top: calc(50% - 75px);
+    left: calc(50% - 75px);
+    will-change: transform;
+    animation: spin 0.75s infinite ease-in-out;
+}
+
 
 

@@ -150,6 +150,7 @@ import { ReviewItemTrackingApplicationComponent } from "./item-tracking-applicat
 import { APIItemIdComponent } from "./api-item-ids/api-item-id.component";
 
 import { DispatchTrackingComponent } from "./dispatch-tracking/dispatch-tracking.component";
+import { SearchItemComponent } from "./search-item/search-item.component";
 import { AngularEditorModule } from '@kolkov/angular-editor';
 
 @NgModule({
@@ -240,6 +241,7 @@ import { AngularEditorModule } from '@kolkov/angular-editor';
     ReviewItemTrackingApplicationComponent,
     APIItemIdComponent,
     DispatchTrackingComponent,
+    SearchItemComponent,
   ],
   imports: [
     CommonModule,

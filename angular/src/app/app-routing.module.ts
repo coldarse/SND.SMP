@@ -36,6 +36,7 @@ import { PreAlertComponent } from "./pre-alerts/pre-alerts.component";
 import { PostChecksComponent } from "./post-checks/post-checks.component";
 import { APIItemIdComponent } from "./api-item-ids/api-item-id.component";
 import { DispatchTrackingComponent } from "./dispatch-tracking/dispatch-tracking.component";
+import { SearchItemComponent } from "./search-item/search-item.component";
 
 @NgModule({
   imports: [
@@ -74,7 +75,7 @@ import { DispatchTrackingComponent } from "./dispatch-tracking/dispatch-tracking
             canActivate: [AppRouteGuard],
           },
           /* Insert Path */
-                    { path: 'emailcontents', data: { permission: 'Pages.EmailContent' }, component: EmailContentsComponent, canActivate: [AppRouteGuard] },
+          { path: 'emailcontents', data: { permission: 'Pages.EmailContent' }, component: EmailContentsComponent, canActivate: [AppRouteGuard] },
           {
             path: "airports",
             data: { permission: "Pages.Airport" },
@@ -127,6 +128,12 @@ import { DispatchTrackingComponent } from "./dispatch-tracking/dispatch-tracking
             path: "items",
             data: { permission: "Pages.Item" },
             component: ItemsComponent,
+            canActivate: [AppRouteGuard],
+          },
+          {
+            path: "search-item",
+            data: { permission: "Pages.Item" },
+            component: SearchItemComponent,
             canActivate: [AppRouteGuard],
           },
           {

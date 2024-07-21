@@ -17,6 +17,8 @@ using System.Globalization;
 using SND.SMP.Postals;
 using Abp.Application.Services.Dto;
 using Microsoft.AspNetCore.Mvc;
+using Abp.UI;
+using SND.SMP.Bags;
 
 namespace SND.SMP.Items
 {
@@ -25,13 +27,15 @@ namespace SND.SMP.Items
         IRepository<ItemTracking, int> itemTrackingRepository,
         IRepository<ApplicationSetting, int> applicationSettingRepository,
         IRepository<Dispatch, int> dispatchRepository,
-        IRepository<Postal, long> postalRepository
+        IRepository<Postal, long> postalRepository,
+        IRepository<Bag, int> bagRepository
     ) : AsyncCrudAppService<Item, ItemDto, string, PagedItemResultRequestDto>(repository)
     {
         private readonly IRepository<ItemTracking, int> _itemTrackingRepository = itemTrackingRepository;
         private readonly IRepository<ApplicationSetting, int> _applicationSettingRepository = applicationSettingRepository;
         private readonly IRepository<Dispatch, int> _dispatchRepository = dispatchRepository;
         private readonly IRepository<Postal, long> _postalRepository = postalRepository;
+        private readonly IRepository<Bag, int> _bagRepository = bagRepository;
         protected override IQueryable<Item> CreateFilteredQuery(PagedItemResultRequestDto input)
         {
             return Repository.GetAllIncluding()
@@ -89,6 +93,51 @@ namespace SND.SMP.Items
                     x.Stage9StatusDesc.Contains(input.Keyword) ||
                     x.CityId.Contains(input.Keyword) ||
                     x.FinalOfficeId.Contains(input.Keyword));
+        }
+
+        public async Task<ItemDetails> GetItem(string trackingNo)
+        {
+            var items = await Repository.GetAllListAsync(x => x.Id.Equals(trackingNo));
+
+            if (items.Count == 0) throw new UserFriendlyException("No Item under this Tracking Id is found.");
+
+            Item foundItem = null;
+            Bag bag = null;
+            Dispatch dispatch = null;
+
+            foreach (var item in items)
+            {
+                var temp_dispatch = await _dispatchRepository.FirstOrDefaultAsync(x => x.Id.Equals(item.DispatchID));
+                if (temp_dispatch is not null)
+                {
+                    bool isTemp = false;
+                    if (temp_dispatch.DispatchNo.Contains("temp", StringComparison.CurrentCultureIgnoreCase)) isTemp = true;
+
+                    foundItem = item;
+                    bag = isTemp ? null : await _bagRepository.FirstOrDefaultAsync(x => x.Id.Equals(item.BagID));
+                    dispatch = temp_dispatch;
+                }
+            }
+
+            var postal = await _postalRepository.FirstOrDefaultAsync(x =>
+                                                                    x.PostalCode.Equals(dispatch.PostalCode) &&
+                                                                    x.ServiceCode.Equals(dispatch.ServiceCode) &&
+                                                                    x.ProductCode.Equals(dispatch.ProductCode)
+                                                                );
+
+            return new()
+            {
+                TrackingNo = trackingNo,
+                DispatchNo = dispatch.DispatchNo,
+                BagNo = bag is null ? "" : bag.BagNo,
+                DispatchDate = $"{dispatch.DispatchDate:dd/MM/yyyy}",
+                Postal = postal.PostalDesc,
+                Service = postal.ServiceDesc,
+                Product = postal.ProductDesc,
+                Country = foundItem.CountryCode,
+                Weight = foundItem.Weight is null ? 0.000m: (decimal)foundItem.Weight,
+                Status = foundItem.Status is null ? 0 : (int)foundItem.Status
+            };
         }
 
         [HttpPost]
@@ -168,7 +217,7 @@ namespace SND.SMP.Items
                         AverageValue_Uploaded = Math.Round((decimal)filtered_uploadedItems.Sum(x => x.ItemValue), 2),
                         AverageValue_Pending = Math.Round((decimal)filtered_pendingItems.Sum(x => x.ItemValue), 2),
                         AverageValue_Unregistered = Math.Round((decimal)filtered_unregisteredItems.Sum(x => x.ItemValue), 2),
-                        Date = currentDate.ToString()
+                        Date = currentDate.ToString("dd/MM/yyyy")
                     });
                 }
             }
