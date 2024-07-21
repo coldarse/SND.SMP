@@ -251,7 +251,7 @@ namespace SND.SMP.Items
                         AverageValue_Uploaded = Math.Round((decimal)filtered_uploadedItems.Sum(x => x.ItemValue), 2),
                         AverageValue_Pending = Math.Round((decimal)filtered_pendingItems.Sum(x => x.ItemValue), 2),
                         AverageValue_Unregistered = Math.Round((decimal)filtered_unregisteredItems.Sum(x => x.ItemValue), 2),
-                        Date = currentDate.ToString()
+                        Date = currentDate.ToString("dd/MM/yyyy")
                     });
                 }
             }
