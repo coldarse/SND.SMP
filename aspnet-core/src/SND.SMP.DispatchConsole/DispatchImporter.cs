@@ -327,22 +327,14 @@ namespace SND.SMP.DispatchConsole
                                                                                     u.ProductCode.Equals(_dispatchProfile.ProductCode)).ToList();
 
                                     var registeredItems = itemTrackings
-                                                            .Where(a => listItems.Any(b => b.TrackingNo == a.TrackingNo))
-                                                            .Select(a => new ItemTracking
-                                                            {
-                                                                Id = a.Id,
-                                                                TrackingNo = a.TrackingNo,
-                                                                ApplicationId = a.ApplicationId,
-                                                                ReviewId = a.ReviewId,
-                                                                CustomerCode = a.CustomerCode,
-                                                                CustomerId = a.CustomerId,
-                                                                DateCreated = a.DateCreated,
-                                                                DateUsed = DateTime.Now,
-                                                                DispatchId = (int)savedDispatch.Id,
-                                                                DispatchNo = _dispatchProfile.DispatchNo,
-                                                                ProductCode = a.ProductCode
-                                                            })
-                                                            .ToList();
+                                                .Where(a => listItems.Any(b => b.TrackingNo == a.TrackingNo))
+                                                .ToList();
+
+                                    foreach (var item in registeredItems)
+                                    {
+                                        item.DateUsed = DateTime.Now;
+                                        item.DispatchId = (int)savedDispatch.Id;
+                                    }
 
                                     db.ItemTrackings.UpdateRange(registeredItems);
 
@@ -452,21 +444,13 @@ namespace SND.SMP.DispatchConsole
 
                         var registeredItems = itemTrackings
                                                 .Where(a => listItems.Any(b => b.TrackingNo == a.TrackingNo))
-                                                .Select(a => new ItemTracking
-                                                {
-                                                    Id = a.Id,
-                                                    TrackingNo = a.TrackingNo,
-                                                    ApplicationId = a.ApplicationId,
-                                                    ReviewId = a.ReviewId,
-                                                    CustomerCode = a.CustomerCode,
-                                                    CustomerId = a.CustomerId,
-                                                    DateCreated = a.DateCreated,
-                                                    DateUsed = DateTime.Now,
-                                                    DispatchId = (int)savedDispatch.Id,
-                                                    DispatchNo = _dispatchProfile.DispatchNo,
-                                                    ProductCode = a.ProductCode
-                                                })
                                                 .ToList();
+
+                        foreach (var item in registeredItems)
+                        {
+                            item.DateUsed = DateTime.Now;
+                            item.DispatchId = (int)savedDispatch.Id;
+                        }
 
                         db.ItemTrackings.UpdateRange(registeredItems);
 
@@ -558,13 +542,13 @@ namespace SND.SMP.DispatchConsole
                 }
                 catch (Exception ex)
                 {
-                    await DeleteDispatch(dispatchNo: _dispatchProfile.DispatchNo).ConfigureAwait(false);
-
                     await LogQueueError(new QueueErrorEventArg
                     {
                         FilePath = _filePath,
                         ErrorMsg = ex.InnerException != null ? ex.InnerException.Message : ex.Message,
                     });
+
+                    await DeleteDispatch(dispatchNo: _dispatchProfile.DispatchNo).ConfigureAwait(false);
                 }
             }
         }
