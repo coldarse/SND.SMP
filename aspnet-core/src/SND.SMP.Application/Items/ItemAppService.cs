@@ -134,7 +134,6 @@ namespace SND.SMP.Items
             string postcode = foundItem.Postcode is null ? "" : foundItem.Postcode + ", ";
             string country = foundItem.CountryCode is null ? "" : foundItem.CountryCode;
             string addressString = string.Format("{0} {1} {2} {3} {4}", address, city, state, postcode, country);
-
             return new()
             {
                 TrackingNo = trackingNo,

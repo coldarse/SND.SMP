@@ -58,9 +58,9 @@
 }
 
 .item-section {
-    width: 780px;
+    width: 640px;
     position: absolute;
-    top: 45%;
+    top: 58%;
     left: 50%;
     transform: translate(-50%, -50%);
 }
@@ -72,7 +72,7 @@
 }
 
 .item-card {
-    width: 780px;
+    width: 640px;
     background: #d4de95;
     border-radius: 2.5rem;
     padding: 2rem;
@@ -89,4 +89,8 @@
 
 .item-label {
     font-family: 'Montserrat-Bold' !important;
+}
+
+.long-desc {
+    width: 98.88px;
 }

@@ -210,6 +210,13 @@ export interface ItemDetails {
     product: string;
     country: string;
     weight: number;
+    value: number;
+    description: string;
+    referenceNo: string;
+    recipient: string;
+    contactNo: string;
+    email: string;
+    address: string;
     status: number;
 }
 
