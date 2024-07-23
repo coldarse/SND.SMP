@@ -18,5 +18,6 @@ namespace SND.SMP.ItemTrackings
         public int DispatchId { get; set; }
         public string DispatchNo { get; set; }
         public string ProductCode { get; set; }
+        public bool IsExternal { get; set; }
     }
 }

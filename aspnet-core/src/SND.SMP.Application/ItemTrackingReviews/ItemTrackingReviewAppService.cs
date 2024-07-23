@@ -968,56 +968,6 @@ namespace SND.SMP.ItemTrackingReviews
 
                                             input.ItemID = newItemIdFromSPS;
                                         }
-                                        else
-                                        {
-                                            var enableOld = false;
-                                            if (enableOld)
-                                            {
-                                                #region NOT IN USE
-                                                if (isItemIDAutoMandatory)
-                                                {
-                                                    trackingNumbers = await GenerateTrackingNumbers(startNo, 1, prefix, prefixNo, prefix);
-
-                                                    newItemIdFromSPS = trackingNumbers.FirstOrDefault();
-
-                                                    if (!string.IsNullOrWhiteSpace(newItemIdFromSPS))
-                                                    {
-                                                        try
-                                                        {
-                                                            var itemIdDetails = await GetItemTrackingFile(customerCode, newItemIdFromSPS);
-
-                                                            if (itemIdDetails is not null)
-                                                            {
-                                                                var matched = itemIdDetails.ItemWithPath.FirstOrDefault(x => x.ExcelPath.Equals(itemIdDetails.Path));
-
-                                                                await _itemTrackingRepository.InsertAsync(new ItemTracking()
-                                                                {
-                                                                    TrackingNo = newItemIdFromSPS,
-                                                                    ApplicationId = matched.ApplicationId,
-                                                                    ReviewId = matched.ReviewId,
-                                                                    CustomerId = cust.Id,
-                                                                    CustomerCode = customerCode,
-                                                                    DateCreated = matched.DateCreated,
-                                                                    ProductCode = matched.ProductCode,
-                                                                    DispatchNo = ""
-                                                                }).ConfigureAwait(false);
-                                                            }
-
-                                                            result.ItemID = newItemIdFromSPS;
-                                                            result.Status = SUCCESS;
-                                                        }
-                                                        catch (Exception ex)
-                                                        {
-                                                            result.Status = FAILED;
-                                                            result.Errors.Add(ex.Message);
-                                                        }
-                                                    }
-
-                                                    input.ItemID = newItemIdFromSPS;
-                                                }
-                                                #endregion
-                                            }
-                                        }
                                         #endregion
                                     }
                                     #endregion
