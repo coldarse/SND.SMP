@@ -35,49 +35,52 @@
     </div>
     <div class="item-body mt-4">
       <div class="row">
-        <div class="col-6">
+        <div class="col-12">
           <div class="row">
             <div class="col-3 item-label">Dispatch Number</div>
             <div class="col-9">: &nbsp; {{ itemDetails.dispatchNo }}</div>
           </div>
         </div>
-        <div class="col-6">
+        <div class="col-12">
           <div class="row">
             <div class="col-3 item-label">Dispatch Date</div>
             <div class="col-9">: &nbsp; {{ itemDetails.dispatchDate }}</div>
           </div>
         </div>
-        @if (itemDetails.bagNo != "") {
-        <div class="col-6">
-          <div class="row">
+        <div class="col-12">
+          <div class="row" *ngIf="itemDetails.bagNo != ''">
             <div class="col-3 item-label">Bag</div>
             <div class="col-9">: &nbsp; {{ itemDetails.bagNo }}</div>
           </div>
         </div>
-        <div class="col-6"></div>
-        }
+        <div class="col-12">
+          <div class="row" *ngIf="itemDetails.referenceNo != ''">
+            <div class="col-3 item-label">Reference Number</div>
+            <div class="col-9">: &nbsp; {{ itemDetails.referenceNo }}</div>
+          </div>
+        </div>
       </div>
       <hr />
       <div class="row mt-1">
-        <div class="col-6">
+        <div class="col-12">
           <div class="row">
             <div class="col-3 item-label">Postal</div>
             <div class="col-9">: &nbsp; {{ itemDetails.postal }}</div>
           </div>
         </div>
-        <div class="col-6">
+        <div class="col-12">
           <div class="row">
             <div class="col-3 item-label">Service</div>
             <div class="col-9">: &nbsp; {{ itemDetails.service }}</div>
           </div>
         </div>
-        <div class="col-6">
+        <div class="col-12">
           <div class="row">
             <div class="col-3 item-label">Product</div>
             <div class="col-9">: &nbsp; {{ itemDetails.product }}</div>
           </div>
         </div>
-        <div class="col-6">
+        <div class="col-12">
           <div class="row">
             <div class="col-3 item-label">Country</div>
             <div class="col-9">: &nbsp; {{ itemDetails.country }}</div>
@@ -86,16 +89,55 @@
       </div>
       <hr />
       <div class="row mt-1">
-        <div class="col-6">
+        <div class="col-12">
           <div class="row">
             <div class="col-3 item-label">Weight</div>
-            <div class="col-9">: &nbsp; {{ itemDetails.weight }} KG</div>
+            <div class="col-9">: &nbsp; {{ itemDetails.weight | number: '.3' }} KG</div>
           </div>
         </div>
-        <div class="col-6">
+        <div class="col-12">
+          <div class="row">
+            <div class="col-3 item-label">Value</div>
+            <div class="col-9">: &nbsp; {{ itemDetails.value | number: '.2' }}</div>
+          </div>
+        </div>
+        <div class="col-12">
+          <div class="row">
+            <div class="col-3 item-label">Description</div>
+            <div class="col-9">: &nbsp; {{ itemDetails.description }}</div>
+          </div>
+        </div>
+        <div class="col-12">
           <div class="row">
             <div class="col-3 item-label">Status</div>
             <div class="col-9">: &nbsp; Stage {{ itemDetails.status }}</div>
+          </div>
+        </div>
+      </div>
+      <hr />
+      <div class="row mt-1">
+        <div class="col-12">
+          <div class="row">
+            <div class="col-3 item-label">Recipient</div>
+            <div class="col-9">: &nbsp; {{ itemDetails.recipient }}</div>
+          </div>
+        </div>
+        <div class="col-12 mt-1">
+          <div class="row">
+            <div class="col-3 item-label">Email</div>
+            <div class="col-9 flex-nowrap">: &nbsp; {{ itemDetails.email }}</div>
+          </div>
+        </div>
+        <div class="col-12 mt-1">
+          <div class="row">
+            <div class="col-3 item-label">Address</div>
+            <div class="col-9 flex-nowrap">: &nbsp; {{ itemDetails.address }}</div>
+          </div>
+        </div>
+        <div class="col-12">
+          <div class="row">
+            <div class="col-3 item-label">Contact Number</div>
+            <div class="col-9">: &nbsp; {{ itemDetails.contactNo }}</div>
           </div>
         </div>
       </div>

@@ -125,6 +125,13 @@ namespace SND.SMP.Items
                                                                     x.ProductCode.Equals(dispatch.ProductCode)
                                                                 );
 
+            string address = foundItem.Address is null ? "" : foundItem.Address + ", ";
+            string city = foundItem.City is null ? "" : foundItem.City + ", ";
+            string state = foundItem.State is null ? "" : foundItem.State + ", ";
+            string postcode = foundItem.Postcode is null ? "" : foundItem.Postcode + ", ";
+            string country = foundItem.CountryCode is null ? "" : foundItem.CountryCode;
+            string addressString = string.Format("{0} {1} {2} {3} {4}", address, city, state, postcode, country);
+            
             return new()
             {
                 TrackingNo = trackingNo,
@@ -136,7 +143,14 @@ namespace SND.SMP.Items
                 Product = postal.ProductDesc,
                 Country = foundItem.CountryCode,
                 Weight = foundItem.Weight is null ? 0.000m: (decimal)foundItem.Weight,
-                Status = foundItem.Status is null ? 0 : (int)foundItem.Status
+                Status = foundItem.Status is null ? 0 : (int)foundItem.Status,
+                Value = foundItem.ItemValue is null ? 0.00m : (decimal)foundItem.ItemValue,
+                Description = foundItem.ItemDesc is null ? "" : foundItem.ItemDesc,
+                ReferenceNo = foundItem.RefNo is null ? "" : foundItem.RefNo,
+                Recipient = foundItem.RecpName is null ? "" : foundItem.RecpName,
+                ContactNo = foundItem.TelNo is null ? "" : foundItem.TelNo,
+                Email = foundItem.Email is null ? "" : foundItem.Email,
+                Address = addressString,
             };
         }
 

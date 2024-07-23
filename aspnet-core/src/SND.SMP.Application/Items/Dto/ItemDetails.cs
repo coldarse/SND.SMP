@@ -11,5 +11,12 @@ public class ItemDetails
     public string Product { get; set; }
     public string Country { get; set; }
     public decimal Weight { get; set; }
+    public decimal Value { get; set; }
+    public string Description { get; set; }
+    public string ReferenceNo { get; set; }
+    public string Recipient {get; set;}
+    public string ContactNo {get; set;}
+    public string Email {get; set;}
+    public string Address {get; set;}
     public int Status { get; set; }
 }

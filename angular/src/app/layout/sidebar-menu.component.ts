@@ -107,7 +107,7 @@ export class SidebarMenuComponent extends AppComponentBase implements OnInit {
           "Pages.Item"
         ),
         new MenuItem(
-          this.l("Item Tracking"),
+          this.l("Generate Item ID"),
           "/app/item-tracking-applications",
           "fas fa-barcode",
           "Pages.ItemTrackingApplication"
