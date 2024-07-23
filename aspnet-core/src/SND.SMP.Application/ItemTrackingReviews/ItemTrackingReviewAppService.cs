@@ -335,7 +335,7 @@ namespace SND.SMP.ItemTrackingReviews
 
                                 try
                                 {
-                                    await InsertUpdateTrackingNumber(newItemIdFromSPS, customerCode, cust.Id, input.PostalCode, false);
+                                    await InsertUpdateTrackingNumber(newItemIdFromSPS, customerCode, cust.Id, input.ProductCode, false);
 
                                     await AlertIfLowThreshold(postalCode, threshold);
 
@@ -370,7 +370,7 @@ namespace SND.SMP.ItemTrackingReviews
                                             {
                                                 try
                                                 {
-                                                    await InsertUpdateTrackingNumber(newItemIdFromSPS, customerCode, cust.Id, input.PostalCode);
+                                                    await InsertUpdateTrackingNumber(newItemIdFromSPS, customerCode, cust.Id, input.ProductCode);
 
                                                     await AlertIfLowThreshold(postalCode, threshold);
 
@@ -395,7 +395,7 @@ namespace SND.SMP.ItemTrackingReviews
                                                 {
                                                     try
                                                     {
-                                                        await InsertUpdateTrackingNumber(newItemIdFromSPS, customerCode, cust.Id, input.PostalCode);
+                                                        await InsertUpdateTrackingNumber(newItemIdFromSPS, customerCode, cust.Id, input.ProductCode);
 
                                                         await AlertIfLowThreshold(postalCode, threshold);
 
@@ -543,7 +543,7 @@ namespace SND.SMP.ItemTrackingReviews
                                         {
                                             try
                                             {
-                                                await InsertUpdateTrackingNumber(newItemIdFromSPS, customerCode, cust.Id, input.PostalCode);
+                                                await InsertUpdateTrackingNumber(newItemIdFromSPS, customerCode, cust.Id, input.ProductCode);
 
                                                 await AlertIfLowThreshold(postalCode, threshold);
 
@@ -569,7 +569,7 @@ namespace SND.SMP.ItemTrackingReviews
                                             {
                                                 try
                                                 {
-                                                    await InsertUpdateTrackingNumber(newItemIdFromSPS, customerCode, cust.Id, input.PostalCode);
+                                                    await InsertUpdateTrackingNumber(newItemIdFromSPS, customerCode, cust.Id, input.ProductCode);
 
                                                     await AlertIfLowThreshold(postalCode, threshold);
 
@@ -997,7 +997,7 @@ namespace SND.SMP.ItemTrackingReviews
 
             return postal is not null ? postal.ItemTopUpValue : 0m;
         }
-        private async Task InsertUpdateTrackingNumber(string trackingNo, string customerCode, long customerId, string postalCode, bool isAnyAccount = true)
+        private async Task InsertUpdateTrackingNumber(string trackingNo, string customerCode, long customerId, string productCode, bool isAnyAccount = true, bool isSelfGenerated = true)
         {
             var item = await _itemTrackingRepository.FirstOrDefaultAsync(x => x.TrackingNo.Equals(trackingNo));
 
@@ -1005,26 +1005,44 @@ namespace SND.SMP.ItemTrackingReviews
             {
                 item.CustomerCode = customerCode;
                 item.CustomerId = customerId;
-                item.ProductCode = postalCode;
+                item.ProductCode = productCode;
             }
             else
             {
-                var itemIdDetails = await GetItemTrackingFile(isAnyAccount ? "Any Account" : customerCode, trackingNo);
-
-                if (itemIdDetails is not null)
+                if (isSelfGenerated)
                 {
-                    var matched = itemIdDetails.ItemWithPath.FirstOrDefault(x => x.ExcelPath.Equals(itemIdDetails.Path));
+                    var itemIdDetails = await GetItemTrackingFile(isAnyAccount ? "Any Account" : customerCode, trackingNo);
 
+                    if (itemIdDetails is not null)
+                    {
+                        var matched = itemIdDetails.ItemWithPath.FirstOrDefault(x => x.ExcelPath.Equals(itemIdDetails.Path));
+
+                        await _itemTrackingRepository.InsertAsync(new ItemTracking()
+                        {
+                            TrackingNo = trackingNo,
+                            ApplicationId = matched.ApplicationId,
+                            ReviewId = matched.ReviewId,
+                            CustomerId = customerId,
+                            CustomerCode = customerCode,
+                            DateCreated = matched.DateCreated,
+                            ProductCode = matched.ProductCode,
+                            DispatchNo = ""
+                        }).ConfigureAwait(false);
+                    }
+                }
+                else
+                {
                     await _itemTrackingRepository.InsertAsync(new ItemTracking()
                     {
                         TrackingNo = trackingNo,
-                        ApplicationId = matched.ApplicationId,
-                        ReviewId = matched.ReviewId,
+                        ApplicationId = 0,
+                        ReviewId = 0,
                         CustomerId = customerId,
                         CustomerCode = customerCode,
-                        DateCreated = matched.DateCreated,
-                        ProductCode = matched.ProductCode,
-                        DispatchNo = ""
+                        DateCreated = DateTime.Now,
+                        ProductCode = productCode,
+                        DispatchNo = "",
+                        IsExternal = true
                     }).ConfigureAwait(false);
                 }
             }
