@@ -40,7 +40,7 @@ namespace SND.SMP.DispatchConsole
 
         private string Currency { get; set; }
 
-        
+
 
 
         public DispatchValidator() { }
@@ -151,6 +151,7 @@ namespace SND.SMP.DispatchConsole
             DispatchValidateDto validationResult_wallet_InsufficientBalance = new() { Category = "Insufficient Wallet Balance" };
             DispatchValidateDto validationResult_ioss_missing = new() { Category = "Missing IOSS" };
             DispatchValidateDto validationResult_trackingno_IsPreRegistered = new() { Category = "Unregistered Tracking Number(s)" };
+            DispatchValidateDto validationResult_trackingno_IsInvalid = new() { Category = "Invalid Tracking Number(s)" };
             DispatchValidateDto validationResult_Others = new() { Category = "Caught Error" };
 
             using db db = new();
@@ -282,6 +283,7 @@ namespace SND.SMP.DispatchConsole
                                     () => Id_HasInvalidCheckDigit(ref validationResult_id_HasInvalidCheckDigit, listItemIds),
                                     () => Country_IsInvalidCountry(ref validationResult_country_HasInvalidCountry, listCountryCodes),
                                     () => TrackingNo_IsPreRegistered(ref validationResult_trackingno_IsPreRegistered, listItemIds, CustomerCode, DispatchProfile.ProductCode),
+                                    () => TrackingNo_IsInvalid(ref validationResult_trackingno_IsInvalid, listItemIds, CustomerCode, DispatchProfile.ProductCode, DispatchProfile.PostalCode),
                                     () => Dispatch_IsParticularsNotTally(ref validationResult_dispatch_IsParticularsNotTally, listParticulars));
 
                                 listItemIds.Clear();
@@ -342,6 +344,7 @@ namespace SND.SMP.DispatchConsole
                         () => Id_HasInvalidCheckDigit(ref validationResult_id_HasInvalidCheckDigit, listItemIds),
                         () => Country_IsInvalidCountry(ref validationResult_country_HasInvalidCountry, listCountryCodes),
                         () => TrackingNo_IsPreRegistered(ref validationResult_trackingno_IsPreRegistered, listItemIds, CustomerCode, DispatchProfile.ProductCode),
+                        () => TrackingNo_IsInvalid(ref validationResult_trackingno_IsInvalid, listItemIds, CustomerCode, DispatchProfile.ProductCode, DispatchProfile.PostalCode),
                         () => Dispatch_IsParticularsNotTally(ref validationResult_dispatch_IsParticularsNotTally, listParticulars));
                 }
 
@@ -431,6 +434,12 @@ namespace SND.SMP.DispatchConsole
                     {
                         isValid = false;
                         validations.Add(validationResult_ioss_missing);
+                    }
+
+                    if (validationResult_trackingno_IsInvalid.ItemIds.Count != 0 || !string.IsNullOrWhiteSpace(validationResult_trackingno_IsInvalid.Message))
+                    {
+                        isValid = false;
+                        validations.Add(validationResult_trackingno_IsInvalid);
                     }
 
                     if (validationResult_wallet_InsufficientBalance.ItemIds.Count != 0 || !string.IsNullOrWhiteSpace(validationResult_wallet_InsufficientBalance.Message))
@@ -782,12 +791,9 @@ namespace SND.SMP.DispatchConsole
                 return r;
             }).Select(u => u).ToList();
 
-            result = list.Count != 0;
+            if (result) validationResult.ItemIds.AddRange(list);
 
-            if (result)
-            {
-                validationResult.ItemIds.AddRange(list);
-            }
+            result = list.Count != 0;
 
             return result;
         }
@@ -903,15 +909,41 @@ namespace SND.SMP.DispatchConsole
             db.ChangeTracker.AutoDetectChangesEnabled = false;
 
             var registeredItems = db.ItemTrackings.Where(u => u.CustomerCode.Equals(customerCode) &&
-                                                              u.ProductCode .Equals(productCode)
+                                                              u.ProductCode.Equals(productCode)
                                                         ).ToList();
-            
+
             var unregisteredItems = model.Where(a => !registeredItems.Any(b => b.TrackingNo.Equals(a)))
                                         .Select(u => $"Tracking No {u} has not been registered.").ToList();
 
             validationResult.ItemIds.AddRange(unregisteredItems);
 
             result = unregisteredItems.Count != 0;
+
+            return result;
+        }
+
+        private static bool TrackingNo_IsInvalid(ref Dto.DispatchValidateDto validationResult, List<string> model, string customerCode, string productCode, string postalCode)
+        {
+            var result = false;
+
+            using db db = new();
+            db.ChangeTracker.AutoDetectChangesEnabled = false;
+
+            Task<List<string>> asyncTask = GetItemTrackingIds(customerCode, postalCode, productCode);
+            asyncTask.Wait();
+            List<string> poolItemIds = asyncTask.Result;
+
+            var unidentifiedItems = model.Where(a => !poolItemIds.Any(b => b.Equals(a))).ToList();
+
+            var registeredItems = db.ItemTrackings.Where(u => u.CustomerCode.Equals(customerCode) &&
+                                                              u.ProductCode.Equals(productCode)).ToList();
+
+            var invalidItems = unidentifiedItems.Where(a => !registeredItems.Any(b => b.TrackingNo.Equals(a)))
+                                                .Select(u => $"Tracking No {u} is Invalid.").ToList();
+
+            validationResult.ItemIds.AddRange(invalidItems);
+
+            result = invalidItems.Count != 0;
 
             return result;
         }
@@ -963,7 +995,43 @@ namespace SND.SMP.DispatchConsole
             return null;
         }
 
-        
+        private static async Task<List<string>> GetItemTrackingIds(string customerCode, string postalCode, string productCode)
+        {
+            using db db = new();
+            db.ChangeTracker.AutoDetectChangesEnabled = false;
+
+
+            List<string> paths = [];
+            List<string> item = [];
+
+            var applications = db.ItemTrackingApplications.Where(x => x.CustomerCode.Equals(customerCode) &&
+                                                                      x.PostalCode.Equals(postalCode) &&
+                                                                      x.ProductCode.Equals(productCode));
+
+            foreach (var application in applications) paths.Add(application.Path);
+
+            if (!paths.Count.Equals(0))
+            {
+                //---- Gets all Excel files and retrieves its info to create the object ItemIds ----//
+                foreach (var path in paths)
+                {
+                    ItemTrackingWithPath itemWithPath = new();
+                    Stream excel_stream = await FileServer.GetFileStream(path);
+                    DataTable dataTable = ConvertToDatatable(excel_stream);
+                    dataTable.TableName = path;
+
+                    foreach (DataRow dr in dataTable.Rows)
+                    {
+                        if (dr.ItemArray[0].ToString() != "")
+                        {
+                            item.Add(dr.ItemArray[0].ToString());
+                        }
+                    }
+                }
+            }
+
+            return item;
+        }
     }
 }
 
