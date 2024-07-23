@@ -1482,7 +1482,8 @@ namespace SND.SMP.ItemTrackingReviews
                         CustomerCode = customerCode,
                         DateCreated = DateTime.Now,
                         ProductCode = productCode,
-                        DispatchNo = ""
+                        DispatchNo = "",
+                        IsExternal = true
                     }).ConfigureAwait(false);
                 }
             }
