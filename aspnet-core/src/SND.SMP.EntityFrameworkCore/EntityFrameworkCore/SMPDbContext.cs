@@ -150,6 +150,7 @@ namespace SND.SMP.EntityFrameworkCore
                 b.Property(x => x.DispatchId).HasColumnName(nameof(ItemTracking.DispatchId));
                 b.Property(x => x.DispatchNo).HasColumnName(nameof(ItemTracking.DispatchNo)).HasMaxLength(128);
                 b.Property(x => x.ProductCode).HasColumnName(nameof(ItemTracking.ProductCode)).HasMaxLength(128);
+                b.Property(x => x.IsExternal).HasColumnName(nameof(ItemTracking.IsExternal)).HasDefaultValue(false);
                 b.HasKey(x => x.Id);
             });
 
