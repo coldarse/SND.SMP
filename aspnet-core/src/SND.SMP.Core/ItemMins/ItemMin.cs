@@ -9,6 +9,7 @@ namespace SND.SMP.ItemMins
     public class ItemMin : Entity<string>
     {
         public string ExtID { get; set; }
+        [Key]
         public int? DispatchID { get; set; }
         public int? BagID { get; set; }
         public DateOnly? DispatchDate { get; set; }

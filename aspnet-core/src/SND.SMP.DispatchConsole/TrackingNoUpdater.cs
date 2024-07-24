@@ -121,14 +121,14 @@ namespace SND.SMP.DispatchConsole
                 {
                     q.Status = QueueEnumConst.STATUS_ERROR;
                     q.ErrorMsg = arg.ErrorMsg;
-                    q.TookInSec = null;
+                    q.TookInSec = 0;
 
                     await db.SaveChangesAsync().ConfigureAwait(false);
                 }
                 #endregion
             }
         }
-        private async Task UpdateItemTrackingFile(string customerCode, List<string> trackingNos, Dispatch dispatch, string processType)
+        private async Task UpdateItemTrackingFile(string customerCode, List<string> trackingNos, SND.SMP.Dispatches.Dispatch dispatch, string processType)
         {
             using db db = new();
 

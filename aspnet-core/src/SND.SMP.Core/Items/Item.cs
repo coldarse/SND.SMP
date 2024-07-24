@@ -9,6 +9,7 @@ namespace SND.SMP.Items
     public class Item : Entity<string>
     {
         public string ExtID { get; set; }
+        [Key]
         public int? DispatchID { get; set; }
         public int? BagID { get; set; }
         public DateOnly? DispatchDate { get; set; }
