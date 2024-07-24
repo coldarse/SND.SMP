@@ -436,7 +436,7 @@ namespace SND.SMP.ItemTrackingReviews
                                             {
                                                 try
                                                 {
-                                                    await InsertUpdateTrackingNumber(newItemIdFromSPS, customerCode, cust.Id, input.ProductCode, isSelfGenerated: false);
+                                                    await InsertUpdateTrackingNumber(newItemIdFromSPS, customerCode, cust.Id, input.ProductCode, dispatchTemp, isSelfGenerated: false);
 
                                                     result.ItemID = newItemIdFromSPS;
                                                     result.Status = SUCCESS;
@@ -776,7 +776,7 @@ namespace SND.SMP.ItemTrackingReviews
 
                                 try
                                 {
-                                    await InsertUpdateTrackingNumber(newItemIdFromSPS, customerCode, cust.Id, input.ProductCode, false);
+                                    await InsertUpdateTrackingNumber(newItemIdFromSPS, customerCode, cust.Id, input.ProductCode, dispatchTemp, isAnyAccount: false);
 
                                     await AlertIfLowThreshold(postalCode, threshold);
 
@@ -805,13 +805,13 @@ namespace SND.SMP.ItemTrackingReviews
 
                                         if ((string.IsNullOrWhiteSpace(input.ItemID) ? "" : input.ItemID).ToLower().Trim() == auto.ToLower().Trim())
                                         {
-                                            newItemIdFromSPS = await GetNextAvailableTrackingNumber(postalCode, true, input.ProductCode, useCustomerPool ? customerCode : null);
+                                            newItemIdFromSPS = await GetNextAvailableTrackingNumber(postalCode, false, input.ProductCode, useCustomerPool ? customerCode : null);
 
                                             if (!string.IsNullOrWhiteSpace(newItemIdFromSPS))
                                             {
                                                 try
                                                 {
-                                                    await InsertUpdateTrackingNumber(newItemIdFromSPS, customerCode, cust.Id, input.ProductCode);
+                                                    await InsertUpdateTrackingNumber(newItemIdFromSPS, customerCode, cust.Id, input.ProductCode, dispatchTemp);
 
                                                     await AlertIfLowThreshold(postalCode, threshold);
 
@@ -830,13 +830,13 @@ namespace SND.SMP.ItemTrackingReviews
                                         {
                                             if (isItemIDAutoMandatory)
                                             {
-                                                newItemIdFromSPS = await GetNextAvailableTrackingNumber(postalCode, true, input.ProductCode, useCustomerPool ? customerCode : null);
+                                                newItemIdFromSPS = await GetNextAvailableTrackingNumber(postalCode, false, input.ProductCode, useCustomerPool ? customerCode : null);
 
                                                 if (!string.IsNullOrWhiteSpace(newItemIdFromSPS))
                                                 {
                                                     try
                                                     {
-                                                        await InsertUpdateTrackingNumber(newItemIdFromSPS, customerCode, cust.Id, input.ProductCode);
+                                                        await InsertUpdateTrackingNumber(newItemIdFromSPS, customerCode, cust.Id, input.ProductCode, dispatchTemp);
 
                                                         await AlertIfLowThreshold(postalCode, threshold);
 
@@ -938,6 +938,7 @@ namespace SND.SMP.ItemTrackingReviews
                                                             CustomerId = cust.Id,
                                                             CustomerCode = customerCode,
                                                             DateCreated = itemIdDetails.DateCreated,
+                                                            DateUsed = DateTime.Now,
                                                             ProductCode = itemIdDetails.ProductCode,
                                                             DispatchNo = ""
                                                         }).ConfigureAwait(false);
@@ -984,7 +985,7 @@ namespace SND.SMP.ItemTrackingReviews
                                         {
                                             try
                                             {
-                                                await InsertUpdateTrackingNumber(newItemIdFromSPS, customerCode, cust.Id, input.ProductCode);
+                                                await InsertUpdateTrackingNumber(newItemIdFromSPS, customerCode, cust.Id, input.ProductCode, dispatchTemp);
 
                                                 await AlertIfLowThreshold(postalCode, threshold);
 
@@ -1010,7 +1011,7 @@ namespace SND.SMP.ItemTrackingReviews
                                             {
                                                 try
                                                 {
-                                                    await InsertUpdateTrackingNumber(newItemIdFromSPS, customerCode, cust.Id, input.ProductCode);
+                                                    await InsertUpdateTrackingNumber(newItemIdFromSPS, customerCode, cust.Id, input.ProductCode, dispatchTemp);
 
                                                     await AlertIfLowThreshold(postalCode, threshold);
 
@@ -1421,6 +1422,7 @@ namespace SND.SMP.ItemTrackingReviews
                         CustomerId = itemPath.CustomerId,
                         CustomerCode = itemPath.CustomerCode,
                         DateCreated = itemPath.DateCreated,
+                        DateUsed = DateTime.Now,
                         ProductCode = itemPath.ProductCode,
                     }).ConfigureAwait(false);
                 }
@@ -1438,7 +1440,7 @@ namespace SND.SMP.ItemTrackingReviews
 
             return postal is not null ? postal.ItemTopUpValue : 0m;
         }
-        private async Task InsertUpdateTrackingNumber(string trackingNo, string customerCode, long customerId, string productCode, bool isAnyAccount = true, bool isSelfGenerated = true)
+        private async Task InsertUpdateTrackingNumber(string trackingNo, string customerCode, long customerId, string productCode, Dispatch dispatch, bool isAnyAccount = true, bool isSelfGenerated = true)
         {
             var item = await _itemTrackingRepository.FirstOrDefaultAsync(x => x.TrackingNo.Equals(trackingNo));
 
@@ -1447,6 +1449,8 @@ namespace SND.SMP.ItemTrackingReviews
                 item.CustomerCode = customerCode;
                 item.CustomerId = customerId;
                 item.ProductCode = productCode;
+                item.DispatchId = dispatch.Id;
+                item.DispatchNo = dispatch.DispatchNo;
             }
             else
             {
@@ -1466,8 +1470,10 @@ namespace SND.SMP.ItemTrackingReviews
                             CustomerId = customerId,
                             CustomerCode = customerCode,
                             DateCreated = matched.DateCreated,
+                            DateUsed = DateTime.Now,
                             ProductCode = matched.ProductCode,
-                            DispatchNo = ""
+                            DispatchNo = dispatch.DispatchNo,
+                            DispatchId = dispatch.Id
                         }).ConfigureAwait(false);
                     }
                 }
@@ -1481,8 +1487,11 @@ namespace SND.SMP.ItemTrackingReviews
                         CustomerId = customerId,
                         CustomerCode = customerCode,
                         DateCreated = DateTime.Now,
+                        DateUsed = DateTime.Now,
                         ProductCode = productCode,
-                        DispatchNo = ""
+                        DispatchNo = dispatch.DispatchNo,
+                        DispatchId = dispatch.Id,
+                        IsExternal = true
                     }).ConfigureAwait(false);
                 }
             }
@@ -1686,6 +1695,7 @@ namespace SND.SMP.ItemTrackingReviews
                     CustomerId = 0,
                     CustomerCode = "",
                     DateCreated = DateTime.Now,
+                    DateUsed = DateTime.Now,
                     ProductCode = "",
                 }).ConfigureAwait(false);
 
