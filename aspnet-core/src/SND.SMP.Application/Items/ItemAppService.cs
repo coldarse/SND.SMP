@@ -30,13 +30,15 @@ namespace SND.SMP.Items
         IRepository<ItemTracking, int> itemTrackingRepository,
         IRepository<ApplicationSetting, int> applicationSettingRepository,
         IRepository<Dispatch, int> dispatchRepository,
-        IRepository<Postal, long> postalRepository
+        IRepository<Postal, long> postalRepository,
+        IRepository<Bag, int> bagRepository
     ) : AsyncCrudAppService<Item, ItemDto, string, PagedItemResultRequestDto>(repository)
     {
         private readonly IRepository<ItemTracking, int> _itemTrackingRepository = itemTrackingRepository;
         private readonly IRepository<ApplicationSetting, int> _applicationSettingRepository = applicationSettingRepository;
         private readonly IRepository<Dispatch, int> _dispatchRepository = dispatchRepository;
         private readonly IRepository<Postal, long> _postalRepository = postalRepository;
+        private readonly IRepository<Bag, int> _bagRepository = bagRepository;
         protected override IQueryable<Item> CreateFilteredQuery(PagedItemResultRequestDto input)
         {
             return Repository.GetAllIncluding()
