@@ -58,7 +58,7 @@
                                 <th>{{ 'Error Msg' | localize }}</th>
                                 <th>{{ 'Start Time' | localize }}</th>
                                 <th>{{ 'End Time' | localize }}</th>
-                                <!-- <th style='width: 310px;' *ngIf='isButtonVisible("Edit") && isButtonVisible("Delete")'>{{ 'Actions' | localize }}</th> -->
+                                <th style='width: 155px;' *ngIf='isButtonVisible("Edit")'>{{ 'Actions' | localize }}</th>
                             </tr>
                             </thead>
                             <tbody>
@@ -84,26 +84,17 @@
                                 <td>{{ queue.errorMsg }}</td>
                                 <td>{{ queue.startTime | date : "dd/MM/yyyy HH:mm:ss tt"  }}</td>
                                 <td>{{ queue.endTime | date : "dd/MM/yyyy HH:mm:ss tt"  }}</td>
-                                <!-- <td *ngIf='isButtonVisible("Edit") || isButtonVisible("Delete")'>
+                                <td *ngIf='isButtonVisible("Edit")'>
                                     <button
                                             type='button'
-                                            class='btn btn-sm bg-secondary'
-                                            (click)='editQueue(queue)'
+                                            class='btn btn-sm bg-warning'
+                                            (click)='restartQueue(queue.id)'
                                             *ngIf='isButtonVisible("Edit")'
                                     >
-                                        <i class='fas fa-pencil-alt'></i>
-                                        {{ 'Edit' | localize }}
+                                        <i class='fas fa-rotate-right'></i>
+                                        {{ 'Restart' | localize }}
                                     </button>
-                                    <button
-                                            type='button'
-                                            class='btn btn-sm bg-danger mx-2'
-                                            (click)='delete(queue)'
-                                            *ngIf='isButtonVisible("Delete")'
-                                    >
-                                        <i class='fas fa-trash'></i>
-                                        {{ 'Delete' | localize }}
-                                    </button>
-                                </td> -->
+                                </td>
                             </tr>
                             </tbody>
                         </table>

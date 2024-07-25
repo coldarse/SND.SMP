@@ -113,4 +113,14 @@ export class QueueService {
             catchError(this.errorMessage.HandleErrorResponse),
         )
     }
+
+    restartQueue(queueId: number){
+        return this.http.get(
+            this.url + `/api/services/app/Queue/RestartQueue?queueId=${queueId}`,
+            this.options_
+        ).pipe(
+            retry(1),
+            catchError(this.errorMessage.HandleErrorResponse),
+        )
+    }
 }

@@ -79,7 +79,7 @@ export class ItemTrackingApplicationsComponent extends PagedListingComponentBase
     );
 
     createItemTrackingApplicationDialog.content.onSave.subscribe(() => {
-      this.refresh();
+      this.getDataPage(this.pageNumber);
     });
   }
 
@@ -96,7 +96,7 @@ export class ItemTrackingApplicationsComponent extends PagedListingComponentBase
     );
 
     reviewItemTrackingApplicationDialog.content.onSave.subscribe(() => {
-      this.refresh();
+      this.getDataPage(this.pageNumber);
     });
     
   }
@@ -124,7 +124,7 @@ export class ItemTrackingApplicationsComponent extends PagedListingComponentBase
     }
 
     createOrEditItemTrackingApplicationDialog.content.onSave.subscribe(() => {
-      this.refresh();
+      this.getDataPage(this.pageNumber);
     });
   }
 
