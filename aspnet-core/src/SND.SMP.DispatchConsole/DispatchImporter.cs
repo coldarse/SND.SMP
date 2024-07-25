@@ -450,6 +450,7 @@ namespace SND.SMP.DispatchConsole
                         {
                             item.DateUsed = DateTime.Now;
                             item.DispatchId = (int)savedDispatch.Id;
+                            item.DispatchNo = _dispatchProfile.DispatchNo;
                         }
 
                         db.ItemTrackings.UpdateRange(registeredItems);
