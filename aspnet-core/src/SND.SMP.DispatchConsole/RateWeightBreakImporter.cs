@@ -122,7 +122,7 @@ namespace SND.SMP.DispatchConsole
                 {
                     q.Status = QueueEnumConst.STATUS_ERROR;
                     q.ErrorMsg = arg.ErrorMsg;
-                    q.TookInSec = 0;
+                    q.TookInSec = null;
 
                     await db.SaveChangesAsync();
                 }

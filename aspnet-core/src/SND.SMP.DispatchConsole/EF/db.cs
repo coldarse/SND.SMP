@@ -21,7 +21,7 @@ public partial class db : DbContext
     {
     }
 
-    public virtual DbSet<SND.SMP.Bags.Bag> Bags { get; set; }
+    public virtual DbSet<Bag> Bags { get; set; }
 
     public virtual DbSet<SND.SMP.Currencies.Currency> Currencies { get; set; }
 
@@ -35,13 +35,12 @@ public partial class db : DbContext
 
     public virtual DbSet<Customertransaction> Customertransactions { get; set; }
 
-    public virtual DbSet<SND.SMP.Dispatches.Dispatch> Dispatches { get; set; }
+    public virtual DbSet<Dispatch> Dispatches { get; set; }
 
     public virtual DbSet<Dispatchvalidation> Dispatchvalidations { get; set; }
 
-    public virtual DbSet<SND.SMP.Items.Item> Items { get; set; }
+    public virtual DbSet<Item> Items { get; set; }
 
-    public virtual DbSet<SND.SMP.ItemMins.ItemMin> ItemMins { get; set; }
     public virtual DbSet<Itemmin> Itemmins { get; set; }
 
     public virtual DbSet<Postal> Postals { get; set; }

@@ -122,7 +122,7 @@ namespace SND.SMP.DispatchConsole
                     _currencyId = currency.Id;
                     _currency = currency.Abbr;
 
-                    var dispatch = new SND.SMP.Dispatches.Dispatch
+                    var dispatch = new EF.Dispatch
                     {
                         DispatchNo = _dispatchProfile.DispatchNo,
                         CustomerCode = _dispatchProfile.AccNo,
@@ -130,9 +130,10 @@ namespace SND.SMP.DispatchConsole
                         ServiceCode = _dispatchProfile.ServiceCode,
                         ProductCode = _dispatchProfile.ProductCode,
                         DispatchDate = _dispatchProfile.DateDispatch,
+                        CorateOptionId = _dispatchProfile.RateOptionId,
                         PaymentMode = _dispatchProfile.PaymentMode,
                         CurrencyId = _currency,
-                        IsActive = false,
+                        IsActive = 0,
                         ImportProgress = 0,
                         Status = (int)DispatchEnumConst.Status.Stage1,
                     };
@@ -150,7 +151,7 @@ namespace SND.SMP.DispatchConsole
                     var totalWeight = 0m;
                     var totalPrice = 0m;
 
-                    var listBags = new List<SND.SMP.Bags.Bag>();
+                    var listBags = new List<EF.Bag>();
 
                     var month = Convert.ToInt32($"{_dispatchProfile.DateDispatch.Year}{_dispatchProfile.DateDispatch.Month.ToString().PadLeft(2, '0')}");
 
@@ -242,7 +243,7 @@ namespace SND.SMP.DispatchConsole
                                 }
                                 else
                                 {
-                                    listBags.Add(new SND.SMP.Bags.Bag
+                                    listBags.Add(new EF.Bag
                                     {
                                         BagNo = bagNo,
                                         CountryCode = countryCode,
@@ -258,11 +259,11 @@ namespace SND.SMP.DispatchConsole
                                     await db.Bags.AddRangeAsync(listBags.Where(u => u.Id == 0)).ConfigureAwait(false);
                                     await db.SaveChangesAsync();
 
-                                    await db.Items.AddRangeAsync(listItems.Select(u => new SND.SMP.Items.Item
+                                    await db.Items.AddRangeAsync(listItems.Select(u => new EF.Item
                                     {
                                         Id = u.TrackingNo,
-                                        DispatchID = dispatch.Id,
-                                        BagID = listBags.Find(p => p.BagNo == u.BagNo).Id,
+                                        DispatchId = dispatch.Id,
+                                        BagId = listBags.Find(p => p.BagNo == u.BagNo).Id,
                                         DispatchDate = dispatch.DispatchDate,
                                         Month = month,
                                         PostalCode = u.PostalCode,
@@ -287,7 +288,7 @@ namespace SND.SMP.DispatchConsole
                                         Length = u.Length,
                                         Width = u.Width,
                                         Height = u.Height,
-                                        HSCode = u.HSCode,
+                                        Hscode = u.HSCode,
                                         Qty = u.Qty,
                                         TaxPayMethod = u.TaxPaymentMethod,
                                         IdentityType = u.IdentityType,
@@ -297,11 +298,11 @@ namespace SND.SMP.DispatchConsole
                                         Status = (int)DispatchEnumConst.Status.Stage1
                                     })).ConfigureAwait(false);
 
-                                    await db.ItemMins.AddRangeAsync(listItems.Select(u => new SND.SMP.ItemMins.ItemMin
+                                    await db.Itemmins.AddRangeAsync(listItems.Select(u => new EF.Itemmin
                                     {
                                         Id = u.TrackingNo,
-                                        DispatchID = dispatch.Id,
-                                        BagID = listBags.Find(p => p.BagNo == u.BagNo).Id,
+                                        DispatchId = dispatch.Id,
+                                        BagId = listBags.Find(p => p.BagNo == u.BagNo).Id,
                                         DispatchDate = dispatch.DispatchDate,
                                         Month = month,
                                         CountryCode = u.CountryCode,
@@ -374,11 +375,11 @@ namespace SND.SMP.DispatchConsole
                         await db.Bags.AddRangeAsync(listBags.Where(u => u.Id == 0)).ConfigureAwait(false);
                         await db.SaveChangesAsync();
 
-                        await db.Items.AddRangeAsync(listItems.Select(u => new SND.SMP.Items.Item
+                        await db.Items.AddRangeAsync(listItems.Select(u => new EF.Item
                         {
                             Id = u.TrackingNo,
-                            DispatchID = dispatch.Id,
-                            BagID = listBags.Find(p => p.BagNo == u.BagNo).Id,
+                            DispatchId = dispatch.Id,
+                            BagId = listBags.Find(p => p.BagNo == u.BagNo).Id,
                             DispatchDate = dispatch.DispatchDate,
                             Month = month,
                             PostalCode = u.PostalCode,
@@ -403,7 +404,7 @@ namespace SND.SMP.DispatchConsole
                             Length = u.Length,
                             Width = u.Width,
                             Height = u.Height,
-                            HSCode = u.HSCode,
+                            Hscode = u.HSCode,
                             Qty = u.Qty,
                             TaxPayMethod = u.TaxPaymentMethod,
                             IdentityType = u.IdentityType,
@@ -413,11 +414,11 @@ namespace SND.SMP.DispatchConsole
                             Status = (int)DispatchEnumConst.Status.Stage1
                         })).ConfigureAwait(false);
 
-                        await db.ItemMins.AddRangeAsync(listItems.Select(u => new SND.SMP.ItemMins.ItemMin
+                        await db.Itemmins.AddRangeAsync(listItems.Select(u => new EF.Itemmin
                         {
                             Id = u.TrackingNo,
-                            DispatchID = dispatch.Id,
-                            BagID = listBags.Find(p => p.BagNo == u.BagNo).Id,
+                            DispatchId = dispatch.Id,
+                            BagId = listBags.Find(p => p.BagNo == u.BagNo).Id,
                             DispatchDate = dispatch.DispatchDate,
                             Month = month,
                             CountryCode = u.CountryCode,
@@ -477,7 +478,7 @@ namespace SND.SMP.DispatchConsole
                     #endregion
 
                     dispatch.Status = (int)DispatchEnumConst.Status.Stage1;
-                    dispatch.IsActive = true;
+                    dispatch.IsActive = 1;
                     dispatch.NoofBag = listBags.Count;
                     dispatch.ItemCount = itemCount;
                     dispatch.TotalWeight = Math.Round(totalWeight, 3);
@@ -566,7 +567,7 @@ namespace SND.SMP.DispatchConsole
                 {
                     q.Status = QueueEnumConst.STATUS_ERROR;
                     q.ErrorMsg = arg.ErrorMsg;
-                    q.TookInSec = 0;
+                    q.TookInSec = null;
 
                     await db.SaveChangesAsync().ConfigureAwait(false);
                 }
@@ -578,7 +579,7 @@ namespace SND.SMP.DispatchConsole
         {
             using (EF.db db = new())
             {
-                db.Dispatches.RemoveRange(db.Dispatches.Where(u => u.DispatchNo == dispatchNo).Where(u => u.IsActive == false).ToList());
+                db.Dispatches.RemoveRange(db.Dispatches.Where(u => u.DispatchNo == dispatchNo).Where(u => u.IsActive == 0).ToList());
 
                 await db.SaveChangesAsync().ConfigureAwait(false);
             }

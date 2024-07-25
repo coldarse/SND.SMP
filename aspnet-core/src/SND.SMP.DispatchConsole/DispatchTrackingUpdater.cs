@@ -89,101 +89,109 @@ namespace SND.SMP.DispatchConsole
         {
             DateTime dateUpdateStart = DateTime.Now;
 
-            using EF.db db = new();
-            try
+            using (EF.db db = new())
             {
-                List<DispatchCountry> dispatchCountries = [];
-                foreach (var dispatch in _dispatchInfos)
+                try
                 {
-                    dispatchCountries.AddRange(dispatch.DispatchCountries);
-                }
-
-                List<SND.SMP.Items.Item> allItemsToUpdate = [];
-
-                foreach (var country in dispatchCountries)
-                {
-                    if (country.Select)
+                    List<DispatchCountry> dispatchCountries = [];
+                    foreach (var dispatch in _dispatchInfos)
                     {
-                        var customEditBags = country.DispatchBags.Where(x => x.Select == true && x.Custom == true).ToList();
-                        var nonCustomEditBags = country.DispatchBags.Where(x => x.Select == true && x.Custom == false).ToList();
+                        dispatchCountries.AddRange(dispatch.DispatchCountries);
+                    }
 
-                        if (customEditBags.Count > 0)
+                    List<Item> customEditItems = [];
+                    List<Item> nonCustomEditItems = [];
+
+                    foreach (var country in dispatchCountries)
+                    {
+                        if (country.Select)
                         {
-                            foreach (var bag in customEditBags)
+                            var customEditBags = country.DispatchBags.Where(x => x.Select == true && x.Custom == true).ToList();
+                            var nonCustomEditBags = country.DispatchBags.Where(x => x.Select == true && x.Custom == false).ToList();
+
+                            if (customEditBags.Count > 0)
                             {
-                                var items = db.Items.Where(x => x.BagID == bag.BagId).ToList();
-                                foreach (var item in items)
+                                foreach (var bag in customEditBags)
                                 {
-                                    allItemsToUpdate.Add(UpdatedItemTracking(item, bag.Stages));
+                                    var items = db.Items.Where(x => x.BagId == bag.BagId).ToList();
+                                    foreach (var item in items)
+                                    {
+                                        var updatedItem = UpdatedItemTracking(item, bag.Stages);
+                                        customEditItems.Add(updatedItem);
+                                    }
                                 }
                             }
-                        }
 
-                        if (nonCustomEditBags.Count > 0)
-                        {
-                            foreach (var bag in nonCustomEditBags)
+                            if (nonCustomEditBags.Count > 0)
                             {
-                                var items = db.Items.Where(x => x.BagID == bag.BagId).ToList();
-                                foreach (var item in items)
+                                foreach (var bag in nonCustomEditBags)
                                 {
-                                    allItemsToUpdate.Add(UpdatedItemTracking(item, country.Stages));
+                                    var items = db.Items.Where(x => x.BagId == bag.BagId).ToList();
+                                    foreach (var item in items)
+                                    {
+                                        var updatedItem = UpdatedItemTracking(item, country.Stages);
+                                        nonCustomEditItems.Add(updatedItem);
+                                    }
                                 }
                             }
                         }
                     }
-                }
 
-                List<SND.SMP.Items.Item> itemsToUpdate = [];
+                    List<Item> allItemsToUpdate = [];
+                    allItemsToUpdate.AddRange(customEditItems);
+                    allItemsToUpdate.AddRange(nonCustomEditItems);
 
-                for (int i = 1; i <= allItemsToUpdate.Count; i++)
-                {
-                    itemsToUpdate.Add(allItemsToUpdate[i - 1]);
-                    var blockMilestone = i % _blockSize;
-                    if (blockMilestone == 0)
+                    List<Item> itemsToUpdate = [];
+
+                    for (int i = 1; i <= allItemsToUpdate.Count; i++)
+                    {
+                        itemsToUpdate.Add(allItemsToUpdate[i - 1]);
+                        var blockMilestone = i % _blockSize;
+                        if (blockMilestone == 0)
+                        {
+                            db.Items.UpdateRange(itemsToUpdate);
+                            await db.SaveChangesAsync().ConfigureAwait(false);
+
+                            itemsToUpdate.Clear();
+                        }
+                    }
+
+                    if (itemsToUpdate.Count > 0)
                     {
                         db.Items.UpdateRange(itemsToUpdate);
-                        db.SaveChanges();
-
+                        await db.SaveChangesAsync().ConfigureAwait(false);
                         itemsToUpdate.Clear();
                     }
+
+                    var queueTask = db.Queues.Find(QueueId);
+                    if (queueTask != null)
+                    {
+                        DateTime dateUpdateCompleted = DateTime.Now;
+                        var tookInSec = dateUpdateCompleted.Subtract(dateUpdateStart).TotalSeconds;
+
+                        queueTask.Status = QueueEnumConst.STATUS_FINISH;
+                        queueTask.ErrorMsg = null;
+                        queueTask.TookInSec = Math.Round(tookInSec, 0);
+                        queueTask.StartTime = dateUpdateStart;
+                        queueTask.EndTime = dateUpdateCompleted;
+                    }
+
+                    var chibi = await db.Chibis.FirstOrDefaultAsync(x => x.URL.Equals(_filePath));
+                    if (chibi is not null)
+                    {
+                        await FileServer.DeleteFile(chibi.UUID);
+                        db.Chibis.Remove(chibi);
+                        await db.SaveChangesAsync().ConfigureAwait(false);
+                    }
                 }
-
-                if (itemsToUpdate.Count > 0)
+                catch (Exception ex)
                 {
-                    db.Items.UpdateRange(itemsToUpdate);
-                    db.SaveChanges();
-
-                    itemsToUpdate.Clear();
+                    await LogQueueError(new QueueErrorEventArg
+                    {
+                        FilePath = _filePath,
+                        ErrorMsg = ex.InnerException != null ? ex.InnerException.Message : ex.Message,
+                    });
                 }
-
-                var queueTask = db.Queues.Find(QueueId);
-                if (queueTask != null)
-                {
-                    DateTime dateUpdateCompleted = DateTime.Now;
-                    var tookInSec = dateUpdateCompleted.Subtract(dateUpdateStart).TotalSeconds;
-
-                    queueTask.Status = QueueEnumConst.STATUS_FINISH;
-                    queueTask.ErrorMsg = null;
-                    queueTask.TookInSec = Math.Round(tookInSec, 0);
-                    queueTask.StartTime = dateUpdateStart;
-                    queueTask.EndTime = dateUpdateCompleted;
-                }
-
-                var chibi = await db.Chibis.FirstOrDefaultAsync(x => x.URL.Equals(_filePath));
-                if (chibi is not null)
-                {
-                    await FileServer.DeleteFile(chibi.UUID);
-                    db.Chibis.Remove(chibi);
-                    await db.SaveChangesAsync().ConfigureAwait(false);
-                }
-            }
-            catch (Exception ex)
-            {
-                await LogQueueError(new QueueErrorEventArg
-                {
-                    FilePath = _filePath,
-                    ErrorMsg = ex.InnerException != null ? ex.InnerException.Message : ex.Message,
-                });
             }
         }
 
@@ -201,7 +209,7 @@ namespace SND.SMP.DispatchConsole
                 {
                     q.Status = QueueEnumConst.STATUS_ERROR;
                     q.ErrorMsg = arg.ErrorMsg;
-                    q.TookInSec = 0;
+                    q.TookInSec = null;
 
                     await db.SaveChangesAsync().ConfigureAwait(false);
                 }
@@ -209,25 +217,25 @@ namespace SND.SMP.DispatchConsole
             }
         }
 
-        private static SND.SMP.Items.Item UpdatedItemTracking(SND.SMP.Items.Item item, Stage stage)
+        private static Item UpdatedItemTracking(Item item, Stage stage)
         {
-            if (!stage.Stage1Desc.IsNullOrWhiteSpace() && item.Stage1StatusDesc.IsNullOrWhiteSpace() || item.Stage1StatusDesc != stage.Stage1Desc) item.Stage1StatusDesc = stage.Stage1Desc;
-            if (!stage.Stage2Desc.IsNullOrWhiteSpace() && item.Stage2StatusDesc.IsNullOrWhiteSpace() || item.Stage2StatusDesc != stage.Stage2Desc) item.Stage2StatusDesc = stage.Stage2Desc;
-            if (!stage.Stage3Desc.IsNullOrWhiteSpace() && item.Stage3StatusDesc.IsNullOrWhiteSpace() || item.Stage3StatusDesc != stage.Stage3Desc) item.Stage3StatusDesc = stage.Stage3Desc;
-            if (!stage.Stage4Desc.IsNullOrWhiteSpace() && item.Stage4StatusDesc.IsNullOrWhiteSpace() || item.Stage4StatusDesc != stage.Stage4Desc) item.Stage4StatusDesc = stage.Stage4Desc;
-            if (!stage.Stage5Desc.IsNullOrWhiteSpace() && item.Stage5StatusDesc.IsNullOrWhiteSpace() || item.Stage5StatusDesc != stage.Stage5Desc) item.Stage5StatusDesc = stage.Stage5Desc;
-            if (!stage.Stage6Desc.IsNullOrWhiteSpace() && item.Stage6StatusDesc.IsNullOrWhiteSpace() || item.Stage6StatusDesc != stage.Stage6Desc) item.Stage6StatusDesc = stage.Stage6Desc;
-            if (!stage.Airport.IsNullOrWhiteSpace() && item.Stage7StatusDesc.IsNullOrWhiteSpace() || item.Stage7StatusDesc != stage.Airport) item.Stage7StatusDesc = stage.Airport;
-            if (!stage.Stage7Desc.IsNullOrWhiteSpace() && item.Stage8StatusDesc.IsNullOrWhiteSpace() || item.Stage8StatusDesc != stage.Stage7Desc) item.Stage8StatusDesc = stage.Stage7Desc;
+            if(!stage.Stage1Desc.IsNullOrWhiteSpace() && item.Stage1StatusDesc.IsNullOrWhiteSpace() || item.Stage1StatusDesc != stage.Stage1Desc) item.Stage1StatusDesc = stage.Stage1Desc;
+            if(!stage.Stage2Desc.IsNullOrWhiteSpace() && item.Stage2StatusDesc.IsNullOrWhiteSpace() || item.Stage2StatusDesc != stage.Stage2Desc) item.Stage2StatusDesc = stage.Stage2Desc;
+            if(!stage.Stage3Desc.IsNullOrWhiteSpace() && item.Stage3StatusDesc.IsNullOrWhiteSpace() || item.Stage3StatusDesc != stage.Stage3Desc) item.Stage3StatusDesc = stage.Stage3Desc;
+            if(!stage.Stage4Desc.IsNullOrWhiteSpace() && item.Stage4StatusDesc.IsNullOrWhiteSpace() || item.Stage4StatusDesc != stage.Stage4Desc) item.Stage4StatusDesc = stage.Stage4Desc;
+            if(!stage.Stage5Desc.IsNullOrWhiteSpace() && item.Stage5StatusDesc.IsNullOrWhiteSpace() || item.Stage5StatusDesc != stage.Stage5Desc) item.Stage5StatusDesc = stage.Stage5Desc;
+            if(!stage.Stage6Desc.IsNullOrWhiteSpace() && item.Stage6StatusDesc.IsNullOrWhiteSpace() || item.Stage6StatusDesc != stage.Stage6Desc) item.Stage6StatusDesc = stage.Stage6Desc;
+            if(!stage.Airport   .IsNullOrWhiteSpace() && item.Stage7StatusDesc.IsNullOrWhiteSpace() || item.Stage7StatusDesc != stage.Airport   ) item.Stage7StatusDesc = stage.Airport;
+            if(!stage.Stage7Desc.IsNullOrWhiteSpace() && item.Stage8StatusDesc.IsNullOrWhiteSpace() || item.Stage8StatusDesc != stage.Stage7Desc) item.Stage8StatusDesc = stage.Stage7Desc;
 
-            if (stage.Stage1DateTime is not null && item.DateStage1 is null || item.DateStage1 != stage.Stage1DateTime) item.DateStage1 = stage.Stage1DateTime;
-            if (stage.Stage2DateTime is not null && item.DateStage2 is null || item.DateStage2 != stage.Stage2DateTime) item.DateStage2 = stage.Stage2DateTime;
-            if (stage.Stage3DateTime is not null && item.DateStage3 is null || item.DateStage3 != stage.Stage3DateTime) item.DateStage3 = stage.Stage3DateTime;
-            if (stage.Stage4DateTime is not null && item.DateStage4 is null || item.DateStage4 != stage.Stage4DateTime) item.DateStage4 = stage.Stage4DateTime;
-            if (stage.Stage5DateTime is not null && item.DateStage5 is null || item.DateStage5 != stage.Stage5DateTime) item.DateStage5 = stage.Stage5DateTime;
-            if (stage.Stage6DateTime is not null && item.DateStage6 is null || item.DateStage6 != stage.Stage6DateTime) item.DateStage6 = stage.Stage6DateTime;
-            if (stage.AirportDateTime is not null && item.DateStage7 is null || item.DateStage7 != stage.AirportDateTime) item.DateStage7 = stage.AirportDateTime;
-            if (stage.Stage7DateTime is not null && item.DateStage8 is null || item.DateStage8 != stage.Stage7DateTime) item.DateStage8 = stage.Stage7DateTime;
+            if(stage.Stage1DateTime  is not null && item.DateStage1 is null || item.DateStage1 != stage.Stage1DateTime)  item.DateStage1 = stage.Stage1DateTime;
+            if(stage.Stage2DateTime  is not null && item.DateStage2 is null || item.DateStage2 != stage.Stage2DateTime)  item.DateStage2 = stage.Stage2DateTime;
+            if(stage.Stage3DateTime  is not null && item.DateStage3 is null || item.DateStage3 != stage.Stage3DateTime)  item.DateStage3 = stage.Stage3DateTime;
+            if(stage.Stage4DateTime  is not null && item.DateStage4 is null || item.DateStage4 != stage.Stage4DateTime)  item.DateStage4 = stage.Stage4DateTime;
+            if(stage.Stage5DateTime  is not null && item.DateStage5 is null || item.DateStage5 != stage.Stage5DateTime)  item.DateStage5 = stage.Stage5DateTime;
+            if(stage.Stage6DateTime  is not null && item.DateStage6 is null || item.DateStage6 != stage.Stage6DateTime)  item.DateStage6 = stage.Stage6DateTime;
+            if(stage.AirportDateTime is not null && item.DateStage7 is null || item.DateStage7 != stage.AirportDateTime) item.DateStage7 = stage.AirportDateTime;
+            if(stage.Stage7DateTime  is not null && item.DateStage8 is null || item.DateStage8 != stage.Stage7DateTime)  item.DateStage8 = stage.Stage7DateTime;
 
             return item;
         }
