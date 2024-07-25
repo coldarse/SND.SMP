@@ -465,7 +465,11 @@ public partial class db : DbContext
 
         modelBuilder.Entity<Item>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PRIMARY");
+            entity.HasKey(e => new
+                {
+                    e.Id,
+                    e.DispatchId,
+                }).HasName("PRIMARY");
 
             entity.ToTable("items");
 
