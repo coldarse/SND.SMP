@@ -45,7 +45,7 @@ namespace SND.SMP.DispatchConsole
 
                     newTask.Status = QueueEnumConst.STATUS_RUNNING;
                     newTask.ErrorMsg = null;
-                    newTask.TookInSec = null;
+                    newTask.tookinsec = 0;
 
                     await db.SaveChangesAsync();
                 }
@@ -172,7 +172,7 @@ namespace SND.SMP.DispatchConsole
                 {
                     q.Status = QueueEnumConst.STATUS_ERROR;
                     q.ErrorMsg = arg.ErrorMsg;
-                    q.TookInSec = null;
+                    q.tookinsec = 0;
 
                     await db.SaveChangesAsync();
                 }
