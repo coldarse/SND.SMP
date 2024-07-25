@@ -87,7 +87,6 @@ namespace SND.SMP.DispatchValidations
             var totalCount = await AsyncQueryableExecuter.CountAsync(query);
 
             query = query.OrderByDescending(x => x.DateStarted);
-            // query = ApplySorting(query, input);
             query = ApplyPaging(query, input);
 
             var entities = await AsyncQueryableExecuter.ToListAsync(query);

@@ -39,6 +39,13 @@
             <span class="badge badge-pill info-btn ml-1">{{
               dispatch.productDesc
             }}</span>
+
+            @if (dispatch.importProgress == 100) {
+              <span class="badge badge-pill info-btn ml-1">Imported <i class="fas fa-check"></i></span>
+            }
+            @else {
+              <span class="badge badge-pill info-btn ml-1">Importing <i class="fas fa-file-upload"></i></span>
+            }
           </div>
           <hr />
         </div>

@@ -174,6 +174,7 @@ export interface DispatchInfoDto {
   totalCountry: number;
   status: string;
   path: string;
+  importProgress: number;
 }
 
 export interface Zip {

@@ -1885,6 +1885,8 @@ namespace SND.SMP.Dispatches
                 dispatchInfo.TotalBags = dispatch.NoofBag;
                 dispatchInfo.TotalWeight = dispatch.TotalWeight;
 
+                dispatchInfo.ImportProgress = dispatch.ImportProgress ?? 0;
+
                 var bags = await _bagRepository.GetAllListAsync(x => x.DispatchId.Equals(dispatch.Id));
                 dispatchInfo.TotalCountry = bags.GroupBy(x => x.CountryCode).Count();
 
