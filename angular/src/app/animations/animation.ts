@@ -24,11 +24,11 @@ export const fadeInCenterAnimation = trigger('fadeInCenterAnimation', [
   transition(':enter', [
     style({
       opacity: 0,
-      transform: 'translate(-50%, -50%) scale(0.9)' // Initial position and slight scale down
+      transform: 'scale(0.9)' // Initial scale down, no translation needed
     }),
     animate('500ms ease-out', style({
       opacity: 1,
-      transform: 'translate(-50%, -50%) scale(1)' // Final position and original scale
+      transform: 'scale(1)' // Final scale to original size
     }))
   ])
 ]);

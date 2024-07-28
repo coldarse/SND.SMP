@@ -113,9 +113,5 @@ export class ItemService {
       .pipe(retry(1), catchError(this.errorMessage.HandleErrorResponse));
   }
 
-  getItem(trackingNo: string){
-    return this.http
-    .get(this.url + `/api/services/app/Item/GetItem?trackingNo=${trackingNo}`, this.options_)
-    .pipe(retry(1), catchError(this.errorMessage.HandleErrorResponse));
-  }
+  
 }

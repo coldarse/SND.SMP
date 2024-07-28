@@ -220,5 +220,17 @@ export interface ItemDetails {
     status: number;
 }
 
+export interface TrackingDetails {
+    trackingNo: string;
+    location: string;
+    description: string;
+    dateTime: Date;
+}
+
+export interface ItemInfo {
+    itemDetails: ItemDetails;
+    trackingDetails: TrackingDetails[];
+}
+
 
 
