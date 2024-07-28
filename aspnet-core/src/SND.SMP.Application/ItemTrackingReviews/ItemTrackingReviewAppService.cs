@@ -1063,6 +1063,11 @@ namespace SND.SMP.ItemTrackingReviews
                                                     result.Errors.Add(ex.Message);
                                                 }
                                             }
+                                            else
+                                            {
+                                                result.Status = FAILED;
+                                                result.Errors.Add("Insufficient Pool Item ID");
+                                            }
                                             input.ItemID = newItemIdFromSPS;
                                         }
                                         else
@@ -1088,7 +1093,11 @@ namespace SND.SMP.ItemTrackingReviews
                                                         result.Errors.Add(ex.Message);
                                                     }
                                                 }
-
+                                                else
+                                                {
+                                                    result.Status = FAILED;
+                                                    result.Errors.Add("Insufficient Pool Item ID");
+                                                }
                                                 input.ItemID = newItemIdFromSPS;
                                             }
                                         }
