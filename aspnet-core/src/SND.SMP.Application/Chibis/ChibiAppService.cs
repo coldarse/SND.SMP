@@ -778,7 +778,7 @@ namespace SND.SMP.Chibis
                 await _dispatchRepository.UpdateAsync(dispatch).ConfigureAwait(false);
             }
 
-            var queues = await _queueRepository.GetAllListAsync(x => x.FilePath.Equals(excelDispatchFile.URL) && x.FilePath.Equals(dispatch.DispatchNo));
+            var queues = await _queueRepository.GetAllListAsync(x => x.FilePath.Equals(excelDispatchFile.URL) && x.FilePath.Equals(dispatchValidation.DispatchNo));
             if (queues.Count > 0)
             {
                 foreach (var queue in queues) await _queueRepository.DeleteAsync(queue).ConfigureAwait(false);
