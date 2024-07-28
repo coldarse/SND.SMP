@@ -127,6 +127,16 @@ namespace SND.SMP.Items
                                                                     x.ServiceCode.Equals(dispatch.ServiceCode) &&
                                                                     x.ProductCode.Equals(dispatch.ProductCode)
                                                                 );
+            string ProductDesc = "";
+            string ServiceDesc = "";
+            if (postal is null)
+            {
+                var postals = await _postalRepository.GetAllListAsync();
+                var postalDistinctedByProductCode = postals.DistinctBy(x => x.ProductCode).ToList();
+                var postalDistinctedByServiceCode = postals.DistinctBy(x => x.ServiceCode).ToList();
+                ProductDesc = postalDistinctedByProductCode.FirstOrDefault(x => x.ProductCode.Equals(dispatch.ProductCode)).ProductDesc;
+                ServiceDesc = postalDistinctedByServiceCode.FirstOrDefault(x => x.ServiceCode.Equals(dispatch.ServiceCode)).ServiceDesc;
+            }
 
             string address = foundItem.Address is null ? "" : foundItem.Address + ", ";
             string city = foundItem.City is null ? "" : foundItem.City + ", ";
@@ -140,9 +150,9 @@ namespace SND.SMP.Items
                 DispatchNo = dispatch.DispatchNo,
                 BagNo = bag is null ? "" : bag.BagNo,
                 DispatchDate = $"{dispatch.DispatchDate:dd/MM/yyyy}",
-                Postal = postal.PostalDesc,
-                Service = postal.ServiceDesc,
-                Product = postal.ProductDesc,
+                Postal = postal is null ? dispatch.PostalCode : postal.PostalDesc,
+                Service = postal is null ? ServiceDesc : postal.ServiceDesc,
+                Product = postal is null ? ProductDesc : postal.ProductDesc,
                 Country = foundItem.CountryCode,
                 Weight = foundItem.Weight is null ? 0.000m : (decimal)foundItem.Weight,
                 Status = foundItem.Status is null ? 0 : (int)foundItem.Status,
@@ -317,16 +327,16 @@ namespace SND.SMP.Items
             {
                 var filteredItems = joinedItems.Where(x =>
                                                         x.CustomerCode.Trim().Equals(distincted.CustomerCode.Trim()) &&
-                                                        x.ProductCode .Trim().Equals(distincted.ProductCode .Trim()) &&
-                                                        x.ServiceCode .Trim().Equals(distincted.ServiceCode .Trim()) &&
-                                                        x.PostalCode  .Trim().Equals(distincted.PostalCode  .Trim())
+                                                        x.ProductCode.Trim().Equals(distincted.ProductCode.Trim()) &&
+                                                        x.ServiceCode.Trim().Equals(distincted.ServiceCode.Trim()) &&
+                                                        x.PostalCode.Trim().Equals(distincted.PostalCode.Trim())
                                                      ).OrderByDescending(x => x.DateUsed).ToList();
 
-                var postal = postals.FirstOrDefault(x => x.PostalCode .Trim().Equals(distincted.PostalCode .Trim()) &&
+                var postal = postals.FirstOrDefault(x => x.PostalCode.Trim().Equals(distincted.PostalCode.Trim()) &&
                                                          x.ProductCode.Trim().Equals(distincted.ProductCode.Trim()) &&
                                                          x.ServiceCode.Trim().Equals(distincted.ServiceCode.Trim()));
 
-                
+
                 string productDesc = postal is null ? postalDistinctedByProductCode.FirstOrDefault(x => x.ProductCode.Equals(distincted.ProductCode)).ProductDesc : postal.ProductDesc;
                 string serviceDesc = postal is null ? postalDistinctedByServiceCode.FirstOrDefault(x => x.ServiceCode.Equals(distincted.ServiceCode)).ServiceDesc : postal.ServiceDesc;
 

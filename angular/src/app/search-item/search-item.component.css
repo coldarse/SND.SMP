@@ -4,7 +4,7 @@
     left: 50%;
     transform: translate(-50%, -50%);
     height: 6.25rem;
-    background: #d4de95;
+    background: #fff;
     line-height: 5rem;
     padding: .625rem;
     border-radius: 5rem;
@@ -12,8 +12,8 @@
 
 .search-input {
     font-size: 3rem;
-    background: #d4de95;
-    color: #636B2F;
+    background: #fff;
+    color: #212529;
     outline: none;
     border: none;
     line-height: 80px;
@@ -30,11 +30,11 @@
     justify-content: center;
     align-items: center;
     text-decoration: none;
-    background: #d4de95;
+    background: #fff;
     padding: 16px;
     border-radius: 50%;
     float: right;
-    color: #636B2F;
+    color: #212529;
     transition: 0.4s ease;
 }
 
@@ -66,17 +66,17 @@
 }
 
 .item-section > h2 {
-    color: #636B2F;
+    color: #212529;
     margin-bottom: 1rem;
     margin-top: 2rem;
 }
 
 .item-card {
     width: 640px;
-    background: #d4de95;
+    background: #fff;
     border-radius: 2.5rem;
     padding: 2rem;
-    color: #636B2F;
+    color: #212529;
 }
 
 .item-header {
@@ -88,7 +88,7 @@
 }
 
 .item-label {
-    font-family: 'Montserrat-Bold' !important;
+    font-family: 'Poppins-Bold' !important;
 }
 
 .long-desc {
