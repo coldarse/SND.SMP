@@ -236,22 +236,7 @@ namespace SND.SMP.ItemTrackingReviews
                 {
                     List<string> trackingNos = [];
                     trackingNos.Add(trackingNo);
-                    //Call APG
-                    List<APGTracking> apgTrackings = await GetAPGTracking(trackingNos);
-                    foreach (var apg in apgTrackings)
-                    {
-                        foreach (var status in apg.status)
-                        {
-                            itemInfo.trackingDetails.Add(new TrackingDetails()
-                            {
-                                trackingNo = apg.package.tracking,
-                                location = status.location,
-                                description = status.description,
-                                dateTime = DateTime.Parse(status.statusDate.Replace(" UTC", "")).ToString("dd/MM/yyyy HH:mm:ss")
-                            });
-                        }
-                    }
-
+                    //Call External
                 }
                 else
                 {
@@ -304,86 +289,7 @@ namespace SND.SMP.ItemTrackingReviews
             }
         }
 
-        [HttpGet]
-        [Route("api/Tracking/APG")]
-        public async Task<List<APGTracking>> GetAPGTracking(List<string> trackingNos)
-        {
-            var TrackingUrl = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_TrackingUrl"));
-            var token_expiration = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_TokenExpiration"));
-            var token = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_Token"));
-
-            string apgToken = token.Value.Trim() == "" ? await GetAPGToken() : token.Value.Trim();
-
-            if (token.Value.Trim() != "")
-            {
-                var dateString = token_expiration.Value.Replace(" UTC", "");
-                var token_expiration_date = DateTime.Parse(dateString);
-                if (token_expiration_date < DateTime.Now) apgToken = await GetAPGToken();
-            }
-
-            var httpstatus = HttpStatusCode.Unauthorized;
-
-            if (TrackingUrl != null)
-            {
-                do
-                {
-                    var apgClient = new HttpClient();
-                    apgClient.DefaultRequestHeaders.Clear();
-                    apgClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", apgToken);
-
-                    var requestURL = TrackingUrl.Value;
-                    var trackingNoString = "";
-                    foreach (var trackingNo in trackingNos)
-                    {
-                        requestURL += trackingNo;
-                        trackingNoString += trackingNo + ",";
-                    }
-
-                    APIRequestResponse apiRequestResponse = new()
-                    {
-                        URL = requestURL,
-                        RequestBody = trackingNoString,
-                        RequestDateTime = DateTime.Now
-                    };
-
-                    var apgRequestMessage = new HttpRequestMessage
-                    {
-                        Method = HttpMethod.Get,
-                        RequestUri = new Uri(requestURL),
-                    };
-                    using var apgResponse = await apgClient.SendAsync(apgRequestMessage);
-                    httpstatus = apgResponse.StatusCode;
-
-                    var apgBody = await apgResponse.Content.ReadAsStringAsync();
-
-                    apiRequestResponse.ResponseBody = apgBody;
-                    apiRequestResponse.ResponseDateTime = DateTime.Now;
-                    apiRequestResponse.Duration = (apiRequestResponse.ResponseDateTime - apiRequestResponse.RequestDateTime).Seconds;
-
-                    await _apiRequestResponseRepository.InsertAsync(apiRequestResponse).ConfigureAwait(false);
-
-                    if (httpstatus == HttpStatusCode.OK)
-                    {
-                        var apgResult = JsonConvert.DeserializeObject<List<APGTracking>>(apgBody);
-
-                        if (apgResult != null)
-                        {
-                            return apgResult.Where(x => x.response.Equals("OK")).ToList();
-                        }
-                        else throw new UserFriendlyException("Unable to get tracking.");
-                    }
-                    else
-                    {
-                        if (httpstatus == HttpStatusCode.Unauthorized) apgToken = await GetAPGToken();
-                        else throw new UserFriendlyException(httpstatus.ToString());
-                    }
-                }
-                while (httpstatus == HttpStatusCode.Unauthorized);
-            }
-            else throw new UserFriendlyException("TrackingUrl not found");
-
-            throw new UserFriendlyException("Unable to get Tracking");
-        }
+        
 
         [HttpPost]
         [Route("api/PreRegisterItem/KG")]

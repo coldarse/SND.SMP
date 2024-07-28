@@ -9,7 +9,7 @@
 
 .search-box {
   height: 6.25rem;
-  background: #fff;
+  background: #d4de95;
   line-height: 5rem;
   padding: .625rem;
   border-radius: 5rem;
@@ -18,7 +18,7 @@
 
 .search-input {
     font-size: 3rem;
-    background: #fff;
+    background: #d4de95;
     color: #212529;
     outline: none;
     border: none;
@@ -36,11 +36,11 @@
     justify-content: center;
     align-items: center;
     text-decoration: none;
-    background: #fff;
+    background: #d4de95;
     padding: 16px;
     border-radius: 50%;
     float: right;
-    color: #212529;
+    color: #636B2F;
     transition: 0.4s ease;
 }
 
@@ -91,18 +91,18 @@
 
 .item-card {
     width: 648px;
-    background: #fff;
+    background: #d4de95;
     border-radius: 2.5rem;
     padding: 2rem;
-    color: #212529;
+    color: #636B2F;
 }
 
 .tracking-card {
     width: 848px;
-    background: #fff;
+    background: #d4de95;
     border-radius: 2.5rem;
     padding: 2rem;
-    color: #212529;
+    color: #636B2F;
 }
 
 .item-header {
@@ -114,7 +114,7 @@
 }
 
 .item-label {
-    font-family: 'Poppins-Bold' !important;
+    font-family: 'Montserrat-Bold' !important;
 }
 
 .long-desc {
@@ -124,7 +124,7 @@
 $gray-light:            #f1F1F1;
 $brand-primary:         #127AB7;
 $brand-secondary:       #111C8B;
-$brand-success:         #5cb85c;
+$brand-success:         #d4de95;
 $brand-info:            #31CCF6;
 $brand-warning:         #f0ad4e;
 $brand-danger:          #EC201A;
