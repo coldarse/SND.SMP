@@ -126,6 +126,16 @@ namespace SND.SMP.Items
                                                                     x.ServiceCode.Equals(dispatch.ServiceCode) &&
                                                                     x.ProductCode.Equals(dispatch.ProductCode)
                                                                 );
+            string ProductDesc = "";
+            string ServiceDesc = "";
+            if (postal is null)
+            {
+                var postals = await _postalRepository.GetAllListAsync();
+                var postalDistinctedByProductCode = postals.DistinctBy(x => x.ProductCode).ToList();
+                var postalDistinctedByServiceCode = postals.DistinctBy(x => x.ServiceCode).ToList();
+                ProductDesc = postalDistinctedByProductCode.FirstOrDefault(x => x.ProductCode.Equals(dispatch.ProductCode)).ProductDesc;
+                ServiceDesc = postalDistinctedByServiceCode.FirstOrDefault(x => x.ServiceCode.Equals(dispatch.ServiceCode)).ServiceDesc;
+            }
 
             string address = foundItem.Address is null ? "" : foundItem.Address + ", ";
             string city = foundItem.City is null ? "" : foundItem.City + ", ";
@@ -133,16 +143,15 @@ namespace SND.SMP.Items
             string postcode = foundItem.Postcode is null ? "" : foundItem.Postcode + ", ";
             string country = foundItem.CountryCode is null ? "" : foundItem.CountryCode;
             string addressString = string.Format("{0} {1} {2} {3} {4}", address, city, state, postcode, country);
-
             return new()
             {
                 TrackingNo = trackingNo,
                 DispatchNo = dispatch.DispatchNo,
                 BagNo = bag is null ? "" : bag.BagNo,
                 DispatchDate = $"{dispatch.DispatchDate:dd/MM/yyyy}",
-                Postal = postal.PostalDesc,
-                Service = postal.ServiceDesc,
-                Product = postal.ProductDesc,
+                Postal = postal is null ? dispatch.PostalCode : postal.PostalDesc,
+                Service = postal is null ? ServiceDesc : postal.ServiceDesc,
+                Product = postal is null ? ProductDesc : postal.ProductDesc,
                 Country = foundItem.CountryCode,
                 Weight = foundItem.Weight is null ? 0.000m : (decimal)foundItem.Weight,
                 Status = foundItem.Status is null ? 0 : (int)foundItem.Status,
