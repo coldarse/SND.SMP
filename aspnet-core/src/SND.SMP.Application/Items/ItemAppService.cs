@@ -134,7 +134,6 @@ namespace SND.SMP.Items
             string postcode = foundItem.Postcode is null ? "" : foundItem.Postcode + ", ";
             string country = foundItem.CountryCode is null ? "" : foundItem.CountryCode;
             string addressString = string.Format("{0} {1} {2} {3} {4}", address, city, state, postcode, country);
-
             return new()
             {
                 TrackingNo = trackingNo,
@@ -251,7 +250,7 @@ namespace SND.SMP.Items
                         AverageValue_Uploaded = Math.Round((decimal)filtered_uploadedItems.Sum(x => x.ItemValue), 2),
                         AverageValue_Pending = Math.Round((decimal)filtered_pendingItems.Sum(x => x.ItemValue), 2),
                         AverageValue_Unregistered = Math.Round((decimal)filtered_unregisteredItems.Sum(x => x.ItemValue), 2),
-                        Date = currentDate.ToString()
+                        Date = currentDate.ToString("dd/MM/yyyy")
                     });
                 }
             }

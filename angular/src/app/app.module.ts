@@ -150,6 +150,7 @@ import { ReviewItemTrackingApplicationComponent } from "./item-tracking-applicat
 import { Stage4AirportComponent } from "./dispatches/stage-4-airport/stage-4-airport.component";
 import { APIItemIdComponent } from "./api-item-ids/api-item-id.component";
 
+import { SearchItemComponent } from "./search-item/search-item.component";
 import { AngularEditorModule } from '@kolkov/angular-editor';
 
 @NgModule({
@@ -240,6 +241,7 @@ import { AngularEditorModule } from '@kolkov/angular-editor';
     ReviewItemTrackingApplicationComponent,
     Stage4AirportComponent,
     APIItemIdComponent,
+    SearchItemComponent,
   ],
   imports: [
     CommonModule,

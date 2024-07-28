@@ -69,35 +69,56 @@ export class SidebarMenuComponent extends AppComponentBase implements OnInit {
         "Pages.PostalCountry"
       ),
       new MenuItem(
-        this.l("Dispatch Validations"),
-        "/app/dispatch-validations",
-        "fas fa-tasks",
-        "Pages.DispatchValidation"
-      ),
-      new MenuItem(
-        this.l("Dispatches"),
-        "/app/dispatches",
-        "fas fa-boxes-packing",
-        "Pages.Dispatch"
-      ),
-      new MenuItem(
-        this.l("Item Tracking"),
-        "/app/item-tracking-applications",
-        "fas fa-barcode",
-        "Pages.ItemTrackingApplication"
-      ),
-      new MenuItem(
-        this.l("API Item ID"),
-        "/app/api-item-ids",
-        "fas fa-compress-alt",
-        "Pages.Item"
+        this.l("Queues"),
+        "/app/queues",
+        "fas fa-arrow-down-wide-short",
+        "Pages.Queue"
       ),
       new MenuItem(
         this.l("Pre-Check Upload"),
         "/app/pre-alerts",
         "fas fa-bell"
       ),
-
+      new MenuItem(this.l("Dispatch"), "", "fas fa-box", "Pages.Item", [
+        new MenuItem(
+          this.l("Dispatch Validations"),
+          "/app/dispatch-validations",
+          "fas fa-tasks",
+          "Pages.DispatchValidation"
+        ),
+        new MenuItem(
+          this.l("Dispatches"),
+          "/app/dispatches",
+          "fas fa-boxes-packing",
+          "Pages.Dispatch"
+        ),
+        new MenuItem(
+          this.l("Dispatch Tracking"),
+          "/app/dispatch-tracking",
+          "fas fa-thumbtack",
+          "Pages.Dispatch"
+        )
+      ]),
+      new MenuItem(this.l("Items"), "", "fas fa-cubes", "Pages.Item", [
+        new MenuItem(
+          this.l("API Item ID"),
+          "/app/api-item-ids",
+          "fas fa-compress-alt",
+          "Pages.Item"
+        ),
+        new MenuItem(
+          this.l("Generate Item ID"),
+          "/app/item-tracking-applications",
+          "fas fa-barcode",
+          "Pages.ItemTrackingApplication"
+        ),
+        new MenuItem(
+          this.l("Search Item"),
+          "/app/search-item",
+          "fas fa-binoculars",
+          "Pages.Item"
+        )
+      ]),
       /* Insert Menu Path */
       new MenuItem(this.l("Customers"), "", "fas fa-user", "Pages.Customer", [
         new MenuItem(

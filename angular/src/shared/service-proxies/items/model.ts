@@ -1,4 +1,6 @@
 import type { PagedAndSortedResultRequestDto, EntityDto } from '@abp/ng.core';
+import { BagDto } from '../bags/model';
+import { DispatchDto } from '../dispatches/model';
 
 
 export interface ItemDto extends EntityDto<number> {
@@ -190,6 +192,32 @@ export interface GetAPIItemIdDetail {
     serviceCode: string;
     month: string;
     year: string;
+}
+
+export interface ItemWithBagAndDispatch {
+    item: ItemDto;
+    bag: BagDto;
+    dispatch: DispatchDto
+}
+
+export interface ItemDetails {
+    trackingNo: string;
+    dispatchNo: string;
+    bagNo: string;
+    dispatchDate: string;
+    postal: string;
+    service: string;
+    product: string;
+    country: string;
+    weight: number;
+    value: number;
+    description: string;
+    referenceNo: string;
+    recipient: string;
+    contactNo: string;
+    email: string;
+    address: string;
+    status: number;
 }
 
 

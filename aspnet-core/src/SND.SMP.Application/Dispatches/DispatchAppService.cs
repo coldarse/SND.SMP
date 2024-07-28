@@ -843,7 +843,7 @@ namespace SND.SMP.Dispatches
             if (!string.IsNullOrWhiteSpace(countryCode))
                 items = items.Where(x => x.CountryCode.Equals(countryCode)).ToList();
 
-            var dispatchDate = dispatch.DispatchDate.GetValueOrDefault().ToString("yyyy-MM-dd");
+            var dispatchDate = dispatch.DispatchDate.GetValueOrDefault().ToString("dd/MM/yyyy");
 
             List<BagWeights> bagList = [];
 
@@ -898,7 +898,7 @@ namespace SND.SMP.Dispatches
 
             if (!string.IsNullOrWhiteSpace(countryCode)) items = items.Where(x => x.CountryCode.Equals(countryCode)).ToList();
 
-            var dispatchDate = dispatch.DispatchDate.GetValueOrDefault().ToString("yyyy-MM-dd");
+            var dispatchDate = dispatch.DispatchDate.GetValueOrDefault().ToString("dd/MM/yyyy");
 
             List<BagWeights> bagList = [];
 
@@ -950,7 +950,7 @@ namespace SND.SMP.Dispatches
         {
             List<SLBag> slBag = [];
 
-            var dispatchDate = dispatch.DispatchDate.GetValueOrDefault().ToString("yyyy-MM-dd");
+            var dispatchDate = dispatch.DispatchDate.GetValueOrDefault().ToString("dd/MM/yyyy");
 
             List<BagWeights> bagList = [];
 
@@ -1014,7 +1014,7 @@ namespace SND.SMP.Dispatches
 
             if (!string.IsNullOrWhiteSpace(countryCode)) items = items.Where(x => x.CountryCode.Equals(countryCode)).ToList();
 
-            var dispatchDate = dispatch.DispatchDate.GetValueOrDefault().ToString("yyyy-MM-dd");
+            var dispatchDate = dispatch.DispatchDate.GetValueOrDefault().ToString("dd/MM/yyyy");
 
             List<BagWeights> bagList = [];
 
@@ -1349,7 +1349,7 @@ namespace SND.SMP.Dispatches
             var items = await _itemRepository.GetAllListAsync(x => x.DispatchID.Equals(dispatch.Id));
             foreach (var item in items)
             {
-                item.DateStage2 = null;
+                item.DateStage2 = DateTime.MinValue;
                 item.Stage2StatusDesc = "";
             }
 
