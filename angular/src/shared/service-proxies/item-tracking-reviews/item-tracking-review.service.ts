@@ -124,5 +124,11 @@ export class ItemTrackingReviewService {
         )
     }
 
+    getItem(trackingNo: string, details: boolean, tracking: boolean){
+        return this.http
+        .get(this.url + `/api/services/app/ItemTrackingReview/GetItem?trackingNo=${trackingNo}&details=${details}&tracking=${tracking}`, this.options_)
+        .pipe(retry(1), catchError(this.errorMessage.HandleErrorResponse));
+      }
+
   
 }

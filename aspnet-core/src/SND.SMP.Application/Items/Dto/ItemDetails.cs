@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 public class ItemDetails
 {
@@ -19,4 +20,18 @@ public class ItemDetails
     public string Email {get; set;}
     public string Address {get; set;}
     public int Status { get; set; }
+}
+
+public class ItemInfo
+{
+    public ItemDetails itemDetails { get; set; }
+    public List<TrackingDetails> trackingDetails { get; set; }
+}
+
+public class TrackingDetails
+{
+    public string trackingNo { get; set; }
+    public string location { get; set; }
+    public string description { get; set; }
+    public string dateTime { get; set; }
 }

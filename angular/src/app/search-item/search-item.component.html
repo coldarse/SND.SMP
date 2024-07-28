@@ -1,148 +1,242 @@
-<div class="search-box">
-  <input
-    type="text"
-    placeholder="Tracking No."
-    class="search-input"
-    [(ngModel)]="trackingNo"
-    (keyup.enter)="search()"
-    oninput="let y=this.selectionStart;this.value=this.value.toUpperCase();this.setSelectionRange(y, y);"
-  />
-  <a class="search-btn" (click)="search()">
-    @if (searching) {
-    <div
-      class="spinner-border"
-      style="width: 3rem; height: 3rem"
-      role="status"
-    ></div>
-    } @else {
-    <i class="fas fa-binoculars"></i>
-    }
-  </a>
-</div>
-
-@if (itemDetails != undefined) {
-<section
-  class="item-section"
-  [@fadeInCenterAnimation]="itemDetails != undefined ? 'visible' : 'hidden'"
-  [@fadeOutAnimation]="!itemDetails == undefined ? 'visible' : 'hidden'"
->
-  <h2 class="ml-5">Item Found!</h2>
-  <div class="item-card">
-    <div class="item-header">
-      <h3 class="badge badge-pill badge-olive" style="font-size: 1.75rem">
-        <strong>{{ itemDetails.trackingNo }}</strong>
-      </h3>
-    </div>
-    <div class="item-body mt-4">
-      <div class="row">
-        <div class="col-12">
-          <div class="row">
-            <div class="col-3 item-label">Dispatch Number</div>
-            <div class="col-9">: &nbsp; {{ itemDetails.dispatchNo }}</div>
-          </div>
-        </div>
-        <div class="col-12">
-          <div class="row">
-            <div class="col-3 item-label">Dispatch Date</div>
-            <div class="col-9">: &nbsp; {{ itemDetails.dispatchDate }}</div>
-          </div>
-        </div>
-        <div class="col-12">
-          <div class="row" *ngIf="itemDetails.bagNo != ''">
-            <div class="col-3 item-label">Bag</div>
-            <div class="col-9">: &nbsp; {{ itemDetails.bagNo }}</div>
-          </div>
-        </div>
-        <div class="col-12">
-          <div class="row" *ngIf="itemDetails.referenceNo != ''">
-            <div class="col-3 item-label">Reference Number</div>
-            <div class="col-9">: &nbsp; {{ itemDetails.referenceNo }}</div>
-          </div>
-        </div>
-      </div>
-      <hr />
-      <div class="row mt-1">
-        <div class="col-12">
-          <div class="row">
-            <div class="col-3 item-label">Postal</div>
-            <div class="col-9">: &nbsp; {{ itemDetails.postal }}</div>
-          </div>
-        </div>
-        <div class="col-12">
-          <div class="row">
-            <div class="col-3 item-label">Service</div>
-            <div class="col-9">: &nbsp; {{ itemDetails.service }}</div>
-          </div>
-        </div>
-        <div class="col-12">
-          <div class="row">
-            <div class="col-3 item-label">Product</div>
-            <div class="col-9">: &nbsp; {{ itemDetails.product }}</div>
-          </div>
-        </div>
-        <div class="col-12">
-          <div class="row">
-            <div class="col-3 item-label">Country</div>
-            <div class="col-9">: &nbsp; {{ itemDetails.country }}</div>
-          </div>
-        </div>
-      </div>
-      <hr />
-      <div class="row mt-1">
-        <div class="col-12">
-          <div class="row">
-            <div class="col-3 item-label">Weight</div>
-            <div class="col-9">: &nbsp; {{ itemDetails.weight | number: '.3' }} KG</div>
-          </div>
-        </div>
-        <div class="col-12">
-          <div class="row">
-            <div class="col-3 item-label">Value</div>
-            <div class="col-9">: &nbsp; {{ itemDetails.value | number: '.2' }}</div>
-          </div>
-        </div>
-        <div class="col-12">
-          <div class="row">
-            <div class="col-3 item-label">Description</div>
-            <div class="col-9">: &nbsp; {{ itemDetails.description }}</div>
-          </div>
-        </div>
-        <div class="col-12">
-          <div class="row">
-            <div class="col-3 item-label">Status</div>
-            <div class="col-9">: &nbsp; Stage {{ itemDetails.status }}</div>
-          </div>
-        </div>
-      </div>
-      <hr />
-      <div class="row mt-1">
-        <div class="col-12">
-          <div class="row">
-            <div class="col-3 item-label">Recipient</div>
-            <div class="col-9">: &nbsp; {{ itemDetails.recipient }}</div>
-          </div>
-        </div>
-        <div class="col-12 mt-1">
-          <div class="row">
-            <div class="col-3 item-label">Email</div>
-            <div class="col-9 flex-nowrap">: &nbsp; {{ itemDetails.email }}</div>
-          </div>
-        </div>
-        <div class="col-12 mt-1">
-          <div class="row">
-            <div class="col-3 item-label">Address</div>
-            <div class="col-9 flex-nowrap">: &nbsp; {{ itemDetails.address }}</div>
-          </div>
-        </div>
-        <div class="col-12">
-          <div class="row">
-            <div class="col-3 item-label">Contact Number</div>
-            <div class="col-9">: &nbsp; {{ itemDetails.contactNo }}</div>
-          </div>
-        </div>
-      </div>
-    </div>
+<section class="container">
+  <div class="search-box">
+    <input
+      type="text"
+      placeholder="Tracking No."
+      class="search-input"
+      [(ngModel)]="trackingNo"
+      (keyup.enter)="search()"
+      oninput="let y=this.selectionStart;this.value=this.value.toUpperCase();this.setSelectionRange(y, y);"
+    />
+    <a class="search-btn" (click)="search()">
+      @if (searching) {
+      <div
+        class="spinner-border"
+        style="width: 3rem; height: 3rem"
+        role="status"
+      ></div>
+      } @else {
+      <i class="fas fa-binoculars"></i>
+      }
+    </a>
   </div>
+  <section class="toggle-section">
+    <div class="row">
+      <div class="checkbox-slider checkbox-success">
+        <label>
+          <input type="checkbox" [(ngModel)]="details" /><span>Details</span>
+        </label>
+      </div>
+      &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+      <div class="checkbox-slider checkbox-success">
+        <label>
+          <input type="checkbox" [(ngModel)]="tracking" /><span>Tracking</span>
+        </label>
+      </div>
+    </div>
+  </section>
+  @if (itemInfo.itemDetails != undefined) {
+  <section
+    class="item-section"
+    [@fadeInCenterAnimation]="
+      itemInfo.itemDetails != undefined ? 'visible' : 'hidden'
+    "
+    [@fadeOutAnimation]="
+      !itemInfo.itemDetails == undefined ? 'visible' : 'hidden'
+    "
+  >
+    <div class="item-card">
+      <div class="item-header">
+        <h3 class="badge badge-pill badge-olive" style="font-size: 1.75rem">
+          <strong>{{ itemInfo.itemDetails.trackingNo }} Details</strong>
+        </h3>
+      </div>
+      <div class="item-body mt-4">
+        <div class="row">
+          <div class="col-12">
+            <div class="row">
+              <div class="col-3 item-label">Dispatch Number</div>
+              <div class="col-9">
+                : &nbsp; {{ itemInfo.itemDetails.dispatchNo }}
+              </div>
+            </div>
+          </div>
+          <div class="col-12">
+            <div class="row">
+              <div class="col-3 item-label">Dispatch Date</div>
+              <div class="col-9">
+                : &nbsp; {{ itemInfo.itemDetails.dispatchDate }}
+              </div>
+            </div>
+          </div>
+          <div class="col-12">
+            <div class="row" *ngIf="itemInfo.itemDetails.bagNo != ''">
+              <div class="col-3 item-label">Bag</div>
+              <div class="col-9">: &nbsp; {{ itemInfo.itemDetails.bagNo }}</div>
+            </div>
+          </div>
+          <div class="col-12">
+            <div class="row" *ngIf="itemInfo.itemDetails.referenceNo != ''">
+              <div class="col-3 item-label">Reference Number</div>
+              <div class="col-9">
+                : &nbsp; {{ itemInfo.itemDetails.referenceNo }}
+              </div>
+            </div>
+          </div>
+        </div>
+        <hr />
+        <div class="row mt-1">
+          <div class="col-12">
+            <div class="row">
+              <div class="col-3 item-label">Postal</div>
+              <div class="col-9">
+                : &nbsp; {{ itemInfo.itemDetails.postal }}
+              </div>
+            </div>
+          </div>
+          <div class="col-12">
+            <div class="row">
+              <div class="col-3 item-label">Service</div>
+              <div class="col-9">
+                : &nbsp; {{ itemInfo.itemDetails.service }}
+              </div>
+            </div>
+          </div>
+          <div class="col-12">
+            <div class="row">
+              <div class="col-3 item-label">Product</div>
+              <div class="col-9">
+                : &nbsp; {{ itemInfo.itemDetails.product }}
+              </div>
+            </div>
+          </div>
+          <div class="col-12">
+            <div class="row">
+              <div class="col-3 item-label">Country</div>
+              <div class="col-9">
+                : &nbsp; {{ itemInfo.itemDetails.country }}
+              </div>
+            </div>
+          </div>
+        </div>
+        <hr />
+        <div class="row mt-1">
+          <div class="col-12">
+            <div class="row">
+              <div class="col-3 item-label">Weight</div>
+              <div class="col-9">
+                : &nbsp; {{ itemInfo.itemDetails.weight | number : ".3" }} KG
+              </div>
+            </div>
+          </div>
+          <div class="col-12">
+            <div class="row">
+              <div class="col-3 item-label">Value</div>
+              <div class="col-9">
+                : &nbsp; {{ itemInfo.itemDetails.value | number : ".2" }}
+              </div>
+            </div>
+          </div>
+          <div class="col-12">
+            <div class="row">
+              <div class="col-3 item-label">Description</div>
+              <div class="col-9">
+                : &nbsp; {{ itemInfo.itemDetails.description }}
+              </div>
+            </div>
+          </div>
+          <div class="col-12">
+            <div class="row">
+              <div class="col-3 item-label">Status</div>
+              <div class="col-9">
+                : &nbsp; Stage {{ itemInfo.itemDetails.status }}
+              </div>
+            </div>
+          </div>
+        </div>
+        <hr />
+        <div class="row mt-1">
+          <div class="col-12">
+            <div class="row">
+              <div class="col-3 item-label">Recipient</div>
+              <div class="col-9">
+                : &nbsp; {{ itemInfo.itemDetails.recipient }}
+              </div>
+            </div>
+          </div>
+          <div class="col-12 mt-1">
+            <div class="row">
+              <div class="col-3 item-label">Email</div>
+              <div class="col-9 flex-nowrap">
+                : &nbsp; {{ itemInfo.itemDetails.email }}
+              </div>
+            </div>
+          </div>
+          <div class="col-12 mt-1">
+            <div class="row">
+              <div class="col-3 item-label">Address</div>
+              <div class="col-9 flex-nowrap">
+                : &nbsp; {{ itemInfo.itemDetails.address }}
+              </div>
+            </div>
+          </div>
+          <div class="col-12">
+            <div class="row">
+              <div class="col-3 item-label">Contact Number</div>
+              <div class="col-9">
+                : &nbsp; {{ itemInfo.itemDetails.contactNo }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  } @if (itemInfo.trackingDetails.length > 0) {
+  <section
+    class="tracking-section"
+    [@fadeInCenterAnimation]="
+      itemInfo.itemDetails != undefined ? 'visible' : 'hidden'
+    "
+    [@fadeOutAnimation]="
+      !itemInfo.itemDetails == undefined ? 'visible' : 'hidden'
+    "
+  >
+    <div class="tracking-card">
+      <div class="item-header">
+        <h3 class="badge badge-pill badge-olive" style="font-size: 1.75rem">
+          <strong
+            >{{
+              itemInfo.itemDetails == undefined
+                ? itemInfo.trackingDetails[0].trackingNo
+                : itemInfo.itemDetails.trackingNo
+            }}
+            Tracking</strong
+          >
+        </h3>
+      </div>
+      <div class="item-body mt-4">
+        <div class="row">
+          @for (tracking of itemInfo.trackingDetails; track $index; let last =
+          $last) {
+          <div class="col-12">
+            <div class="row">
+              <div class="col-3 item-label">{{ tracking.dateTime }}</div>
+              <div class="col-7">
+                {{ tracking.description }}
+              </div>
+              <div class="col-2">
+                {{ tracking.location }}
+              </div>
+            </div>
+          </div>
+          @if (!last) {
+          <hr />
+          } 
+        }
+        </div>
+      </div>
+    </div>
+  </section>
+  }
 </section>
-
-}

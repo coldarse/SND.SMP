@@ -25,6 +25,11 @@ using OfficeOpenXml;
 using System.Security.Cryptography;
 using System.Text;
 using Abp.UI;
+using SND.SMP.ApplicationSettings;
+using Newtonsoft.Json;
+using System.Net;
+using SND.SMP.APIRequestResponses;
+using SND.SMP.Bags;
 
 
 namespace SND.SMP.ItemTrackingReviews
@@ -38,7 +43,10 @@ namespace SND.SMP.ItemTrackingReviews
         IRepository<Customer, long> customerRepository,
         IRepository<Dispatch, int> dispatchRepository,
         IRepository<Item, string> itemRepository,
-        IRepository<Postal, long> postalRepository
+        IRepository<Postal, long> postalRepository,
+        IRepository<ApplicationSetting, int> applicationSettingRepository,
+        IRepository<APIRequestResponse, long> apiRequestResponseRepository,
+        IRepository<Bag, int> bagRepository
     ) : AsyncCrudAppService<ItemTrackingReview, ItemTrackingReviewDto, int, PagedItemTrackingReviewResultRequestDto>(repository)
     {
         private readonly IRepository<ItemTrackingApplication, int> _itemTrackingApplicationRepository = itemTrackingApplicationRepository;
@@ -49,6 +57,9 @@ namespace SND.SMP.ItemTrackingReviews
         private readonly IRepository<Dispatch, int> _dispatchRepository = dispatchRepository;
         private readonly IRepository<Item, string> _itemRepository = itemRepository;
         private readonly IRepository<Postal, long> _postalRepository = postalRepository;
+        private readonly IRepository<ApplicationSetting, int> _applicationSettingRepository = applicationSettingRepository;
+        private readonly IRepository<APIRequestResponse, long> _apiRequestResponseRepository = apiRequestResponseRepository;
+        private readonly IRepository<Bag, int> _bagRepository = bagRepository;
 
         protected override IQueryable<ItemTrackingReview> CreateFilteredQuery(PagedItemTrackingReviewResultRequestDto input)
         {
@@ -136,6 +147,242 @@ namespace SND.SMP.ItemTrackingReviews
             }
 
             return sb.ToString();
+        }
+
+        public async Task<ItemInfo> GetItem(string trackingNo, bool details, bool tracking)
+        {
+            var itemtracking = await _itemTrackingRepository.FirstOrDefaultAsync(x => x.TrackingNo.Equals(trackingNo)) ?? throw new UserFriendlyException("No Tracking Found.");
+
+            bool IsExternal = itemtracking.IsExternal;
+
+            ItemInfo itemInfo = new()
+            {
+                itemDetails = null,
+                trackingDetails = []
+            };
+
+            if (details)
+            {
+                var items = await _itemRepository.GetAllListAsync(x => x.Id.Equals(trackingNo));
+
+                if (items.Count == 0) throw new UserFriendlyException("No Item under this Tracking Id is found.");
+
+                Item foundItem = null;
+                Bag bag = null;
+                Dispatch dispatch = null;
+
+                foreach (var item in items)
+                {
+                    var temp_dispatch = await _dispatchRepository.FirstOrDefaultAsync(x => x.Id.Equals(item.DispatchID));
+                    if (temp_dispatch is not null)
+                    {
+                        bool isTemp = false;
+                        if (temp_dispatch.DispatchNo.Contains("temp", StringComparison.CurrentCultureIgnoreCase)) isTemp = true;
+
+                        foundItem = item;
+                        bag = isTemp ? null : await _bagRepository.FirstOrDefaultAsync(x => x.Id.Equals(item.BagID));
+                        dispatch = temp_dispatch;
+                    }
+                }
+
+                var postal = await _postalRepository.FirstOrDefaultAsync(x =>
+                                                                        x.PostalCode.Equals(dispatch.PostalCode) &&
+                                                                        x.ServiceCode.Equals(dispatch.ServiceCode) &&
+                                                                        x.ProductCode.Equals(dispatch.ProductCode)
+                                                                    );
+                string ProductDesc = "";
+                string ServiceDesc = "";
+                if (postal is null)
+                {
+                    var postals = await _postalRepository.GetAllListAsync();
+                    var postalDistinctedByProductCode = postals.DistinctBy(x => x.ProductCode).ToList();
+                    var postalDistinctedByServiceCode = postals.DistinctBy(x => x.ServiceCode).ToList();
+                    ProductDesc = postalDistinctedByProductCode.FirstOrDefault(x => x.ProductCode.Equals(dispatch.ProductCode)).ProductDesc;
+                    ServiceDesc = postalDistinctedByServiceCode.FirstOrDefault(x => x.ServiceCode.Equals(dispatch.ServiceCode)).ServiceDesc;
+                }
+
+                string address = foundItem.Address is null ? "" : foundItem.Address + ", ";
+                string city = foundItem.City is null ? "" : foundItem.City + ", ";
+                string state = foundItem.State is null ? "" : foundItem.State + ", ";
+                string postcode = foundItem.Postcode is null ? "" : foundItem.Postcode + ", ";
+                string country = foundItem.CountryCode is null ? "" : foundItem.CountryCode;
+                string addressString = string.Format("{0} {1} {2} {3} {4}", address, city, state, postcode, country);
+
+                itemInfo.itemDetails = new()
+                {
+                    TrackingNo = trackingNo,
+                    DispatchNo = dispatch.DispatchNo,
+                    BagNo = bag is null ? "" : bag.BagNo,
+                    DispatchDate = $"{dispatch.DispatchDate:dd/MM/yyyy}",
+                    Postal = postal is null ? dispatch.PostalCode : postal.PostalDesc,
+                    Service = postal is null ? ServiceDesc : postal.ServiceDesc,
+                    Product = postal is null ? ProductDesc : postal.ProductDesc,
+                    Country = foundItem.CountryCode,
+                    Weight = foundItem.Weight is null ? 0.000m : (decimal)foundItem.Weight,
+                    Status = foundItem.Status is null ? 0 : (int)foundItem.Status,
+                    Value = foundItem.ItemValue is null ? 0.00m : (decimal)foundItem.ItemValue,
+                    Description = foundItem.ItemDesc is null ? "" : foundItem.ItemDesc,
+                    ReferenceNo = foundItem.RefNo is null ? "" : foundItem.RefNo,
+                    Recipient = foundItem.RecpName is null ? "" : foundItem.RecpName,
+                    ContactNo = foundItem.TelNo is null ? "" : foundItem.TelNo,
+                    Email = foundItem.Email is null ? "" : foundItem.Email,
+                    Address = addressString,
+                };
+            }
+
+            if (tracking)
+            {
+                if (IsExternal)
+                {
+                    List<string> trackingNos = [];
+                    trackingNos.Add(trackingNo);
+                    //Call APG
+                    List<APGTracking> apgTrackings = await GetAPGTracking(trackingNos);
+                    foreach (var apg in apgTrackings)
+                    {
+                        foreach (var status in apg.status)
+                        {
+                            itemInfo.trackingDetails.Add(new TrackingDetails()
+                            {
+                                trackingNo = apg.package.tracking,
+                                location = status.location,
+                                description = status.description,
+                                dateTime = DateTime.Parse(status.statusDate.Replace(" UTC", "")).ToString("dd/MM/yyyy HH:mm:ss")
+                            });
+                        }
+                    }
+
+                }
+                else
+                {
+                    var item = await _itemRepository.FirstOrDefaultAsync(x => x.Id.Equals(trackingNo));
+
+                    if (item is not null)
+                    {
+                        List<StageResult> stageResult = GetTouchedStages(item);
+                        for (int i = 0; i < stageResult.Count; i++)
+                        {
+                            itemInfo.trackingDetails.Add(new TrackingDetails()
+                            {
+                                trackingNo = trackingNo,
+                                location = item.CountryCode,
+                                description = stageResult[i].Description,
+                                dateTime = stageResult[i].DateStage.ToString("dd/MM/yyyy HH:mm:ss")
+                            });
+                        }
+                    }
+                }
+            }
+            return itemInfo;
+        }
+
+        private static List<StageResult> GetTouchedStages(Item item)
+        {
+            // Create a list to hold the result for each touched stage
+            List<StageResult> touchedStages = [];
+
+            // Evaluate each stage and add to the list if touched
+            AddIfTouched(touchedStages, item.DateStage1, item.Stage1StatusDesc);
+            AddIfTouched(touchedStages, item.DateStage2, item.Stage2StatusDesc);
+            AddIfTouched(touchedStages, item.DateStage3, item.Stage3StatusDesc);
+            AddIfTouched(touchedStages, item.DateStage4, item.Stage4StatusDesc);
+            AddIfTouched(touchedStages, item.DateStage5, item.Stage5StatusDesc);
+            AddIfTouched(touchedStages, item.DateStage6, item.Stage6StatusDesc);
+            AddIfTouched(touchedStages, item.DateStage7, item.Stage7StatusDesc);
+            AddIfTouched(touchedStages, item.DateStage8, item.Stage8StatusDesc);
+            AddIfTouched(touchedStages, item.DateStage9, item.Stage9StatusDesc);
+
+            return touchedStages;
+        }
+
+        private static void AddIfTouched(List<StageResult> touchedStages, DateTime? dateStage, string stageDesc)
+        {
+            // Check if DateStage is valid and StageDesc is not empty
+            if (dateStage.HasValue && dateStage.Value != DateTime.MinValue && !string.IsNullOrWhiteSpace(stageDesc))
+            {
+                touchedStages.Add(new StageResult((DateTime)dateStage, stageDesc));
+            }
+        }
+
+        [HttpGet]
+        [Route("api/Tracking/APG")]
+        public async Task<List<APGTracking>> GetAPGTracking(List<string> trackingNos)
+        {
+            var TrackingUrl = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_TrackingUrl"));
+            var token_expiration = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_TokenExpiration"));
+            var token = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_Token"));
+
+            string apgToken = token.Value.Trim() == "" ? await GetAPGToken() : token.Value.Trim();
+
+            if (token.Value.Trim() != "")
+            {
+                var dateString = token_expiration.Value.Replace(" UTC", "");
+                var token_expiration_date = DateTime.Parse(dateString);
+                if (token_expiration_date < DateTime.Now) apgToken = await GetAPGToken();
+            }
+
+            var httpstatus = HttpStatusCode.Unauthorized;
+
+            if (TrackingUrl != null)
+            {
+                do
+                {
+                    var apgClient = new HttpClient();
+                    apgClient.DefaultRequestHeaders.Clear();
+                    apgClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", apgToken);
+
+                    var requestURL = TrackingUrl.Value;
+                    var trackingNoString = "";
+                    foreach (var trackingNo in trackingNos)
+                    {
+                        requestURL += trackingNo;
+                        trackingNoString += trackingNo + ",";
+                    }
+
+                    APIRequestResponse apiRequestResponse = new()
+                    {
+                        URL = requestURL,
+                        RequestBody = trackingNoString,
+                        RequestDateTime = DateTime.Now
+                    };
+
+                    var apgRequestMessage = new HttpRequestMessage
+                    {
+                        Method = HttpMethod.Get,
+                        RequestUri = new Uri(requestURL),
+                    };
+                    using var apgResponse = await apgClient.SendAsync(apgRequestMessage);
+                    httpstatus = apgResponse.StatusCode;
+
+                    var apgBody = await apgResponse.Content.ReadAsStringAsync();
+
+                    apiRequestResponse.ResponseBody = apgBody;
+                    apiRequestResponse.ResponseDateTime = DateTime.Now;
+                    apiRequestResponse.Duration = (apiRequestResponse.ResponseDateTime - apiRequestResponse.RequestDateTime).Seconds;
+
+                    await _apiRequestResponseRepository.InsertAsync(apiRequestResponse).ConfigureAwait(false);
+
+                    if (httpstatus == HttpStatusCode.OK)
+                    {
+                        var apgResult = JsonConvert.DeserializeObject<List<APGTracking>>(apgBody);
+
+                        if (apgResult != null)
+                        {
+                            return apgResult.Where(x => x.response.Equals("OK")).ToList();
+                        }
+                        else throw new UserFriendlyException("Unable to get tracking.");
+                    }
+                    else
+                    {
+                        if (httpstatus == HttpStatusCode.Unauthorized) apgToken = await GetAPGToken();
+                        else throw new UserFriendlyException(httpstatus.ToString());
+                    }
+                }
+                while (httpstatus == HttpStatusCode.Unauthorized);
+            }
+            else throw new UserFriendlyException("TrackingUrl not found");
+
+            throw new UserFriendlyException("Unable to get Tracking");
         }
 
         [HttpPost]
@@ -849,7 +1096,7 @@ namespace SND.SMP.ItemTrackingReviews
             {
                 var application = applications.FirstOrDefault(x => x.Id.Equals(review.ApplicationId));
 
-                if (application is not null) paths.Add(application.Path);
+                if (application is not null && !application.Path.IsNullOrWhiteSpace()) paths.Add(application.Path);
             }
 
             if (!paths.Count.Equals(0))

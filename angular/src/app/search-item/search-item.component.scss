@@ -1,0 +1,292 @@
+.container {
+  display: flex;
+  flex-direction: column; /* Stack children vertically */
+  align-items: center; /* Center horizontally */
+  justify-content: flex-start; /* Align items to the start */
+  min-height: 100vh; /* Full viewport height */
+  padding-top: 5vh; /* Push content down 31% of viewport height */
+}
+
+.search-box {
+  height: 6.25rem;
+  background: #fff;
+  line-height: 5rem;
+  padding: .625rem;
+  border-radius: 5rem;
+  margin-bottom: .75rem;
+}
+
+.search-input {
+    font-size: 3rem;
+    background: #fff;
+    color: #212529;
+    outline: none;
+    border: none;
+    line-height: 80px;
+    margin: 0px;
+    padding: 0px;
+    width: 0px;
+    float: left;
+    transition: 0.7s ease;
+}
+
+.search-btn {
+    font-size: 3rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-decoration: none;
+    background: #fff;
+    padding: 16px;
+    border-radius: 50%;
+    float: right;
+    color: #212529;
+    transition: 0.4s ease;
+}
+
+
+.search-box:hover>.search-input {
+    width: 580px;
+    margin: 0px 16px;
+}
+
+.search-input:focus {
+    width: 580px;
+    margin: 0px 16px;
+}
+
+
+.search-box:hover>.search-btn {
+    background: #fff;
+    margin-left: .5rem;
+}
+
+.search-input:focus+.search-btn {
+    background: #fff;
+    margin-left: .5rem;
+}
+
+.toggle-section {
+  padding: 1rem;
+  border-radius: 1rem;
+}
+
+.item-section {
+    width: 680px;
+    padding: 1rem;
+    border-radius: 1rem;
+}
+
+.tracking-section {
+    width: 880px;
+    padding: 1rem;
+    border-radius: 1rem;
+}
+
+.item-section>h2 {
+    color: #212529;
+    margin-bottom: 1rem;
+    margin-top: 2rem;
+}
+
+.item-card {
+    width: 648px;
+    background: #fff;
+    border-radius: 2.5rem;
+    padding: 2rem;
+    color: #212529;
+}
+
+.tracking-card {
+    width: 848px;
+    background: #fff;
+    border-radius: 2.5rem;
+    padding: 2rem;
+    color: #212529;
+}
+
+.item-header {
+    margin: auto;
+}
+
+.item-body {
+    margin-top: 1rem;
+}
+
+.item-label {
+    font-family: 'Poppins-Bold' !important;
+}
+
+.long-desc {
+    width: 98.88px;
+}
+
+$gray-light:            #f1F1F1;
+$brand-primary:         #127AB7;
+$brand-secondary:       #111C8B;
+$brand-success:         #5cb85c;
+$brand-info:            #31CCF6;
+$brand-warning:         #f0ad4e;
+$brand-danger:          #EC201A;
+
+$brand-array:(
+  primary : $brand-primary,
+  success : $brand-success,
+  info :    $brand-info,
+  warning : $brand-warning,
+  danger :  $brand-danger
+);
+
+$checkbox-slider-size-sm:                   18px;
+$checkbox-slider-size:                      26px;
+$checkbox-slider-size-lg:                   32px;
+$checkbox-slider-background-color-inactive: $gray-light;
+
+@mixin slider-size-variant($size, $gap) {
+  line-height: $size;
+  input {
+    & + span {
+      
+      &:empty {
+        padding-left: $size;
+      }
+      padding-left: $size + $gap * 4;
+      
+      &:before {
+        width: $size * 2;
+      }
+      &:before, &:after {
+        height: $size;
+        line-height: $size;
+        border-radius: $size;
+      }
+      &:after {
+        top: $gap / 2;
+        left: $gap / 2;
+        width: $size - $gap;
+        height: $size - $gap;
+        vertical-align: middle;
+      }
+    }
+    &:checked + span:after {
+      transform: translateX($size);
+    }
+
+    + span {
+      &:before, &:after {
+        border-radius: $size;
+      }
+    }
+  }
+}
+
+.checkbox-slider {
+    position: relative;
+    line-height: $checkbox-slider-size;
+    display: block;
+    margin-bottom: 10px;
+    
+    label {
+      display: inline-block;
+      max-width: 100%;
+      min-height: 20px;
+      padding-left: 20px;
+      margin-bottom: 0;
+      font-weight: 400;
+      cursor: pointer;
+    }
+    
+    input {
+      display: block;
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      width: 0%;
+      height: 0%;
+      margin: 0 0;
+      cursor: pointer;
+      opacity: 0;
+      & + span {
+        cursor: pointer;
+        user-select: none;
+        
+        &:empty {
+          padding-left: $checkbox-slider-size;
+        }
+        padding-left: $checkbox-slider-size + 16px;
+  
+        &:before {
+          content: " ";
+          position: absolute;
+          left: 0px;
+          display: inline-block;
+          height: $checkbox-slider-size;
+          width: $checkbox-slider-size*2;
+          background: $checkbox-slider-background-color-inactive;
+          border: 1px solid $checkbox-slider-background-color-inactive;
+          transition: background 0.2s ease-out;
+          border-radius: $checkbox-slider-size;
+        }
+        &:after {
+          content: " ";
+          position: absolute;
+          left: 2px;
+          top: 2px;
+          display: block;
+          width: $checkbox-slider-size - 4px;
+          height: $checkbox-slider-size - 4px;
+          background: #ffffff;
+          transition: transform 0.2s ease-in-out;
+          text-align: center;
+          font-weight: bold;
+          background-clip: padding-box;
+          border-radius: $checkbox-slider-size - 4px;
+        }
+      }
+  
+      &:checked {
+        & + span {
+          &:after {
+            transform: translateX($checkbox-slider-size);
+          }
+          &:before {
+            transition: background 0.2s ease-in;
+            background: $brand-primary;
+            border-color: $brand-primary;
+          }
+        }
+      }
+  
+  
+      &[disabled] + span {
+        cursor: not-allowed;
+        &:before,
+        &:after {
+          opacity: .4;
+        }
+      }
+    }
+  
+    //  Color variations
+    //
+    //
+    @each $type, $color in $brand-array {
+      &.checkbox-#{$type}{
+        input:checked + span:before {
+          background: $color;
+          border-color: $color;
+        }
+      }
+    }
+  
+    &.is-sm {
+      @include slider-size-variant($checkbox-slider-size-sm, 4px);
+    }
+  
+    &.is-lg {
+      @include slider-size-variant($checkbox-slider-size-lg, 6px);
+    }
+  
+  }
