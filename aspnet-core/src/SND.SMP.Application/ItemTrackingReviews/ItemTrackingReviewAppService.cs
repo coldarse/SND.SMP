@@ -364,6 +364,99 @@ namespace SND.SMP.ItemTrackingReviews
             }
         }
 
+        [HttpPost]
+        [Route("api/Cancel/APG")]
+        public async Task<List<ItemPackageResponse>> CancelAPGTracking(string trackingNo)
+        {
+            var CancelUrl = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_CancelUrl"));
+            var token_expiration = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_TokenExpiration"));
+            var token = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_Token"));
+
+            string apgToken = token.Value.Trim() == "" ? await GetAPGToken() : token.Value.Trim();
+
+            if (token.Value.Trim() != "")
+            {
+                var dateString = token_expiration.Value.Replace(" UTC", "");
+                var token_expiration_date = DateTime.Parse(dateString);
+                if (token_expiration_date < DateTime.Now) apgToken = await GetAPGToken();
+            }
+
+            var httpstatus = HttpStatusCode.Unauthorized;
+
+            if (CancelUrl != null)
+            {
+                do
+                {
+                    var apgClient = new HttpClient();
+                    apgClient.DefaultRequestHeaders.Clear();
+                    apgClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", apgToken);
+
+                    var trackingNoString = "";
+
+                    List<ItemPackageRequest> packages = [];
+                    packages.Add(new ItemPackageRequest()
+                    {
+                        tracking = trackingNo
+                    });
+
+                    PackagesRequestCollection apgRequest = new()
+                    {
+                        packages = packages
+                    };
+
+                    APIRequestResponse apiRequestResponse = new()
+                    {
+                        URL = CancelUrl.Value,
+                        RequestBody = trackingNoString,
+                        RequestDateTime = DateTime.Now
+                    };
+
+                    string jsonContent = JsonConvert.SerializeObject(apgRequest);
+                    var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                    var apgRequestMessage = new HttpRequestMessage
+                    {
+                        Method = HttpMethod.Post,
+                        RequestUri = new Uri(CancelUrl.Value),
+                        Content = content,
+                    };
+                    using var apgResponse = await apgClient.SendAsync(apgRequestMessage);
+                    httpstatus = apgResponse.StatusCode;
+
+                    var apgBody = await apgResponse.Content.ReadAsStringAsync();
+
+                    apiRequestResponse.ResponseBody = apgBody;
+                    apiRequestResponse.ResponseDateTime = DateTime.Now;
+                    apiRequestResponse.Duration = (apiRequestResponse.ResponseDateTime - apiRequestResponse.RequestDateTime).Seconds;
+
+                    await _apiRequestResponseRepository.InsertAsync(apiRequestResponse).ConfigureAwait(false);
+
+                    if (httpstatus == HttpStatusCode.Unauthorized)
+                    {
+                        apgToken = await GetAPGToken();
+                    }
+                    else
+                    {
+                        var apgResult = JsonConvert.DeserializeObject<List<ItemPackageResponse>>(apgBody);
+
+                        if (apgResult != null)
+                        {
+                            if (apgResult[0].status == "Cancelled")
+                            {
+                                var itemTracking = await _itemTrackingRepository.FirstOrDefaultAsync(x => x.TrackingNo.Equals(trackingNo));
+                                await _itemTrackingRepository.DeleteAsync(itemTracking).ConfigureAwait(false);
+                            }
+                            return apgResult;
+                        }
+                        else throw new UserFriendlyException("Unable to Cancel Tracking.");
+                    }
+                }
+                while (httpstatus == HttpStatusCode.Unauthorized);
+            }
+            else throw new UserFriendlyException("CancelUrl not found");
+
+            throw new UserFriendlyException("Unable to Cancel Tracking");
+        }
+
         [HttpGet]
         [Route("api/Tracking/APG")]
         //For Postman Use
