@@ -297,6 +297,7 @@ namespace SND.SMP.ItemTrackingReviews
                     trackingNos.Add(trackingNo);
                     //Call APG
                     List<APGTracking> apgTrackings = await GetAPGTracking(trackingNos);
+                    apgTrackings = apgTrackings.Where(x => x.response.Equals("OK")).ToList();
                     foreach (var apg in apgTrackings)
                     {
                         foreach (var status in apg.status)
@@ -365,6 +366,64 @@ namespace SND.SMP.ItemTrackingReviews
 
         [HttpGet]
         [Route("api/Tracking/APG")]
+        //For Postman Use
+        public async Task<ItemsCollection> GetAPGTrackings(string trackingNos)
+        {
+            var splits = trackingNos.Split(',');
+            if (splits.Length > 10)
+            {
+                return new ItemsCollection()
+                {
+                    Items = [],
+                    Errors = ["Only a maximum of 10 Tracking Nos are allowed."]
+                };
+            }
+
+            ItemsCollection itemCollections = new()
+            {
+                Items = [],
+                Errors = []
+            };
+
+            List<APGTracking> apgTracking = await GetAPGTracking([.. splits]);
+
+            var successTrackings = apgTracking.Where(x => x.response.Equals("OK")).ToList();
+            var errorTrackings = apgTracking.Where(x => !x.response.Equals("OK")).ToList();
+
+            foreach (var successTracking in successTrackings)
+            {
+                var itemTracking = new ItemTrackingNo()
+                {
+                    TrackingNo = successTracking.package.tracking,
+                    Status = []
+                };
+
+                foreach (var status in successTracking.status)
+                {
+                    itemTracking.Status.Add(new TrackingStatus()
+                    {
+                        Location = status.location,
+                        Datetime = DateTime.Parse(status.statusDate.Replace(" UTC", "")).ToString("dd/MM/yyyy HH:mm:ss"),
+                        Description = status.description
+                    });
+                }
+
+                itemCollections.Items.Add(itemTracking);
+            }
+
+            foreach (var errorTracking in errorTrackings)
+            {
+                var trackingNo = errorTracking.package.tracking;
+                var errorMsg = errorTracking.response;
+
+                var error = trackingNo + " - " + errorMsg;
+
+                itemCollections.Errors.Add(error);
+            }
+
+            return itemCollections;
+        }
+
         public async Task<List<APGTracking>> GetAPGTracking(List<string> trackingNos)
         {
             var TrackingUrl = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_TrackingUrl"));
@@ -392,10 +451,21 @@ namespace SND.SMP.ItemTrackingReviews
 
                     var requestURL = TrackingUrl.Value;
                     var trackingNoString = "";
-                    foreach (var trackingNo in trackingNos)
+                    for (int i = 0; i < trackingNos.Count; i++)
                     {
-                        requestURL += trackingNo;
-                        trackingNoString += trackingNo + ",";
+                        string trackingNo = trackingNos[i];
+                        bool isLast = i == trackingNos.Count - 1;
+
+                        if (!isLast)
+                        {
+                            requestURL += trackingNo + ",";
+                            trackingNoString += trackingNo + ",";
+                        }
+                        else
+                        {
+                            requestURL += trackingNo;
+                            trackingNoString += trackingNo;
+                        }
                     }
 
                     APIRequestResponse apiRequestResponse = new()
@@ -421,20 +491,19 @@ namespace SND.SMP.ItemTrackingReviews
 
                     await _apiRequestResponseRepository.InsertAsync(apiRequestResponse).ConfigureAwait(false);
 
-                    if (httpstatus == HttpStatusCode.OK)
+                    if (httpstatus == HttpStatusCode.Unauthorized)
+                    {
+                        apgToken = await GetAPGToken();
+                    }
+                    else
                     {
                         var apgResult = JsonConvert.DeserializeObject<List<APGTracking>>(apgBody);
 
                         if (apgResult != null)
                         {
-                            return apgResult.Where(x => x.response.Equals("OK")).ToList();
+                            return apgResult;
                         }
                         else throw new UserFriendlyException("Unable to get tracking.");
-                    }
-                    else
-                    {
-                        if (httpstatus == HttpStatusCode.Unauthorized) apgToken = await GetAPGToken();
-                        else throw new UserFriendlyException(httpstatus.ToString());
                     }
                 }
                 while (httpstatus == HttpStatusCode.Unauthorized);
