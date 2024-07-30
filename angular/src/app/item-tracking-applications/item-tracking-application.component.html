@@ -63,7 +63,7 @@
                   <th>{{ "Date Created" | localize }}</th>
                   <th
                     style="width: 310px"
-                    *ngIf="isButtonVisible('Edit') && isButtonVisible('Delete')"
+                    *ngIf="isButtonVisible('Edit') || isButtonVisible('Delete') || isButtonVisible('Export')"
                   >
                     {{ "Actions" | localize }}
                   </th>
@@ -117,7 +117,7 @@
                     {{ itemtrackingapplication.dateCreated | date : "dd/MM/yyyy" }}
                   </td>
                   <td
-                    *ngIf="isButtonVisible('Edit') || isButtonVisible('Delete')"
+                    *ngIf="isButtonVisible('Edit') || isButtonVisible('Delete') || isButtonVisible('Export')"
                   >
                     <button
                       type="button"
@@ -140,7 +140,7 @@
                       {{ "Delete" | localize }}
                     </button>
                     <button
-                      *ngIf="itemtrackingapplication.range != ''"
+                      *ngIf="itemtrackingapplication.range != '' && isButtonVisible('Export')"
                       type="button"
                       class="btn btn-sm bg-info"
                       (click)="

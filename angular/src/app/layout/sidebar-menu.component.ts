@@ -79,7 +79,7 @@ export class SidebarMenuComponent extends AppComponentBase implements OnInit {
         "/app/pre-alerts",
         "fas fa-bell"
       ),
-      new MenuItem(this.l("Dispatch"), "", "fas fa-box", "Pages.Item", [
+      new MenuItem(this.l("Dispatch"), "", "fas fa-box", "Pages.Dispatch", [
         new MenuItem(
           this.l("Dispatch Validations"),
           "/app/dispatch-validations",
@@ -104,7 +104,7 @@ export class SidebarMenuComponent extends AppComponentBase implements OnInit {
           this.l("API Item ID"),
           "/app/api-item-ids",
           "fas fa-compress-alt",
-          "Pages.Item"
+          "Pages.APIItem"
         ),
         new MenuItem(
           this.l("Generate Item ID"),
@@ -116,7 +116,7 @@ export class SidebarMenuComponent extends AppComponentBase implements OnInit {
           this.l("Search Item"),
           "/app/search-item",
           "fas fa-binoculars",
-          "Pages.Item"
+          "Pages.SearchItem"
         )
       ]),
       /* Insert Menu Path */
@@ -160,7 +160,7 @@ export class SidebarMenuComponent extends AppComponentBase implements OnInit {
           ),
         ]
       ),
-      new MenuItem(this.l("System"), "", "fas fa-desktop", "Pages.Rate", [
+      new MenuItem(this.l("System"), "", "fas fa-desktop", "Pages.System", [
         new MenuItem(
           this.l("Application Settings"),
           "/app/applicationsettings",
@@ -198,26 +198,26 @@ export class SidebarMenuComponent extends AppComponentBase implements OnInit {
           "Pages.EmailContent"
         ),
       ]),
-
-      new MenuItem(
-        this.l("Roles"),
-        "/app/roles",
-        "fas fa-theater-masks",
-        "Pages.RolesPage"
-      ),
-      new MenuItem(
-        this.l("Tenants"),
-        "/app/tenants",
-        "fas fa-building",
-        "Pages.Tenants"
-      ),
-      new MenuItem(
-        this.l("Users"),
-        "/app/users",
-        "fas fa-users",
-        "Pages.UsersPage"
-      ),
-      
+      new MenuItem(this.l("Administration"), "", "fas fa-user-shield", "Pages.Administration", [
+        new MenuItem(
+          this.l("Roles"),
+          "/app/roles",
+          "fas fa-theater-masks",
+          "Pages.RolesPage"
+        ),
+        new MenuItem(
+          this.l("Tenants"),
+          "/app/tenants",
+          "fas fa-building",
+          "Pages.Tenants"
+        ),
+        new MenuItem(
+          this.l("Users"),
+          "/app/users",
+          "fas fa-users",
+          "Pages.UsersPage"
+        ),
+      ]),
       // new MenuItem(
       //   this.l("Refunds"),
       //   "/app/refunds",

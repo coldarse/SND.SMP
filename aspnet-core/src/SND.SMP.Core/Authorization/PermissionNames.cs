@@ -56,6 +56,7 @@ namespace SND.SMP.Authorization
         public const string Pages_ItemTrackingApplication_Create = "Pages.ItemTrackingApplication.Create";
         public const string Pages_ItemTrackingApplication_Edit = "Pages.ItemTrackingApplication.Edit";
         public const string Pages_ItemTrackingApplication_Delete = "Pages.ItemTrackingApplication.Delete";
+        public const string Pages_ItemTrackingApplication_Export = "Pages.ItemTrackingApplication.Export";
 
         public const string Pages_IMPC = "Pages.IMPC";
         public const string Pages_IMPC_Create = "Pages.IMPC.Create";
@@ -172,6 +173,12 @@ namespace SND.SMP.Authorization
         public const string Pages_CustomerTransaction_Create = "Pages.CustomerTransaction.Create";
         public const string Pages_CustomerTransaction_Edit = "Pages.CustomerTransaction.Edit";
         public const string Pages_CustomerTransaction_Delete = "Pages.CustomerTransaction.Delete";
+
+        public const string Pages_DispatchTracking = "Pages.DispatchTracking";
+        public const string Pages_SearchItem = "Pages.SearchItem";
+        public const string Pages_Administration = "Pages.Administration";
+        public const string Pages_System = "Pages.System";
+        public const string Pages_APIItem = "Pages.APIItem";
 
     }
 }

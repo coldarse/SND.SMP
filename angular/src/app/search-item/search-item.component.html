@@ -35,7 +35,7 @@
       </div>
     </div>
   </section>
-  @if (itemInfo.itemDetails != undefined) {
+  @if (itemInfo != undefined && itemInfo.itemDetails != undefined) {
   <section
     class="item-section"
     [@fadeInCenterAnimation]="
@@ -192,7 +192,7 @@
       </div>
     </div>
   </section>
-  } @if (itemInfo.trackingDetails.length > 0) {
+  } @if (itemInfo != undefined && itemInfo.trackingDetails.length > 0) {
   <section
     class="tracking-section"
     [@fadeInCenterAnimation]="

@@ -53,7 +53,9 @@
                   <th>{{ "E-Wallet Type" | localize }}</th>
                   <th>{{ "Currency" | localize }}</th>
                   <th>{{ "Balance" | localize }}</th>
-                  <th>{{ "Topup" | localize }}</th>
+                  <th *ngIf="isButtonVisible('Topup')">
+                    {{ "Topup" | localize }}
+                  </th>
                   <th *ngIf="isButtonVisible('Edit')">
                     {{ "Edit" | localize }}
                   </th>
