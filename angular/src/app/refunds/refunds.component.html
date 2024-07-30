@@ -74,7 +74,7 @@
                                 <td>{{ refund.referenceNo }}</td>
                                 <td>{{ refund.amount }}</td>
                                 <td>{{ refund.description }}</td>
-                                <td>{{ refund.dateTime| date : "dd/MM/yyyy HH:mm:ss tt" }}</td>
+                                <td>{{ refund.dateTime| date : "dd/MM/yyyy HH:mm:ss aa" }}</td>
                                 <td>{{ refund.weight }}</td>
                                 <td *ngIf='isButtonVisible("Edit") || isButtonVisible("Delete")'>
                                     <button

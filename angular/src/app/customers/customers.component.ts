@@ -39,6 +39,7 @@ export class CustomersComponent extends PagedListingComponentBase<CustomerDto> {
   selectedCustomer: CustomerDto;
   openPostal = false;
   searchCustomer = true;
+  isAdmin = true;
 
   postalItems: PostalDDL[] = [];
   rateItems: RateDDL[] = [];
@@ -52,6 +53,12 @@ export class CustomersComponent extends PagedListingComponentBase<CustomerDto> {
     private _modalService: BsModalService
   ) {
     super(injector);
+    this.isAdmin = this.appSession
+      .getShownLoginName()
+      .replace(".\\", "")
+      .includes("admin")
+      ? true
+      : false;
   }
 
   createCustomer() {
@@ -173,9 +180,9 @@ export class CustomersComponent extends PagedListingComponentBase<CustomerDto> {
     pageNumber: number,
     finishedCallback: Function
   ): void {
-    let customer_request: PagedCustomersRequestDto;
-    customer_request = request;
-    customer_request.keyword = this.keyword;
+    if (!this.isAdmin) this.keyword = this.appSession.getCompanyCode();
+
+    request.keyword = this.keyword;
     this._customerService
       .getAll(request)
       .pipe(
