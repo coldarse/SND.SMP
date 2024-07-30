@@ -11,7 +11,8 @@ import { ChibiService } from '@shared/service-proxies/chibis/chibis.service';
 import { HttpResponse } from '@angular/common/http';
 
 class PagedItemTrackingApplicationsRequestDto extends PagedRequestDto{
-  keyword: string
+  keyword: string;
+  customerCode: string;
 }
 
 @Component({
@@ -23,6 +24,7 @@ export class ItemTrackingApplicationsComponent extends PagedListingComponentBase
 
   keyword = '';
   itemtrackingapplications: any[] = [];
+  isAdmin = true;
 
   constructor(
     injector: Injector,
@@ -31,6 +33,12 @@ export class ItemTrackingApplicationsComponent extends PagedListingComponentBase
     private _modalService: BsModalService
   ){
     super(injector);
+    this.isAdmin = this.appSession
+      .getShownLoginName()
+      .replace(".\\", "")
+      .includes("admin")
+      ? true
+      : false;
   }
 
   createItemTrackingApplication(){
@@ -157,6 +165,8 @@ export class ItemTrackingApplicationsComponent extends PagedListingComponentBase
     pageNumber: number,
     finishedCallback: Function
   ): void {
+    if (!this.isAdmin) request.customerCode = this.appSession.getCompanyCode();
+
     request.keyword = this.keyword;
     this._itemtrackingapplicationService
     .getAll(

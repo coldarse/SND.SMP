@@ -82,7 +82,7 @@
                   <td>{{ wallet.eWalletTypeDesc }}</td>
                   <td>{{ wallet.currencyDesc }}</td>
                   <td>{{ wallet.balance | currency }}</td>
-                  <td>
+                  <td *ngIf="isButtonVisible('Topup')">
                     <button
                       type="button"
                       class="btn btn-sm bg-olive mx-2"

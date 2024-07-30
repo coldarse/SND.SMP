@@ -75,7 +75,7 @@
                                 <td>{{ weightadjustment.referenceNo }}</td>
                                 <td>{{ weightadjustment.amount }}</td>
                                 <td>{{ weightadjustment.description }}</td>
-                                <td>{{ weightadjustment.dateTime| date : "dd/MM/yyyy HH:mm:ss tt" }}</td>
+                                <td>{{ weightadjustment.dateTime| date : "dd/MM/yyyy HH:mm:ss aa" }}</td>
                                 <td>{{ weightadjustment.weight }}</td>
                                 <td>{{ weightadjustment.invoiceId }}</td>
                                 <td *ngIf='isButtonVisible("Edit") || isButtonVisible("Delete")'>

@@ -32,7 +32,9 @@ namespace SND.SMP.ItemTrackingApplications
                     x.ProductCode.Contains(input.Keyword) ||
                     x.ProductDesc.Contains(input.Keyword) ||
                     x.Status.Contains(input.Keyword) ||
-                    x.Range.Contains(input.Keyword));
+                    x.Range.Contains(input.Keyword))
+                .WhereIf(!input.CustomerCode.IsNullOrWhiteSpace(), x => 
+                    x.CustomerCode.Equals(input.CustomerCode));
         }
 
         public async Task<bool> CreateTrackingApplication(string CustomerCode, long CustomerId, int Total, string ProductCode, string ProductDesc, string PostalCode)

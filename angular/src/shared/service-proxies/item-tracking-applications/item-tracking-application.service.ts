@@ -91,6 +91,8 @@ export class ItemTrackingApplicationService {
         if (body.skipCount !== undefined)
             url_ += "SkipCount=" + encodeURIComponent("" + body.skipCount) + "&";
 
+        if (body.customerCode !== undefined)
+            url_ += "CustomerCode=" + encodeURIComponent("" + body.customerCode) + "&";
 
         url_ = url_.replace(/[?&]$/, "");
 
