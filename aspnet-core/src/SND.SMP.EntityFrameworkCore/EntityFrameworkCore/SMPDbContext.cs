@@ -4,6 +4,7 @@ using SND.SMP.Authorization.Roles;
 using SND.SMP.Authorization.Users;
 using SND.SMP.MultiTenancy;
 /* Using Definition */
+using SND.SMP.TrackingStatuses;
 using SND.SMP.TrackingNoForUpdates;
 using SND.SMP.APIRequestResponses;
 using SND.SMP.EmailContents;
@@ -74,6 +75,7 @@ namespace SND.SMP.EntityFrameworkCore
         public DbSet<EmailContent> EmailContents { get; set; }
         public DbSet<APIRequestResponse> APIRequestResponses { get; set; }
         public DbSet<TrackingNoForUpdate> TrackingNoForUpdates { get; set; }
+        public DbSet<TrackingStatus> TrackingStatuses { get; set; }
         /* Define a DbSet for each entity of the application */
 
         public SMPDbContext(DbContextOptions<SMPDbContext> options)
@@ -86,6 +88,17 @@ namespace SND.SMP.EntityFrameworkCore
             base.OnModelCreating(builder);
 
             /* Define Tables */
+            builder.Entity<TrackingStatus>(b =>
+            {
+                b.ToTable(SMPConsts.DbTablePrefix + "TrackingStatuses");
+                b.Property(x => x.TrackingNo).HasColumnName(nameof(TrackingStatus.TrackingNo)).HasMaxLength(256);
+                b.Property(x => x.DispatchId).HasColumnName(nameof(TrackingStatus.DispatchId));
+                b.Property(x => x.DispatchNo).HasColumnName(nameof(TrackingStatus.DispatchNo)).HasMaxLength(128);
+                b.Property(x => x.Status).HasColumnName(nameof(TrackingStatus.Status));
+                b.Property(x => x.DateTime).HasColumnName(nameof(TrackingStatus.DateTime));
+                b.HasKey(x => x.Id);
+            });
+
             builder.Entity<TrackingNoForUpdate>(b =>
             {
                 b.ToTable(SMPConsts.DbTablePrefix + "TrackingNoForUpdates");
