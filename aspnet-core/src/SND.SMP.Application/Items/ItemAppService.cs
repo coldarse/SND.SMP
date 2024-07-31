@@ -282,7 +282,7 @@ namespace SND.SMP.Items
                     ServiceDesc = serviceDesc.Trim(),
                     ProductDesc = productDesc.Trim(),
                     TotalItems = filteredItems.Count,
-                    DateLastReceived = filteredItems[0].DateUsed.ToString()
+                    DateLastReceived = filteredItems[0].DateUsed.ToString("dd/MM/yyyy HH:mm:ss tt")
                 });
 
                 apiItemIdDashboard = [.. apiItemIdDashboard.OrderByDescending(x => x.DateLastReceived)];
