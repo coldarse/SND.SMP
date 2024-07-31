@@ -12,6 +12,11 @@ namespace SND.SMP.Authorization
         public const string Pages_Roles = "Pages.Roles";
 
         /* Define your permissions here */
+        public const string Pages_TrackingStatus = "Pages.TrackingStatus";
+        public const string Pages_TrackingStatus_Create = "Pages.TrackingStatus.Create";
+        public const string Pages_TrackingStatus_Edit = "Pages.TrackingStatus.Edit";
+        public const string Pages_TrackingStatus_Delete = "Pages.TrackingStatus.Delete";
+
         public const string Pages_TrackingNoForUpdate = "Pages.TrackingNoForUpdate";
         public const string Pages_TrackingNoForUpdate_Create = "Pages.TrackingNoForUpdate.Create";
         public const string Pages_TrackingNoForUpdate_Edit = "Pages.TrackingNoForUpdate.Edit";
