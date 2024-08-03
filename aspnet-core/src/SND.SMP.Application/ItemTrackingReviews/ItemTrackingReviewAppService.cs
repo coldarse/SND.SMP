@@ -296,7 +296,7 @@ namespace SND.SMP.ItemTrackingReviews
                     List<string> trackingNos = [];
                     trackingNos.Add(trackingNo);
                     //Call APG
-                    List<APGTracking> apgTrackings = await GetAPGTracking(trackingNos);
+                    List<APGTracking> apgTrackings = await GetAPGTrackings(trackingNos);
                     apgTrackings = apgTrackings.Where(x => x.response.Equals("OK")).ToList();
                     foreach (var apg in apgTrackings)
                     {
@@ -460,7 +460,7 @@ namespace SND.SMP.ItemTrackingReviews
         [HttpGet]
         [Route("api/Tracking/APG")]
         //For Postman Use
-        public async Task<ItemsCollection> GetAPGTrackings(string trackingNos)
+        public async Task<ItemsCollection> GetAPGTracking(string trackingNos)
         {
             var splits = trackingNos.Split(',');
             if (splits.Length > 10)
@@ -478,7 +478,7 @@ namespace SND.SMP.ItemTrackingReviews
                 Errors = []
             };
 
-            List<APGTracking> apgTracking = await GetAPGTracking([.. splits]);
+            List<APGTracking> apgTracking = await GetAPGTrackings([.. splits]);
 
             var successTrackings = apgTracking.Where(x => x.response.Equals("OK")).ToList();
             var errorTrackings = apgTracking.Where(x => !x.response.Equals("OK")).ToList();
@@ -517,7 +517,9 @@ namespace SND.SMP.ItemTrackingReviews
             return itemCollections;
         }
 
-        public async Task<List<APGTracking>> GetAPGTracking(List<string> trackingNos)
+        [HttpGet]
+        [Route("api/Trackings/APG")]
+        public async Task<List<APGTracking>> GetAPGTrackings(List<string> trackingNos)
         {
             var TrackingUrl = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_TrackingUrl"));
             var token_expiration = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_TokenExpiration"));
