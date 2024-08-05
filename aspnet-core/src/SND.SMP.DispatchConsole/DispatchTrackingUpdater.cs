@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using SND.SMP.ItemTrackingReviews;
 using static SND.SMP.DispatchConsole.TrackingImporter;
 using Abp.Extensions;
+using SND.SMP.Airports;
 
 namespace SND.SMP.DispatchConsole
 {
@@ -102,6 +103,9 @@ namespace SND.SMP.DispatchConsole
                     List<Item> customEditItems = [];
                     List<Item> nonCustomEditItems = [];
 
+                    List<string> airports = [.. db.Airports.Select(x => x.Name)];
+
+
                     foreach (var country in dispatchCountries)
                     {
                         if (country.Select)
@@ -116,7 +120,7 @@ namespace SND.SMP.DispatchConsole
                                     var items = db.Items.Where(x => x.BagId == bag.BagId).ToList();
                                     foreach (var item in items)
                                     {
-                                        var updatedItem = UpdatedItemTracking(item, bag.Stages);
+                                        var updatedItem = UpdatedItemTracking(item, bag.Stages, airports);
                                         customEditItems.Add(updatedItem);
                                     }
                                 }
@@ -129,7 +133,7 @@ namespace SND.SMP.DispatchConsole
                                     var items = db.Items.Where(x => x.BagId == bag.BagId).ToList();
                                     foreach (var item in items)
                                     {
-                                        var updatedItem = UpdatedItemTracking(item, country.Stages);
+                                        var updatedItem = UpdatedItemTracking(item, country.Stages, airports);
                                         nonCustomEditItems.Add(updatedItem);
                                     }
                                 }
@@ -217,25 +221,42 @@ namespace SND.SMP.DispatchConsole
             }
         }
 
-        private static Item UpdatedItemTracking(Item item, Stage stage)
+        private static string FindAirportName(List<string> airportNames, string inputString)
         {
-            if(!stage.Stage1Desc.IsNullOrWhiteSpace() && item.Stage1StatusDesc.IsNullOrWhiteSpace() || item.Stage1StatusDesc != stage.Stage1Desc) item.Stage1StatusDesc = stage.Stage1Desc;
-            if(!stage.Stage2Desc.IsNullOrWhiteSpace() && item.Stage2StatusDesc.IsNullOrWhiteSpace() || item.Stage2StatusDesc != stage.Stage2Desc) item.Stage2StatusDesc = stage.Stage2Desc;
-            if(!stage.Stage3Desc.IsNullOrWhiteSpace() && item.Stage3StatusDesc.IsNullOrWhiteSpace() || item.Stage3StatusDesc != stage.Stage3Desc) item.Stage3StatusDesc = stage.Stage3Desc;
-            if(!stage.Stage4Desc.IsNullOrWhiteSpace() && item.Stage4StatusDesc.IsNullOrWhiteSpace() || item.Stage4StatusDesc != stage.Stage4Desc) item.Stage4StatusDesc = stage.Stage4Desc;
-            if(!stage.Stage5Desc.IsNullOrWhiteSpace() && item.Stage5StatusDesc.IsNullOrWhiteSpace() || item.Stage5StatusDesc != stage.Stage5Desc) item.Stage5StatusDesc = stage.Stage5Desc;
-            if(!stage.Stage6Desc.IsNullOrWhiteSpace() && item.Stage6StatusDesc.IsNullOrWhiteSpace() || item.Stage6StatusDesc != stage.Stage6Desc) item.Stage6StatusDesc = stage.Stage6Desc;
-            if(!stage.Airport   .IsNullOrWhiteSpace() && item.Stage7StatusDesc.IsNullOrWhiteSpace() || item.Stage7StatusDesc != stage.Airport   ) item.Stage7StatusDesc = stage.Airport;
-            if(!stage.Stage7Desc.IsNullOrWhiteSpace() && item.Stage8StatusDesc.IsNullOrWhiteSpace() || item.Stage8StatusDesc != stage.Stage7Desc) item.Stage8StatusDesc = stage.Stage7Desc;
+            // Check each airport name to see if it is contained in the input string
+            foreach (var airport in airportNames)
+            {
+                if (inputString.Contains(airport, StringComparison.OrdinalIgnoreCase))
+                {
+                    return airport;
+                }
+            }
+            return "";
+        }
 
-            if(stage.Stage1DateTime  is not null && item.DateStage1 is null || item.DateStage1 != stage.Stage1DateTime)  item.DateStage1 = stage.Stage1DateTime;
-            if(stage.Stage2DateTime  is not null && item.DateStage2 is null || item.DateStage2 != stage.Stage2DateTime)  item.DateStage2 = stage.Stage2DateTime;
-            if(stage.Stage3DateTime  is not null && item.DateStage3 is null || item.DateStage3 != stage.Stage3DateTime)  item.DateStage3 = stage.Stage3DateTime;
-            if(stage.Stage4DateTime  is not null && item.DateStage4 is null || item.DateStage4 != stage.Stage4DateTime)  item.DateStage4 = stage.Stage4DateTime;
-            if(stage.Stage5DateTime  is not null && item.DateStage5 is null || item.DateStage5 != stage.Stage5DateTime)  item.DateStage5 = stage.Stage5DateTime;
-            if(stage.Stage6DateTime  is not null && item.DateStage6 is null || item.DateStage6 != stage.Stage6DateTime)  item.DateStage6 = stage.Stage6DateTime;
-            if(stage.AirportDateTime is not null && item.DateStage7 is null || item.DateStage7 != stage.AirportDateTime) item.DateStage7 = stage.AirportDateTime;
-            if(stage.Stage7DateTime  is not null && item.DateStage8 is null || item.DateStage8 != stage.Stage7DateTime)  item.DateStage8 = stage.Stage7DateTime;
+        private static Item UpdatedItemTracking(Item item, Stage stage, List<string> airports)
+        {
+            if (!stage.Stage1Desc.IsNullOrWhiteSpace() && item.Stage1StatusDesc.IsNullOrWhiteSpace() || item.Stage1StatusDesc != stage.Stage1Desc) item.Stage1StatusDesc = stage.Stage1Desc;
+            if (!stage.Stage2Desc.IsNullOrWhiteSpace() && item.Stage2StatusDesc.IsNullOrWhiteSpace() || item.Stage2StatusDesc != stage.Stage2Desc) item.Stage2StatusDesc = stage.Stage2Desc;
+            if (!stage.Stage3Desc.IsNullOrWhiteSpace() && item.Stage3StatusDesc.IsNullOrWhiteSpace() || item.Stage3StatusDesc != stage.Stage3Desc) item.Stage3StatusDesc = stage.Stage3Desc;
+            if (!stage.Stage4Desc.IsNullOrWhiteSpace() && item.Stage4StatusDesc.IsNullOrWhiteSpace() || item.Stage4StatusDesc != stage.Stage4Desc) item.Stage4StatusDesc = stage.Stage4Desc;
+            if (!stage.Stage5Desc.IsNullOrWhiteSpace() && item.Stage5StatusDesc.IsNullOrWhiteSpace() || item.Stage5StatusDesc != stage.Stage5Desc) item.Stage5StatusDesc = stage.Stage5Desc;
+            if (!stage.Stage6Desc.IsNullOrWhiteSpace() && !stage.Airport.IsNullOrWhiteSpace())
+            {
+                string foundAirport = FindAirportName(airports, stage.Stage6Desc);
+                string stage6Desc = stage.Stage6Desc.Replace(foundAirport, "");
+                string stage6 = stage6Desc + " " + stage.Airport + ".";
+                if (item.Stage6StatusDesc.IsNullOrWhiteSpace() || item.Stage6StatusDesc != stage6) item.Stage6StatusDesc = stage6;
+            }
+            if (!stage.Stage7Desc.IsNullOrWhiteSpace() && item.Stage7StatusDesc.IsNullOrWhiteSpace() || item.Stage7StatusDesc != stage.Stage7Desc) item.Stage8StatusDesc = stage.Stage7Desc;
+
+            if (stage.Stage1DateTime is not null && item.DateStage1 is null || item.DateStage1 != stage.Stage1DateTime) item.DateStage1 = stage.Stage1DateTime;
+            if (stage.Stage2DateTime is not null && item.DateStage2 is null || item.DateStage2 != stage.Stage2DateTime) item.DateStage2 = stage.Stage2DateTime;
+            if (stage.Stage3DateTime is not null && item.DateStage3 is null || item.DateStage3 != stage.Stage3DateTime) item.DateStage3 = stage.Stage3DateTime;
+            if (stage.Stage4DateTime is not null && item.DateStage4 is null || item.DateStage4 != stage.Stage4DateTime) item.DateStage4 = stage.Stage4DateTime;
+            if (stage.Stage5DateTime is not null && item.DateStage5 is null || item.DateStage5 != stage.Stage5DateTime) item.DateStage5 = stage.Stage5DateTime;
+            if (stage.Stage6DateTime is not null && item.DateStage6 is null || item.DateStage6 != stage.Stage6DateTime) item.DateStage6 = stage.Stage6DateTime;
+            if (stage.Stage7DateTime is not null && item.DateStage7 is null || item.DateStage7 != stage.Stage7DateTime) item.DateStage7 = stage.Stage7DateTime;
 
             return item;
         }

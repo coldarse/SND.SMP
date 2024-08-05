@@ -77,6 +77,8 @@ public partial class db : DbContext
 
     public virtual DbSet<SND.SMP.ItemTrackings.ItemTracking> ItemTrackings { get; set; }
 
+    public virtual DbSet<SND.SMP.Airports.Airport> Airports { get; set; }
+
 
 
     // public virtual DbSet<SND.SMP.ApplicationSettings.ApplicationSetting> ApplicationSettings { get; set; }
