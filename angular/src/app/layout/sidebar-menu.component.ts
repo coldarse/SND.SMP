@@ -120,6 +120,12 @@ export class SidebarMenuComponent extends AppComponentBase implements OnInit {
         )
       ]),
       /* Insert Menu Path */
+            new MenuItem(
+                this.l('Invoices'),
+                '/app/invoices',
+                'far fa-circle',
+                'Pages.Invoice'
+            ),
       new MenuItem(this.l("Customers"), "", "fas fa-user", "Pages.Customer", [
         new MenuItem(
           this.l("Info"),

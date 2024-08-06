@@ -39,6 +39,10 @@ import { SidebarLogoComponent } from "./layout/sidebar-logo.component";
 import { SidebarUserPanelComponent } from "./layout/sidebar-user-panel.component";
 import { SidebarMenuComponent } from "./layout/sidebar-menu.component";
 /* Insert Import */
+import { InvoicesComponent } from './invoices/invoices.component';
+import { CreateUpdateInvoiceComponent } from './invoices/create-update-invoice/create-update-invoice.component';
+import { InvoiceService } from '@shared/service-proxies/invoices/invoice.service';
+
 import { EmailContentsComponent } from './emailcontents/emailcontents.component';
 import { CreateUpdateEmailContentComponent } from './emailcontents/create-update-emailcontent/create-update-emailcontent.component';
 import { EmailContentService } from '@shared/service-proxies/emailcontents/emailcontent.service';
@@ -183,6 +187,8 @@ import { AngularEditorModule } from '@kolkov/angular-editor';
     SidebarUserPanelComponent,
     SidebarMenuComponent,
     /* Insert Component */
+        InvoicesComponent,
+        CreateUpdateInvoiceComponent,
     EmailContentsComponent,
     CreateUpdateEmailContentComponent,
     AirportsComponent,
@@ -262,6 +268,7 @@ import { AngularEditorModule } from '@kolkov/angular-editor';
   ],
   providers: [
     /* Insert Service */
+        InvoiceService,
         EmailContentService,
         AirportService,
     ItemTrackingReviewService,

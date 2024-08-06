@@ -4,6 +4,7 @@ using SND.SMP.Authorization.Roles;
 using SND.SMP.Authorization.Users;
 using SND.SMP.MultiTenancy;
 /* Using Definition */
+using SND.SMP.Invoices;
 using SND.SMP.TrackingStatuses;
 using SND.SMP.TrackingNoForUpdates;
 using SND.SMP.APIRequestResponses;
@@ -76,6 +77,7 @@ namespace SND.SMP.EntityFrameworkCore
         public DbSet<APIRequestResponse> APIRequestResponses { get; set; }
         public DbSet<TrackingNoForUpdate> TrackingNoForUpdates { get; set; }
         public DbSet<TrackingStatus> TrackingStatuses { get; set; }
+        public DbSet<Invoice> Invoices { get; set; }
         /* Define a DbSet for each entity of the application */
 
         public SMPDbContext(DbContextOptions<SMPDbContext> options)
@@ -88,6 +90,15 @@ namespace SND.SMP.EntityFrameworkCore
             base.OnModelCreating(builder);
 
             /* Define Tables */
+            builder.Entity<Invoice>(b =>
+            {
+                b.ToTable(SMPConsts.DbTablePrefix + "Invoices");
+                b.Property(x => x.DateTime).HasColumnName(nameof(Invoice.DateTime));
+                b.Property(x => x.InvoiceNo).HasColumnName(nameof(Invoice.InvoiceNo)).HasMaxLength(128);
+                b.Property(x => x.Customer).HasColumnName(nameof(Invoice.Customer)).HasMaxLength(512);
+                b.HasKey(x => x.Id);
+            });
+
             builder.Entity<TrackingStatus>(b =>
             {
                 b.ToTable(SMPConsts.DbTablePrefix + "TrackingStatuses");

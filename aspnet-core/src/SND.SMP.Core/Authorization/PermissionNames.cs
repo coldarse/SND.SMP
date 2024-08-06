@@ -12,6 +12,11 @@ namespace SND.SMP.Authorization
         public const string Pages_Roles = "Pages.Roles";
 
         /* Define your permissions here */
+        public const string Pages_Invoice = "Pages.Invoice";
+        public const string Pages_Invoice_Create = "Pages.Invoice.Create";
+        public const string Pages_Invoice_Edit = "Pages.Invoice.Edit";
+        public const string Pages_Invoice_Delete = "Pages.Invoice.Delete";
+
         public const string Pages_TrackingStatus = "Pages.TrackingStatus";
         public const string Pages_TrackingStatus_Create = "Pages.TrackingStatus.Create";
         public const string Pages_TrackingStatus_Edit = "Pages.TrackingStatus.Edit";

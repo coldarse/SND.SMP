@@ -1,0 +1,81 @@
+<form
+    class='form-horizontal'
+    autocomplete='off'
+    #createInvoiceModal='ngForm'
+    (ngSubmit)='save()'
+>
+    <abp-modal-header
+        [title]='isCreate == true? ("Add Invoice" | localize) : ("Edit Invoice" | localize)'
+        (onCloseClick)='bsModalRef.hide()'
+    ></abp-modal-header>
+    <div class='modal-body'>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='dateTime'>
+            {{ 'DateTime' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='datetime-local'
+                class='form-control'
+                name='dateTime'
+                id='dateTime'
+                required
+                [(ngModel)]='invoice.dateTime'
+                #dateTimeModel='ngModel'
+                #dateTimeEl
+            />
+            <abp-validation-summary
+                [control]='dateTimeModel'
+                [controlEl]='dateTimeEl'
+            ></abp-validation-summary>
+            </div>
+        </div>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='invoiceNo'>
+            {{ 'InvoiceNo' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='text'
+                class='form-control'
+                name='invoiceNo'
+                id='invoiceNo'
+                required
+                [(ngModel)]='invoice.invoiceNo'
+                #invoiceNoModel='ngModel'
+                #invoiceNoEl
+            />
+            <abp-validation-summary
+                [control]='invoiceNoModel'
+                [controlEl]='invoiceNoEl'
+            ></abp-validation-summary>
+            </div>
+        </div>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='customer'>
+            {{ 'Customer' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='text'
+                class='form-control'
+                name='customer'
+                id='customer'
+                required
+                [(ngModel)]='invoice.customer'
+                #customerModel='ngModel'
+                #customerEl
+            />
+            <abp-validation-summary
+                [control]='customerModel'
+                [controlEl]='customerEl'
+            ></abp-validation-summary>
+            </div>
+        </div>
+    </div>
+    <abp-modal-footer
+    [cancelDisabled]='saving'
+    [saveDisabled]='!createInvoiceModal.form.valid || saving'
+    (onCancelClick)='bsModalRef.hide()'
+    ></abp-modal-footer>
+</form>
