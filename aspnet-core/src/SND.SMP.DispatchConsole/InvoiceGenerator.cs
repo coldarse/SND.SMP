@@ -230,6 +230,19 @@ public class InvoiceGenerator
                 CurrencyItem = items_by_currency
             };
 
+            var queueTask1 = db.Queues.Find(QueueId);
+            if (queueTask1 != null)
+            {
+                DateTime dateCompleted = DateTime.Now;
+                var tookInSec = dateCompleted.Subtract(dateStart).TotalSeconds;
+
+                queueTask1.Status = QueueEnumConst.STATUS_GENERATING;
+                queueTask1.ErrorMsg = "Prepared Data";
+                queueTask1.TookInSec = 0;
+                queueTask1.StartTime = dateStart;
+                queueTask1.EndTime = dateCompleted;
+            }
+
             PdfGenerator generator = new();
             MemoryStream ms = generator.GenerateInvoicePdf(invoiceInfo);
 
@@ -258,6 +271,19 @@ public class InvoiceGenerator
             response.EnsureSuccessStatusCode();
             var body = await response.Content.ReadAsStringAsync();
             var result = System.Text.Json.JsonSerializer.Deserialize<ChibiUpload>(body);
+
+            var queueTask2 = db.Queues.Find(QueueId);
+            if (queueTask2 != null)
+            {
+                DateTime dateCompleted = DateTime.Now;
+                var tookInSec = dateCompleted.Subtract(dateStart).TotalSeconds;
+
+                queueTask2.Status = QueueEnumConst.STATUS_GENERATING;
+                queueTask2.ErrorMsg = "Uploaded to Chibisafe";
+                queueTask2.TookInSec = 0;
+                queueTask2.StartTime = dateStart;
+                queueTask2.EndTime = dateCompleted;
+            }
 
             if (result != null)
             {
