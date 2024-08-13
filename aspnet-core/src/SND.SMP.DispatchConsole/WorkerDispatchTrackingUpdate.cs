@@ -35,7 +35,7 @@ public class WorkerDispatchTrackingUpdate : BackgroundService
             #region Logger
             if (_logger.IsEnabled(LogLevel.Information))
             {
-                _logger.LogInformation("Worker Dispatch Tracking Update running at: {time}", DateTimeOffset.Now);
+                // _logger.LogInformation("Worker Dispatch Tracking Update running at: {time}", DateTimeOffset.Now);
             }
             #endregion
 

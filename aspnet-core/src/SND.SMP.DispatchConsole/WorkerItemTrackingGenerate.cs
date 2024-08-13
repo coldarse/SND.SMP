@@ -34,7 +34,7 @@ public class WorkerItemTrackingGenerate : BackgroundService
             #region Logger
             if (_logger.IsEnabled(LogLevel.Information))
             {
-                _logger.LogInformation("Worker Item Tracking Generate running at: {time}", DateTimeOffset.Now);
+                // _logger.LogInformation("Worker Item Tracking Generate running at: {time}", DateTimeOffset.Now);
             }
             #endregion
 

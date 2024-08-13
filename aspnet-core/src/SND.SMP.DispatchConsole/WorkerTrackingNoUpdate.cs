@@ -35,7 +35,7 @@ public class WorkerItemTrackingNoUpdate : BackgroundService
             #region Logger
             if (_logger.IsEnabled(LogLevel.Information))
             {
-                _logger.LogInformation("Worker Tracking No. Update running at: {time}", DateTimeOffset.Now);
+                // _logger.LogInformation("Worker Tracking No. Update running at: {time}", DateTimeOffset.Now);
             }
             #endregion
 

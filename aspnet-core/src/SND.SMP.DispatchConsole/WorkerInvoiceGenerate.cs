@@ -35,14 +35,14 @@ public class WorkerInvoiceGenerate : BackgroundService
         {
             var pollInMs = _configuration.GetValue<int>("Validate:DispatchValidatePollInSec") * 1000;
 
-            InvoiceGenerator invoiceGenerator = new InvoiceGenerator();
+            InvoiceGenerator invoiceGenerator = new InvoiceGenerator(_logger);
 
             await invoiceGenerator.DiscoverAndGenerate();
 
             #region Logger
             if (_logger.IsEnabled(LogLevel.Information))
             {
-                _logger.LogInformation("Worker Invoice Generator running at: {time}", DateTimeOffset.Now);
+                // _logger.LogInformation("Worker Invoice Generator running at: {time}", DateTimeOffset.Now);
             }
             #endregion
 

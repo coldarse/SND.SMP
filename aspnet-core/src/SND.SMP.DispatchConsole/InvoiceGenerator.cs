@@ -15,12 +15,17 @@ public class InvoiceGenerator
     private uint QueueId { get; set; }
     private GenerateInvoice invoice_info { get; set; }
 
+    private readonly ILogger<Worker> _logger;
+
     public class QueueErrorEventArg : EventArgs
     {
         public string FilePath { get; set; }
         public string ErrorMsg { get; set; }
     }
-    public InvoiceGenerator() { }
+    public InvoiceGenerator(ILogger<Worker> logger)
+    {
+        _logger = logger;
+    }
 
     public async Task DiscoverAndGenerate()
     {
@@ -47,6 +52,8 @@ public class InvoiceGenerator
 
             invoice.Status = QueueEnumConst.STATUS_GENERATING;
             await db.SaveChangesAsync().ConfigureAwait(false);
+
+            _logger.LogInformation("Updated Status for Queue");
         }
 
         if (!string.IsNullOrWhiteSpace(_filePath))
@@ -63,6 +70,7 @@ public class InvoiceGenerator
 
                     if (invoice_info != null)
                     {
+                        _logger.LogInformation("Started Generating");
                         await GenerateInvoicePDF(invoice_info);
                     }
                 }
@@ -77,20 +85,22 @@ public class InvoiceGenerator
             DateTime dateStart = DateTime.Now;
             using db db = new();
             var dispatches = db.Dispatches.Where(x => invoice_info.Dispatches.Contains(x.DispatchNo)).ToList();
-
+            _logger.LogInformation("Retrieved Dispatches");
             var dispatches_id = dispatches.Select(x => x.Id).ToList();
-
+            _logger.LogInformation("Got List of Dispatches");
             var items = db.Items.Where(x => dispatches_id.Contains((uint)x.DispatchId)).ToList();
-
+            _logger.LogInformation("Retrieved Items");
             var item_trackings_by_dispatch = db.ItemTrackings.Where(x => invoice_info.Dispatches.Contains(x.DispatchNo)).ToList();
-
+            _logger.LogInformation("Retrived Item Trackings By Dispatch");
             var distincted_item_trackings = item_trackings_by_dispatch.DistinctBy(x => x.DispatchNo).ToList();
-
+            _logger.LogInformation("Got Distincted Item Trackings");
             //Group by Currency
             var dispatches_grouped_by_currency = dispatches
                 .Where(d => !string.IsNullOrEmpty(d.CurrencyId)) // Ensuring CurrencyId is not null or empty
                 .GroupBy(d => d.CurrencyId)
                 .ToList();
+
+            _logger.LogInformation("Grouped Dispatches By Currency");
 
             List<ItemsByCurrency> items_by_currency = [];
             foreach (var group in dispatches_grouped_by_currency)
@@ -217,6 +227,7 @@ public class InvoiceGenerator
                     }
                 }
                 items_by_currency.Add(tempGroup);
+                _logger.LogInformation("Add Table");
             }
 
             var invoiceInfo = new InvoiceInfo()
@@ -230,21 +241,12 @@ public class InvoiceGenerator
                 CurrencyItem = items_by_currency
             };
 
-            var queueTask1 = db.Queues.Find(QueueId);
-            if (queueTask1 != null)
-            {
-                DateTime dateCompleted = DateTime.Now;
-                var tookInSec = dateCompleted.Subtract(dateStart).TotalSeconds;
-
-                queueTask1.Status = QueueEnumConst.STATUS_GENERATING;
-                queueTask1.ErrorMsg = "Prepared Data";
-                queueTask1.TookInSec = 0;
-                queueTask1.StartTime = dateStart;
-                queueTask1.EndTime = dateCompleted;
-            }
+            _logger.LogInformation("Started Generate PDF");
 
             PdfGenerator generator = new();
             MemoryStream ms = generator.GenerateInvoicePdf(invoiceInfo);
+
+            _logger.LogInformation("Generated PDF");
 
             var ChibiKey = db.ApplicationSettings.FirstOrDefault(x => x.Name.Equals("ChibiKey"));
             var ChibiURL = db.ApplicationSettings.FirstOrDefault(x => x.Name.Equals("ChibiURL"));
@@ -268,22 +270,11 @@ public class InvoiceGenerator
 
             using var response = await client.SendAsync(request);
 
+            _logger.LogInformation("Uploaded to Chibisafe");
+
             response.EnsureSuccessStatusCode();
             var body = await response.Content.ReadAsStringAsync();
             var result = System.Text.Json.JsonSerializer.Deserialize<ChibiUpload>(body);
-
-            var queueTask2 = db.Queues.Find(QueueId);
-            if (queueTask2 != null)
-            {
-                DateTime dateCompleted = DateTime.Now;
-                var tookInSec = dateCompleted.Subtract(dateStart).TotalSeconds;
-
-                queueTask2.Status = QueueEnumConst.STATUS_GENERATING;
-                queueTask2.ErrorMsg = "Uploaded to Chibisafe";
-                queueTask2.TookInSec = 0;
-                queueTask2.StartTime = dateStart;
-                queueTask2.EndTime = dateCompleted;
-            }
 
             if (result != null)
             {
@@ -307,6 +298,8 @@ public class InvoiceGenerator
                     Customer = invoice_info.Customer
                 });
 
+                _logger.LogInformation("Created Invoice");
+
                 await db.SaveChangesAsync();
 
                 await FileServer.InsertFileToAlbum(result.uuid, false, db, isInvoice: true);
@@ -324,6 +317,7 @@ public class InvoiceGenerator
                 queueTask.StartTime = dateStart;
                 queueTask.EndTime = dateCompleted;
             }
+            _logger.LogInformation("Completed");
 
             await db.SaveChangesAsync();
         }
