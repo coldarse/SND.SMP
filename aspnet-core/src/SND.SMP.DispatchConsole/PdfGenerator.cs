@@ -241,7 +241,7 @@ public class PdfGenerator
                 };
                 table.AddCell(totalLabelCell);
 
-                PdfPCell totalValueCell = new PdfPCell(new Phrase("7.38", FontFactory.GetFont(FontFactory.HELVETICA, 8)))
+                PdfPCell totalValueCell = new PdfPCell(new Phrase(currencyItem.TotalAmount.ToString("N2"), FontFactory.GetFont(FontFactory.HELVETICA, 8)))
                 {
                     HorizontalAlignment = Element.ALIGN_RIGHT,
                     VerticalAlignment = Element.ALIGN_MIDDLE,
@@ -250,6 +250,9 @@ public class PdfGenerator
 
                 // Add the currency table to the document
                 doc.Add(table);
+
+                // Add some spacing before the next section
+                doc.Add(new Paragraph("\n"));
             }
         }
 

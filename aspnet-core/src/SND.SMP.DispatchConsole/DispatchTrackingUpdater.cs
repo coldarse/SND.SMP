@@ -73,7 +73,9 @@ namespace SND.SMP.DispatchConsole
                             }
                         }
                     }
+                    else throw new Exception("Unable to find file");
                 }
+                else throw new Exception("Empty FilePath");
             }
             catch (Exception ex)
             {
