@@ -21,9 +21,10 @@ namespace SND.SMP.Invoices
         protected override IQueryable<Invoice> CreateFilteredQuery(PagedInvoiceResultRequestDto input)
         {
             return Repository.GetAllIncluding()
-                .WhereIf(!input.Keyword.IsNullOrWhiteSpace(), x => 
+                .WhereIf(!input.Keyword.IsNullOrWhiteSpace(), x =>
                     x.InvoiceNo.Contains(input.Keyword) ||
                     x.Customer.Contains(input.Keyword));
         }
+
     }
 }

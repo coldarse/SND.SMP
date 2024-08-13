@@ -6,10 +6,10 @@
                     <h1>{{ 'Invoices' | localize }}</h1>
                 </div>
                 <div class='col-6 text-right' *ngIf='isButtonVisible("Create")'>
-                    <a href='javascript:;' class='btn bg-blue' (click)='createInvoice()'>
+                    <button [disabled]="customers.length == 0 && currencies.length == 0" class='btn bg-olive' (click)='createInvoice()'>
                         <i class='fa fa-plus-square'></i>
                         {{ 'Create' | localize }}
-                    </a>
+                    </button>
                 </div>
             </div>
         </div>
@@ -25,7 +25,7 @@
                                 <div class='input-group-prepend'>
                                     <button
                                             type='button'
-                                            class='btn bg-blue'
+                                            class='btn bg-olive'
                                             (click)='getDataPage(1)'
                                     >
                                         <i class='fas fa-search'></i>
@@ -67,19 +67,12 @@
                         }
                 '
                             >
-                                <td>{{ invoice.dateTime }}</td>
-                                <td>{{ invoice.invoiceNo }}</td>
+                                <td>{{ invoice.dateTime| date : "dd/MM/yyyy" }}</td>
+                                <td>
+                                    <a [href]="invoice.invoiceUrl" target="_blank">{{ invoice.invoiceNo }}</a>
+                                </td>
                                 <td>{{ invoice.customer }}</td>
                                 <td *ngIf='isButtonVisible("Edit") || isButtonVisible("Delete")'>
-                                    <button
-                                            type='button'
-                                            class='btn btn-sm bg-secondary'
-                                            (click)='editInvoice(invoice)'
-                                            *ngIf='isButtonVisible("Edit")'
-                                    >
-                                        <i class='fas fa-pencil-alt'></i>
-                                        {{ 'Edit' | localize }}
-                                    </button>
                                     <button
                                             type='button'
                                             class='btn btn-sm bg-danger mx-2'

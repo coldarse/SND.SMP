@@ -97,7 +97,7 @@ export class SidebarMenuComponent extends AppComponentBase implements OnInit {
           "/app/dispatch-tracking",
           "fas fa-thumbtack",
           "Pages.Dispatch"
-        )
+        ),
       ]),
       new MenuItem(this.l("Items"), "", "fas fa-cubes", "Pages.Item", [
         new MenuItem(
@@ -117,15 +117,15 @@ export class SidebarMenuComponent extends AppComponentBase implements OnInit {
           "/app/search-item",
           "fas fa-binoculars",
           "Pages.SearchItem"
-        )
+        ),
       ]),
       /* Insert Menu Path */
-            new MenuItem(
-                this.l('Invoices'),
-                '/app/invoices',
-                'far fa-circle',
-                'Pages.Invoice'
-            ),
+      new MenuItem(
+        this.l("Invoices"),
+        "/app/invoices",
+        "fas fa-file-invoice-dollar",
+        "Pages.Invoice"
+      ),
       new MenuItem(this.l("Customers"), "", "fas fa-user", "Pages.Customer", [
         new MenuItem(
           this.l("Info"),
@@ -204,26 +204,32 @@ export class SidebarMenuComponent extends AppComponentBase implements OnInit {
           "Pages.EmailContent"
         ),
       ]),
-      new MenuItem(this.l("Administration"), "", "fas fa-user-shield", "Pages.Administration", [
-        new MenuItem(
-          this.l("Roles"),
-          "/app/roles",
-          "fas fa-theater-masks",
-          "Pages.RolesPage"
-        ),
-        new MenuItem(
-          this.l("Tenants"),
-          "/app/tenants",
-          "fas fa-building",
-          "Pages.Tenants"
-        ),
-        new MenuItem(
-          this.l("Users"),
-          "/app/users",
-          "fas fa-users",
-          "Pages.UsersPage"
-        ),
-      ]),
+      new MenuItem(
+        this.l("Administration"),
+        "",
+        "fas fa-user-shield",
+        "Pages.Administration",
+        [
+          new MenuItem(
+            this.l("Roles"),
+            "/app/roles",
+            "fas fa-theater-masks",
+            "Pages.RolesPage"
+          ),
+          new MenuItem(
+            this.l("Tenants"),
+            "/app/tenants",
+            "fas fa-building",
+            "Pages.Tenants"
+          ),
+          new MenuItem(
+            this.l("Users"),
+            "/app/users",
+            "fas fa-users",
+            "Pages.UsersPage"
+          ),
+        ]
+      ),
       // new MenuItem(
       //   this.l("Refunds"),
       //   "/app/refunds",

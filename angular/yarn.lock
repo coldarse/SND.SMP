@@ -1858,6 +1858,13 @@
   dependencies:
     call-bind "^1.0.2"
 
+"@ng-select/ng-select@^13.5.2":
+  version "13.5.2"
+  resolved "https://registry.yarnpkg.com/@ng-select/ng-select/-/ng-select-13.5.2.tgz#ce7204b36bf42f9a0ffbe7077e92cfcde6ef788f"
+  integrity sha512-fn2gDZkUsYuoFNob5amJbyGk20JieH04PYfgSsPpuX1HLWUbyn2CNI3vi8+d0tcRqiAMnT0DWScjjv95W93xFg==
+  dependencies:
+    tslib "^2.3.1"
+
 "@ngtools/webpack@17.0.2":
   version "17.0.2"
   resolved "https://registry.yarnpkg.com/@ngtools/webpack/-/webpack-17.0.2.tgz#56530480e934d60379b2e662f8ac8c39dd5c2469"
@@ -7976,6 +7983,11 @@ tslib@^2.3.0:
   version "2.4.1"
   resolved "https://registry.yarnpkg.com/tslib/-/tslib-2.4.1.tgz#0d0bfbaac2880b91e22df0768e55be9753a5b17e"
   integrity sha512-tGyy4dAjRIEwI7BzsB0lynWgOpfqjUdq91XXAlIWD2OwKBH7oCl/GZG/HT4BOHrTlPMOASlMQ7veyTqpmRcrNA==
+
+tslib@^2.3.1:
+  version "2.6.3"
+  resolved "https://registry.yarnpkg.com/tslib/-/tslib-2.6.3.tgz#0438f810ad7a9edcde7a241c3d80db693c8cbfe0"
+  integrity sha512-xNvxJEOUiWPGhUuUdQgAJPKOOJfGnIyKySOc09XkKsgdUV/3E2zvwZYdejjmRgPCgcym1juLH3226yA7sEFJKQ==
 
 tslint@~6.1.0:
   version "6.1.3"

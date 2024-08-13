@@ -2826,6 +2826,25 @@ namespace SND.SMP.Dispatches
             };
         }
 
+        public async Task<List<string>> GetDispatchesByCustomer(string customerCode)
+        {
+            var dispatches = await Repository.GetAllListAsync(x => x.CustomerCode.Equals(customerCode));
+
+            List<string> dispatchesList = [];
+            if (dispatches.Count != 0)
+            {
+                foreach (var dispatch in dispatches)
+                {
+                    if (!dispatch.DispatchNo.Contains("Temp"))
+                    {
+                        dispatchesList.Add(dispatch.DispatchNo);
+                    }
+                }
+            }
+
+            return dispatchesList;
+        }
+
         private static Stage CreateStage(Item item, string dispatchNo, string countryCode, string bagNo)
         {
             return new Stage()

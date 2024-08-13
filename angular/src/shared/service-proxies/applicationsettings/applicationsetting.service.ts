@@ -104,10 +104,19 @@ export class ApplicationSettingService {
         )
     }
 
-    getValueByName(name: string)
-    {
+    getValueByName(name: string) {
         return this.http.get(
             this.url + `/api/services/app/ApplicationSetting/GetValueByName?name=${name}`,
+            this.options_
+        ).pipe(
+            retry(1),
+            catchError(this.errorMessage.HandleErrorResponse),
+        )
+    }
+
+    updateValueByName(name: string, value: string) {
+        return this.http.post(
+            this.url + `/api/services/app/ApplicationSetting/UpdateValueByName?name=${name}&value=${value}`,
             this.options_
         ).pipe(
             retry(1),

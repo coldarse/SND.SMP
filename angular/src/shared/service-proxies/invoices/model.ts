@@ -13,3 +13,23 @@ export interface PagedInvoiceResultRequestDto extends PagedAndSortedResultReques
     invoiceNo?: string;
     customer?: string;
 }
+
+export interface GenerateInvoice {
+    customer: string;
+    invoiceNo: string;
+    invoiceDate: string;
+    dispatches: string[];
+    billTo: string;
+    extraCharges: ExtraCharge[];
+}
+
+export interface ExtraCharge {
+    description: string;
+    weight: number;
+    country: string;
+    ratePerKG: number;
+    quantity: number;
+    unitPrice: number;
+    amount: number;
+    currency: string;
+}

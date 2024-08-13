@@ -10,6 +10,7 @@ namespace SND.SMP.Shared
             public const string STATUS_FINISH = "Finish";
             public const string STATUS_ERROR = "Error";
             public const string STATUS_UPDATING = "Updating";
+            public const string STATUS_GENERATING = "Generating";
 
             public const string EVENT_TYPE_DISPATCH_VALIDATE = "Validate Dispatch";
             public const string EVENT_TYPE_DISPATCH_UPLOAD = "Upload Dispatch";
@@ -24,6 +25,7 @@ namespace SND.SMP.Shared
 
             
             public const string EVENT_TYPE_TRACKING_STATUS = "Tracking Status";
+            public const string EVENT_TYPE_INVOICE = "Invoice";
 
 
 

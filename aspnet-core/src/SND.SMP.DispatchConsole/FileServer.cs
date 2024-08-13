@@ -199,7 +199,7 @@ namespace SND.SMP.DispatchConsole
             return result;
         }
 
-        public static async Task<bool> InsertFileToAlbum(string file_uuid, bool isError, db dbconn, string postalCode = null, string serviceCode = null, string productCode = null)
+        public static async Task<bool> InsertFileToAlbum(string file_uuid, bool isError, db dbconn, string postalCode = null, string serviceCode = null, string productCode = null, bool isInvoice = false)
         {
             List<Album> albums = await GetAlbumsAsync(dbconn);
             if (isError)
@@ -220,6 +220,24 @@ namespace SND.SMP.DispatchConsole
                     else await AddFileToAlbum(error_album.uuid, file_uuid, dbconn);
                 }
                 return true;
+            }
+            else if (isInvoice)
+            {
+                if (albums.Count == 0)
+                {
+                    var album = await CreateAlbumAsync("Invoices", dbconn);
+                    await AddFileToAlbum(album.album.uuid, file_uuid, dbconn).ConfigureAwait(false);
+                }
+                else
+                {
+                    var invoice_album = albums.FirstOrDefault(a => a.name == "Invoices");
+                    if (invoice_album == null)
+                    {
+                        var album = await CreateAlbumAsync("Invoices", dbconn);
+                        await AddFileToAlbum(album.album.uuid, file_uuid, dbconn).ConfigureAwait(false);
+                    }
+                    else await AddFileToAlbum(invoice_album.uuid, file_uuid, dbconn).ConfigureAwait(false);
+                }
             }
             else
             {

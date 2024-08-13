@@ -160,17 +160,22 @@ export class DispatchService {
   // Upload Post Check For Display
   uploadPostCheckForDisplay(body: any) {
     return this.http
-      .post(this.url + "/api/services/app/Dispatch/UploadPostCheckForDisplay", body, {
-        headers: new HttpHeaders({
-          Accept: "text/plain",
-        }),
-      })
+      .post(
+        this.url + "/api/services/app/Dispatch/UploadPostCheckForDisplay",
+        body,
+        {
+          headers: new HttpHeaders({
+            Accept: "text/plain",
+          }),
+        }
+      )
       .pipe(retry(1), catchError(this.errorMessage.HandleErrorResponse));
   }
 
-  // Get Dispatch Info 
-  getDispatchInfoListPaged(body: PagedDispatchResultRequestDto){
-    let url_ = this.url + "/api/services/app/Dispatch/GetDispatchInfoListPaged?";
+  // Get Dispatch Info
+  getDispatchInfoListPaged(body: PagedDispatchResultRequestDto) {
+    let url_ =
+      this.url + "/api/services/app/Dispatch/GetDispatchInfoListPaged?";
 
     if (body.keyword === null)
       throw new Error("The parameter 'keyword' cannot be null.");
@@ -246,6 +251,16 @@ export class DispatchService {
 
     return this.http
       .get(completeUrl, this.options_)
+      .pipe(retry(1), catchError(this.errorMessage.HandleErrorResponse));
+  }
+
+  getDispatchesByCustomer(customerCode: string) {
+    return this.http
+      .get(
+        this.url +
+          `/api/services/app/Dispatch/GetDispatchesByCustomer?customerCode=${customerCode}`,
+        this.options_
+      )
       .pipe(retry(1), catchError(this.errorMessage.HandleErrorResponse));
   }
 

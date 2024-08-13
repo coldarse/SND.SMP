@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using SND.SMP.ApplicationSettings.Dto;
+using Microsoft.AspNetCore.Mvc;
 
 namespace SND.SMP.ApplicationSettings
 {
@@ -27,6 +28,16 @@ namespace SND.SMP.ApplicationSettings
             var setting = await Repository.FirstOrDefaultAsync(x => x.Name.Equals(name));
             if (setting == null) return string.Empty;
             return setting.Value;
+        }
+
+        [HttpPost]
+        public async Task<bool> UpdateValueByName(string name, string value)
+        {
+            var setting = await Repository.FirstOrDefaultAsync(x => x.Name.Equals(name));
+            if (setting == null) return false;
+            setting.Value = value;
+            await Repository.UpdateAsync(setting);
+            return true;
         }
     }
 }

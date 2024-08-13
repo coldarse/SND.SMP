@@ -50,6 +50,13 @@ namespace SND.SMP.Customers
                     x.RegistrationNo.Contains(input.Keyword));
         }
 
+        public async Task<List<CustomerDto>> GetCustomers()
+        {
+            var customers = await Repository.GetAllListAsync();
+
+            return ObjectMapper.Map<List<CustomerDto>>(customers);
+        }
+
         public async Task<CompanyNameAndCode> GetCompanyNameAndCode(string email)
         {
             var customer = await Repository.FirstOrDefaultAsync(x => x.EmailAddress.Equals(email));

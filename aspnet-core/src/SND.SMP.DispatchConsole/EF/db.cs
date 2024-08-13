@@ -79,6 +79,10 @@ public partial class db : DbContext
 
     public virtual DbSet<SND.SMP.Airports.Airport> Airports { get; set; }
 
+    public virtual DbSet<SND.SMP.WeightAdjustments.WeightAdjustment> WeightAdjustments { get; set; }
+
+    public virtual DbSet<SND.SMP.Invoices.Invoice> Invoices { get; set; }
+
 
 
     // public virtual DbSet<SND.SMP.ApplicationSettings.ApplicationSetting> ApplicationSettings { get; set; }
