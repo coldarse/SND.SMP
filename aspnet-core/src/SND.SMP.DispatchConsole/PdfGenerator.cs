@@ -66,7 +66,7 @@ public class PdfGenerator
         doc.Add(new Paragraph("\n"));
 
         // Add a separator line above the "INVOICE" title
-        LineSeparator separator = new LineSeparator(1f, 100f, BaseColor.BLACK, Element.ALIGN_CENTER, -2);
+        LineSeparator separator = new LineSeparator(1f, 100f, BaseColor.Black, Element.ALIGN_CENTER, -2);
         doc.Add(separator);
 
         // Add the title
