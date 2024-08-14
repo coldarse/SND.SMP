@@ -89,6 +89,7 @@ public partial class db : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         => optionsBuilder.UseMySql("server=65.21.224.66;port=3306;database=SMPDb;uid=droot;pwd=snd@1234", Microsoft.EntityFrameworkCore.ServerVersion.Parse("8.0.30-mysql"));
+        // => optionsBuilder.UseMySql("server=signaturemail.co;port=3306;database=SMPDb;uid=smi_dev;pwd=C56bV{(}Igx<Pqx", Microsoft.EntityFrameworkCore.ServerVersion.Parse("8.0.30-mysql"));
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

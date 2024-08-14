@@ -338,7 +338,7 @@ public class InvoiceGenerator
         #region Queue
         var q = db.Queues
             .Where(u => u.FilePath == arg.FilePath)
-            .Where(u => u.Status == QueueEnumConst.STATUS_RUNNING)
+            .Where(u => u.Status == QueueEnumConst.STATUS_GENERATING)
             .FirstOrDefault();
 
         if (q != null)
