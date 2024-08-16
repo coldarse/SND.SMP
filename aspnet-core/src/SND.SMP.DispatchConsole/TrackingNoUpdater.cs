@@ -53,48 +53,51 @@ namespace SND.SMP.DispatchConsole
 
                 var dispatch = await db.Dispatches.FirstOrDefaultAsync(x => x.DispatchNo.Equals(DispatchNo));
 
-                var listItemIds = trackingNos.Where(u => u.DispatchNo.Equals(DispatchNo)).ToList();
-
-                string CustomerCode = dispatch.CustomerCode;
-                string ProcessType = listItemIds[0].ProcessType;
-                var batchedItemIds = new List<string>();
-
-                DateTime dateUpdateStart = DateTime.Now;
-                for (int i = 1; i <= listItemIds.Count; i++)
+                if(dispatch is not null)
                 {
-                    batchedItemIds.Add(listItemIds[i - 1].TrackingNo);
-                    var blockMilestone = i % blockSize;
-                    if (blockMilestone == 0)
+                    var listItemIds = trackingNos.Where(u => u.DispatchNo.Equals(DispatchNo)).ToList();
+
+                    string CustomerCode = dispatch.CustomerCode;
+                    string ProcessType = listItemIds[0].ProcessType;
+                    var batchedItemIds = new List<string>();
+
+                    DateTime dateUpdateStart = DateTime.Now;
+                    for (int i = 1; i <= listItemIds.Count; i++)
+                    {
+                        batchedItemIds.Add(listItemIds[i - 1].TrackingNo);
+                        var blockMilestone = i % blockSize;
+                        if (blockMilestone == 0)
+                        {
+                            await UpdateItemTrackingFile(CustomerCode, batchedItemIds, dispatch, ProcessType);
+
+                            batchedItemIds.Clear();
+                        }
+                    }
+
+                    if (batchedItemIds.Count != 0)
                     {
                         await UpdateItemTrackingFile(CustomerCode, batchedItemIds, dispatch, ProcessType);
 
                         batchedItemIds.Clear();
                     }
+
+                    var queueTask = db.Queues.Find(QueueId);
+                    if (queueTask != null)
+                    {
+                        DateTime dateUpdateCompleted = DateTime.Now;
+                        var tookInSec = dateUpdateCompleted.Subtract(dateUpdateStart).TotalSeconds;
+
+                        queueTask.Status = QueueEnumConst.STATUS_FINISH;
+                        queueTask.ErrorMsg = null;
+                        queueTask.TookInSec = Math.Round(tookInSec, 0);
+                        queueTask.StartTime = dateUpdateStart;
+                        queueTask.EndTime = dateUpdateCompleted;
+                    }
+
+                    if (ProcessType.Equals(TrackingNoForUpdateConst.STATUS_DELETE)) db.Dispatches.Remove(dispatch);
+                    db.TrackingNoForUpdates.RemoveRange(listItemIds);
+                    await db.SaveChangesAsync().ConfigureAwait(false);
                 }
-
-                if (batchedItemIds.Count != 0)
-                {
-                    await UpdateItemTrackingFile(CustomerCode, batchedItemIds, dispatch, ProcessType);
-
-                    batchedItemIds.Clear();
-                }
-
-                var queueTask = db.Queues.Find(QueueId);
-                if (queueTask != null)
-                {
-                    DateTime dateUpdateCompleted = DateTime.Now;
-                    var tookInSec = dateUpdateCompleted.Subtract(dateUpdateStart).TotalSeconds;
-
-                    queueTask.Status = QueueEnumConst.STATUS_FINISH;
-                    queueTask.ErrorMsg = null;
-                    queueTask.TookInSec = Math.Round(tookInSec, 0);
-                    queueTask.StartTime = dateUpdateStart;
-                    queueTask.EndTime = dateUpdateCompleted;
-                }
-
-                if (ProcessType.Equals(TrackingNoForUpdateConst.STATUS_DELETE)) db.Dispatches.Remove(dispatch);
-                db.TrackingNoForUpdates.RemoveRange(listItemIds);
-                await db.SaveChangesAsync().ConfigureAwait(false);
             }
             catch (Exception ex)
             {
