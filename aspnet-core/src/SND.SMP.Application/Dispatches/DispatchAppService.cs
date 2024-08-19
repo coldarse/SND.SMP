@@ -2845,6 +2845,61 @@ namespace SND.SMP.Dispatches
             return dispatchesList;
         }
 
+
+
+        public async Task<List<DispatchDetails>> GetDispatchesByCustomerAndMonth(string customerCode, string monthYear)
+        {
+            DateTime startDateTime = DateTime.ParseExact(monthYear, "MMM yyyy", null);
+            DateOnly startDate = DateOnly.FromDateTime(startDateTime);
+            DateOnly endDate = DateOnly.FromDateTime(startDateTime.AddMonths(1));
+
+            var dispatches = await Repository.GetAllListAsync(x => x.CustomerCode.Equals(customerCode) &&
+                                                                   x.DispatchDate >= startDate &&
+                                                                   x.DispatchDate < endDate);
+
+            List<DispatchDetails> dispatchesList = [];
+            if (dispatches.Count != 0)
+            {
+                foreach (var dispatch in dispatches)
+                {
+                    if (!dispatch.DispatchNo.Contains("Temp"))
+                    {
+                        dispatchesList.Add(new DispatchDetails()
+                        {
+                            Date = (DateOnly)dispatch.DispatchDate,
+                            Name = dispatch.DispatchNo,
+                            Weight = (decimal)dispatch.TotalWeight,
+                            Debit = 0.00m,
+                            Credit = (decimal)dispatch.TotalPrice
+                        });
+                    }
+                }
+
+                if (dispatchesList.Count != 0)
+                {
+                    var all_weightAdjustments = await _weightAdjustmentRepository.GetAllListAsync();
+                    var weightAdjustments = all_weightAdjustments.Where(x => dispatchesList.Any(y => y.Name.Equals(x.ReferenceNo))).ToList();
+
+                    if (weightAdjustments.Count != 0)
+                    {
+                        foreach (var weightAdjustment in weightAdjustments)
+                        {
+                            dispatchesList.Add(new DispatchDetails()
+                            {
+                                Date = DateOnly.FromDateTime(weightAdjustment.DateTime),
+                                Name = weightAdjustment.ReferenceNo,
+                                Weight = 0.000m,
+                                Debit = weightAdjustment.Amount,
+                                Credit = 0.00m
+                            });
+                        }
+                    }
+                }
+            }
+
+            return dispatchesList;
+        }
+
         private static Stage CreateStage(Item item, string dispatchNo, string countryCode, string bagNo)
         {
             return new Stage()

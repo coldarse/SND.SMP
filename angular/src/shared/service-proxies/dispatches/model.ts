@@ -238,4 +238,13 @@ export interface Stage {
   countryCode: string;
 }
 
+export interface DispatchDetails {
+  date: string; 
+  name: string;
+  weight: number;
+  credit: number;
+  debit: number;
+  selected: boolean;
+}
+
 

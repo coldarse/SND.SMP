@@ -14,6 +14,41 @@
   ></abp-modal-header>
   <div class="modal-body">
     <div class="form-group row required">
+      <label class="col-md-3 col-form-label" for="Date">
+        {{ "Date" | localize }}
+      </label>
+      <div class="col-md-5">
+        <select
+          name="month"
+          id="month"
+          class="form-control"
+          [(ngModel)]="selected_month"
+          (change)="selectedDate($event)"
+        >
+          @for (month of months; track $index) {
+          <option value="{{ month }}">
+            {{ month }}
+          </option>
+          }
+        </select>
+      </div>
+      <div class="col-md-4">
+        <select
+          name="year"
+          id="year"
+          class="form-control"
+          [(ngModel)]="selected_year"
+          (change)="selectedDate($event)"
+        >
+          @for (year of years; track $index) {
+          <option value="{{ year }}">
+            {{ year }}
+          </option>
+          }
+        </select>
+      </div>
+    </div>
+    <div class="form-group row required">
       <label class="col-md-3 col-form-label" for="customer">
         {{ "Customer" | localize }}
       </label>
@@ -80,14 +115,30 @@
         {{ "Dispatches" | localize }}
       </label>
       <div class="col-md-9">
-        <ng-select
+        <!-- <ng-select
           [items]="dispatches"
           [multiple]="true"
           placeholder="Select dispatches"
           [(ngModel)]="selected_dispatches"
           [ngModelOptions]="{ standalone: true }"
         >
-        </ng-select>
+        </ng-select> -->
+        <div class="dispatch_container">
+          @for (dispatch of dispatches; track $index) {
+          <div class="form-check">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              [(ngModel)]="dispatch.selected"
+              [ngModelOptions]="{ standalone: true }"
+              id="{{dispatch.name}}"
+            />
+            <label class="form-check-label" for="{{dispatch.name}}">
+              {{dispatch.name}}
+            </label>
+          </div>
+          }
+        </div>
       </div>
     </div>
     <div class="form-group row required">
