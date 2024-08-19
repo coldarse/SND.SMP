@@ -842,7 +842,17 @@ namespace SND.SMP.Chibis
 
         public async Task<string> GetFileUUIDByPath(string path)
         {
-            GetFilesDto files = await GetChibiFiles();
+            GetFilesDto files = await GetChibiFiles("50", "1");
+            if (files.count > 50)
+            {
+                decimal unrounded = (decimal)files.count / 50;
+                int pages = (int)Math.Ceiling(unrounded);
+                for (int i = 2; i <= pages; i++)
+                {
+                    var files_paged = await GetChibiFiles("50", i.ToString());
+                    if (files_paged.files.Count > 0) files.files.AddRange(files_paged.files);
+                }
+            }
 
             var file = files.files.FirstOrDefault(x => x.url.Equals(path));
 
@@ -863,7 +873,7 @@ namespace SND.SMP.Chibis
             return await GetExcelByOriginalName("RateWeightBreakTemplate.xlsx");
         }
 
-        public async Task<GetFilesDto> GetChibiFiles()
+        public async Task<GetFilesDto> GetChibiFiles(string limit, string page)
         {
             var chibiKey = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("ChibiKey"));
             var chibiURL = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("ChibiURL"));
@@ -874,18 +884,29 @@ namespace SND.SMP.Chibis
             var request = new HttpRequestMessage
             {
                 Method = HttpMethod.Get,
-                RequestUri = new Uri(chibiURL.Value + $"files"),
+                RequestUri = new Uri(chibiURL.Value + $"files?limit={limit}&page={page}"),
             };
             using var response = await client.SendAsync(request);
             response.EnsureSuccessStatusCode();
             var body = await response.Content.ReadAsStringAsync();
             GetFilesDto files = Newtonsoft.Json.JsonConvert.DeserializeObject<GetFilesDto>(body);
+
             return files;
         }
 
         public async Task<IActionResult> GetExcelByOriginalName(string originalName)
         {
-            GetFilesDto files = await GetChibiFiles();
+            GetFilesDto files = await GetChibiFiles("50", "1");
+            if (files.count > 50)
+            {
+                decimal unrounded = (decimal)files.count / 50;
+                int pages = (int)Math.Ceiling(unrounded);
+                for (int i = 2; i <= pages; i++)
+                {
+                    var files_paged = await GetChibiFiles("50", i.ToString());
+                    if (files_paged.files.Count > 0) files.files.AddRange(files_paged.files);
+                }
+            }
 
             var found = files.files.FirstOrDefault(x => x.original.Equals(originalName));
 
