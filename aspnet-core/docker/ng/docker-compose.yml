@@ -10,7 +10,7 @@ services:
 
   abp_host:
     build: ./
-    image: dannychen98/tfs_api:v1.1.9
+    image: dannychen98/tfs_api:v1.1.11
     environment:
       ASPNETCORE_ENVIRONMENT: "Staging"
       ConnectionStrings__Default: "server=rm-3ns047wo8pox13094go.mysql.rds.aliyuncs.com;port=3306;database=tfsdb;uid=tfs_admin;pwd=tfs@1234"
