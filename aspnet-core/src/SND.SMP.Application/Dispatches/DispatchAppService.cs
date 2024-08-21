@@ -2851,7 +2851,12 @@ namespace SND.SMP.Dispatches
         [HttpPost]
         public async Task<ItemWrapper> GetItemsByCurrency(InvoiceDispatches input)
         {
-            ItemWrapper itemWrapper = new();
+            ItemWrapper itemWrapper = new()
+            {
+                SurchargeItems = [],
+                TotalAmount = 0.0m,
+                TotalAmountWithSurcharge = 0.0m,
+            };
             var dispatches = await Repository.GetAllListAsync();
             dispatches = dispatches.Where(x => input.Dispatches.Contains(x.DispatchNo)).ToList();
             var dispatches_id = dispatches.Select(x => x.Id).ToList();
