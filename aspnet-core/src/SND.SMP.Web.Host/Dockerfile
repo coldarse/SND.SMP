@@ -25,3 +25,4 @@ EXPOSE 80
 WORKDIR /app
 COPY --from=build /publish .
 ENTRYPOINT ["dotnet", "SND.SMP.Web.Host.dll"]
+
