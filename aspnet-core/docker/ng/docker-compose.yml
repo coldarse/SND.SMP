@@ -13,6 +13,8 @@ services:
     image: dannychen98/tfs_api:v1.1.11
     environment:
       ASPNETCORE_ENVIRONMENT: "Staging"
+      ASPNETCORE_Kestrel__Certificates__Default__Path: "/etc/ssl/certs/tfsexp.crt"
+      ASPNETCORE_Kestrel__Certificates__Default__KeyPath: "/etc/ssl/private/tfsexp.key"
       ConnectionStrings__Default: "server=rm-3ns047wo8pox13094go.mysql.rds.aliyuncs.com;port=3306;database=tfsdb;uid=tfs_admin;pwd=tfs@1234"
       App__ServerRootAddress: "http://tfsexp.com:44311/"
       App__ClientRootAddress: "http://tfsexp.com:4200/"
@@ -23,10 +25,12 @@ services:
       - "44311:80"
     volumes:
       - "./Host-Logs:/app/App_Data/Logs"
+      - ./tfsexp.crt:/etc/ssl/certs/tfsexp.crt:ro
+      - ./tfsexp.key:/etc/ssl/private/tfsexp.key:ro
     restart: always
 
   abp_ng:
     build: ./
-    image: dannychen98/tfs_ms:v1.1.6
+    image: dannychen98/tfs_ms:v1.1.8
     ports:
       - "4200:80"

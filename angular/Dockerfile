@@ -6,7 +6,7 @@ COPY . .
 # If you prefer to updating appconfig.production.json file instead of appconfig.container.json please delete this line.
 RUN mv ./src/assets/appconfig.container.json ./src/assets/appconfig.production.json
 RUN yarn install
-RUN yarn run ng build --configuration production --base-href=http://tfsexp.com:4200
+RUN yarn run ng build --configuration production --base-href=https://tfsexp.com:4200
 # stage 2
 FROM nginx
 COPY --from=node /app/dist /usr/share/nginx/html
