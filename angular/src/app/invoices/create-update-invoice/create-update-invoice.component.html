@@ -270,7 +270,7 @@
           </button>
         </div>
       </div>
-      @if (itemsByCurrency.length > 0) {
+      @if (itemWrapper != undefined && itemWrapper.dispatchItems.length > 0) {
       <div class="row">
         <div class="col-4" *ngIf="generateBy === 1">
           <label>Dispatch No.</label>
@@ -286,7 +286,7 @@
         <div class="col-1"><label>Currency</label></div>
       </div>
       <section class="scroll-md">
-        @for (item of itemsByCurrency; track $index) {
+        @for (item of itemWrapper.dispatchItems; track $index) {
         <div class="row mb-1">
           <div class="col-4">
             <input
@@ -371,7 +371,7 @@
           <label
             ><input
               type="number"
-              [(ngModel)]="totalAmount"
+              [(ngModel)]="itemWrapper.totalAmount"
               [ngModelOptions]="{ standalone: true }"
               class="form-control"
           /></label>
@@ -382,8 +382,8 @@
     </section>
     <hr />
     <br />
-    <section *ngIf="custom">
-      @if (surharges.length > 0 ) {
+    <section>
+      @if (itemWrapper != undefined && itemWrapper.surchargeItems.length > 0) {
       <div class="row">
         <div class="col-1"><label>Delete</label></div>
         <div class="col-2"><label>Description</label></div>
@@ -395,93 +395,109 @@
         <div class="col-2"><label>Amount</label></div>
         <div class="col-1"><label>Currency</label></div>
       </div>
-      @for (surcharge of surharges; track $index) {
-      <div class="row mb-1">
-        <div class="col-1">
-          <button
-            type="button"
-            class="btn btn-danger"
-            style="width: 100%"
-            (click)="deleteSurcharge($index)"
-          >
-            <i class="fas fa-minus-circle"></i>
-          </button>
+      <section class="scroll-md">
+        @for (surcharge of itemWrapper.surchargeItems; track $index) {
+        <div class="row mb-1">
+          <div class="col-1">
+            <button
+              type="button"
+              class="btn btn-danger"
+              style="width: 100%"
+              (click)="deleteSurcharge($index)"
+            >
+              <i class="fas fa-minus-circle"></i>
+            </button>
+          </div>
+          <div class="col-2">
+            <input
+              type="text"
+              [(ngModel)]="surcharge.dispatchNo"
+              [ngModelOptions]="{ standalone: true }"
+              class="form-control"
+              placeholder="Bottle"
+            />
+          </div>
+          <div class="col-1">
+            <input
+              type="text"
+              class="form-control"
+              (keypress)="validateAndCalculate($event, $index, 'weight')"
+              placeholder="3.015"
+            />
+          </div>
+          <div class="col-2">
+            <input
+              type="text"
+              [(ngModel)]="surcharge.country"
+              [ngModelOptions]="{ standalone: true }"
+              class="form-control"
+              placeholder="Canada"
+            />
+          </div>
+          <div class="col-1">
+            <input
+              type="text"
+              class="form-control"
+              (keypress)="validateAndCalculate($event, $index, 'ratePerKG')"
+              placeholder="1.05"
+            />
+          </div>
+          <div class="col-1">
+            <input
+              type="text"
+              class="form-control"
+              (keypress)="validateAndCalculate($event, $index, 'quantity')"
+              placeholder="5"
+            />
+          </div>
+          <div class="col-1">
+            <input
+              type="text"
+              class="form-control"
+              (keypress)="validateAndCalculate($event, $index, 'unitPrice')"
+              placeholder="4.15"
+            />
+          </div>
+          <div class="col-2">
+            <input
+              type="number"
+              [(ngModel)]="surcharge.amount"
+              [ngModelOptions]="{ standalone: true }"
+              class="form-control"
+              placeholder="5.00"
+            />
+          </div>
+          <div class="col-1">
+            <select
+              name="currencies"
+              id="currencies"
+              class="form-control"
+              [(ngModel)]="surcharge.currency"
+              [ngModelOptions]="{ standalone: true }"
+            >
+              <option value="">Select</option>
+              @for (currency of currencies; track $index) {
+              <option value="{{ currency.abbr }}">{{ currency.abbr }}</option>
+              }
+            </select>
+          </div>
         </div>
+        }
+      </section>
+      <div class="row mt-2">
+        <div class="col-9"><label>Total Amount With Surcharge</label></div>
         <div class="col-2">
-          <input
-            type="text"
-            [(ngModel)]="surcharge.description"
-            [ngModelOptions]="{ standalone: true }"
-            class="form-control"
-            placeholder="Bottle"
-          />
+          <label
+            ><input
+              type="number"
+              [(ngModel)]="itemWrapper.totalAmountWithSurcharge"
+              [ngModelOptions]="{ standalone: true }"
+              class="form-control"
+          /></label>
         </div>
-        <div class="col-1">
-          <input
-            type="text"
-            class="form-control"
-            (keypress)="validateAndCalculate($event, $index, 'weight')"
-            placeholder="3.015"
-          />
-        </div>
-        <div class="col-2">
-          <input
-            type="text"
-            [(ngModel)]="surcharge.country"
-            [ngModelOptions]="{ standalone: true }"
-            class="form-control"
-            placeholder="Canada"
-          />
-        </div>
-        <div class="col-1">
-          <input
-            type="text"
-            class="form-control"
-            (keypress)="validateAndCalculate($event, $index, 'ratePerKG')"
-            placeholder="1.05"
-          />
-        </div>
-        <div class="col-1">
-          <input
-            type="text"
-            class="form-control"
-            (keypress)="validateAndCalculate($event, $index, 'quantity')"
-            placeholder="5"
-          />
-        </div>
-        <div class="col-1">
-          <input
-            type="text"
-            class="form-control"
-            (keypress)="validateAndCalculate($event, $index, 'unitPrice')"
-            placeholder="4.15"
-          />
-        </div>
-        <div class="col-2">
-          <input
-            type="number"
-            [(ngModel)]="surcharge.amount"
-            [ngModelOptions]="{ standalone: true }"
-            class="form-control"
-            placeholder="5.00"
-          />
-        </div>
-        <div class="col-1">
-          <select
-            name="currencies"
-            id="currencies"
-            class="form-control"
-            [(ngModel)]="surcharge.currency"
-            [ngModelOptions]="{ standalone: true }"
-          >
-            <option value="">Select</option>
-            @for (currency of currencies; track $index) {
-            <option value="{{ currency.abbr }}">{{ currency.abbr }}</option>
-            }
-          </select>
-        </div>
+        <div class="col-1"></div>
       </div>
-      } }
+      }
       <div class="row mt-1">
         <div class="col-10"></div>
         <div class="col-2">

@@ -2849,8 +2849,9 @@ namespace SND.SMP.Dispatches
         }
 
         [HttpPost]
-        public async Task<List<SimplifiedItem>> GetItemsByCurrency(InvoiceDispatches input)
+        public async Task<ItemWrapper> GetItemsByCurrency(InvoiceDispatches input)
         {
+            ItemWrapper itemWrapper = new();
             var dispatches = await Repository.GetAllListAsync();
             dispatches = dispatches.Where(x => input.Dispatches.Contains(x.DispatchNo)).ToList();
             var dispatches_id = dispatches.Select(x => x.Id).ToList();
@@ -2916,6 +2917,8 @@ namespace SND.SMP.Dispatches
                                 };
                             }
                         }));
+
+                        itemWrapper.TotalAmount += items_by_currency.Sum(x => x.Amount);
                     }
                     else if (input.GenerateBy.Equals(2)) //By Bags
                     {
@@ -2958,6 +2961,8 @@ namespace SND.SMP.Dispatches
                                 Currency = group.Key,
                             };
                         }));
+
+                        itemWrapper.TotalAmount += items_by_currency.Sum(x => x.Amount);
                     }
                     else //By Dispatch
                     {
@@ -2987,8 +2992,11 @@ namespace SND.SMP.Dispatches
                                 Currency = group.Key,
                             };
                         }));
+
+                        itemWrapper.TotalAmount += items_by_currency.Sum(x => x.Amount);
                     }
 
+                    itemWrapper.DispatchItems = items_by_currency;
 
                     var surcharge = await _weightAdjustmentRepository.FirstOrDefaultAsync(u => u.ReferenceNo == dispatch.DispatchNo && u.Description.Contains("Under Declare"));
 
@@ -3008,68 +3016,82 @@ namespace SND.SMP.Dispatches
                             Currency = group.Key,
                         };
 
-                        items_by_currency.Add(surcharge_item);
+                        itemWrapper.SurchargeItems.Add(surcharge_item);
+                        itemWrapper.TotalAmountWithSurcharge += itemWrapper.TotalAmount + surcharge_item.Amount;
                     }
                 }
             }
 
-            return items_by_currency;
+            return itemWrapper;
         }
 
 
-        public async Task<List<DispatchDetails>> GetDispatchesByCustomerAndMonth(string customerCode, string monthYear)
+        public async Task<CustomerDispatchDetails> GetDispatchesByCustomerAndMonth(string customerCode, string monthYear, bool custom)
         {
-            DateTime startDateTime = DateTime.ParseExact(monthYear, "MMM yyyy", null);
-            DateOnly startDate = DateOnly.FromDateTime(startDateTime);
-            DateOnly endDate = DateOnly.FromDateTime(startDateTime.AddMonths(1));
-
-            var dispatches = await Repository.GetAllListAsync(x => x.CustomerCode.Equals(customerCode) &&
-                                                                   x.DispatchDate >= startDate &&
-                                                                   x.DispatchDate < endDate);
-
             List<DispatchDetails> dispatchesList = [];
-            if (dispatches.Count != 0)
+            var customer = await _customerRepository.FirstOrDefaultAsync(x => x.Code.Equals(customerCode));
+            string address =
+                customer.CompanyName + "\n" +
+                customer.AddressLine1 + "\n" +
+                customer.AddressLine2 + "\n" +
+                customer.City + "\n" +
+                customer.State + ", " + customer.Country;
+
+            if (!custom)
             {
-                foreach (var dispatch in dispatches)
-                {
-                    if (!dispatch.DispatchNo.Contains("Temp"))
-                    {
-                        dispatchesList.Add(new DispatchDetails()
-                        {
-                            Date = (DateOnly)dispatch.DispatchDate,
-                            Name = dispatch.DispatchNo,
-                            Weight = (decimal)dispatch.TotalWeight,
-                            Debit = 0.00m,
-                            Credit = (decimal)dispatch.TotalPrice,
-                            ItemCount = (int)dispatch.ItemCount,
-                        });
-                    }
-                }
+                DateTime startDateTime = DateTime.ParseExact(monthYear, "MMM yyyy", null);
+                DateOnly startDate = DateOnly.FromDateTime(startDateTime);
+                DateOnly endDate = DateOnly.FromDateTime(startDateTime.AddMonths(1));
 
-                if (dispatchesList.Count != 0)
-                {
-                    var all_weightAdjustments = await _weightAdjustmentRepository.GetAllListAsync();
-                    var weightAdjustments = all_weightAdjustments.Where(x => dispatchesList.Any(y => y.Name.Equals(x.ReferenceNo))).ToList();
+                var dispatches = await Repository.GetAllListAsync(x => x.CustomerCode.Equals(customerCode) &&
+                                                                       x.DispatchDate >= startDate &&
+                                                                       x.DispatchDate < endDate);
 
-                    if (weightAdjustments.Count != 0)
+                if (dispatches.Count != 0)
+                {
+                    foreach (var dispatch in dispatches)
                     {
-                        foreach (var weightAdjustment in weightAdjustments)
+                        if (!dispatch.DispatchNo.Contains("Temp"))
                         {
                             dispatchesList.Add(new DispatchDetails()
                             {
-                                Date = DateOnly.FromDateTime(weightAdjustment.DateTime),
-                                Name = weightAdjustment.ReferenceNo,
-                                Weight = 0.000m,
-                                Debit = weightAdjustment.Amount,
-                                Credit = 0.00m,
-                                ItemCount = 0
+                                Date = (DateOnly)dispatch.DispatchDate,
+                                Name = dispatch.DispatchNo,
+                                Weight = (decimal)dispatch.TotalWeight,
+                                Debit = 0.00m,
+                                Credit = (decimal)dispatch.TotalPrice,
+                                ItemCount = (int)dispatch.ItemCount,
                             });
+                        }
+                    }
+
+                    if (dispatchesList.Count != 0)
+                    {
+                        var all_weightAdjustments = await _weightAdjustmentRepository.GetAllListAsync();
+                        var weightAdjustments = all_weightAdjustments.Where(x => dispatchesList.Any(y => y.Name.Equals(x.ReferenceNo))).ToList();
+
+                        if (weightAdjustments.Count != 0)
+                        {
+                            foreach (var weightAdjustment in weightAdjustments)
+                            {
+                                dispatchesList.Add(new DispatchDetails()
+                                {
+                                    Date = DateOnly.FromDateTime(weightAdjustment.DateTime),
+                                    Name = weightAdjustment.ReferenceNo,
+                                    Weight = 0.000m,
+                                    Debit = weightAdjustment.Amount,
+                                    Credit = 0.00m,
+                                    ItemCount = 0
+                                });
+                            }
                         }
                     }
                 }
             }
-
-            return dispatchesList;
+            return new CustomerDispatchDetails(){
+                Details = dispatchesList,
+                Address = address
+            };
         }
 
         private static Stage CreateStage(Item item, string dispatchNo, string countryCode, string bagNo)

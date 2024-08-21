@@ -20,3 +20,11 @@ public class InvoiceDispatches
     public List<string> Dispatches { get; set; }
     public int GenerateBy { get; set; }
 }
+
+public class ItemWrapper
+{
+    public List<SimplifiedItem> DispatchItems { get; set; }
+    public List<SimplifiedItem> SurchargeItems { get; set; }
+    public decimal TotalAmount { get; set; }
+    public decimal TotalAmountWithSurcharge { get; set; }
+}

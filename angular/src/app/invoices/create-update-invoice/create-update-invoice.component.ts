@@ -20,7 +20,9 @@ import { CustomerDto } from "@shared/service-proxies/customers/model";
 import { CurrencyDto } from "@shared/service-proxies/currencies/model";
 import { ApplicationSettingService } from "@shared/service-proxies/applicationsettings/applicationsetting.service";
 import {
+  CustomerDispatchDetails,
   DispatchDetails,
+  ItemWrapper,
   SimplifiedItem,
 } from "@shared/service-proxies/dispatches/model";
 
@@ -41,10 +43,12 @@ export class CreateUpdateInvoiceComponent
   custom = false;
 
   customers: CustomerDto[] = [];
+  customer_dispatch_details: CustomerDispatchDetails;
   dispatches: DispatchDetails[] = [];
   surharges: ExtraCharge[] = [];
   currencies: CurrencyDto[] = [];
   itemsByCurrency: SimplifiedItem[] = [];
+  itemWrapper: ItemWrapper;
 
   selected_customer: CustomerDto;
   selected_dispatches: any[] = [];
@@ -134,37 +138,40 @@ export class CreateUpdateInvoiceComponent
     this.custom = event.target.value == "1" ? true : false;
   }
 
+  getCustomerDispatchDetails() {
+    this.dispatches = [];
+    this.selected_dispatches = [];
+
+    let monthYear = `${this.selected_month} ${this.selected_year}`;
+
+    //Call API to get dispatches
+    this._dispatchService
+      .getDispatchesByCustomerAndMonth(
+        this.selected_customer.code,
+        monthYear,
+        this.custom
+      )
+      .subscribe((result: any) => {
+        this.customer_dispatch_details = result.result;
+        this.dispatches = this.customer_dispatch_details.details;
+        this.invoice_info.billTo = this.customer_dispatch_details.address;
+        this.generateBy = 1;
+      });
+  }
+
   selectedCustomer(event: any) {
-    if (!this.custom) {
-      this.selected_customer = this.customers.find(
-        (x: CustomerDto) => x.code === event.target.value
-      );
+    this.selected_customer = this.customers.find(
+      (x: CustomerDto) => x.code === event.target.value
+    );
 
-      this.dispatches = [];
-      this.selected_dispatches = [];
-
-      let monthYear = `${this.selected_month} ${this.selected_year}`;
-
-      //Call API to get dispatches
-      this._dispatchService
-        .getDispatchesByCustomerAndMonth(this.selected_customer.code, monthYear)
-        .subscribe((result: any) => {
-          this.dispatches = result.result;
-          this.generateBy = 1;
-        });
-    }
+    this.getCustomerDispatchDetails();
   }
 
   selectedDate(event: any) {
     this.selected_month = event.target.value;
 
     if (this.selectedCustomer != undefined) {
-      let monthYear = `${this.selected_month} ${this.selected_year}`;
-      this._dispatchService
-        .getDispatchesByCustomerAndMonth(this.selected_customer.code, monthYear)
-        .subscribe((result: any) => {
-          this.dispatches = result.result;
-        });
+      this.getCustomerDispatchDetails();
     }
   }
 
@@ -268,11 +275,7 @@ export class CreateUpdateInvoiceComponent
       this._dispatchService
         .getItemsByCurrency(selected_dispatches, this.generateBy)
         .subscribe((result: any) => {
-          this.itemsByCurrency = result.result;
-          this.totalAmount = 0;
-          this.itemsByCurrency.forEach((item: SimplifiedItem) => {
-            this.totalAmount += item.amount;
-          });
+          this.itemWrapper = result.result;
           this.fetching = false;
         });
     }

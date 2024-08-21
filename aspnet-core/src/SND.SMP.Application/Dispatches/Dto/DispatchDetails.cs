@@ -1,4 +1,12 @@
 using System;
+using System.Collections.Generic;
+
+
+public class CustomerDispatchDetails
+{
+    public List<DispatchDetails> Details { get; set; }
+    public String Address { get; set; }
+}
 
 public class DispatchDetails
 {

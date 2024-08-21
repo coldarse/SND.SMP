@@ -261,4 +261,16 @@ export interface SimplifiedItem {
   currency: string;
 }
 
+export interface CustomerDispatchDetails {
+  details: DispatchDetails[];
+  address: string;
+}
+
+export interface ItemWrapper {
+  dispatchItems: SimplifiedItem[];
+  surchargeItems: SimplifiedItem[];
+  totalAmount: number;
+  totalAmountWithSurcharge: number;
+}
+
 
