@@ -98,6 +98,18 @@ body {
     overflow: auto;
 }
 
+.scroll-sm {
+    max-height: 100px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.scroll-md {
+    max-height: 400px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
 table {
     position: relative;
     border-collapse: collapse;

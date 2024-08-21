@@ -85,149 +85,206 @@ public class InvoiceGenerator
             DateTime dateStart = DateTime.Now;
             using db db = new();
             var dispatches = db.Dispatches.Where(x => invoice_info.Dispatches.Contains(x.DispatchNo)).ToList();
-            _logger.LogInformation("Retrieved Dispatches");
-            var dispatches_id = dispatches.Select(x => x.Id).ToList();
-            _logger.LogInformation("Got List of Dispatches");
-            var items = db.Items.Where(x => dispatches_id.Contains((uint)x.DispatchId)).ToList();
-            _logger.LogInformation("Retrieved Items");
-            var item_trackings_by_dispatch = db.ItemTrackings.Where(x => invoice_info.Dispatches.Contains(x.DispatchNo)).ToList();
-            _logger.LogInformation("Retrived Item Trackings By Dispatch");
-            var distincted_item_trackings = item_trackings_by_dispatch.DistinctBy(x => x.DispatchNo).ToList();
-            _logger.LogInformation("Got Distincted Item Trackings");
-            //Group by Currency
-            var dispatches_grouped_by_currency = dispatches
-                .Where(d => !string.IsNullOrEmpty(d.CurrencyId)) // Ensuring CurrencyId is not null or empty
-                .GroupBy(d => d.CurrencyId)
-                .ToList();
-
-            _logger.LogInformation("Grouped Dispatches By Currency");
-
             List<ItemsByCurrency> items_by_currency = [];
-            foreach (var group in dispatches_grouped_by_currency)
+
+            if (invoice_info.GenerateBy.Equals(4))
             {
-                ItemsByCurrency tempGroup = new()
+                var grouped_surcharges_by_currency = invoice_info.ExtraCharges
+                    .Where(d => !string.IsNullOrEmpty(d.Currency)) // Ensuring CurrencyId is not null or empty
+                    .GroupBy(d => d.Currency)
+                    .ToList();
+
+                foreach (var group in grouped_surcharges_by_currency)
                 {
-                    Currency = group.Key,
-                    Items = [],
-                    TotalAmount = 0.00m
-                };
-                foreach (var dispatch in group)
-                {
-                    var item_tracking = distincted_item_trackings.FirstOrDefault(x => x.DispatchId == dispatch.Id);
-                    var dispatch_items = items.Where(x => x.DispatchId == dispatch.Id).ToList();
-
-                    decimal ratePerKG = 0.00m;
-                    decimal unitPrice = 0.00m;
-
-                    var bags = db.Bags.Where(x => x.DispatchId == dispatch.Id).ToList();
-
-                    if (item_tracking.IsExternal)
+                    ItemsByCurrency tempGroup = new()
                     {
-                        tempGroup.Items.AddRange(dispatch_items.Select(x =>
+                        Currency = group.Key,
+                        Items = [],
+                        TotalAmount = 0.00m
+                    };
+                    foreach (var item in group)
+                    {
+                        tempGroup.Items.Add(new SimplifiedItem()
                         {
-                            if (dispatch.ServiceCode == "TS")
-                            {
-                                // TS Rates
-                                var rate_items = db.Rateitems.Where(x => x.ProductCode == dispatch.ProductCode).ToList();
+                            DispatchNo = item.Description,
+                            Weight = item.Weight,
+                            Country = item.Country,
+                            Rate = item.RatePerKG,
+                            Quantity = item.Quantity,
+                            UnitPrice = item.UnitPrice,
+                            Amount = item.Amount,
+                            ProductCode = "Others",
+                            Identifier = "",
+                        });
 
-                                return new SimplifiedItem()
-                                {
-                                    DispatchNo = dispatch.DispatchNo,
-                                    Weight = (decimal)x.Weight,
-                                    Country = x.CountryCode,
-                                    Identifier = x.Id,
-                                    Rate = (decimal)(rate_items.FirstOrDefault(z => z.CountryCode == x.CountryCode) is null ? 0.00m : rate_items.FirstOrDefault(z => z.CountryCode == x.CountryCode).Total),
-                                    Quantity = 1,
-                                    UnitPrice = (decimal)(rate_items.FirstOrDefault(z => z.CountryCode == x.CountryCode) is null ? 0.00m : rate_items.FirstOrDefault(z => z.CountryCode == x.CountryCode).Fee),
-                                    Amount = (decimal)x.Price,
-                                    ProductCode = x.ProductCode
-                                };
-                            }
-                            else
-                            {
-                                // DE Rates
-                                return new SimplifiedItem()
-                                {
-                                    DispatchNo = dispatch.DispatchNo,
-                                    Weight = (decimal)x.Weight,
-                                    Country = x.CountryCode,
-                                    Identifier = x.Id,
-                                    Rate = ratePerKG,
-                                    Quantity = 1,
-                                    UnitPrice = unitPrice,
-                                    Amount = (decimal)x.Price,
-                                    ProductCode = x.ProductCode
-                                };
-                            }
-                        }));
+                        tempGroup.TotalAmount += tempGroup.Items.Sum(x => x.Amount);
                     }
-                    else
-                    {
-                        tempGroup.Items.AddRange(dispatch_items.GroupBy(x => x.BagNo).Select(y =>
-                        {
-                            var country_code = y.First().CountryCode;
-                            var under_amount = bags.FirstOrDefault(x => x.BagNo == y.Key).UnderAmount ?? 0.00m;
-                            var weight_variance = bags.FirstOrDefault(x => x.BagNo == y.Key).WeightVariance ?? 0.00m;
-                            var bag_country_code = bags.FirstOrDefault(x => x.BagNo == y.Key).CountryCode ?? "";
+                    items_by_currency.Add(tempGroup);
+                }
+            }
+            else
+            {
+                var dispatches_id = dispatches.Select(x => x.Id).ToList();
+                var items = db.Items.Where(x => dispatches_id.Contains((uint)x.DispatchId)).ToList();
 
-                            if (!string.IsNullOrWhiteSpace(bag_country_code))
+                //Group by Currency
+                var dispatches_grouped_by_currency = dispatches
+                    .Where(d => !string.IsNullOrEmpty(d.CurrencyId)) // Ensuring CurrencyId is not null or empty
+                    .GroupBy(d => d.CurrencyId)
+                    .ToList();
+
+                foreach (var group in dispatches_grouped_by_currency)
+                {
+                    ItemsByCurrency tempGroup = new()
+                    {
+                        Currency = group.Key,
+                        Items = [],
+                        TotalAmount = 0.00m
+                    };
+                    foreach (var dispatch in group)
+                    {
+                        var dispatch_items = items.Where(x => x.DispatchId == dispatch.Id).ToList();
+
+                        decimal ratePerKG = 0.00m;
+                        decimal unitPrice = 0.00m;
+
+                        var bags = db.Bags.Where(x => x.DispatchId == dispatch.Id).ToList();
+
+                        if (invoice_info.GenerateBy.Equals(3)) //By Items
+                        {
+                            tempGroup.Items.AddRange(dispatch_items.Select(x =>
                             {
                                 if (dispatch.ServiceCode == "TS")
                                 {
                                     // TS Rates
-                                    var rate_items = db.Rateitems.FirstOrDefault(x => x.ProductCode == dispatch.ProductCode &&
-                                                                             x.CountryCode == bag_country_code);
+                                    var rate_items = db.Rateitems.Where(x => x.ProductCode == dispatch.ProductCode).ToList();
 
-                                    ratePerKG = (decimal)rate_items.Total;
-                                    unitPrice = (decimal)rate_items.Fee;
+                                    return new SimplifiedItem()
+                                    {
+                                        DispatchNo = dispatch.DispatchNo,
+                                        Weight = (decimal)x.Weight,
+                                        Country = x.CountryCode,
+                                        Identifier = x.Id,
+                                        Rate = (decimal)(rate_items.FirstOrDefault(z => z.CountryCode == x.CountryCode) is null ? 0.00m : rate_items.FirstOrDefault(z => z.CountryCode == x.CountryCode).Total),
+                                        Quantity = 1,
+                                        UnitPrice = (decimal)(rate_items.FirstOrDefault(z => z.CountryCode == x.CountryCode) is null ? 0.00m : rate_items.FirstOrDefault(z => z.CountryCode == x.CountryCode).Fee),
+                                        Amount = (decimal)x.Price,
+                                        ProductCode = x.ProductCode
+                                    };
                                 }
                                 else
                                 {
                                     // DE Rates
+                                    return new SimplifiedItem()
+                                    {
+                                        DispatchNo = dispatch.DispatchNo,
+                                        Weight = (decimal)x.Weight,
+                                        Country = x.CountryCode,
+                                        Identifier = x.Id,
+                                        Rate = ratePerKG,
+                                        Quantity = 1,
+                                        UnitPrice = unitPrice,
+                                        Amount = (decimal)x.Price,
+                                        ProductCode = x.ProductCode
+                                    };
                                 }
-                            }
-
-
-                            return new SimplifiedItem()
-                            {
-                                DispatchNo = dispatch.DispatchNo,
-                                Weight = (decimal)(y.Sum(i => i.Weight) + weight_variance),
-                                Country = country_code,
-                                Identifier = under_amount == 0.00m ? y.Key : y.Key + " +" + under_amount,
-                                Rate = ratePerKG,
-                                Quantity = y.Count(),
-                                UnitPrice = unitPrice,
-                                Amount = (decimal)y.Sum(i => i.Price),
-                                ProductCode = dispatch.ProductCode
-                            };
-                        }));
-                    }
-
-                    tempGroup.TotalAmount += tempGroup.Items.Sum(x => x.Amount);
-
-                    var surcharge = db.WeightAdjustments.Where(u => u.ReferenceNo == dispatch.DispatchNo).Where(u => u.Description.Contains("Under Declare")).FirstOrDefault();
-
-                    if (surcharge != null)
-                    {
-                        var surcharge_item = new SimplifiedItem()
+                            }));
+                        }
+                        else if (invoice_info.GenerateBy.Equals(2)) //By Bags
                         {
-                            DispatchNo = string.Format("{0} under declared {1}KG", surcharge.ReferenceNo, surcharge.Weight.ToString("N3")),
-                            Weight = 0.00m,
-                            Country = "",
-                            Identifier = "",
-                            Rate = 0.00m,
-                            Quantity = 0,
-                            UnitPrice = 0.00m,
-                            Amount = surcharge.Amount,
-                            ProductCode = "",
-                        };
+                            tempGroup.Items.AddRange(dispatch_items.GroupBy(x => x.BagNo).Select(y =>
+                            {
+                                var country_code = y.First().CountryCode;
+                                var under_amount = bags.FirstOrDefault(x => x.BagNo == y.Key).UnderAmount ?? 0.00m;
+                                var weight_variance = bags.FirstOrDefault(x => x.BagNo == y.Key).WeightVariance ?? 0.00m;
+                                var bag_country_code = bags.FirstOrDefault(x => x.BagNo == y.Key).CountryCode ?? "";
 
-                        tempGroup.TotalAmount += surcharge_item.Amount;
-                        tempGroup.Items.Add(surcharge_item);
+                                if (!string.IsNullOrWhiteSpace(bag_country_code))
+                                {
+                                    if (dispatch.ServiceCode == "TS")
+                                    {
+                                        // TS Rates
+                                        var rate_items = db.Rateitems.FirstOrDefault(x => x.ProductCode == dispatch.ProductCode &&
+                                                                                 x.CountryCode == bag_country_code);
+
+                                        ratePerKG = (decimal)rate_items.Total;
+                                        unitPrice = (decimal)rate_items.Fee;
+                                    }
+                                    else
+                                    {
+                                        // DE Rates
+                                    }
+                                }
+
+
+                                return new SimplifiedItem()
+                                {
+                                    DispatchNo = dispatch.DispatchNo,
+                                    Weight = (decimal)(y.Sum(i => i.Weight) + weight_variance),
+                                    Country = country_code,
+                                    Identifier = under_amount == 0.00m ? y.Key : y.Key + " +" + under_amount,
+                                    Rate = ratePerKG,
+                                    Quantity = y.Count(),
+                                    UnitPrice = unitPrice,
+                                    Amount = (decimal)y.Sum(i => i.Price),
+                                    ProductCode = dispatch.ProductCode
+                                };
+                            }));
+                        }
+                        else //By Dispatch
+                        {
+                            tempGroup.Items.AddRange(dispatch_items.GroupBy(x => x.DispatchId).Select(y =>
+                            {
+                                var country_codes = y.DistinctBy(z => z.CountryCode).ToList();
+                                string all_country_code_string = "";
+                                for (int i = 0; i < country_codes.Count; i++)
+                                {
+                                    var code = country_codes[i];
+
+                                    if (i == items.Count - 1) all_country_code_string += code.CountryCode;
+                                    else all_country_code_string += code.CountryCode + ", ";
+                                }
+
+                                return new SimplifiedItem()
+                                {
+                                    DispatchNo = dispatch.DispatchNo,
+                                    Weight = (decimal)dispatch.TotalWeight,
+                                    Country = all_country_code_string,
+                                    Identifier = dispatch.DispatchNo,
+                                    Rate = 0.00m,
+                                    Quantity = (int)dispatch.ItemCount,
+                                    UnitPrice = 0.00m,
+                                    Amount = (decimal)dispatch.TotalPrice,
+                                    ProductCode = dispatch.ProductCode,
+                                };
+                            }));
+                        }
+
+                        tempGroup.TotalAmount += tempGroup.Items.Sum(x => x.Amount);
+
+                        var surcharge = db.WeightAdjustments.Where(u => u.ReferenceNo == dispatch.DispatchNo).Where(u => u.Description.Contains("Under Declare")).FirstOrDefault();
+
+                        if (surcharge != null)
+                        {
+                            var surcharge_item = new SimplifiedItem()
+                            {
+                                DispatchNo = string.Format("{0} under declared {1}KG", surcharge.ReferenceNo, surcharge.Weight.ToString("N3")),
+                                Weight = 0.00m,
+                                Country = "",
+                                Identifier = "",
+                                Rate = 0.00m,
+                                Quantity = 0,
+                                UnitPrice = 0.00m,
+                                Amount = surcharge.Amount,
+                                ProductCode = "",
+                            };
+
+                            tempGroup.TotalAmount += surcharge_item.Amount;
+                            tempGroup.Items.Add(surcharge_item);
+                        }
                     }
+                    items_by_currency.Add(tempGroup);
                 }
-                items_by_currency.Add(tempGroup);
-                _logger.LogInformation("Add Table");
             }
 
             var invoiceInfo = new InvoiceInfo()

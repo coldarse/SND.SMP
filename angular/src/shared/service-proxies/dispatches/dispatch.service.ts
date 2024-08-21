@@ -274,6 +274,21 @@ export class DispatchService {
       .pipe(retry(1), catchError(this.errorMessage.HandleErrorResponse));
   }
 
+  getItemsByCurrency(dispatches: string[], generateBy: number) {
+    const body = {
+      dispatches: dispatches,
+      generateBy: generateBy
+    }
+    return this.http
+      .post(
+        this.url +
+          `/api/services/app/Dispatch/GetItemsByCurrency`,
+        body,
+        this.options_
+      )
+      .pipe(retry(1), catchError(this.errorMessage.HandleErrorResponse));
+  }
+
   private getFilenameFromContentDisposition(
     contentDisposition: string
   ): string {

@@ -19,7 +19,10 @@ import { DispatchService } from "@shared/service-proxies/dispatches/dispatch.ser
 import { CustomerDto } from "@shared/service-proxies/customers/model";
 import { CurrencyDto } from "@shared/service-proxies/currencies/model";
 import { ApplicationSettingService } from "@shared/service-proxies/applicationsettings/applicationsetting.service";
-import { DispatchDetails } from "@shared/service-proxies/dispatches/model";
+import {
+  DispatchDetails,
+  SimplifiedItem,
+} from "@shared/service-proxies/dispatches/model";
 
 @Component({
   selector: "app-create-update-invoice",
@@ -32,14 +35,23 @@ export class CreateUpdateInvoiceComponent
 {
   saving = false;
   isCreate = true;
+  isExceedItemCountTreshold = false;
+  showThresholdWarning = false;
+  fetching = false;
+  custom = false;
 
   customers: CustomerDto[] = [];
   dispatches: DispatchDetails[] = [];
   surharges: ExtraCharge[] = [];
   currencies: CurrencyDto[] = [];
+  itemsByCurrency: SimplifiedItem[] = [];
 
   selected_customer: CustomerDto;
   selected_dispatches: any[] = [];
+
+  invoice_item_count_threshold = 200;
+  generateBy = 1;
+  totalAmount = 0;
 
   months: string[] = [
     "Jan",
@@ -59,9 +71,15 @@ export class CreateUpdateInvoiceComponent
   years: string[] = Array.from({ length: 21 }, (_, i) =>
     (this.startYear + i).toString()
   );
+  generateby: any[] = [
+    { id: 1, name: "By Dispatch" },
+    { id: 2, name: "By Bags" },
+    { id: 3, name: "By Items" },
+  ];
 
   selected_month = "";
   selected_year = "";
+  custom_dispatch = "";
 
   invoiceDate: string;
   invoiceNo: string;
@@ -104,25 +122,37 @@ export class CreateUpdateInvoiceComponent
       month: "short",
     });
     this.selected_year = currentDate.getFullYear().toString();
+
+    this._applicationSettingService
+      .getValueByName("InvoiceItemCountThreshold")
+      .subscribe((result: any) => {
+        this.invoice_item_count_threshold = +result.result;
+      });
+  }
+
+  selectedCustom(event: any) {
+    this.custom = event.target.value == "1" ? true : false;
   }
 
   selectedCustomer(event: any) {
-    this.selected_customer = this.customers.find(
-      (x: CustomerDto) => x.code === event.target.value
-    );
+    if (!this.custom) {
+      this.selected_customer = this.customers.find(
+        (x: CustomerDto) => x.code === event.target.value
+      );
 
-    this.dispatches = [];
-    this.selected_dispatches = [];
+      this.dispatches = [];
+      this.selected_dispatches = [];
 
-    let monthYear = `${this.selected_month} ${this.selected_year}`;
+      let monthYear = `${this.selected_month} ${this.selected_year}`;
 
-    //Call API to get dispatches
-    this._dispatchService
-      .getDispatchesByCustomerAndMonth(this.selected_customer.code, monthYear)
-      .subscribe((result: any) => {
-        this.dispatches = result.result;
-        console.log(this.dispatches)
-      });
+      //Call API to get dispatches
+      this._dispatchService
+        .getDispatchesByCustomerAndMonth(this.selected_customer.code, monthYear)
+        .subscribe((result: any) => {
+          this.dispatches = result.result;
+          this.generateBy = 1;
+        });
+    }
   }
 
   selectedDate(event: any) {
@@ -134,7 +164,6 @@ export class CreateUpdateInvoiceComponent
         .getDispatchesByCustomerAndMonth(this.selected_customer.code, monthYear)
         .subscribe((result: any) => {
           this.dispatches = result.result;
-          console.log(this.dispatches)
         });
     }
   }
@@ -199,8 +228,54 @@ export class CreateUpdateInvoiceComponent
     });
   }
 
-  onChange(event) {
-    console.log("Selected Dispatches:", this.selected_dispatches);
+  onCheckboxChange() {
+    let selected_item_count = 0;
+    this.selected_dispatches = [];
+
+    this.dispatches.forEach((dispatch: DispatchDetails) => {
+      if (dispatch.selected) {
+        selected_item_count += dispatch.itemCount;
+        this.selected_dispatches.push(dispatch.name);
+      }
+    });
+
+    if (selected_item_count > this.invoice_item_count_threshold)
+      this.isExceedItemCountTreshold = true;
+    else this.isExceedItemCountTreshold = false;
+
+    if (this.generateBy === 3 && this.isExceedItemCountTreshold)
+      this.showThresholdWarning = true;
+    else this.showThresholdWarning = false;
+  }
+
+  selectedGenerateBy(event: any) {
+    this.generateBy = +event.target.value;
+
+    if (this.generateBy === 3 && this.isExceedItemCountTreshold)
+      this.showThresholdWarning = true;
+    else this.showThresholdWarning = false;
+  }
+
+  fetch() {
+    this.fetching = true;
+
+    let selected_dispatches = [];
+    this.dispatches.forEach((dispatch: DispatchDetails) => {
+      if (dispatch.selected) selected_dispatches.push(dispatch.name);
+    });
+
+    if (selected_dispatches.length > 0) {
+      this._dispatchService
+        .getItemsByCurrency(selected_dispatches, this.generateBy)
+        .subscribe((result: any) => {
+          this.itemsByCurrency = result.result;
+          this.totalAmount = 0;
+          this.itemsByCurrency.forEach((item: SimplifiedItem) => {
+            this.totalAmount += item.amount;
+          });
+          this.fetching = false;
+        });
+    }
   }
 
   save(): void {
@@ -209,6 +284,10 @@ export class CreateUpdateInvoiceComponent
     this.invoice_info.dispatches = this.selected_dispatches;
     this.invoice_info.customer = this.selected_customer.companyName;
     this.invoice_info.extraCharges = this.surharges;
+    if (this.custom) {
+      this.invoice_info.generateBy = 4;
+      this.invoice_info.dispatches = [this.custom_dispatch];
+    }
 
     let added_runningNo = +this.runningNo + 1;
 

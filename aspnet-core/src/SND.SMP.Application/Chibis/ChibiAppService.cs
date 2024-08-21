@@ -40,6 +40,7 @@ using SND.SMP.Currencies;
 using SND.SMP.ItemTrackingApplications;
 using SND.SMP.TrackingNoForUpdates;
 using static SND.SMP.Shared.EnumConst;
+using SND.SMP.Invoices;
 
 namespace SND.SMP.Chibis
 {
@@ -62,7 +63,8 @@ namespace SND.SMP.Chibis
         IRepository<Currency, long> currencyRepository,
         IRepository<ItemTrackingApplication, int> itemTrackingApplicationRepository,
         IRepository<ItemTrackingReview, int> itemTrackingReviewRepository,
-        IRepository<TrackingNoForUpdate, long> trackingNoForUpdateRepository
+        IRepository<TrackingNoForUpdate, long> trackingNoForUpdateRepository,
+        IRepository<Invoice, int> invoiceRepository
     ) : AsyncCrudAppService<Chibi, ChibiDto, long, PagedChibiResultRequestDto>(repository)
     {
         private readonly IRepository<Queue, long> _queueRepository = queueRepository;
@@ -83,6 +85,7 @@ namespace SND.SMP.Chibis
         private readonly IRepository<ItemTrackingApplication, int> _itemTrackingApplicationRepository = itemTrackingApplicationRepository;
         private readonly IRepository<ItemTrackingReview, int> _itemTrackingReviewRepository = itemTrackingReviewRepository;
         private readonly IRepository<TrackingNoForUpdate, long> _trackingNoForUpdateRepository = trackingNoForUpdateRepository;
+        private readonly IRepository<Invoice, int> _invoiceRepository = invoiceRepository;
 
         private static async Task<string> GetFileStreamAsString(string url)
         {
@@ -703,6 +706,20 @@ namespace SND.SMP.Chibis
 
             using var response = await client.SendAsync(request);
             response.EnsureSuccessStatusCode();
+            return true;
+        }
+
+        public async Task<bool> DeleteInvoice(string path)
+        {
+            var invoice = await _invoiceRepository.FirstOrDefaultAsync(x => x.InvoiceNo.Contains(path)) ?? throw new UserFriendlyException("No Invoice Found.");
+            await _invoiceRepository.DeleteAsync(invoice);
+
+            var chibi = await Repository.FirstOrDefaultAsync(x => x.URL.Equals(path));
+            if (chibi is not null) await Repository.DeleteAsync(chibi);
+
+            var uuid = await GetFileUUIDByPath(path);
+            if (!uuid.Equals("")) await DeleteFile(uuid).ConfigureAwait(false);
+
             return true;
         }
 

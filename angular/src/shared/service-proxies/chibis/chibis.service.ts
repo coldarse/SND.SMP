@@ -97,6 +97,14 @@ export class ChibiService {
       .pipe(retry(1), catchError(this.errorMessage.HandleErrorResponse));
   }
 
+  deleteInvoice(path: string) {
+    return this.http
+      .delete(
+        this.url + `/api/services/app/Chibi/DeleteInvoice?path=${path}`,
+        this.options_)
+      .pipe(retry(1), catchError(this.errorMessage.HandleErrorResponse));
+  }
+
   createTrackingFileForDispatches(body: DispatchInfo[]) {
     return this.http
       .post(

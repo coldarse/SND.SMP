@@ -48,6 +48,7 @@ using SND.SMP.ItemTrackingReviews;
 using SND.SMP.Chibis.Dto;
 using SND.SMP.ApplicationSettings;
 using Microsoft.EntityFrameworkCore;
+using SND.SMP.ItemTrackings;
 
 namespace SND.SMP.Dispatches
 {
@@ -69,7 +70,8 @@ namespace SND.SMP.Dispatches
         IRepository<EWalletType, long> ewalletTypeRepository,
         IRepository<Currency, long> currencyRepository,
         IRepository<DispatchUsedAmount, int> dispatchUsedAmountRepository,
-        IRepository<DispatchValidation, string> dispatchValidationRepository
+        IRepository<DispatchValidation, string> dispatchValidationRepository,
+        IRepository<ItemTracking, int> itemTrackingRepository
     ) : AsyncCrudAppService<Dispatch, DispatchDto, int, PagedDispatchResultRequestDto>(repository)
     {
 
@@ -90,6 +92,7 @@ namespace SND.SMP.Dispatches
         private readonly IRepository<Currency, long> _currencyRepository = currencyRepository;
         private readonly IRepository<DispatchUsedAmount, int> _dispatchUsedAmountRepository = dispatchUsedAmountRepository;
         private readonly IRepository<DispatchValidation, string> _dispatchValidationRepository = dispatchValidationRepository;
+        private readonly IRepository<ItemTracking, int> _itemTrackingRepository = itemTrackingRepository;
 
 
         [System.Text.RegularExpressions.GeneratedRegex(@"[a-zA-Z]")]
@@ -2845,6 +2848,173 @@ namespace SND.SMP.Dispatches
             return dispatchesList;
         }
 
+        [HttpPost]
+        public async Task<List<SimplifiedItem>> GetItemsByCurrency(InvoiceDispatches input)
+        {
+            var dispatches = await Repository.GetAllListAsync();
+            dispatches = dispatches.Where(x => input.Dispatches.Contains(x.DispatchNo)).ToList();
+            var dispatches_id = dispatches.Select(x => x.Id).ToList();
+            var items = await _itemRepository.GetAllListAsync();
+            items = items.Where(x => dispatches_id.Contains((int)x.DispatchID)).ToList();
+
+            //Group by Currency
+            var dispatches_grouped_by_currency = dispatches
+                .Where(d => !string.IsNullOrEmpty(d.CurrencyId)) // Ensuring CurrencyId is not null or empty
+                .GroupBy(d => d.CurrencyId)
+                .ToList();
+
+            List<SimplifiedItem> items_by_currency = [];
+            foreach (var group in dispatches_grouped_by_currency)
+            {
+                foreach (var dispatch in group)
+                {
+                    var dispatch_items = items.Where(x => x.DispatchID == dispatch.Id).ToList();
+
+                    decimal ratePerKG = 0.00m;
+                    decimal unitPrice = 0.00m;
+
+                    var bags = await _bagRepository.GetAllListAsync(x => x.DispatchId == dispatch.Id);
+
+                    if (input.GenerateBy.Equals(3)) //By Items
+                    {
+                        items_by_currency.AddRange(dispatch_items.Select(x =>
+                        {
+                            if (dispatch.ServiceCode == "TS")
+                            {
+                                // TS Rates
+                                var rate_items = _rateItemRepository.GetAllList(x => x.ProductCode == dispatch.ProductCode);
+
+                                return new SimplifiedItem()
+                                {
+                                    DispatchNo = dispatch.DispatchNo,
+                                    Weight = (decimal)x.Weight,
+                                    Country = x.CountryCode,
+                                    Identifier = x.Id,
+                                    Rate = (decimal)(rate_items.FirstOrDefault(z => z.CountryCode == x.CountryCode) is null ? 0.00m : rate_items.FirstOrDefault(z => z.CountryCode == x.CountryCode).Total),
+                                    Quantity = 1,
+                                    UnitPrice = (decimal)(rate_items.FirstOrDefault(z => z.CountryCode == x.CountryCode) is null ? 0.00m : rate_items.FirstOrDefault(z => z.CountryCode == x.CountryCode).Fee),
+                                    Amount = (decimal)x.Price,
+                                    ProductCode = x.ProductCode,
+                                    Currency = group.Key,
+                                };
+                            }
+                            else
+                            {
+                                // DE Rates
+                                return new SimplifiedItem()
+                                {
+                                    DispatchNo = dispatch.DispatchNo,
+                                    Weight = (decimal)x.Weight,
+                                    Country = x.CountryCode,
+                                    Identifier = x.Id,
+                                    Rate = ratePerKG,
+                                    Quantity = 1,
+                                    UnitPrice = unitPrice,
+                                    Amount = (decimal)x.Price,
+                                    ProductCode = x.ProductCode,
+                                    Currency = group.Key,
+                                };
+                            }
+                        }));
+                    }
+                    else if (input.GenerateBy.Equals(2)) //By Bags
+                    {
+                        items_by_currency.AddRange(dispatch_items.GroupBy(x => x.BagNo).Select(y =>
+                        {
+                            var country_code = y.First().CountryCode;
+                            var under_amount = bags.FirstOrDefault(x => x.BagNo == y.Key).UnderAmount ?? 0.00m;
+                            var weight_variance = bags.FirstOrDefault(x => x.BagNo == y.Key).WeightVariance ?? 0.00m;
+                            var bag_country_code = bags.FirstOrDefault(x => x.BagNo == y.Key).CountryCode ?? "";
+
+                            if (!string.IsNullOrWhiteSpace(bag_country_code))
+                            {
+                                if (dispatch.ServiceCode == "TS")
+                                {
+                                    // TS Rates
+                                    var rate_items = _rateItemRepository.FirstOrDefault(x => x.ProductCode == dispatch.ProductCode &&
+                                                                             x.CountryCode == bag_country_code);
+
+                                    ratePerKG = rate_items.Total;
+                                    unitPrice = rate_items.Fee;
+                                }
+                                else
+                                {
+                                    // DE Rates
+                                }
+                            }
+
+
+                            return new SimplifiedItem()
+                            {
+                                DispatchNo = dispatch.DispatchNo,
+                                Weight = (decimal)(y.Sum(i => i.Weight) + weight_variance),
+                                Country = country_code,
+                                Identifier = under_amount == 0.00m ? y.Key : y.Key + " +" + under_amount,
+                                Rate = ratePerKG,
+                                Quantity = y.Count(),
+                                UnitPrice = unitPrice,
+                                Amount = (decimal)y.Sum(i => i.Price),
+                                ProductCode = dispatch.ProductCode,
+                                Currency = group.Key,
+                            };
+                        }));
+                    }
+                    else //By Dispatch
+                    {
+                        items_by_currency.AddRange(dispatch_items.GroupBy(x => x.DispatchID).Select(y =>
+                        {
+                            var country_codes = y.DistinctBy(z => z.CountryCode).ToList();
+                            string all_country_code_string = "";
+                            for (int i = 0; i < country_codes.Count; i++)
+                            {
+                                var code = country_codes[i];
+
+                                if (i == items.Count - 1) all_country_code_string += code.CountryCode;
+                                else all_country_code_string += code.CountryCode + ", ";
+                            }
+
+                            return new SimplifiedItem()
+                            {
+                                DispatchNo = dispatch.DispatchNo,
+                                Weight = (decimal)dispatch.TotalWeight,
+                                Country = all_country_code_string,
+                                Identifier = dispatch.DispatchNo,
+                                Rate = 0.00m,
+                                Quantity = (int)dispatch.ItemCount,
+                                UnitPrice = 0.00m,
+                                Amount = (decimal)dispatch.TotalPrice,
+                                ProductCode = dispatch.ProductCode,
+                                Currency = group.Key,
+                            };
+                        }));
+                    }
+
+
+                    var surcharge = await _weightAdjustmentRepository.FirstOrDefaultAsync(u => u.ReferenceNo == dispatch.DispatchNo && u.Description.Contains("Under Declare"));
+
+                    if (surcharge != null)
+                    {
+                        var surcharge_item = new SimplifiedItem()
+                        {
+                            DispatchNo = string.Format("{0} under declared {1}KG", surcharge.ReferenceNo, surcharge.Weight.ToString("N3")),
+                            Weight = 0.00m,
+                            Country = "",
+                            Identifier = "",
+                            Rate = 0.00m,
+                            Quantity = 0,
+                            UnitPrice = 0.00m,
+                            Amount = surcharge.Amount,
+                            ProductCode = "",
+                            Currency = group.Key,
+                        };
+
+                        items_by_currency.Add(surcharge_item);
+                    }
+                }
+            }
+
+            return items_by_currency;
+        }
 
 
         public async Task<List<DispatchDetails>> GetDispatchesByCustomerAndMonth(string customerCode, string monthYear)
@@ -2870,7 +3040,8 @@ namespace SND.SMP.Dispatches
                             Name = dispatch.DispatchNo,
                             Weight = (decimal)dispatch.TotalWeight,
                             Debit = 0.00m,
-                            Credit = (decimal)dispatch.TotalPrice
+                            Credit = (decimal)dispatch.TotalPrice,
+                            ItemCount = (int)dispatch.ItemCount,
                         });
                     }
                 }
@@ -2890,7 +3061,8 @@ namespace SND.SMP.Dispatches
                                 Name = weightAdjustment.ReferenceNo,
                                 Weight = 0.000m,
                                 Debit = weightAdjustment.Amount,
-                                Credit = 0.00m
+                                Credit = 0.00m,
+                                ItemCount = 0
                             });
                         }
                     }

@@ -245,6 +245,20 @@ export interface DispatchDetails {
   credit: number;
   debit: number;
   selected: boolean;
+  itemCount: number;
+}
+
+export interface SimplifiedItem {
+  dispatchNo: string;
+  weight: number;
+  country: string;
+  identifier: string;
+  rate: number;
+  quantity: number;
+  unitPrice: number;
+  amount: number;
+  productCode: string;
+  currency: string;
 }
 
 

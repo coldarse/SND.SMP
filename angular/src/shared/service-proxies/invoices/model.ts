@@ -21,6 +21,7 @@ export interface GenerateInvoice {
     dispatches: string[];
     billTo: string;
     extraCharges: ExtraCharge[];
+    generateBy: number;
 }
 
 export interface ExtraCharge {

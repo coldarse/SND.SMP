@@ -14,6 +14,7 @@ import { CustomerDto } from "@shared/service-proxies/customers/model";
 import { CurrencyDto } from "@shared/service-proxies/currencies/model";
 import { CurrencyService } from "@shared/service-proxies/currencies/currency.service";
 import { ApplicationSettingService } from "@shared/service-proxies/applicationsettings/applicationsetting.service";
+import { ChibiService } from "@shared/service-proxies/chibis/chibis.service";
 
 class PagedInvoicesRequestDto extends PagedRequestDto {
   keyword: string;
@@ -37,6 +38,7 @@ export class InvoicesComponent extends PagedListingComponentBase<InvoiceDto> {
     private _modalService: BsModalService,
     private _customerService: CustomerService,
     private _currencyService: CurrencyService,
+    private _chibiService: ChibiService,
     private _applicationSettingService: ApplicationSettingService
   ) {
     super(injector);
@@ -50,8 +52,7 @@ export class InvoicesComponent extends PagedListingComponentBase<InvoiceDto> {
     this._applicationSettingService
       .getValueByName("InvoiceNo")
       .subscribe((data: any) => {
-
-        let invoice_no = data.result = "" ? 0 : +data.result;
+        let invoice_no = (data.result = "" ? 0 : +data.result);
 
         let createOrEditInvoiceDialog: BsModalRef;
         createOrEditInvoiceDialog = this._modalService.show(
@@ -61,7 +62,7 @@ export class InvoicesComponent extends PagedListingComponentBase<InvoiceDto> {
             initialState: {
               customers: this.customers,
               currencies: this.currencies,
-              runningNo: invoice_no.toString()
+              runningNo: invoice_no.toString(),
             },
           }
         );
@@ -80,10 +81,15 @@ export class InvoicesComponent extends PagedListingComponentBase<InvoiceDto> {
   protected delete(entity: InvoiceDto): void {
     abp.message.confirm("", undefined, (result: boolean) => {
       if (result) {
-        this._invoiceService.delete(entity.id).subscribe(() => {
+        let split = entity.invoiceNo.split("|");
+        this._chibiService.deleteInvoice(split[1]).subscribe(() => {
           abp.notify.success(this.l("SuccessfullyDeleted"));
           this.refresh();
         });
+        // this._invoiceService.delete(entity.id).subscribe(() => {
+        //   abp.notify.success(this.l("SuccessfullyDeleted"));
+        //   this.refresh();
+        // });
       }
     });
   }

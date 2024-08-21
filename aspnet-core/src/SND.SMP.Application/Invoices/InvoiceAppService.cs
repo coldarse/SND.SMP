@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using SND.SMP.Invoices.Dto;
+using Abp.Application.Services.Dto;
 
 namespace SND.SMP.Invoices
 {
@@ -25,6 +26,7 @@ namespace SND.SMP.Invoices
                     x.InvoiceNo.Contains(input.Keyword) ||
                     x.Customer.Contains(input.Keyword));
         }
+
 
     }
 }
