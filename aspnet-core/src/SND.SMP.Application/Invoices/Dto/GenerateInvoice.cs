@@ -8,6 +8,7 @@ public class GenerateInvoice
     public List<string> Dispatches { get; set; }
     public string BillTo { get; set; }
     public List<ExtraCharge> ExtraCharges { get; set; }
+    public int GenerateBy { get; set; }
 }
 
 public class ExtraCharge

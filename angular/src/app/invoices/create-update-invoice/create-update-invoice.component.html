@@ -7,7 +7,7 @@
   <abp-modal-header
     [title]="
       isCreate == true
-        ? ('Add Invoice' | localize)
+        ? ('Create Invoice' | localize)
         : ('Edit Invoice' | localize)
     "
     (onCloseClick)="bsModalRef.hide()"
@@ -229,6 +229,7 @@
           class="form-control"
           name="billTo"
           id="billTo"
+          rows="5"
           required
           [(ngModel)]="invoice_info.billTo"
           #billToModel="ngModel"

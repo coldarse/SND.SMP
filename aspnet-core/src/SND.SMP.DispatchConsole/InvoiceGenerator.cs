@@ -285,6 +285,42 @@ public class InvoiceGenerator
                     }
                     items_by_currency.Add(tempGroup);
                 }
+
+                if (invoice_info.ExtraCharges.Count > 0)
+                {
+                    var grouped_surcharges_by_currency = invoice_info.ExtraCharges
+                                        .Where(d => !string.IsNullOrEmpty(d.Currency)) // Ensuring CurrencyId is not null or empty
+                                        .GroupBy(d => d.Currency)
+                                        .ToList();
+
+                    foreach (var group in grouped_surcharges_by_currency)
+                    {
+                        ItemsByCurrency tempGroup = new()
+                        {
+                            Currency = group.Key,
+                            Items = [],
+                            TotalAmount = 0.00m
+                        };
+                        foreach (var item in group)
+                        {
+                            tempGroup.Items.Add(new SimplifiedItem()
+                            {
+                                DispatchNo = item.Description,
+                                Weight = item.Weight,
+                                Country = item.Country,
+                                Rate = item.RatePerKG,
+                                Quantity = item.Quantity,
+                                UnitPrice = item.UnitPrice,
+                                Amount = item.Amount,
+                                ProductCode = "Others",
+                                Identifier = "",
+                            });
+
+                            tempGroup.TotalAmount += tempGroup.Items.Sum(x => x.Amount);
+                        }
+                        items_by_currency.Add(tempGroup);
+                    }
+                }
             }
 
             var invoiceInfo = new InvoiceInfo()

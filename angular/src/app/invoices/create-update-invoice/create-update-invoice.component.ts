@@ -48,7 +48,12 @@ export class CreateUpdateInvoiceComponent
   surharges: ExtraCharge[] = [];
   currencies: CurrencyDto[] = [];
   itemsByCurrency: SimplifiedItem[] = [];
-  itemWrapper: ItemWrapper;
+  itemWrapper: ItemWrapper = {
+    dispatchItems: [],
+    surchargeItems: [],
+    totalAmount: 0,
+    totalAmountWithSurcharge: 0,
+  };
 
   selected_customer: CustomerDto;
   selected_dispatches: any[] = [];
@@ -176,13 +181,13 @@ export class CreateUpdateInvoiceComponent
   }
 
   deleteSurcharge(index: number) {
-    if (index > -1 && index < this.surharges.length) {
-      this.surharges.splice(index, 1);
+    if (index > -1 && index < this.itemWrapper.surchargeItems.length) {
+      this.itemWrapper.surchargeItems.splice(index, 1);
     }
   }
 
   validateAndCalculate(event: KeyboardEvent, index: number, input: string) {
-    let surcharge = this.surharges[index];
+    let surcharge = this.itemWrapper.surchargeItems[index];
     const inputChar = event.key;
     const currentInput = (event.target as HTMLInputElement).value;
     const newValue = currentInput + inputChar;
@@ -198,7 +203,7 @@ export class CreateUpdateInvoiceComponent
         const pattern2 = /^\d+(\.\d{0,2})?$/;
         if (!pattern2.test(newValue)) {
           event.preventDefault();
-        } else surcharge.ratePerKG = +newValue;
+        } else surcharge.rate = +newValue;
         break;
       case "unitPrice":
         const pattern3 = /^\d+(\.\d{0,2})?$/;
@@ -215,23 +220,33 @@ export class CreateUpdateInvoiceComponent
     }
 
     let weight = +surcharge.weight;
-    let ratePerKG = +surcharge.ratePerKG == 0 ? 1 : +surcharge.ratePerKG;
+    let ratePerKG = +surcharge.rate == 0 ? 1 : +surcharge.rate;
     let unitPrice = +surcharge.unitPrice;
     let quantity = +surcharge.quantity;
 
     surcharge.amount = +(weight * ratePerKG * unitPrice * quantity).toFixed(2);
+
+    let totalSurchargeAmount = 0;
+    this.itemWrapper.surchargeItems.forEach((surcharge: SimplifiedItem) => {
+      totalSurchargeAmount += surcharge.amount;
+    });
+
+    this.itemWrapper.totalAmountWithSurcharge =
+      this.itemWrapper.totalAmount + totalSurchargeAmount;
   }
 
   addSurcharge() {
-    this.surharges.push({
-      description: "",
-      weight: undefined,
+    this.itemWrapper.surchargeItems.push({
+      dispatchNo: "",
+      weight: 0,
       country: "",
-      ratePerKG: undefined,
-      quantity: undefined,
-      unitPrice: undefined,
-      amount: undefined,
-      currency: undefined,
+      identifier: "",
+      rate: 0,
+      quantity: 0,
+      unitPrice: 0,
+      amount: 0,
+      productCode: "",
+      currency: "",
     });
   }
 
@@ -284,9 +299,24 @@ export class CreateUpdateInvoiceComponent
   save(): void {
     this.saving = true;
 
+    if (this.itemWrapper.surchargeItems.length > 0) {
+      this.invoice_info.extraCharges = [];
+      this.itemWrapper.surchargeItems.forEach((surcharge: SimplifiedItem) => {
+        this.invoice_info.extraCharges.push({
+          description: surcharge.dispatchNo,
+          weight: surcharge.weight,
+          country: surcharge.country,
+          ratePerKG: surcharge.rate,
+          quantity: surcharge.quantity,
+          unitPrice: surcharge.unitPrice,
+          amount: surcharge.amount,
+          currency: surcharge.currency
+        });
+      });
+    }
+
     this.invoice_info.dispatches = this.selected_dispatches;
     this.invoice_info.customer = this.selected_customer.companyName;
-    this.invoice_info.extraCharges = this.surharges;
     if (this.custom) {
       this.invoice_info.generateBy = 4;
       this.invoice_info.dispatches = [this.custom_dispatch];
