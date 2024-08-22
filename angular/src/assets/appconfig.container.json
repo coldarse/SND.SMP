@@ -1,6 +1,6 @@
 {
-  "remoteServiceBaseUrl": "https://tfsexp.com:44311",
-  "appBaseUrl": "https://tfsexp.com:4200",
+  "remoteServiceBaseUrl": "https://app.tfsexp.com:44311",
+  "appBaseUrl": "https://app.tfsexp.com:8443",
   "localeMappings": [
     {
       "from": "pt-BR",
