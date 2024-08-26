@@ -217,14 +217,24 @@ export class CreateUpdateInvoiceComponent
           event.preventDefault();
         } else surcharge.quantity = +newValue;
         break;
+      case "amount":
+        const pattern5 = /^\d+(\.\d{0,2})?$/;
+        if (!pattern5.test(newValue)) {
+          event.preventDefault();
+        } else surcharge.amount = +newValue;
+        break;
     }
 
-    let weight = +surcharge.weight;
-    let ratePerKG = +surcharge.rate == 0 ? 1 : +surcharge.rate;
-    let unitPrice = +surcharge.unitPrice;
-    let quantity = +surcharge.quantity;
+    if (input !== "amount") {
+      let weight = +surcharge.weight;
+      let ratePerKG = +surcharge.rate == 0 ? 1 : +surcharge.rate;
+      let unitPrice = +surcharge.unitPrice;
+      let quantity = +surcharge.quantity;
 
-    surcharge.amount = +(weight * ratePerKG * unitPrice * quantity).toFixed(2);
+      surcharge.amount = +(weight * ratePerKG * unitPrice * quantity).toFixed(
+        2
+      );
+    }
 
     let totalSurchargeAmount = 0;
     this.itemWrapper.surchargeItems.forEach((surcharge: SimplifiedItem) => {
@@ -310,11 +320,12 @@ export class CreateUpdateInvoiceComponent
           quantity: surcharge.quantity,
           unitPrice: surcharge.unitPrice,
           amount: surcharge.amount,
-          currency: surcharge.currency
+          currency: surcharge.currency,
         });
       });
     }
 
+    this.invoice_info.generateBy = this.generateBy;
     this.invoice_info.dispatches = this.selected_dispatches;
     this.invoice_info.customer = this.selected_customer.companyName;
     if (this.custom) {

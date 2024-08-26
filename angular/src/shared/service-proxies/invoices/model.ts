@@ -4,6 +4,7 @@ import type { PagedAndSortedResultRequestDto, EntityDto } from '@abp/ng.core';
 export interface InvoiceDto extends EntityDto<number> {
     dateTime: string;
     invoiceNo: string;
+    invoiceUrl: string;
     customer: string;
 }
 

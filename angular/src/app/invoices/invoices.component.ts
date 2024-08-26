@@ -81,8 +81,7 @@ export class InvoicesComponent extends PagedListingComponentBase<InvoiceDto> {
   protected delete(entity: InvoiceDto): void {
     abp.message.confirm("", undefined, (result: boolean) => {
       if (result) {
-        let split = entity.invoiceNo.split("|");
-        this._chibiService.deleteInvoice(split[1]).subscribe(() => {
+        this._chibiService.deleteInvoice(entity.invoiceUrl).subscribe(() => {
           abp.notify.success(this.l("SuccessfullyDeleted"));
           this.refresh();
         });

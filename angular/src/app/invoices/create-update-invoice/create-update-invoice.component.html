@@ -461,9 +461,8 @@
           </div>
           <div class="col-2">
             <input
-              type="number"
-              [(ngModel)]="surcharge.amount"
-              [ngModelOptions]="{ standalone: true }"
+              type="text"
+              (keypress)="validateAndCalculate($event, $index, 'amount')"
               class="form-control"
               placeholder="5.00"
             />

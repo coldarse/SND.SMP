@@ -262,25 +262,28 @@ public class InvoiceGenerator
 
                         tempGroup.TotalAmount += tempGroup.Items.Sum(x => x.Amount);
 
-                        var surcharge = db.WeightAdjustments.Where(u => u.ReferenceNo == dispatch.DispatchNo).Where(u => u.Description.Contains("Under Declare")).FirstOrDefault();
-
-                        if (surcharge != null)
+                        if (invoice_info.ExtraCharges.Count == 0)
                         {
-                            var surcharge_item = new SimplifiedItem()
-                            {
-                                DispatchNo = string.Format("{0} under declared {1}KG", surcharge.ReferenceNo, surcharge.Weight.ToString("N3")),
-                                Weight = 0.00m,
-                                Country = "",
-                                Identifier = "",
-                                Rate = 0.00m,
-                                Quantity = 0,
-                                UnitPrice = 0.00m,
-                                Amount = surcharge.Amount,
-                                ProductCode = "",
-                            };
+                            var surcharge = db.WeightAdjustments.Where(u => u.ReferenceNo == dispatch.DispatchNo).Where(u => u.Description.Contains("Under Declare")).FirstOrDefault();
 
-                            tempGroup.TotalAmount += surcharge_item.Amount;
-                            tempGroup.Items.Add(surcharge_item);
+                            if (surcharge != null)
+                            {
+                                var surcharge_item = new SimplifiedItem()
+                                {
+                                    DispatchNo = string.Format("{0} under declared {1}KG", surcharge.ReferenceNo, surcharge.Weight.ToString("N3")),
+                                    Weight = 0.00m,
+                                    Country = "",
+                                    Identifier = "",
+                                    Rate = 0.00m,
+                                    Quantity = 0,
+                                    UnitPrice = 0.00m,
+                                    Amount = surcharge.Amount,
+                                    ProductCode = "",
+                                };
+
+                                tempGroup.TotalAmount += surcharge_item.Amount;
+                                tempGroup.Items.Add(surcharge_item);
+                            }
                         }
                     }
                     items_by_currency.Add(tempGroup);
@@ -289,7 +292,6 @@ public class InvoiceGenerator
                 if (invoice_info.ExtraCharges.Count > 0)
                 {
                     var grouped_surcharges_by_currency = invoice_info.ExtraCharges
-                                        .Where(d => !string.IsNullOrEmpty(d.Currency)) // Ensuring CurrencyId is not null or empty
                                         .GroupBy(d => d.Currency)
                                         .ToList();
 
@@ -321,6 +323,15 @@ public class InvoiceGenerator
                         items_by_currency.Add(tempGroup);
                     }
                 }
+
+                items_by_currency = items_by_currency
+                        .GroupBy(item => item.Currency)
+                        .Select(group => new ItemsByCurrency
+                        {
+                            Currency = group.Key,
+                            Items = group.SelectMany(item => item.Items).ToList(),
+                            TotalAmount = group.Sum(item => item.TotalAmount)
+                        }).ToList();
             }
 
             var invoiceInfo = new InvoiceInfo()
