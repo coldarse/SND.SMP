@@ -324,6 +324,9 @@ export class CreateUpdateInvoiceComponent
         });
       });
     }
+    else {
+      this.invoice_info.extraCharges = [];
+    }
 
     this.invoice_info.generateBy = this.generateBy;
     this.invoice_info.dispatches = this.selected_dispatches;
