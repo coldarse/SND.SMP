@@ -85,10 +85,6 @@ export class InvoicesComponent extends PagedListingComponentBase<InvoiceDto> {
           abp.notify.success(this.l("SuccessfullyDeleted"));
           this.refresh();
         });
-        // this._invoiceService.delete(entity.id).subscribe(() => {
-        //   abp.notify.success(this.l("SuccessfullyDeleted"));
-        //   this.refresh();
-        // });
       }
     });
   }

@@ -132,128 +132,127 @@ public class PdfGenerator
         // Add tables for each currency
         foreach (var currencyItem in invoiceInfo.CurrencyItem)
         {
-            var product_items = currencyItem.Items.GroupBy(x => x.ProductCode).ToList();
-            // Add a subtitle for the currency
-            // Paragraph currencyTitle = new Paragraph($"Currency: {currencyItem.Currency}", billToFont)
+            var product_items = currencyItem.Items.DistinctBy(x => x.ProductCode).ToList();
+            var product_codes = product_items
+                                    .Select(x => x.ProductCode.ToUpper())
+                                    .Where(code => !string.IsNullOrEmpty(code)) // Filter out empty strings
+                                    .ToList();
+
+            string product_code_string = string.Join(", ", product_codes);
+
+            // foreach (var group in product_items)
             // {
-            //     SpacingBefore = 10f,
-            //     SpacingAfter = 5f
-            // };
-            // doc.Add(currencyTitle);
-
-            foreach (var group in product_items)
+            // Create a table with 8 columns
+            PdfPTable table = new PdfPTable(8)
             {
-                // Create a table with 8 columns
-                PdfPTable table = new PdfPTable(8)
-                {
-                    WidthPercentage = 100
-                };
-                table.SetWidths(new float[] { 3f, 1f, 2f, 3f, 1f, 1f, 1f, 1f });
+                WidthPercentage = 100
+            };
+            table.SetWidths(new float[] { 3f, 1f, 2f, 3f, 1f, 1f, 1f, 1f });
 
-                // First row
-                PdfPCell cell1 = new PdfPCell(new Phrase("Dispatch No./Surcharge", tableValue_Font))
-                {
-                    Rowspan = 2,
-                    HorizontalAlignment = Element.ALIGN_CENTER,
-                    VerticalAlignment = Element.ALIGN_MIDDLE
-                };
-                table.AddCell(cell1);
+            // First row
+            PdfPCell cell1 = new PdfPCell(new Phrase("Dispatch No./Surcharge", tableValue_Font))
+            {
+                Rowspan = 2,
+                HorizontalAlignment = Element.ALIGN_CENTER,
+                VerticalAlignment = Element.ALIGN_MIDDLE
+            };
+            table.AddCell(cell1);
 
-                PdfPCell cell2 = new PdfPCell(new Phrase($"{group.Key.ToUpper()}", tableValue_Font))
-                {
-                    Colspan = 4,
-                    HorizontalAlignment = Element.ALIGN_CENTER,
-                    VerticalAlignment = Element.ALIGN_MIDDLE
-                };
-                table.AddCell(cell2);
+            PdfPCell cell2 = new PdfPCell(new Phrase($"{product_code_string}", tableValue_Font))
+            {
+                Colspan = 4,
+                HorizontalAlignment = Element.ALIGN_CENTER,
+                VerticalAlignment = Element.ALIGN_MIDDLE
+            };
+            table.AddCell(cell2);
 
-                PdfPCell cell3 = new PdfPCell(new Phrase("EMS / REGISTERED / PRIME", tableValue_Font))
-                {
-                    Colspan = 2,
-                    HorizontalAlignment = Element.ALIGN_CENTER,
-                    VerticalAlignment = Element.ALIGN_MIDDLE
-                };
-                table.AddCell(cell3);
+            PdfPCell cell3 = new PdfPCell(new Phrase("EMS / REGISTERED / PRIME", tableValue_Font))
+            {
+                Colspan = 2,
+                HorizontalAlignment = Element.ALIGN_CENTER,
+                VerticalAlignment = Element.ALIGN_MIDDLE
+            };
+            table.AddCell(cell3);
 
-                PdfPCell cell4 = new PdfPCell(new Phrase($"Total Amount ({currencyItem.Currency})", tableValue_Font))
-                {
-                    Rowspan = 2,
-                    HorizontalAlignment = Element.ALIGN_CENTER,
-                    VerticalAlignment = Element.ALIGN_MIDDLE
-                };
-                table.AddCell(cell4);
+            PdfPCell cell4 = new PdfPCell(new Phrase($"Total Amount ({currencyItem.Currency})", tableValue_Font))
+            {
+                Rowspan = 2,
+                HorizontalAlignment = Element.ALIGN_CENTER,
+                VerticalAlignment = Element.ALIGN_MIDDLE
+            };
+            table.AddCell(cell4);
 
-                // Second row
-                table.AddCell(new PdfPCell(new Phrase("Weight (KG)", tableValue_Font))
-                {
-                    HorizontalAlignment = Element.ALIGN_CENTER,
-                    VerticalAlignment = Element.ALIGN_MIDDLE
-                });
+            // Second row
+            table.AddCell(new PdfPCell(new Phrase("Weight (KG)", tableValue_Font))
+            {
+                HorizontalAlignment = Element.ALIGN_CENTER,
+                VerticalAlignment = Element.ALIGN_MIDDLE
+            });
 
-                table.AddCell(new PdfPCell(new Phrase("Country", tableValue_Font))
-                {
-                    HorizontalAlignment = Element.ALIGN_CENTER,
-                    VerticalAlignment = Element.ALIGN_MIDDLE
-                });
+            table.AddCell(new PdfPCell(new Phrase("Country", tableValue_Font))
+            {
+                HorizontalAlignment = Element.ALIGN_CENTER,
+                VerticalAlignment = Element.ALIGN_MIDDLE
+            });
 
-                table.AddCell(new PdfPCell(new Phrase("Tracking No", tableValue_Font))
-                {
-                    HorizontalAlignment = Element.ALIGN_CENTER,
-                    VerticalAlignment = Element.ALIGN_MIDDLE
-                });
+            table.AddCell(new PdfPCell(new Phrase("Tracking No", tableValue_Font))
+            {
+                HorizontalAlignment = Element.ALIGN_CENTER,
+                VerticalAlignment = Element.ALIGN_MIDDLE
+            });
 
-                table.AddCell(new PdfPCell(new Phrase($"Rate /KG ({currencyItem.Currency})", tableValue_Font))
-                {
-                    HorizontalAlignment = Element.ALIGN_CENTER,
-                    VerticalAlignment = Element.ALIGN_MIDDLE
-                });
+            table.AddCell(new PdfPCell(new Phrase($"Rate/KG ({currencyItem.Currency})", tableValue_Font))
+            {
+                HorizontalAlignment = Element.ALIGN_CENTER,
+                VerticalAlignment = Element.ALIGN_MIDDLE
+            });
 
-                table.AddCell(new PdfPCell(new Phrase("Quantity", tableValue_Font))
-                {
-                    HorizontalAlignment = Element.ALIGN_CENTER,
-                    VerticalAlignment = Element.ALIGN_MIDDLE
-                });
+            table.AddCell(new PdfPCell(new Phrase("Quantity", tableValue_Font))
+            {
+                HorizontalAlignment = Element.ALIGN_CENTER,
+                VerticalAlignment = Element.ALIGN_MIDDLE
+            });
 
-                table.AddCell(new PdfPCell(new Phrase($"Unit Price ({currencyItem.Currency})", tableValue_Font))
-                {
-                    HorizontalAlignment = Element.ALIGN_CENTER,
-                    VerticalAlignment = Element.ALIGN_MIDDLE,
-                });
+            table.AddCell(new PdfPCell(new Phrase($"Unit Price ({currencyItem.Currency})", tableValue_Font))
+            {
+                HorizontalAlignment = Element.ALIGN_CENTER,
+                VerticalAlignment = Element.ALIGN_MIDDLE,
+            });
 
-                // Add the items for the current currency
-                foreach (var item in group)
-                {
-                    table.AddCell(new PdfPCell(new Phrase(item.DispatchNo, tableValue_Font)) { HorizontalAlignment = Element.ALIGN_CENTER, VerticalAlignment = Element.ALIGN_MIDDLE });
-                    table.AddCell(new PdfPCell(new Phrase(item.Weight.ToString("N3") == "0.000" ? "" : item.Weight.ToString("N3"), tableValue_Font)) { HorizontalAlignment = Element.ALIGN_RIGHT, VerticalAlignment = Element.ALIGN_MIDDLE });
-                    table.AddCell(new PdfPCell(new Phrase(item.Country, tableValue_Font)) { HorizontalAlignment = Element.ALIGN_CENTER, VerticalAlignment = Element.ALIGN_MIDDLE });
-                    table.AddCell(new PdfPCell(new Phrase(item.Identifier, tableValue_Font)) { HorizontalAlignment = Element.ALIGN_CENTER, VerticalAlignment = Element.ALIGN_MIDDLE });
-                    table.AddCell(new PdfPCell(new Phrase(item.Rate.ToString("N2") == "0.00" ? "" : item.Rate.ToString("N2"), tableValue_Font)) { HorizontalAlignment = Element.ALIGN_RIGHT, VerticalAlignment = Element.ALIGN_MIDDLE });
-                    table.AddCell(new PdfPCell(new Phrase(item.Quantity.ToString() == "0" ? "" : item.Quantity.ToString(), tableValue_Font)) { HorizontalAlignment = Element.ALIGN_CENTER, VerticalAlignment = Element.ALIGN_MIDDLE });
-                    table.AddCell(new PdfPCell(new Phrase(item.UnitPrice.ToString("N2") == "0.00" ? "" : item.UnitPrice.ToString("N2"), tableValue_Font)) { HorizontalAlignment = Element.ALIGN_RIGHT, VerticalAlignment = Element.ALIGN_MIDDLE });
-                    table.AddCell(new PdfPCell(new Phrase(item.Amount.ToString("N2") == "0.00" ? "" : item.Amount.ToString("N2"), tableValue_Font)) { HorizontalAlignment = Element.ALIGN_RIGHT, VerticalAlignment = Element.ALIGN_MIDDLE });
-                }
-
-                PdfPCell totalLabelCell = new PdfPCell(new Phrase("Total ", FontFactory.GetFont(FontFactory.HELVETICA, 8)))
-                {
-                    Colspan = 7,
-                    HorizontalAlignment = Element.ALIGN_RIGHT,
-                    VerticalAlignment = Element.ALIGN_MIDDLE,
-                };
-                table.AddCell(totalLabelCell);
-
-                PdfPCell totalValueCell = new PdfPCell(new Phrase(currencyItem.TotalAmount.ToString("N2"), FontFactory.GetFont(FontFactory.HELVETICA, 8)))
-                {
-                    HorizontalAlignment = Element.ALIGN_RIGHT,
-                    VerticalAlignment = Element.ALIGN_MIDDLE,
-                };
-                table.AddCell(totalValueCell);
-
-                // Add the currency table to the document
-                doc.Add(table);
-
-                // Add some spacing before the next section
-                doc.Add(new Paragraph("\n"));
+            // Add the items for the current currency
+            foreach (var item in currencyItem.Items)
+            {
+                table.AddCell(new PdfPCell(new Phrase(item.DispatchNo, tableValue_Font)) { HorizontalAlignment = Element.ALIGN_CENTER, VerticalAlignment = Element.ALIGN_MIDDLE });
+                table.AddCell(new PdfPCell(new Phrase(item.Weight.ToString("N3") == "0.000" ? "" : item.Weight.ToString("N3"), tableValue_Font)) { HorizontalAlignment = Element.ALIGN_RIGHT, VerticalAlignment = Element.ALIGN_MIDDLE });
+                table.AddCell(new PdfPCell(new Phrase(item.Country, tableValue_Font)) { HorizontalAlignment = Element.ALIGN_CENTER, VerticalAlignment = Element.ALIGN_MIDDLE });
+                table.AddCell(new PdfPCell(new Phrase(item.Identifier, tableValue_Font)) { HorizontalAlignment = Element.ALIGN_CENTER, VerticalAlignment = Element.ALIGN_MIDDLE });
+                table.AddCell(new PdfPCell(new Phrase(item.Rate.ToString("N2") == "0.00" ? "" : item.Rate.ToString("N2"), tableValue_Font)) { HorizontalAlignment = Element.ALIGN_RIGHT, VerticalAlignment = Element.ALIGN_MIDDLE });
+                table.AddCell(new PdfPCell(new Phrase(item.Quantity.ToString() == "0" ? "" : item.Quantity.ToString(), tableValue_Font)) { HorizontalAlignment = Element.ALIGN_CENTER, VerticalAlignment = Element.ALIGN_MIDDLE });
+                table.AddCell(new PdfPCell(new Phrase(item.UnitPrice.ToString("N2") == "0.00" ? "" : item.UnitPrice.ToString("N2"), tableValue_Font)) { HorizontalAlignment = Element.ALIGN_RIGHT, VerticalAlignment = Element.ALIGN_MIDDLE });
+                table.AddCell(new PdfPCell(new Phrase(item.Amount.ToString("N2") == "0.00" ? "" : item.Amount.ToString("N2"), tableValue_Font)) { HorizontalAlignment = Element.ALIGN_RIGHT, VerticalAlignment = Element.ALIGN_MIDDLE });
             }
+
+            PdfPCell totalLabelCell = new PdfPCell(new Phrase("Total ", FontFactory.GetFont(FontFactory.HELVETICA, 8)))
+            {
+                Colspan = 7,
+                HorizontalAlignment = Element.ALIGN_RIGHT,
+                VerticalAlignment = Element.ALIGN_MIDDLE,
+            };
+            table.AddCell(totalLabelCell);
+
+            PdfPCell totalValueCell = new PdfPCell(new Phrase(currencyItem.TotalAmount.ToString("N2"), FontFactory.GetFont(FontFactory.HELVETICA, 8)))
+            {
+                HorizontalAlignment = Element.ALIGN_RIGHT,
+                VerticalAlignment = Element.ALIGN_MIDDLE,
+            };
+            table.AddCell(totalValueCell);
+
+            // Add the currency table to the document
+            doc.Add(table);
+
+            // Add some spacing before the next section
+            doc.Add(new Paragraph("\n"));
+            // }
         }
 
 

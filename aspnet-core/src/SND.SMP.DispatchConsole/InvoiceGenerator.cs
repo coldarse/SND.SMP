@@ -113,7 +113,7 @@ public class InvoiceGenerator
                             Quantity = item.Quantity,
                             UnitPrice = item.UnitPrice,
                             Amount = item.Amount,
-                            ProductCode = "Others",
+                            ProductCode = "",
                             Identifier = "",
                         });
 
@@ -261,8 +261,11 @@ public class InvoiceGenerator
                         }
 
                         tempGroup.TotalAmount += tempGroup.Items.Sum(x => x.Amount);
+                    }
 
-                        if (invoice_info.ExtraCharges.Count == 0)
+                    if (invoice_info.ExtraCharges.Count == 0)
+                    {
+                        foreach (var dispatch in group)
                         {
                             var surcharge = db.WeightAdjustments.Where(u => u.ReferenceNo == dispatch.DispatchNo).Where(u => u.Description.Contains("Under Declare")).FirstOrDefault();
 
@@ -286,24 +289,9 @@ public class InvoiceGenerator
                             }
                         }
                     }
-                    items_by_currency.Add(tempGroup);
-                }
-
-                if (invoice_info.ExtraCharges.Count > 0)
-                {
-                    var grouped_surcharges_by_currency = invoice_info.ExtraCharges
-                                        .GroupBy(d => d.Currency)
-                                        .ToList();
-
-                    foreach (var group in grouped_surcharges_by_currency)
+                    else
                     {
-                        ItemsByCurrency tempGroup = new()
-                        {
-                            Currency = group.Key,
-                            Items = [],
-                            TotalAmount = 0.00m
-                        };
-                        foreach (var item in group)
+                        foreach (var item in invoice_info.ExtraCharges)
                         {
                             tempGroup.Items.Add(new SimplifiedItem()
                             {
@@ -314,24 +302,15 @@ public class InvoiceGenerator
                                 Quantity = item.Quantity,
                                 UnitPrice = item.UnitPrice,
                                 Amount = item.Amount,
-                                ProductCode = "Others",
+                                ProductCode = "",
                                 Identifier = "",
                             });
 
                             tempGroup.TotalAmount += tempGroup.Items.Sum(x => x.Amount);
                         }
-                        items_by_currency.Add(tempGroup);
                     }
+                    items_by_currency.Add(tempGroup);
                 }
-
-                items_by_currency = items_by_currency
-                        .GroupBy(item => item.Currency)
-                        .Select(group => new ItemsByCurrency
-                        {
-                            Currency = group.Key,
-                            Items = group.SelectMany(item => item.Items).ToList(),
-                            TotalAmount = group.Sum(item => item.TotalAmount)
-                        }).ToList();
             }
 
             var invoiceInfo = new InvoiceInfo()
