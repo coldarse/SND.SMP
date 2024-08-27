@@ -306,7 +306,7 @@ public class InvoiceGenerator
                                 Identifier = "",
                             });
 
-                            tempGroup.TotalAmount += tempGroup.Items.Sum(x => x.Amount);
+                            tempGroup.TotalAmount += item.Amount;
                         }
                     }
                     items_by_currency.Add(tempGroup);
