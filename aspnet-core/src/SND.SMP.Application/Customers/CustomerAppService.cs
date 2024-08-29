@@ -22,18 +22,21 @@ using Microsoft.AspNetCore.Identity;
 using Abp.IdentityFramework;
 using Abp.Runtime.Session;
 using Abp.EntityFrameworkCore.Repositories;
+using SND.SMP.Dispatches;
 
 namespace SND.SMP.Customers
 {
     public class CustomerAppService(IRepository<Customer, long> repository,
         IUserAppService userAppService,
         IRoleAppService roleAppService,
+        IRepository<Dispatch, int> dispatchRepository,
         UserManager userManager
         ) : AsyncCrudAppService<Customer, CustomerDto, long, PagedCustomerResultRequestDto>(repository)
     {
         private readonly IRoleAppService _roleAppService = roleAppService;
         private readonly IUserAppService _userAppService = userAppService;
         private readonly UserManager _userManager = userManager;
+        private readonly IRepository<Dispatch, int> _dispatchRepository = dispatchRepository;
 
         protected override IQueryable<Customer> CreateFilteredQuery(PagedCustomerResultRequestDto input)
         {
@@ -50,11 +53,29 @@ namespace SND.SMP.Customers
                     x.RegistrationNo.Contains(input.Keyword));
         }
 
-        public async Task<List<CustomerDto>> GetCustomers()
+        public async Task<List<CustomerCurrency>> GetCustomers()
         {
             var customers = await Repository.GetAllListAsync();
 
-            return ObjectMapper.Map<List<CustomerDto>>(customers);
+            var dispatches = await _dispatchRepository.GetAllListAsync(x => !x.DispatchNo.Contains("Temp"));
+
+            var distinctCustomerCodesByCurrency = dispatches
+                                                    .GroupBy(d => d.CustomerCode)
+                                                    .SelectMany(group => group
+                                                        .GroupBy(d => d.CurrencyId)
+                                                        .Select(g => {
+                                                            var companyName = customers.FirstOrDefault(y => y.Code.Equals(group.Key)).CompanyName;
+
+                                                            return new CustomerCurrency
+                                                            {
+                                                                Code = group.Key,
+                                                                CompanyName = $"{companyName} - {g.Key}",
+                                                                Currency = g.Key
+                                                            };
+                                                        }
+                                                    )).ToList();
+
+            return distinctCustomerCodesByCurrency;
         }
 
         public async Task<CompanyNameAndCode> GetCompanyNameAndCode(string email)

@@ -264,11 +264,11 @@ export class DispatchService {
       .pipe(retry(1), catchError(this.errorMessage.HandleErrorResponse));
   }
 
-  getDispatchesByCustomerAndMonth(customerCode: string, monthYear: string, custom: boolean) {
+  getDispatchesByCustomerMonthCurrency(customerCode: string, monthYear: string, currency: string, custom: boolean) {
     return this.http
       .get(
         this.url +
-          `/api/services/app/Dispatch/GetDispatchesByCustomerAndMonth?customerCode=${customerCode}&monthYear=${monthYear}&custom=${custom}`,
+          `/api/services/app/Dispatch/GetDispatchesByCustomerMonthCurrency?customerCode=${customerCode}&monthYear=${monthYear}&currency=${currency}&custom=${custom}`,
         this.options_
       )
       .pipe(retry(1), catchError(this.errorMessage.HandleErrorResponse));

@@ -10,7 +10,7 @@ import { InvoiceDto } from "@shared/service-proxies/invoices/model";
 import { InvoiceService } from "@shared/service-proxies/invoices/invoice.service";
 import { CreateUpdateInvoiceComponent } from "../invoices/create-update-invoice/create-update-invoice.component";
 import { CustomerService } from "@shared/service-proxies/customers/customer.service";
-import { CustomerDto } from "@shared/service-proxies/customers/model";
+import { CustomerCurrency, CustomerDto } from "@shared/service-proxies/customers/model";
 import { CurrencyDto } from "@shared/service-proxies/currencies/model";
 import { CurrencyService } from "@shared/service-proxies/currencies/currency.service";
 import { ApplicationSettingService } from "@shared/service-proxies/applicationsettings/applicationsetting.service";
@@ -29,7 +29,7 @@ export class InvoicesComponent extends PagedListingComponentBase<InvoiceDto> {
   keyword = "";
   invoices: any[] = [];
 
-  customers: CustomerDto[] = [];
+  customers: CustomerCurrency[] = [];
   currencies: CurrencyDto[] = [];
 
   constructor(

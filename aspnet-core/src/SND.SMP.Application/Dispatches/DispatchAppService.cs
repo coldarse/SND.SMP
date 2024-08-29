@@ -2848,6 +2848,25 @@ namespace SND.SMP.Dispatches
             return dispatchesList;
         }
 
+        public async Task<List<string>> GetDispatchesByCustomerAndCurrency(string customerCode, string currency)
+        {
+            var dispatches = await Repository.GetAllListAsync(x => x.CustomerCode.Equals(customerCode) && x.CurrencyId.Equals(currency));
+
+            List<string> dispatchesList = [];
+            if (dispatches.Count != 0)
+            {
+                foreach (var dispatch in dispatches)
+                {
+                    if (!dispatch.DispatchNo.Contains("Temp"))
+                    {
+                        dispatchesList.Add(dispatch.DispatchNo);
+                    }
+                }
+            }
+
+            return dispatchesList;
+        }
+
         [HttpPost]
         public async Task<ItemWrapper> GetItemsByCurrency(InvoiceDispatches input)
         {
@@ -2883,7 +2902,7 @@ namespace SND.SMP.Dispatches
 
                     if (input.GenerateBy.Equals(3)) //By Items
                     {
-                        items_by_currency.AddRange(dispatch_items.Select(x =>
+                        var item_item = dispatch_items.Select(x =>
                         {
                             if (dispatch.ServiceCode == "TS")
                             {
@@ -2921,13 +2940,15 @@ namespace SND.SMP.Dispatches
                                     Currency = group.Key,
                                 };
                             }
-                        }));
+                        });
 
-                        itemWrapper.TotalAmount += items_by_currency.Sum(x => x.Amount);
+                        items_by_currency.AddRange(item_item);
+
+                        itemWrapper.TotalAmount += item_item.Sum(z => z.Amount);
                     }
                     else if (input.GenerateBy.Equals(2)) //By Bags
                     {
-                        items_by_currency.AddRange(dispatch_items.GroupBy(x => x.BagNo).Select(y =>
+                        var bag_item = dispatch_items.GroupBy(x => x.BagNo).Select(y =>
                         {
                             var country_code = y.First().CountryCode;
                             var under_amount = bags.FirstOrDefault(x => x.BagNo == y.Key).UnderAmount ?? 0.00m;
@@ -2965,13 +2986,15 @@ namespace SND.SMP.Dispatches
                                 ProductCode = dispatch.ProductCode,
                                 Currency = group.Key,
                             };
-                        }));
+                        });
 
-                        itemWrapper.TotalAmount += items_by_currency.Sum(x => x.Amount);
+                        items_by_currency.AddRange(bag_item);
+
+                        itemWrapper.TotalAmount += bag_item.Sum(z => z.Amount);
                     }
                     else //By Dispatch
                     {
-                        items_by_currency.AddRange(dispatch_items.GroupBy(x => x.DispatchID).Select(y =>
+                        var dispatch_item = dispatch_items.GroupBy(x => x.DispatchID).Select(y =>
                         {
                             var country_codes = y.DistinctBy(z => z.CountryCode).ToList();
                             string all_country_code_string = "";
@@ -2996,9 +3019,11 @@ namespace SND.SMP.Dispatches
                                 ProductCode = dispatch.ProductCode,
                                 Currency = group.Key,
                             };
-                        }));
+                        });
 
-                        itemWrapper.TotalAmount += items_by_currency.Sum(x => x.Amount);
+                        items_by_currency.AddRange(dispatch_item);
+
+                        itemWrapper.TotalAmount += dispatch_item.Sum(z => z.Amount);
                     }
 
                     itemWrapper.DispatchItems = items_by_currency;
@@ -3031,7 +3056,7 @@ namespace SND.SMP.Dispatches
         }
 
 
-        public async Task<CustomerDispatchDetails> GetDispatchesByCustomerAndMonth(string customerCode, string monthYear, bool custom)
+        public async Task<CustomerDispatchDetails> GetDispatchesByCustomerMonthCurrency(string customerCode, string monthYear, string currency, bool custom)
         {
             List<DispatchDetails> dispatchesList = [];
             var customer = await _customerRepository.FirstOrDefaultAsync(x => x.Code.Equals(customerCode));
@@ -3049,6 +3074,7 @@ namespace SND.SMP.Dispatches
                 DateOnly endDate = DateOnly.FromDateTime(startDateTime.AddMonths(1));
 
                 var dispatches = await Repository.GetAllListAsync(x => x.CustomerCode.Equals(customerCode) &&
+                                                                       x.CurrencyId.Equals(currency) &&
                                                                        x.DispatchDate >= startDate &&
                                                                        x.DispatchDate < endDate);
 

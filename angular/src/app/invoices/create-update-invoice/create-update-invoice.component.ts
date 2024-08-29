@@ -16,7 +16,7 @@ import { BsModalRef } from "ngx-bootstrap/modal";
 import { DatePipe } from "@angular/common";
 import { ChibiService } from "@shared/service-proxies/chibis/chibis.service";
 import { DispatchService } from "@shared/service-proxies/dispatches/dispatch.service";
-import { CustomerDto } from "@shared/service-proxies/customers/model";
+import { CustomerCurrency, CustomerDto } from "@shared/service-proxies/customers/model";
 import { CurrencyDto } from "@shared/service-proxies/currencies/model";
 import { ApplicationSettingService } from "@shared/service-proxies/applicationsettings/applicationsetting.service";
 import {
@@ -42,7 +42,7 @@ export class CreateUpdateInvoiceComponent
   fetching = false;
   custom = false;
 
-  customers: CustomerDto[] = [];
+  customers: CustomerCurrency[] = [];
   customer_dispatch_details: CustomerDispatchDetails;
   dispatches: DispatchDetails[] = [];
   surharges: ExtraCharge[] = [];
@@ -55,7 +55,7 @@ export class CreateUpdateInvoiceComponent
     totalAmountWithSurcharge: 0,
   };
 
-  selected_customer: CustomerDto;
+  selected_customer: CustomerCurrency;
   selected_dispatches: any[] = [];
 
   invoice_item_count_threshold = 200;
@@ -151,9 +151,10 @@ export class CreateUpdateInvoiceComponent
 
     //Call API to get dispatches
     this._dispatchService
-      .getDispatchesByCustomerAndMonth(
+      .getDispatchesByCustomerMonthCurrency(
         this.selected_customer.code,
         monthYear,
+        this.selected_customer.currency,
         this.custom
       )
       .subscribe((result: any) => {
@@ -166,7 +167,7 @@ export class CreateUpdateInvoiceComponent
 
   selectedCustomer(event: any) {
     this.selected_customer = this.customers.find(
-      (x: CustomerDto) => x.code === event.target.value
+      (x: CustomerCurrency) => x.code === event.target.value
     );
 
     this.getCustomerDispatchDetails();
@@ -181,9 +182,12 @@ export class CreateUpdateInvoiceComponent
   }
 
   deleteSurcharge(index: number) {
+    let surcharge_amount = 0;
     if (index > -1 && index < this.itemWrapper.surchargeItems.length) {
+      surcharge_amount = this.itemWrapper.surchargeItems[index].amount;
       this.itemWrapper.surchargeItems.splice(index, 1);
     }
+    this.itemWrapper.totalAmountWithSurcharge -= surcharge_amount;
   }
 
   validateAndCalculate(event: KeyboardEvent, index: number, input: string) {
