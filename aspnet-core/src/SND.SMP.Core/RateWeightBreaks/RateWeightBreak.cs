@@ -18,5 +18,6 @@ namespace SND.SMP.RateWeightBreaks
         public decimal? WeightRate { get; set; }
         public bool IsExceedRule { get; set; }
         public string PaymentMode { get; set; }
+        public string Zone { get; set; }
     }
 }

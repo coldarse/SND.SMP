@@ -130,4 +130,20 @@ export class RateWeightBreakService {
             catchError(this.errorMessage.HandleErrorResponse),
         )
     }
+
+    //Upload Excel for RateWeightBreak with Zones
+    uploadRateWeightBreakFileWithZones(body: any){
+        return this.http.post(
+            this.url + '/api/services/app/RateWeightBreak/UploadRateWeightBreakFileWithZones',
+            body,
+            {
+                headers: new HttpHeaders({
+                    "Accept": "text/plain"
+                })
+            }
+        ).pipe(
+            retry(1),
+            catchError(this.errorMessage.HandleErrorResponse),
+        )
+    }
 }

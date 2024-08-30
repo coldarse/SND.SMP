@@ -46,7 +46,7 @@ export class UploadRateWeightBreakComponent
     const form = new FormData();
     form.append("file", this.formFile);
 
-    this._rateItemService.uploadRateWeightBreakFile(form).subscribe(
+    this._rateItemService.uploadRateWeightBreakFileWithZones(form).subscribe(
       () => {
         this.notify.info(this.l("UploadedSuccessfully"));
         this.bsModalRef.hide();

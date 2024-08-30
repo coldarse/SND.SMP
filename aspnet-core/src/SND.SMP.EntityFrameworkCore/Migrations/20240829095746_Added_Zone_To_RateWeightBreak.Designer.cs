@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SND.SMP.EntityFrameworkCore;
 
@@ -10,9 +11,11 @@ using SND.SMP.EntityFrameworkCore;
 namespace SND.SMP.Migrations
 {
     [DbContext(typeof(SMPDbContext))]
-    partial class SMPDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240829095746_Added_Zone_To_RateWeightBreak")]
+    partial class Added_Zone_To_RateWeightBreak
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1394,7 +1397,8 @@ namespace SND.SMP.Migrations
                         .HasColumnName("Name");
 
                     b.Property<string>("Value")
-                        .HasColumnType("longtext")
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)")
                         .HasColumnName("Value");
 
                     b.HasKey("Id");
@@ -2431,6 +2435,31 @@ namespace SND.SMP.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("IMPCS", (string)null);
+                });
+
+            modelBuilder.Entity("SND.SMP.Invoices.Invoice", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<string>("Customer")
+                        .HasMaxLength(512)
+                        .HasColumnType("varchar(512)")
+                        .HasColumnName("Customer");
+
+                    b.Property<DateTime>("DateTime")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("DateTime");
+
+                    b.Property<string>("InvoiceNo")
+                        .HasMaxLength(128)
+                        .HasColumnType("varchar(128)")
+                        .HasColumnName("InvoiceNo");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Invoices", (string)null);
                 });
 
             modelBuilder.Entity("SND.SMP.ItemIdRunningNos.ItemIdRunningNo", b =>
