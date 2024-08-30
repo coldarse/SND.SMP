@@ -298,20 +298,40 @@ public class InvoiceGenerator
                     {
                         foreach (var item in invoice_info.ExtraCharges)
                         {
-                            tempGroup.Items.Add(new SimplifiedItem()
+                            if (item.Description.Contains("under declared") && invoice_info.GenerateBy.Equals(1))
                             {
-                                DispatchNo = item.Description,
-                                Weight = item.Weight,
-                                Country = item.Country,
-                                Rate = item.RatePerKG,
-                                Quantity = item.Quantity,
-                                UnitPrice = item.UnitPrice,
-                                Amount = item.Amount,
-                                ProductCode = "",
-                                Identifier = "",
-                            });
+                                tempGroup.Items.Add(new SimplifiedItem()
+                                {
+                                    DispatchNo = item.Description,
+                                    Weight = item.Weight,
+                                    Country = item.Country,
+                                    Rate = item.RatePerKG,
+                                    Quantity = item.Quantity,
+                                    UnitPrice = item.UnitPrice,
+                                    Amount = item.Amount,
+                                    ProductCode = "",
+                                    Identifier = "",
+                                });
 
-                            tempGroup.TotalAmount += item.Amount;
+                                tempGroup.TotalAmount += item.Amount;
+                            }
+                            else
+                            {
+                                tempGroup.Items.Add(new SimplifiedItem()
+                                {
+                                    DispatchNo = item.Description,
+                                    Weight = item.Weight,
+                                    Country = item.Country,
+                                    Rate = item.RatePerKG,
+                                    Quantity = item.Quantity,
+                                    UnitPrice = item.UnitPrice,
+                                    Amount = item.Amount,
+                                    ProductCode = "",
+                                    Identifier = "",
+                                });
+
+                                tempGroup.TotalAmount += item.Amount;
+                            }
                         }
                     }
                     items_by_currency.Add(tempGroup);
