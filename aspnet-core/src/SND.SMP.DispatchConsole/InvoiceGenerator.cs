@@ -216,7 +216,6 @@ public class InvoiceGenerator
                                     }
                                 }
 
-
                                 return new SimplifiedItem()
                                 {
                                     DispatchNo = dispatch.DispatchNo,
@@ -237,12 +236,19 @@ public class InvoiceGenerator
                             {
                                 var country_codes = y.DistinctBy(z => z.CountryCode).ToList();
                                 string all_country_code_string = "";
-                                for (int i = 0; i < country_codes.Count; i++)
+                                if (country_codes.Count == 1)
                                 {
-                                    var code = country_codes[i];
+                                    all_country_code_string = country_codes[0].CountryCode;
+                                }
+                                else
+                                {
+                                    for (int i = 0; i < country_codes.Count; i++)
+                                    {
+                                        var code = country_codes[i];
 
-                                    if (i == items.Count - 1) all_country_code_string += code.CountryCode;
-                                    else all_country_code_string += code.CountryCode + ", ";
+                                        if (i == items.Count - 1) all_country_code_string += code.CountryCode;
+                                        else all_country_code_string += code.CountryCode + ", ";
+                                    }
                                 }
 
                                 return new SimplifiedItem()
@@ -254,13 +260,12 @@ public class InvoiceGenerator
                                     Rate = 0.00m,
                                     Quantity = (int)dispatch.ItemCount,
                                     UnitPrice = 0.00m,
-                                    Amount = (decimal)dispatch.TotalPrice,
+                                    Amount = (decimal)y.Sum(i => i.Price),
                                     ProductCode = dispatch.ProductCode,
                                 };
                             }));
                         }
-
-                        tempGroup.TotalAmount += tempGroup.Items.Sum(x => x.Amount);
+                        tempGroup.TotalAmount = tempGroup.Items.Sum(x => x.Amount);
                     }
 
                     if (invoice_info.ExtraCharges.Count == 0)
@@ -269,7 +274,7 @@ public class InvoiceGenerator
                         {
                             var surcharge = db.WeightAdjustments.Where(u => u.ReferenceNo == dispatch.DispatchNo).Where(u => u.Description.Contains("Under Declare")).FirstOrDefault();
 
-                            if (surcharge != null)
+                            if (surcharge != null && invoice_info.GenerateBy.Equals(1))
                             {
                                 var surcharge_item = new SimplifiedItem()
                                 {

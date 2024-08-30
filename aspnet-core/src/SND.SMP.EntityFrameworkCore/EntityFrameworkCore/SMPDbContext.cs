@@ -553,6 +553,7 @@ namespace SND.SMP.EntityFrameworkCore
                 b.Property(x => x.WeightRate).HasColumnName(nameof(RateWeightBreak.WeightRate)).HasPrecision(18, 2).IsRequired(false);
                 b.Property(x => x.IsExceedRule).HasColumnName(nameof(RateWeightBreak.IsExceedRule));
                 b.Property(x => x.PaymentMode).HasColumnName(nameof(RateWeightBreak.PaymentMode)).HasMaxLength(128);
+                b.Property(x => x.Zone).HasColumnName(nameof(RateWeightBreak.Zone)).HasMaxLength(58);
                 b.HasOne<Rate>().WithMany().HasForeignKey(x => x.RateId);
                 b.HasOne<PostalOrg>().WithMany().HasForeignKey(x => x.PostalOrgId);
                 b.HasOne<Currency>().WithMany().HasForeignKey(x => x.CurrencyId);
