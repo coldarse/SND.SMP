@@ -422,7 +422,7 @@
             <input
               type="text"
               class="form-control"
-              (keypress)="validateAndCalculate($event, $index, 'weight')"
+              (keydown)="validateAndCalculate($event, $index, 'weight')"
               placeholder="3.015"
             />
           </div>
@@ -439,7 +439,7 @@
             <input
               type="text"
               class="form-control"
-              (keypress)="validateAndCalculate($event, $index, 'ratePerKG')"
+              (keydown)="validateAndCalculate($event, $index, 'ratePerKG')"
               placeholder="1.05"
             />
           </div>
@@ -447,7 +447,7 @@
             <input
               type="text"
               class="form-control"
-              (keypress)="validateAndCalculate($event, $index, 'quantity')"
+              (keydown)="validateAndCalculate($event, $index, 'quantity')"
               placeholder="5"
             />
           </div>
@@ -455,16 +455,17 @@
             <input
               type="text"
               class="form-control"
-              (keypress)="validateAndCalculate($event, $index, 'unitPrice')"
+              (keydown)="validateAndCalculate($event, $index, 'unitPrice')"
               placeholder="4.15"
             />
           </div>
           <div class="col-2">
             <input
               type="text"
-              [(ngModel)]="surcharge.amount"
+              [ngModel]="surcharge.initial ? surcharge.amount : isSelfInput($index) ? surcharge.amount : null"
+              (ngModelChange)="surcharge.initial ? (surcharge.amount = $event) : isSelfInput($index) ? (surcharge.amount = $event) : null"
               [ngModelOptions]="{ standalone: true }"
-              (keypress)="validateAndCalculate($event, $index, 'amount')"
+              (keydown)="validateAndCalculate($event, $index, 'amount')"
               class="form-control"
               placeholder="5.00"
             />
@@ -494,6 +495,7 @@
               type="number"
               [(ngModel)]="itemWrapper.totalAmountWithSurcharge"
               [ngModelOptions]="{ standalone: true }"
+              [disabled]="true"
               class="form-control"
           /></label>
         </div>

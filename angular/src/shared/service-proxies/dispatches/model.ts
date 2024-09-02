@@ -259,6 +259,7 @@ export interface SimplifiedItem {
   amount: number;
   productCode: string;
   currency: string;
+  initial: boolean;
 }
 
 export interface CustomerDispatchDetails {
@@ -270,7 +271,7 @@ export interface ItemWrapper {
   dispatchItems: SimplifiedItem[];
   surchargeItems: SimplifiedItem[];
   totalAmount: number;
-  totalAmountWithSurcharge: number;
+  totalAmountWithSurcharge: string;
 }
 
 

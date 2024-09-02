@@ -3044,6 +3044,7 @@ namespace SND.SMP.Dispatches
                             Amount = surcharge.Amount,
                             ProductCode = "",
                             Currency = group.Key,
+                            Initial = true,
                         };
 
                         itemWrapper.SurchargeItems.Add(surcharge_item);

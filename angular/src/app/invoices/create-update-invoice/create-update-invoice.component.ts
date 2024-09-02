@@ -16,7 +16,10 @@ import { BsModalRef } from "ngx-bootstrap/modal";
 import { DatePipe } from "@angular/common";
 import { ChibiService } from "@shared/service-proxies/chibis/chibis.service";
 import { DispatchService } from "@shared/service-proxies/dispatches/dispatch.service";
-import { CustomerCurrency, CustomerDto } from "@shared/service-proxies/customers/model";
+import {
+  CustomerCurrency,
+  CustomerDto,
+} from "@shared/service-proxies/customers/model";
 import { CurrencyDto } from "@shared/service-proxies/currencies/model";
 import { ApplicationSettingService } from "@shared/service-proxies/applicationsettings/applicationsetting.service";
 import {
@@ -52,7 +55,7 @@ export class CreateUpdateInvoiceComponent
     dispatchItems: [],
     surchargeItems: [],
     totalAmount: 0,
-    totalAmountWithSurcharge: 0,
+    totalAmountWithSurcharge: "0",
   };
 
   selected_customer: CustomerCurrency;
@@ -187,46 +190,68 @@ export class CreateUpdateInvoiceComponent
       surcharge_amount = this.itemWrapper.surchargeItems[index].amount;
       this.itemWrapper.surchargeItems.splice(index, 1);
     }
-    this.itemWrapper.totalAmountWithSurcharge -= surcharge_amount;
+    this.itemWrapper.totalAmountWithSurcharge = (+this.itemWrapper.totalAmountWithSurcharge - surcharge_amount).toFixed(2);
   }
 
   validateAndCalculate(event: KeyboardEvent, index: number, input: string) {
     let surcharge = this.itemWrapper.surchargeItems[index];
-    const inputChar = event.key;
-    const currentInput = (event.target as HTMLInputElement).value;
-    const newValue = currentInput + inputChar;
 
-    switch (input) {
-      case "weight":
-        const pattern1 = /^\d+(\.\d{0,3})?$/;
-        if (!pattern1.test(newValue)) {
-          event.preventDefault();
-        } else surcharge.weight = +newValue;
-        break;
-      case "ratePerKG":
-        const pattern2 = /^\d+(\.\d{0,2})?$/;
-        if (!pattern2.test(newValue)) {
-          event.preventDefault();
-        } else surcharge.rate = +newValue;
-        break;
-      case "unitPrice":
-        const pattern3 = /^\d+(\.\d{0,2})?$/;
-        if (!pattern3.test(newValue)) {
-          event.preventDefault();
-        } else surcharge.unitPrice = +newValue;
-        break;
-      case "quantity":
-        const pattern4 = /^\d+$/;
-        if (!pattern4.test(newValue)) {
-          event.preventDefault();
-        } else surcharge.quantity = +newValue;
-        break;
-      case "amount":
-        const pattern5 = /^\d+(\.\d{0,2})?$/;
-        if (!pattern5.test(newValue)) {
-          event.preventDefault();
-        } else surcharge.amount = +newValue;
-        break;
+    if (event.key === "Backspace" || event.key === "Delete") {
+      switch (input) {
+        case "weight":
+          surcharge.weight = +surcharge.weight.toString().slice(0, -1);
+          break;
+        case "ratePerKG":
+          surcharge.rate = +surcharge.rate.toString().slice(0, -1);
+          break;
+        case "unitPrice":
+          surcharge.unitPrice = +surcharge.unitPrice.toString().slice(0, -1);
+          break;
+        case "quantity":
+          surcharge.quantity = +surcharge.quantity.toString().slice(0, -1);
+          break;
+        case "amount":
+          surcharge.amount = +surcharge.amount.toString().slice(0, -1);
+          break;
+      }
+    } else {
+      const inputChar = event.key;
+      const currentInput = (event.target as HTMLInputElement).value;
+      const newValue = currentInput + inputChar;
+
+      switch (input) {
+        case "weight":
+          const pattern1 = /^\d+(\.\d{0,3})?$/;
+          if (!pattern1.test(newValue)) {
+            event.preventDefault();
+          } else surcharge.weight = +newValue;
+          break;
+        case "ratePerKG":
+          const pattern2 = /^\d+(\.\d{0,2})?$/;
+          if (!pattern2.test(newValue)) {
+            event.preventDefault();
+          } else surcharge.rate = +newValue;
+          break;
+        case "unitPrice":
+          const pattern3 = /^\d+(\.\d{0,2})?$/;
+          if (!pattern3.test(newValue)) {
+            event.preventDefault();
+          } else surcharge.unitPrice = +newValue;
+          break;
+        case "quantity":
+          const pattern4 = /^\d+$/;
+          if (!pattern4.test(newValue)) {
+            event.preventDefault();
+          } else surcharge.quantity = +newValue;
+          break;
+        case "amount":
+          const pattern5 = /^\d+(\.\d{0,2})?$/;
+          if (!pattern5.test(newValue)) {
+            event.preventDefault();
+          }
+          else surcharge.amount = +newValue;
+          break;
+      }
     }
 
     if (input !== "amount") {
@@ -242,11 +267,23 @@ export class CreateUpdateInvoiceComponent
 
     let totalSurchargeAmount = 0;
     this.itemWrapper.surchargeItems.forEach((surcharge: SimplifiedItem) => {
-      totalSurchargeAmount += surcharge.amount;
+      totalSurchargeAmount += +surcharge.amount;
     });
 
     this.itemWrapper.totalAmountWithSurcharge =
-      this.itemWrapper.totalAmount + totalSurchargeAmount;
+      (this.itemWrapper.totalAmount + totalSurchargeAmount).toFixed(2);
+  }
+
+  isSelfInput(index: number) {
+    let surcharge = this.itemWrapper.surchargeItems[index];
+
+    if(
+      surcharge.weight == 0 &&
+      surcharge.rate == 0 &&
+      surcharge.unitPrice == 0 &&
+      surcharge.quantity == 0
+    ) return false;
+    else return true;
   }
 
   addSurcharge() {
@@ -261,6 +298,7 @@ export class CreateUpdateInvoiceComponent
       amount: 0,
       productCode: "",
       currency: "",
+      initial: false,
     });
   }
 
@@ -327,8 +365,7 @@ export class CreateUpdateInvoiceComponent
           currency: surcharge.currency,
         });
       });
-    }
-    else {
+    } else {
       this.invoice_info.extraCharges = [];
     }
 

@@ -13,6 +13,7 @@ public class SimplifiedItem
     public decimal Amount { get; set; }
     public string ProductCode { get; set; }
     public string Currency { get; set; }
+    public bool Initial { get; set; } = true;
 }
 
 public class InvoiceDispatches
