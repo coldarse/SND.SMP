@@ -2902,7 +2902,7 @@ namespace SND.SMP.Dispatches
 
                     if (input.GenerateBy.Equals(3)) //By Items
                     {
-                        var item_item = dispatch_items.Select(x =>
+                        items_by_currency.AddRange(dispatch_items.Select(x =>
                         {
                             if (dispatch.ServiceCode == "TS")
                             {
@@ -2940,15 +2940,11 @@ namespace SND.SMP.Dispatches
                                     Currency = group.Key,
                                 };
                             }
-                        });
-
-                        items_by_currency.AddRange(item_item);
-
-                        itemWrapper.TotalAmount += item_item.Sum(z => z.Amount);
+                        }));
                     }
                     else if (input.GenerateBy.Equals(2)) //By Bags
                     {
-                        var bag_item = dispatch_items.GroupBy(x => x.BagNo).Select(y =>
+                        items_by_currency.AddRange(dispatch_items.GroupBy(x => x.BagNo).Select(y =>
                         {
                             var country_code = y.First().CountryCode;
                             var under_amount = bags.FirstOrDefault(x => x.BagNo == y.Key).UnderAmount ?? 0.00m;
@@ -2986,24 +2982,27 @@ namespace SND.SMP.Dispatches
                                 ProductCode = dispatch.ProductCode,
                                 Currency = group.Key,
                             };
-                        });
-
-                        items_by_currency.AddRange(bag_item);
-
-                        itemWrapper.TotalAmount += bag_item.Sum(z => z.Amount);
+                        }));
                     }
                     else //By Dispatch
                     {
-                        var dispatch_item = dispatch_items.GroupBy(x => x.DispatchID).Select(y =>
+                        items_by_currency.AddRange(dispatch_items.GroupBy(x => x.DispatchID).Select(y =>
                         {
                             var country_codes = y.DistinctBy(z => z.CountryCode).ToList();
                             string all_country_code_string = "";
-                            for (int i = 0; i < country_codes.Count; i++)
+                            if (country_codes.Count == 1)
                             {
-                                var code = country_codes[i];
+                                all_country_code_string = country_codes[0].CountryCode;
+                            }
+                            else
+                            {
+                                for (int i = 0; i < country_codes.Count; i++)
+                                {
+                                    var code = country_codes[i];
 
-                                if (i == items.Count - 1) all_country_code_string += code.CountryCode;
-                                else all_country_code_string += code.CountryCode + ", ";
+                                    if (i == items.Count - 1) all_country_code_string += code.CountryCode;
+                                    else all_country_code_string += code.CountryCode + ", ";
+                                }
                             }
 
                             return new SimplifiedItem()
@@ -3015,18 +3014,14 @@ namespace SND.SMP.Dispatches
                                 Rate = 0.00m,
                                 Quantity = (int)dispatch.ItemCount,
                                 UnitPrice = 0.00m,
-                                Amount = (decimal)dispatch.TotalPrice,
+                                Amount = (decimal)y.Sum(i => i.Price),
                                 ProductCode = dispatch.ProductCode,
                                 Currency = group.Key,
                             };
-                        });
-
-                        items_by_currency.AddRange(dispatch_item);
-
-                        itemWrapper.TotalAmount += dispatch_item.Sum(z => z.Amount);
+                        }));
                     }
-
                     itemWrapper.DispatchItems = items_by_currency;
+                    itemWrapper.TotalAmount = itemWrapper.DispatchItems.Sum(i => i.Amount);
 
                     var surcharge = await _weightAdjustmentRepository.FirstOrDefaultAsync(u => u.ReferenceNo == dispatch.DispatchNo && u.Description.Contains("Under Declare"));
 
@@ -3120,7 +3115,8 @@ namespace SND.SMP.Dispatches
                     }
                 }
             }
-            return new CustomerDispatchDetails(){
+            return new CustomerDispatchDetails()
+            {
                 Details = dispatchesList,
                 Address = address
             };
