@@ -268,13 +268,13 @@ public class InvoiceGenerator
                         tempGroup.TotalAmount = tempGroup.Items.Sum(x => x.Amount);
                     }
 
-                    if (invoice_info.ExtraCharges.Count == 0)
+                    if (invoice_info.ExtraCharges.Count == 0 && invoice_info.GenerateBy.Equals(1))
                     {
                         foreach (var dispatch in group)
                         {
                             var surcharge = db.WeightAdjustments.Where(u => u.ReferenceNo == dispatch.DispatchNo).Where(u => u.Description.Contains("Under Declare")).FirstOrDefault();
 
-                            if (surcharge != null && invoice_info.GenerateBy.Equals(1))
+                            if (surcharge != null)
                             {
                                 var surcharge_item = new SimplifiedItem()
                                 {
@@ -315,7 +315,7 @@ public class InvoiceGenerator
 
                                 tempGroup.TotalAmount += item.Amount;
                             }
-                            else
+                            else if (!item.Description.Contains("under declared"))
                             {
                                 tempGroup.Items.Add(new SimplifiedItem()
                                 {
