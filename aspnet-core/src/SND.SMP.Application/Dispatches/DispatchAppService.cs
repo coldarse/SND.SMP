@@ -1348,6 +1348,7 @@ namespace SND.SMP.Dispatches
                 bag.WeightVariance = null;
                 bag.WeightPost = null;
                 bag.ItemCountPost = null;
+                bag.UnderAmount = 0.00m;
             }
 
             var items = await _itemRepository.GetAllListAsync(x => x.DispatchID.Equals(dispatch.Id));

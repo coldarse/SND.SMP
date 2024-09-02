@@ -225,7 +225,7 @@ public class InvoiceGenerator
                                     Rate = ratePerKG,
                                     Quantity = y.Count(),
                                     UnitPrice = unitPrice,
-                                    Amount = (decimal)y.Sum(i => i.Price),
+                                    Amount = (decimal)y.Sum(i => i.Price) + under_amount,
                                     ProductCode = dispatch.ProductCode
                                 };
                             }));
