@@ -15,6 +15,7 @@ namespace SND.SMP.RateWeightBreaks.Dto
 	{
         public string WeightBreak { get; set; }
         public string ProductCode { get; set; } = "";
+        public string Zone { get; set; } = "";
         public decimal? ItemRate { get; set; }
         public decimal? WeightRate { get; set; }
         public bool IsExceedRule { get; set; }
