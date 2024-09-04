@@ -151,17 +151,19 @@ namespace SND.SMP.RateWeightBreaks
                 {
                     WeightBreak = rwb.WeightMin.ToString() + " - " + rwb.WeightMax.ToString(),
                     ProductCode = rwb.ProductCode,
+                    Zone = rwb.Zone,
                     ItemRate = rwb.ItemRate,
                     WeightRate = rwb.WeightRate,
                     IsExceedRule = rwb.IsExceedRule,
                 });
             }
 
-            var distinctedProduct = wbs.DistinctBy(x => x.ProductCode);
+            var distinctedProduct = wbs.DistinctBy(x => (x.ProductCode, x.Zone));
             List<string> products = [];
             foreach (var dp in distinctedProduct.ToList())
             {
-                products.Add(dp.ProductCode);
+                string product = dp.Zone == "" ? dp.ProductCode : dp.ProductCode + " - " + dp.Zone;
+                products.Add(product);
             }
 
             var exceeds = wbs.Where(x => x.WeightBreak.Equals("0.00 - 0.00")).ToList();
