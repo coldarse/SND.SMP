@@ -820,7 +820,7 @@ namespace SND.SMP.Chibis
                             TransactionType = "Refund Amount after Delete Dispatch",
                             Amount = Math.Abs(refundAmount),
                             ReferenceNo = dispatch.DispatchNo,
-                            Description = $"Credited {currency.Abbr} {decimal.Round(Math.Abs(refundAmount), 2, MidpointRounding.AwayFromZero)} to {wallet.Customer}'s {wallet.Id} Wallet. Remaining {currency.Abbr} {decimal.Round(wallet.Balance, 2, MidpointRounding.AwayFromZero)}.",
+                            Description = $"Credited {currency.Abbr} {decimal.Round(Math.Abs(refundAmount), 2, MidpointRounding.AwayFromZero)} to {wallet.Customer}'s {wallet.Id} Wallet.",
                             TransactionDate = DateTime.Now,
                         }).ConfigureAwait(false);
                     }

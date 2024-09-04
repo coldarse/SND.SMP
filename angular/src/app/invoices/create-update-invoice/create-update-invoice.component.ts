@@ -169,8 +169,11 @@ export class CreateUpdateInvoiceComponent
   }
 
   selectedCustomer(event: any) {
+    let split = event.target.value.toString().split("|");
     this.selected_customer = this.customers.find(
-      (x: CustomerCurrency) => x.code === event.target.value
+      (x: CustomerCurrency) => 
+          x.code === split[0] &&
+          x.currency === split[1]
     );
 
     this.getCustomerDispatchDetails();

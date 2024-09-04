@@ -1392,7 +1392,7 @@ namespace SND.SMP.Dispatches
                     TransactionType = "Refund Amount",
                     Amount = Math.Abs(refundAmount),
                     ReferenceNo = dispatch.DispatchNo,
-                    Description = $"Credited {currency.Abbr} {decimal.Round(Math.Abs(refundAmount), 2, MidpointRounding.AwayFromZero)} to {wallet.Customer}'s {wallet.Id} Wallet. Remaining {currency.Abbr} {decimal.Round(wallet.Balance, 2, MidpointRounding.AwayFromZero)}.",
+                    Description = $"Credited {currency.Abbr} {decimal.Round(Math.Abs(refundAmount), 2, MidpointRounding.AwayFromZero)} to {wallet.Customer}'s {wallet.Id} Wallet.",
                     TransactionDate = DateTime.Now
                 });
 
@@ -1615,7 +1615,7 @@ namespace SND.SMP.Dispatches
                             TransactionType = "Surcharge Amount",
                             Amount = -totalSurchargePrice,
                             ReferenceNo = dispatch.DispatchNo,
-                            Description = $"Deducted {currency.Abbr} {decimal.Round(Math.Abs(totalSurchargePrice), 2, MidpointRounding.AwayFromZero)} from {wallet.Customer}'s {wallet.Id} Wallet. Remaining {currency.Abbr} {decimal.Round(wallet.Balance, 2, MidpointRounding.AwayFromZero)}.",
+                            Description = $"Deducted {currency.Abbr} {decimal.Round(Math.Abs(totalSurchargePrice), 2, MidpointRounding.AwayFromZero)} from {wallet.Customer}'s {wallet.Id} Wallet.",
                             TransactionDate = DateTime.Now
                         }).ConfigureAwait(false);
 
@@ -1783,7 +1783,7 @@ namespace SND.SMP.Dispatches
                     TransactionType = "Surcharge Amount",
                     Amount = -totalSurchargePrice,
                     ReferenceNo = dispatch.DispatchNo,
-                    Description = $"Deducted {currency.Abbr} {decimal.Round(Math.Abs(totalSurchargePrice), 2, MidpointRounding.AwayFromZero)} from {wallet.Customer}'s {wallet.Id} Wallet. Remaining {currency.Abbr} {decimal.Round(wallet.Balance, 2, MidpointRounding.AwayFromZero)}.",
+                    Description = $"Deducted {currency.Abbr} {decimal.Round(Math.Abs(totalSurchargePrice), 2, MidpointRounding.AwayFromZero)} from {wallet.Customer}'s {wallet.Id} Wallet.",
                     TransactionDate = DateTime.Now
                 }).ConfigureAwait(false);
 
@@ -2648,7 +2648,7 @@ namespace SND.SMP.Dispatches
                         TransactionType = "Surcharge Amount",
                         Amount = -totalSurchargePrice,
                         ReferenceNo = dispatch.DispatchNo,
-                        Description = $"Deducted {currency.Abbr} {decimal.Round(Math.Abs(totalSurchargePrice), 2, MidpointRounding.AwayFromZero)} from {wallet.Customer}'s {wallet.Id} Wallet. Remaining {currency.Abbr} {decimal.Round(wallet.Balance, 2, MidpointRounding.AwayFromZero)}.",
+                        Description = $"Deducted {currency.Abbr} {decimal.Round(Math.Abs(totalSurchargePrice), 2, MidpointRounding.AwayFromZero)} from {wallet.Customer}'s {wallet.Id} Wallet.",
                         TransactionDate = DateTime.Now
                     });
 
