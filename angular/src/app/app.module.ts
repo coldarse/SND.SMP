@@ -42,6 +42,9 @@ import { SidebarMenuComponent } from "./layout/sidebar-menu.component";
 import { EmailContentsComponent } from './emailcontents/emailcontents.component';
 import { CreateUpdateEmailContentComponent } from './emailcontents/create-update-emailcontent/create-update-emailcontent.component';
 import { EmailContentService } from '@shared/service-proxies/emailcontents/emailcontent.service';
+import { RateZonesComponent } from './ratezones/ratezones.component';
+import { CreateUpdateRateZoneComponent } from './ratezones/create-update-ratezone/create-update-ratezone.component';
+import { RateZoneService } from '@shared/service-proxies/ratezones/ratezone.service';
 
 import { AirportsComponent } from './airports/airports.component';
 import { CreateUpdateAirportComponent } from './airports/create-update-airport/create-update-airport.component';
@@ -183,6 +186,8 @@ import { AngularEditorModule } from '@kolkov/angular-editor';
     SidebarUserPanelComponent,
     SidebarMenuComponent,
     /* Insert Component */
+        RateZonesComponent,
+        CreateUpdateRateZoneComponent,
     EmailContentsComponent,
     CreateUpdateEmailContentComponent,
     AirportsComponent,
@@ -264,6 +269,9 @@ import { AngularEditorModule } from '@kolkov/angular-editor';
     /* Insert Service */
         EmailContentService,
         AirportService,
+        RateZoneService,
+    EmailContentService,
+    AirportService,
     ItemTrackingReviewService,
     ItemTrackingApplicationService,
     IMPCService,

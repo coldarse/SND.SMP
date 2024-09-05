@@ -9,6 +9,7 @@ import { TenantsComponent } from "./tenants/tenants.component";
 import { RolesComponent } from "app/roles/roles.component";
 import { ChangePasswordComponent } from "./users/change-password/change-password.component";
 /* Insert Routing Import */
+import { RateZonesComponent } from './ratezones/ratezones.component';
 import { EmailContentsComponent } from './emailcontents/emailcontents.component';
 import { AirportsComponent } from "./airports/airports.component";
 import { ItemTrackingApplicationsComponent } from "./item-tracking-applications/item-tracking-application.component";
@@ -74,6 +75,7 @@ import { SearchItemComponent } from "./search-item/search-item.component";
             canActivate: [AppRouteGuard],
           },
           /* Insert Path */
+                    { path: 'ratezones', data: { permission: 'Pages.RateZone' }, component: RateZonesComponent, canActivate: [AppRouteGuard] },
           { path: 'emailcontents', data: { permission: 'Pages.EmailContent' }, component: EmailContentsComponent, canActivate: [AppRouteGuard] },
           {
             path: "airports",
