@@ -4,6 +4,7 @@ using SND.SMP.Authorization.Roles;
 using SND.SMP.Authorization.Users;
 using SND.SMP.MultiTenancy;
 /* Using Definition */
+using SND.SMP.RateZones;
 using SND.SMP.Invoices;
 using SND.SMP.TrackingStatuses;
 using SND.SMP.TrackingNoForUpdates;
@@ -78,6 +79,7 @@ namespace SND.SMP.EntityFrameworkCore
         public DbSet<TrackingNoForUpdate> TrackingNoForUpdates { get; set; }
         public DbSet<TrackingStatus> TrackingStatuses { get; set; }
         public DbSet<Invoice> Invoices { get; set; }
+        public DbSet<RateZone> RateZones { get; set; }
         /* Define a DbSet for each entity of the application */
 
         public SMPDbContext(DbContextOptions<SMPDbContext> options)
@@ -90,6 +92,15 @@ namespace SND.SMP.EntityFrameworkCore
             base.OnModelCreating(builder);
 
             /* Define Tables */
+            builder.Entity<RateZone>(b =>
+            {
+                b.ToTable(SMPConsts.DbTablePrefix + "RateZones");
+                b.Property(x => x.Zone).HasColumnName(nameof(RateZone.Zone)).HasMaxLength(64);
+                b.Property(x => x.State).HasColumnName(nameof(RateZone.State)).HasMaxLength(64);
+                b.Property(x => x.City).HasColumnName(nameof(RateZone.City)).HasMaxLength(64);
+                b.HasKey(x => x.Id);
+            });
+
             builder.Entity<Invoice>(b =>
             {
                 b.ToTable(SMPConsts.DbTablePrefix + "Invoices");

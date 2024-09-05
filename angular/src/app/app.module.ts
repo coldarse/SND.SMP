@@ -39,6 +39,10 @@ import { SidebarLogoComponent } from "./layout/sidebar-logo.component";
 import { SidebarUserPanelComponent } from "./layout/sidebar-user-panel.component";
 import { SidebarMenuComponent } from "./layout/sidebar-menu.component";
 /* Insert Import */
+import { RateZonesComponent } from './ratezones/ratezones.component';
+import { CreateUpdateRateZoneComponent } from './ratezones/create-update-ratezone/create-update-ratezone.component';
+import { RateZoneService } from '@shared/service-proxies/ratezones/ratezone.service';
+
 import { InvoicesComponent } from "./invoices/invoices.component";
 import { CreateUpdateInvoiceComponent } from "./invoices/create-update-invoice/create-update-invoice.component";
 import { InvoiceService } from "@shared/service-proxies/invoices/invoice.service";
@@ -189,6 +193,8 @@ import { DatePipe } from '@angular/common';
     SidebarUserPanelComponent,
     SidebarMenuComponent,
     /* Insert Component */
+        RateZonesComponent,
+        CreateUpdateRateZoneComponent,
     InvoicesComponent,
     CreateUpdateInvoiceComponent,
     EmailContentsComponent,
@@ -271,6 +277,7 @@ import { DatePipe } from '@angular/common';
   ],
   providers: [
     /* Insert Service */
+        RateZoneService,
     InvoiceService,
     EmailContentService,
     AirportService,
