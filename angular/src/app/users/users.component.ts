@@ -78,6 +78,7 @@ export class UsersComponent extends PagedListingComponentBase<UserDto> {
       )
       .subscribe((result: UserDtoPagedResultDto) => {
         this.users = result.items;
+        this.users = this.users.filter(x => x.emailAddress !== 'admin@admin.com');
         this.showPaging(result, pageNumber);
       });
   }
