@@ -203,6 +203,12 @@ export class SidebarMenuComponent extends AppComponentBase implements OnInit {
           "fas fa-mail-bulk",
           "Pages.EmailContent"
         ),
+        new MenuItem(
+          this.l('RateZones'),
+          '/app/ratezones',
+          'fas fa-warehouse',
+          'Pages.RateZone'
+      ),
       ]),
       new MenuItem(this.l("Administration"), "", "fas fa-user-shield", "Pages.Administration", [
         new MenuItem(
