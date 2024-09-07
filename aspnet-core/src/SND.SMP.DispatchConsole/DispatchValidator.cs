@@ -17,6 +17,7 @@ using SND.SMP.DispatchUsedAmounts;
 using System.Text;
 using OfficeOpenXml;
 using SND.SMP.ItemTrackingReviews;
+using Abp.Extensions;
 
 namespace SND.SMP.DispatchConsole
 {
@@ -246,9 +247,9 @@ namespace SND.SMP.DispatchConsole
                             var identityNo = reader[20] == null ? "" : reader[20].ToString()!;
                             var identityType = reader[21] == null ? "" : reader[21].ToString()!;
                             var state = reader[22].ToString()!;
-                            var length = reader[23] == null ? 0 : Convert.ToDecimal(reader[23]);
-                            var width = reader[24] == null ? 0 : Convert.ToDecimal(reader[24]);
-                            var height = reader[25] == null ? 0 : Convert.ToDecimal(reader[25]);
+                            var length = reader[23].ToString().IsNullOrWhiteSpace() ? 0 : Convert.ToDecimal(reader[23]);
+                            var width =  reader[24].ToString().IsNullOrWhiteSpace() ? 0 : Convert.ToDecimal(reader[24]);
+                            var height = reader[25].ToString().IsNullOrWhiteSpace() ? 0 : Convert.ToDecimal(reader[25]);
                             var taxPaymentMethod = reader[26] == null ? "" : reader[26].ToString()!;
                             var hsCode = reader[27] == null ? "" : reader[27].ToString()!;
                             var qty = reader[28] == null ? 0 : Convert.ToInt32(reader[28]);

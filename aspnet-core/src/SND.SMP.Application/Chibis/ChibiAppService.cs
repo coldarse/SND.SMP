@@ -1073,8 +1073,9 @@ namespace SND.SMP.Chibis
         public async Task<bool> PreCheckUpload([FromForm] PreCheckDto uploadPreCheck)
         {
             var dispatch = await _dispatchRepository.FirstOrDefaultAsync(x => x.DispatchNo.Equals(uploadPreCheck.Details.DispatchNo));
+            var chibi = await Repository.FirstOrDefaultAsync(x => x.OriginalName.Contains(uploadPreCheck.Details.DispatchNo));
 
-            if (dispatch is null)
+            if (dispatch is null && chibi is null)
             {
                 string uuidFileName = Guid.NewGuid().ToString();
                 uploadPreCheck.UploadFile.json = Newtonsoft.Json.JsonConvert.SerializeObject(uploadPreCheck.Details);
