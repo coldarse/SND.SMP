@@ -11,5 +11,6 @@ namespace SND.SMP.RateZones
         public string Zone { get; set; }
         public string State { get; set; }
         public string City { get; set; }
+        public string PostCode { get; set; }
     }
 }
