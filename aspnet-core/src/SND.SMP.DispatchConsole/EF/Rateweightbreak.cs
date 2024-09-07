@@ -26,6 +26,7 @@ public partial class Rateweightbreak
     public ulong? IsExceedRule { get; set; }
 
     public string PaymentMode { get; set; }
+    public string Zone { get; set; }
 
     public virtual Postalorg PostalOrg { get; set; }
 
