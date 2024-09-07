@@ -77,8 +77,8 @@ import { SearchItemComponent } from "./search-item/search-item.component";
             canActivate: [AppRouteGuard],
           },
           /* Insert Path */
-                    { path: 'ratezones', data: { permission: 'Pages.RateZone' }, component: RateZonesComponent, canActivate: [AppRouteGuard] },
-                    { path: 'invoices', data: { permission: 'Pages.Invoice' }, component: InvoicesComponent, canActivate: [AppRouteGuard] },
+          { path: 'ratezones', data: { permission: 'Pages.RateZone' }, component: RateZonesComponent, canActivate: [AppRouteGuard] },
+          { path: 'invoices', data: { permission: 'Pages.Invoice' }, component: InvoicesComponent, canActivate: [AppRouteGuard] },
           { path: 'emailcontents', data: { permission: 'Pages.EmailContent' }, component: EmailContentsComponent, canActivate: [AppRouteGuard] },
           {
             path: "airports",

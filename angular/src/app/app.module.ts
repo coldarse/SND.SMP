@@ -193,8 +193,8 @@ import { DatePipe } from '@angular/common';
     SidebarUserPanelComponent,
     SidebarMenuComponent,
     /* Insert Component */
-        RateZonesComponent,
-        CreateUpdateRateZoneComponent,
+    RateZonesComponent,
+    CreateUpdateRateZoneComponent,
     InvoicesComponent,
     CreateUpdateInvoiceComponent,
     EmailContentsComponent,
@@ -277,7 +277,7 @@ import { DatePipe } from '@angular/common';
   ],
   providers: [
     /* Insert Service */
-        RateZoneService,
+    RateZoneService,
     InvoiceService,
     EmailContentService,
     AirportService,
