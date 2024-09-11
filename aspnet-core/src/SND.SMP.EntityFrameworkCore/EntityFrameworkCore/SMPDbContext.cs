@@ -99,6 +99,7 @@ namespace SND.SMP.EntityFrameworkCore
                 b.Property(x => x.State).HasColumnName(nameof(RateZone.State)).HasMaxLength(64);
                 b.Property(x => x.City).HasColumnName(nameof(RateZone.City)).HasMaxLength(64);
                 b.Property(x => x.PostCode).HasColumnName(nameof(RateZone.PostCode)).HasMaxLength(24);
+                b.Property(x => x.Country).HasColumnName(nameof(RateZone.Country)).HasMaxLength(64);
                 b.HasKey(x => x.Id);
             });
 

@@ -24,7 +24,9 @@ namespace SND.SMP.RateZones
                 .WhereIf(!input.Keyword.IsNullOrWhiteSpace(), x => 
                     x.Zone.Contains(input.Keyword) ||
                     x.State.Contains(input.Keyword) ||
-                    x.City.Contains(input.Keyword));
+                    x.City.Contains(input.Keyword) ||
+                    x.PostCode.Contains(input.Keyword) ||
+                    x.Country.Contains(input.Keyword));
         }
     }
 }

@@ -52,6 +52,7 @@
                                 <th>{{ 'State' | localize }}</th>
                                 <th>{{ 'City' | localize }}</th>
                                 <th>{{ 'PostCode' | localize }}</th>
+                                <th>{{ 'Country' | localize }}</th>
                                 <th style='width: 310px;' *ngIf='isButtonVisible("Edit") && isButtonVisible("Delete")'>{{ 'Actions' | localize }}</th>
                             </tr>
                             </thead>
@@ -72,6 +73,7 @@
                                 <td>{{ ratezone.state }}</td>
                                 <td>{{ ratezone.city }}</td>
                                 <td>{{ ratezone.postCode }}</td>
+                                <td>{{ ratezone.country }}</td>
                                 <td *ngIf='isButtonVisible("Edit") || isButtonVisible("Delete")'>
                                     <button
                                             type='button'

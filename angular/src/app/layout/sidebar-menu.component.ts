@@ -121,12 +121,6 @@ export class SidebarMenuComponent extends AppComponentBase implements OnInit {
       ]),
       /* Insert Menu Path */
       new MenuItem(
-          this.l('RateZones'),
-          '/app/ratezones',
-          'far fa-circle',
-          'Pages.RateZone'
-      ),
-      new MenuItem(
         this.l("Invoices"),
         "/app/invoices",
         "fas fa-file-invoice-dollar",
@@ -208,6 +202,12 @@ export class SidebarMenuComponent extends AppComponentBase implements OnInit {
           "/app/emailcontents",
           "fas fa-mail-bulk",
           "Pages.EmailContent"
+        ),
+        new MenuItem(
+          this.l("RateZones"),
+          "/app/ratezones",
+          "fas fa-warehouse",
+          "Pages.RateZone"
         ),
       ]),
       new MenuItem(

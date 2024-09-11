@@ -85,13 +85,13 @@ namespace SND.SMP.RateWeightBreaks
         {
             List<Rate> rateCard = [];
 
-            var de_rates = await _rateRepository.GetAllListAsync(x => x.Service.Equals("DE"));
-            foreach (var rate in de_rates)
-            {
-                rate.Count = 0;
-                rate.Service = "";
-                await _rateRepository.UpdateAsync(rate);
-            }
+            // var de_rates = await _rateRepository.GetAllListAsync(x => x.Service.Equals("DE"));
+            // foreach (var rate in de_rates)
+            // {
+            //     rate.Count = 0;
+            //     rate.Service = "";
+            //     await _rateRepository.UpdateAsync(rate);
+            // }
             await _rateRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
 
             foreach (var distinctedRateCard in rateCards)

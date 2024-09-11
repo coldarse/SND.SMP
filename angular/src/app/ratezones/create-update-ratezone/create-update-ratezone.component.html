@@ -72,7 +72,7 @@
             ></abp-validation-summary>
             </div>
         </div>
-        <div class='form-group row required'>
+        <div class='form-group row'>
             <label class='col-md-3 col-form-label' for='postCode'>
             {{ 'PostCode' | localize }}
             </label>
@@ -90,6 +90,27 @@
             <abp-validation-summary
                 [control]='postCodeModel'
                 [controlEl]='postCodeEl'
+            ></abp-validation-summary>
+            </div>
+        </div>
+        <div class='form-group row required'>
+            <label class='col-md-3 col-form-label' for='country'>
+            {{ 'Country' | localize }}
+            </label>
+            <div class='col-md-9'>
+            <input
+                type='text'
+                class='form-control'
+                name='country'
+                id='country'
+                required
+                [(ngModel)]='ratezone.country'
+                #countryModel='ngModel'
+                #countryEl
+            />
+            <abp-validation-summary
+                [control]='countryModel'
+                [controlEl]='countryEl'
             ></abp-validation-summary>
             </div>
         </div>

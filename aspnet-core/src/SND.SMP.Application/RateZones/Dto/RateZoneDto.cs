@@ -12,5 +12,6 @@ namespace SND.SMP.RateZones.Dto
         public string State { get; set; }
         public string City { get; set; }
         public string PostCode { get; set; }
+        public string Country { get; set; }
     }
 }
