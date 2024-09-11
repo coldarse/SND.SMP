@@ -249,15 +249,13 @@ namespace SND.SMP.RateWeightBreaks
                             {
                                 bool IsExceedRule = Convert.ToString(table.Rows[i][0]) == EXCEEDS;
 
-                                var wb = new WeightBreakDto()
-                                {
-                                    IsExceedRule = IsExceedRule,
-                                    WeightMinKg = !IsExceedRule ? Convert.ToDecimal(table.Rows[i][0] ?? 0) / 1000 : 0,
-                                    WeightMaxKg = !IsExceedRule ? Convert.ToDecimal(table.Rows[i][1] ?? 0) / 1000 : 0,
-                                    ProductCode = productCode!,
-                                    ItemRate = table.Rows[i][colIndex] == DBNull.Value ? 0 : Convert.ToDecimal(table.Rows[i][colIndex]),
-                                    WeightRate = table.Rows[i][colIndex + 1] == DBNull.Value ? 0 : Convert.ToDecimal(table.Rows[i][colIndex + 1]),
-                                };
+                                var wb = new WeightBreakDto();
+                                wb.IsExceedRule = IsExceedRule;
+                                wb.WeightMinKg = !IsExceedRule ? Convert.ToDecimal(table.Rows[i][0].ToString().IsNullOrWhiteSpace() ? 0 : table.Rows[i][0]) / 1000 : 0;
+                                wb.WeightMaxKg = !IsExceedRule ? Convert.ToDecimal(table.Rows[i][1].ToString().IsNullOrWhiteSpace() ? 0 : table.Rows[i][1]) / 1000 : 0;
+                                wb.ProductCode = productCode!;
+                                wb.ItemRate = table.Rows[i][colIndex].ToString().IsNullOrWhiteSpace() ? 0 : Convert.ToDecimal(table.Rows[i][colIndex]);
+                                wb.WeightRate = table.Rows[i][colIndex + 1].ToString().IsNullOrWhiteSpace() ? 0 : Convert.ToDecimal(table.Rows[i][colIndex + 1]);
 
                                 listWeightBreak.Add(wb);
 
@@ -416,15 +414,13 @@ namespace SND.SMP.RateWeightBreaks
                                     {
                                         bool IsExceedRule = Convert.ToString(table.Rows[i][0]) == EXCEEDS;
 
-                                        var wb = new WeightBreakDto()
-                                        {
-                                            IsExceedRule = IsExceedRule,
-                                            WeightMinKg = !IsExceedRule ? Convert.ToDecimal(table.Rows[i][0] ?? 0) / 1000 : 0,
-                                            WeightMaxKg = !IsExceedRule ? Convert.ToDecimal(table.Rows[i][1] ?? 0) / 1000 : 0,
-                                            ProductCode = productCode!,
-                                            ItemRate = table.Rows[i][colIndex] == DBNull.Value ? 0 : Convert.ToDecimal(table.Rows[i][colIndex]),
-                                            WeightRate = table.Rows[i][colIndex + 1] == DBNull.Value ? 0 : Convert.ToDecimal(table.Rows[i][colIndex + 1]),
-                                        };
+                                        var wb = new WeightBreakDto();
+                                        wb.IsExceedRule = IsExceedRule;
+                                        wb.WeightMinKg = !IsExceedRule ? Convert.ToDecimal(table.Rows[i][0].ToString().IsNullOrWhiteSpace() ? 0 : table.Rows[i][0]) / 1000 : 0;
+                                        wb.WeightMaxKg = !IsExceedRule ? Convert.ToDecimal(table.Rows[i][1].ToString().IsNullOrWhiteSpace() ? 0 : table.Rows[i][1]) / 1000 : 0;
+                                        wb.ProductCode = productCode!;
+                                        wb.ItemRate = table.Rows[i][colIndex].ToString().IsNullOrWhiteSpace() ? 0 : Convert.ToDecimal(table.Rows[i][colIndex]);
+                                        wb.WeightRate = table.Rows[i][colIndex + 1].ToString().IsNullOrWhiteSpace() ? 0 : Convert.ToDecimal(table.Rows[i][colIndex + 1]);
 
                                         listWeightBreak.Add(wb);
 
@@ -449,15 +445,13 @@ namespace SND.SMP.RateWeightBreaks
                                 {
                                     bool IsExceedRule = Convert.ToString(table.Rows[i][0]) == EXCEEDS;
 
-                                    var wb = new WeightBreakDto()
-                                    {
-                                        IsExceedRule = IsExceedRule,
-                                        WeightMinKg = !IsExceedRule ? Convert.ToDecimal(table.Rows[i][0] ?? 0) / 1000 : 0,
-                                        WeightMaxKg = !IsExceedRule ? Convert.ToDecimal(table.Rows[i][1] ?? 0) / 1000 : 0,
-                                        ProductCode = productCode!,
-                                        ItemRate = table.Rows[i][colIndex] == DBNull.Value ? 0 : Convert.ToDecimal(table.Rows[i][colIndex]),
-                                        WeightRate = table.Rows[i][colIndex + 1] == DBNull.Value ? 0 : Convert.ToDecimal(table.Rows[i][colIndex + 1]),
-                                    };
+                                    var wb = new WeightBreakDto();
+                                    wb.IsExceedRule = IsExceedRule;
+                                    wb.WeightMinKg = !IsExceedRule ? Convert.ToDecimal(table.Rows[i][0].ToString().IsNullOrWhiteSpace() ? 0 : table.Rows[i][0]) / 1000 : 0;
+                                    wb.WeightMaxKg = !IsExceedRule ? Convert.ToDecimal(table.Rows[i][1].ToString().IsNullOrWhiteSpace() ? 0 : table.Rows[i][1]) / 1000 : 0;
+                                    wb.ProductCode = productCode!;
+                                    wb.ItemRate = table.Rows[i][colIndex].ToString().IsNullOrWhiteSpace() ? 0 : Convert.ToDecimal(table.Rows[i][colIndex]);
+                                    wb.WeightRate = table.Rows[i][colIndex + 1].ToString().IsNullOrWhiteSpace() ? 0 : Convert.ToDecimal(table.Rows[i][colIndex + 1]);
 
                                     listWeightBreak.Add(wb);
 
