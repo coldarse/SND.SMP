@@ -385,7 +385,7 @@ namespace SND.SMP.RateWeightBreaks
                     {
                         List<WeightBreakDto> listWeightBreak = [];
 
-                        var rateCardName = Convert.ToString(table.Rows[0][1]);
+                        var rateCardName = table.TableName; //Convert.ToString(table.Rows[0][1]);
                         var currency = Convert.ToString(table.Rows[0][4]);
                         var postal = Convert.ToString(table.Rows[0][7]);
                         var paymentMode = Convert.ToString(table.Rows[0][10]);
