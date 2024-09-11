@@ -111,6 +111,7 @@ export class RateZonesComponent extends PagedListingComponentBase<RateZoneDto> {
             state: element.state,
             city: element.city,
             postCode: element.postCode,
+            country: element.country,
           }
 
           this.ratezones.push(tempRateZone);

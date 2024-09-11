@@ -120,12 +120,6 @@ export class SidebarMenuComponent extends AppComponentBase implements OnInit {
         )
       ]),
       /* Insert Menu Path */
-            new MenuItem(
-                this.l('RateZones'),
-                '/app/ratezones',
-                'far fa-circle',
-                'Pages.RateZone'
-            ),
       new MenuItem(this.l("Customers"), "", "fas fa-user", "Pages.Customer", [
         new MenuItem(
           this.l("Info"),
@@ -204,12 +198,38 @@ export class SidebarMenuComponent extends AppComponentBase implements OnInit {
           "Pages.EmailContent"
         ),
         new MenuItem(
-          this.l('RateZones'),
-          '/app/ratezones',
-          'fas fa-warehouse',
-          'Pages.RateZone'
-      ),
+          this.l("RateZones"),
+          "/app/ratezones",
+          "fas fa-warehouse",
+          "Pages.RateZone"
+        ),
       ]),
+      new MenuItem(
+        this.l("Administration"),
+        "",
+        "fas fa-user-shield",
+        "Pages.Administration",
+        [
+          new MenuItem(
+            this.l("Roles"),
+            "/app/roles",
+            "fas fa-theater-masks",
+            "Pages.RolesPage"
+          ),
+          new MenuItem(
+            this.l("Tenants"),
+            "/app/tenants",
+            "fas fa-building",
+            "Pages.Tenants"
+          ),
+          new MenuItem(
+            this.l("Users"),
+            "/app/users",
+            "fas fa-users",
+            "Pages.UsersPage"
+          ),
+        ]
+      ),
       new MenuItem(this.l("Administration"), "", "fas fa-user-shield", "Pages.Administration", [
         new MenuItem(
           this.l("Roles"),

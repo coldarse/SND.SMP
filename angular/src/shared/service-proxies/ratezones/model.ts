@@ -6,6 +6,7 @@ export interface RateZoneDto extends EntityDto<number> {
     state: string;
     city: string;
     postCode: string;
+    country: string;
 }
 
 export interface PagedRateZoneResultRequestDto extends PagedAndSortedResultRequestDto {
@@ -14,4 +15,5 @@ export interface PagedRateZoneResultRequestDto extends PagedAndSortedResultReque
     state?: string;
     city?: string;
     postCode?: string;
+    country?: string;
 }
