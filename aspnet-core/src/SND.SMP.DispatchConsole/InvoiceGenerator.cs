@@ -249,6 +249,7 @@ public class InvoiceGenerator
                                         if (i == items.Count - 1) all_country_code_string += code.CountryCode;
                                         else all_country_code_string += code.CountryCode + ", ";
                                     }
+                                    all_country_code_string = all_country_code_string[^1..].Trim();
                                 }
 
                                 return new SimplifiedItem()
