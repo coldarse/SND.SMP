@@ -20,6 +20,7 @@ using SND.SMP.Wallets;
 using SND.SMP.Currencies;
 using SND.SMP.EWalletTypes;
 using SND.SMP.PostalCountries;
+using SND.SMP.RateWeightBreaks;
 
 namespace SND.SMP.CustomerPostals
 {
@@ -33,7 +34,8 @@ namespace SND.SMP.CustomerPostals
         IRepository<Wallet, string> walletRepository,
         IRepository<Currency, long> currencyRepository,
         IRepository<EWalletType, long> eWalletTypeRepository,
-        IRepository<PostalCountry, long> postalCountryRepository
+        IRepository<PostalCountry, long> postalCountryRepository,
+        IRepository<RateWeightBreak, int> rateWeightBreakRepository
         ) : AsyncCrudAppService<CustomerPostal, DetailedCustomerPostalDto, long, PagedCustomerPostalResultRequestDto>(repository)
     {
         private readonly IRepository<Rate, int> _rateRepository = rateRepository;
@@ -45,6 +47,7 @@ namespace SND.SMP.CustomerPostals
         private readonly IRepository<Currency, long> _currencyRepository = currencyRepository;
         private readonly IRepository<EWalletType, long> _eWalletTypeRepository = eWalletTypeRepository;
         private readonly IRepository<PostalCountry, long> _postalCountryRepository = postalCountryRepository;
+        private readonly IRepository<RateWeightBreak, int> _rateWeightBreakRepository = rateWeightBreakRepository;
 
         protected override IQueryable<CustomerPostal> CreateFilteredQuery(PagedCustomerPostalResultRequestDto input)
         {
@@ -124,7 +127,7 @@ namespace SND.SMP.CustomerPostals
 
             detailed = [.. ApplySorting(detailed.AsQueryable(), input)];
             detailed = [.. ApplyPaging(detailed.AsQueryable(), input)];
-            
+
 
 
             return new PagedResultDto<DetailedCustomerPostalDto>(
@@ -135,27 +138,32 @@ namespace SND.SMP.CustomerPostals
 
         public async Task<CreateWalletDto> IsCurrencyWalletExist(int rate, int accNo)
         {
-            var rateItem = await _rateItemRepository.FirstOrDefaultAsync(x => x.RateId.Equals(rate));
+            var TSRate = await _rateItemRepository.FirstOrDefaultAsync(x => x.RateId.Equals(rate));
+            RateWeightBreak DERate = null;
+
+            if (TSRate is null) DERate = await _rateWeightBreakRepository.FirstOrDefaultAsync(x => x.RateId == rate);
 
             var customer = await _customerRepository.FirstOrDefaultAsync(x => x.Id.Equals(accNo));
 
-            var currency = await _currencyRepository.FirstOrDefaultAsync(x => x.Id.Equals(rateItem.CurrencyId));
+            var currency = await _currencyRepository.FirstOrDefaultAsync(x => x.Id.Equals(TSRate == null ? DERate.CurrencyId : TSRate.CurrencyId));
 
             var wallet = await _walletRepository.FirstOrDefaultAsync(x =>
                 x.Customer.Equals(customer.Code) &&
-                x.Currency.Equals(rateItem.CurrencyId)
+                x.Currency.Equals(TSRate == null ? DERate.CurrencyId : TSRate.CurrencyId)
             );
 
             if (wallet is not null)
                 return new CreateWalletDto() { Exists = true };
+
+            var ewallettype = await _eWalletTypeRepository.FirstOrDefaultAsync(x => x.Type.Equals("Prepaid");
 
             return new CreateWalletDto()
             {
                 Exists = false,
                 Create = false,
                 Customer = customer.Code,
-                EWalletType = 1,
-                Currency = rateItem.CurrencyId,
+                EWalletType = ewallettype.Id,
+                Currency = TSRate == null ? DERate.CurrencyId : TSRate.CurrencyId,
                 CurrencyDesc = currency.Abbr,
                 Balance = Convert.ToDecimal(0),
             };
