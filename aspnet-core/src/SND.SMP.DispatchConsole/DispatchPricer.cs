@@ -88,6 +88,8 @@ namespace SND.SMP.DispatchConsole
 										.Where(u => u.RateId == _customerPostal.Rate)
 										.Where(u => u.ProductCode == _productCode)];
 
+					_rateZones = [.. db.RateZones];
+
 					if (_rateWeightBreaks.Count > 0)
 					{
 						CurrencyId = _rateWeightBreaks.Select(u => u.CurrencyId).FirstOrDefault();
@@ -130,11 +132,13 @@ namespace SND.SMP.DispatchConsole
 
 			if (_useRateWeightBreak)
 			{
-				var zone = _rateZones.FirstOrDefault(u => u.State == state && u.City == city && u.PostCode == postcode);
+				var zone = _rateZones.Where(u => u.State == state && u.City == city).ToList();
+
+				if(zone.Count > 1) zone = zone.Where(u => u.PostCode == postcode).ToList();
 
 				var rate = _rateWeightBreaks
 					.Where(u => u.PostalOrgId == countryCode)
-					.WhereIf(zone != null, u => u.Zone == zone.Zone)
+					.WhereIf(zone != null, u => u.Zone == zone.FirstOrDefault().Zone)
 					.Where(u => weight >= u.WeightMin && weight <= u.WeightMax)
 					.Select(u => new { u.ItemRate, u.WeightRate })
 					.FirstOrDefault();
@@ -147,7 +151,7 @@ namespace SND.SMP.DispatchConsole
 				{
 					var rateHeaviest = _rateWeightBreaks
 						.Where(u => u.PostalOrgId == countryCode)
-						.WhereIf(zone != null, u => u.Zone == zone.Zone)
+						.WhereIf(zone != null, u => u.Zone == zone.FirstOrDefault().Zone)
 						.OrderByDescending(u => u.WeightMax)
 						.Select(u => new { u.WeightMax, u.ItemRate, u.WeightRate })
 						.FirstOrDefault();
@@ -158,7 +162,7 @@ namespace SND.SMP.DispatchConsole
 						{
 							var rateExceed = _rateWeightBreaks
 								.Where(u => u.PostalOrgId == countryCode)
-								.WhereIf(zone != null, u => u.Zone == zone.Zone)
+								.WhereIf(zone != null, u => u.Zone == zone.FirstOrDefault().Zone)
 								.Where(u => u.IsExceedRule == 1)
 								.Select(u => new { u.ItemRate, u.WeightRate })
 								.FirstOrDefault();

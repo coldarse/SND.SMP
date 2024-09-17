@@ -193,7 +193,7 @@ namespace SND.SMP.DispatchConsole
                                 var hsCode = reader[27] == null ? "" : reader[27].ToString()!;
                                 var qty = reader[28] == null ? 0 : Convert.ToInt32(reader[28]);
 
-                                var price = pricer.CalculatePrice(countryCode: countryCode, weight: weight);
+                                var price = pricer.CalculatePrice(countryCode: countryCode, weight: weight, state: state, city: city, postcode: postcode);
 
                                 if (pricer.ErrorMsg != "") throw new Exception(pricer.ErrorMsg);
 
