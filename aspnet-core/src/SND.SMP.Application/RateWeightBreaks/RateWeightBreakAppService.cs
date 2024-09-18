@@ -342,7 +342,7 @@ namespace SND.SMP.RateWeightBreaks
         }
 
 
-        private static List<List<string>> GroupColumnsDynamically(DataTable table)
+        private static Dictionary<string, List<string>> GroupZoneByProductCode(DataTable table)
         {
             // Dictionary to hold parent headers and their corresponding child columns
             var groupedColumns = new Dictionary<string, List<string>>();
@@ -398,16 +398,16 @@ namespace SND.SMP.RateWeightBreaks
                 }
             }
 
-            // Convert Dictionary<string, List<string>> to List<List<string>>
-            var resultList = new List<List<string>>();
+            // // Convert Dictionary<string, List<string>> to List<List<string>>
+            // var resultList = new List<List<string>>();
 
-            // Loop through the grouped columns and add only the child headers to the result
-            foreach (var key in groupedColumns.Keys)
-            {
-                resultList.Add(groupedColumns[key]); // We are adding only the child headers
-            }
+            // // Loop through the grouped columns and add only the child headers to the result
+            // foreach (var key in groupedColumns.Keys)
+            // {
+            //     resultList.Add(groupedColumns[key]); // We are adding only the child headers
+            // }
 
-            return resultList;
+            return groupedColumns;
         }
 
         [Consumes("multipart/form-data")]
@@ -464,7 +464,7 @@ namespace SND.SMP.RateWeightBreaks
 
                         var zones = table.Rows[1].ItemArray.Where(u => !string.IsNullOrWhiteSpace(Convert.ToString(u))).Select(Convert.ToString).ToList();
                         bool containsZone = zones.Count > 1; // Check if this rate has zones
-                        var grouped_zones = containsZone ? GroupColumnsDynamically(table) : []; // If rate has zones then group the zones
+                        var grouped_zones_by_prod = containsZone ? GroupZoneByProductCode(table) : []; // If rate has zones then group the zones
                         var productCodes = table.Rows[2].ItemArray.Where(u => !string.IsNullOrWhiteSpace(Convert.ToString(u))).Select(Convert.ToString).ToList();
 
                         var rate = rateCard.FirstOrDefault(x => x.CardName.Equals(rateCardName));
@@ -477,11 +477,12 @@ namespace SND.SMP.RateWeightBreaks
                         for (int i = 4; i < table.Rows.Count; i++)
                         {
                             int colIndex = 2;
-                            foreach (var productCode in productCodes)
+
+                            if (grouped_zones_by_prod.Count > 0)
                             {
-                                if (grouped_zones.Count > 0)
+                                foreach (var productCode in grouped_zones_by_prod)
                                 {
-                                    foreach (var zone in zones)
+                                    foreach (var zone in productCode.Value)
                                     {
                                         bool IsExceedRule = Convert.ToString(table.Rows[i][0]) == EXCEEDS;
 
@@ -489,7 +490,7 @@ namespace SND.SMP.RateWeightBreaks
                                         wb.IsExceedRule = IsExceedRule;
                                         wb.WeightMinKg = !IsExceedRule ? Convert.ToDecimal(table.Rows[i][0].ToString().IsNullOrWhiteSpace() ? 0 : table.Rows[i][0]) / 1000 : 0;
                                         wb.WeightMaxKg = !IsExceedRule ? Convert.ToDecimal(table.Rows[i][1].ToString().IsNullOrWhiteSpace() ? 0 : table.Rows[i][1]) / 1000 : 0;
-                                        wb.ProductCode = productCode!;
+                                        wb.ProductCode = productCode.Key!;
                                         wb.ItemRate = table.Rows[i][colIndex].ToString().IsNullOrWhiteSpace() ? 0 : Convert.ToDecimal(table.Rows[i][colIndex]);
                                         wb.WeightRate = table.Rows[i][colIndex + 1].ToString().IsNullOrWhiteSpace() ? 0 : Convert.ToDecimal(table.Rows[i][colIndex + 1]);
 
@@ -512,7 +513,10 @@ namespace SND.SMP.RateWeightBreaks
                                         colIndex += 2;
                                     }
                                 }
-                                else
+                            }
+                            else
+                            {
+                                foreach (var productCode in productCodes)
                                 {
                                     bool IsExceedRule = Convert.ToString(table.Rows[i][0]) == EXCEEDS;
 
