@@ -155,7 +155,7 @@ namespace SND.SMP.CustomerPostals
             if (wallet is not null)
                 return new CreateWalletDto() { Exists = true };
 
-            var ewallettype = await _eWalletTypeRepository.FirstOrDefaultAsync(x => x.Type.Equals("Prepaid");
+            var ewallettype = await _eWalletTypeRepository.FirstOrDefaultAsync(x => x.Type.Equals("Prepaid"));
 
             return new CreateWalletDto()
             {

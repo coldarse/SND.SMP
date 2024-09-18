@@ -21,6 +21,7 @@ using System.Configuration.Internal;
 using Microsoft.EntityFrameworkCore;
 using Abp.Linq.Extensions;
 using System.Text.Json;
+using SND.SMP.RateZones;
 
 namespace SND.SMP.RateWeightBreaks
 {
@@ -28,12 +29,14 @@ namespace SND.SMP.RateWeightBreaks
         IRepository<RateWeightBreak, int> repository,
         IRepository<Rate, int> rateRepository,
         IRepository<Currency, long> currencyRepository,
-        IRepository<PostalOrg, string> postalOrgRepository
+        IRepository<PostalOrg, string> postalOrgRepository,
+        IRepository<RateZone, long> rateZoneRepository
         ) : AsyncCrudAppService<RateWeightBreak, RateWeightBreakDto, int, PagedRateWeightBreakResultRequestDto>(repository)
     {
         private readonly IRepository<Rate, int> _rateRepository = rateRepository;
         private readonly IRepository<Currency, long> _currencyRepository = currencyRepository;
         private readonly IRepository<PostalOrg, string> _postalOrgRepository = postalOrgRepository;
+        private readonly IRepository<RateZone, long> _rateZoneRepository = rateZoneRepository;
 
         protected override IQueryable<RateWeightBreak> CreateFilteredQuery(PagedRateWeightBreakResultRequestDto input)
         {
@@ -338,6 +341,75 @@ namespace SND.SMP.RateWeightBreaks
             return result;
         }
 
+
+        private static List<List<string>> GroupColumnsDynamically(DataTable table)
+        {
+            // Dictionary to hold parent headers and their corresponding child columns
+            var groupedColumns = new Dictionary<string, List<string>>();
+
+            // Adjust the rows: first row for child headers, second row for parent headers
+            DataRow childHeaderRow = table.Rows[1];  // First row (EAST, WEST, etc.)
+            DataRow parentHeaderRow = table.Rows[2]; // Second row (EMS, PRT, etc.)
+
+            // Variable to track the last non-empty parent header
+            string currentParentHeader = string.Empty;
+
+            // Loop through each column and build the groupings dynamically
+            for (int i = 0; i < table.Columns.Count; i++)
+            {
+                string parentHeader = parentHeaderRow[i].ToString().Trim(); // EMS, PRT, etc.
+                string childHeader = childHeaderRow[i].ToString().Trim();   // EAST, WEST, etc.
+
+                // If the current parent header is empty, use the previous non-empty parent header
+                if (!string.IsNullOrEmpty(parentHeader))
+                {
+                    currentParentHeader = parentHeader; // Update current parent header
+                }
+
+                // Now, use the currentParentHeader for the childHeader
+                if (!groupedColumns.ContainsKey(currentParentHeader))
+                {
+                    groupedColumns[currentParentHeader] = new List<string>();
+                }
+
+                // Add child header under current parent if it's not empty
+                if (!string.IsNullOrEmpty(childHeader))
+                {
+                    groupedColumns[currentParentHeader].Add(childHeader);
+                }
+            }
+
+            // Remove the entry where the key is an empty string (if it exists)
+            if (groupedColumns.ContainsKey(string.Empty))
+            {
+                groupedColumns.Remove(string.Empty);
+            }
+
+            // Remove any empty values (child headers) from the dictionary
+            foreach (var key in new List<string>(groupedColumns.Keys))
+            {
+                // Remove entries where the child headers list is empty
+                groupedColumns[key].RemoveAll(childHeader => string.IsNullOrEmpty(childHeader));
+
+                // Optionally, remove the entire key if it no longer has any valid child headers
+                if (groupedColumns[key].Count == 0)
+                {
+                    groupedColumns.Remove(key);
+                }
+            }
+
+            // Convert Dictionary<string, List<string>> to List<List<string>>
+            var resultList = new List<List<string>>();
+
+            // Loop through the grouped columns and add only the child headers to the result
+            foreach (var key in groupedColumns.Keys)
+            {
+                resultList.Add(groupedColumns[key]); // We are adding only the child headers
+            }
+
+            return resultList;
+        }
+
         [Consumes("multipart/form-data")]
         public async Task<List<RateCardWeightBreakDto>> UploadRateWeightBreakFileWithZones([FromForm] UploadPostal input)
         {
@@ -358,6 +430,8 @@ namespace SND.SMP.RateWeightBreaks
 
                 var postalOrgs = await _postalOrgRepository.GetAllListAsync();
                 var currencies = await _currencyRepository.GetAllListAsync();
+                var rateZones = await _rateZoneRepository.GetAllListAsync();
+                var distinctedZones = rateZones.DistinctBy(x => x.Zone).ToList().Select(y => y.Zone);
 
                 using (var package = new ExcelPackage(input.file.OpenReadStream()))
                 {
@@ -388,13 +462,10 @@ namespace SND.SMP.RateWeightBreaks
                         var postal = Convert.ToString(table.Rows[0][7]);
                         var paymentMode = Convert.ToString(table.Rows[0][10]);
 
-
                         var zones = table.Rows[1].ItemArray.Where(u => !string.IsNullOrWhiteSpace(Convert.ToString(u))).Select(Convert.ToString).ToList();
-                        bool containsZone = zones.Any(s => s.Contains("Zone")); // Check if this rate has zones
-                        var product_row = containsZone ? 2 : 1; // If rate has zones then set the product code row to +1 row
-                        var starting_row = containsZone ? 4 : 3;// If rate has zones then set the starting row to +1 row
-                        var grouped_zones = containsZone ? GroupZones(zones) : []; // If rate has zones then group the zones
-                        var productCodes = table.Rows[product_row].ItemArray.Where(u => !string.IsNullOrWhiteSpace(Convert.ToString(u))).Select(Convert.ToString).ToList();
+                        bool containsZone = zones.Count > 1; // Check if this rate has zones
+                        var grouped_zones = containsZone ? GroupColumnsDynamically(table) : []; // If rate has zones then group the zones
+                        var productCodes = table.Rows[2].ItemArray.Where(u => !string.IsNullOrWhiteSpace(Convert.ToString(u))).Select(Convert.ToString).ToList();
 
                         var rate = rateCard.FirstOrDefault(x => x.CardName.Equals(rateCardName));
                         var curr = currencies.FirstOrDefault(x => x.Abbr.Equals(currency));
@@ -403,7 +474,7 @@ namespace SND.SMP.RateWeightBreaks
                         long currId = curr is not null ? curr.Id : await InsertAndGetIdForCurrency(currency);
                         string postalOrgId = postalorg is not null ? postalorg.Id : await InsertAndGetIdForPostalOrg(postal);
 
-                        for (int i = starting_row; i < table.Rows.Count; i++)
+                        for (int i = 4; i < table.Rows.Count; i++)
                         {
                             int colIndex = 2;
                             foreach (var productCode in productCodes)
