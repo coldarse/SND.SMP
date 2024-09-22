@@ -132,7 +132,7 @@ namespace SND.SMP.DispatchConsole
 
 			if (_useRateWeightBreak)
 			{
-				var zone = _rateZones.Where(u => u.State == state && u.City == city).ToList();
+				var zone = _rateZones.Where(u => u.State.ToUpper().Trim() == state.ToUpper().Trim() && u.City.ToUpper().Trim() == city.ToUpper().Trim()).ToList();
 
 				if(zone.Count > 1) zone = zone.Where(u => u.PostCode == postcode).ToList();
 
