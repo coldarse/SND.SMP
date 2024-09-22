@@ -138,7 +138,7 @@ namespace SND.SMP.DispatchConsole
 
 				var rate = _rateWeightBreaks
 					.Where(u => u.PostalOrgId == countryCode)
-					.WhereIf(zone != null, u => u.Zone == zone.FirstOrDefault().Zone)
+					.WhereIf(zone != null, u => u.Zone.ToUpper().Trim() == zone.FirstOrDefault().Zone.ToUpper().Trim())
 					.Where(u => weight >= u.WeightMin && weight <= u.WeightMax)
 					.Select(u => new { u.ItemRate, u.WeightRate })
 					.FirstOrDefault();
