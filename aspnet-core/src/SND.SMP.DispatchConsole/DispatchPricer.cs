@@ -134,49 +134,56 @@ namespace SND.SMP.DispatchConsole
 			{
 				var zone = _rateZones.Where(u => u.State.ToUpper().Trim() == state.ToUpper().Trim() && u.City.ToUpper().Trim() == city.ToUpper().Trim()).ToList();
 
-				if(zone.Count > 1) zone = zone.Where(u => u.PostCode == postcode).ToList();
+				if(zone.Count > 1) zone = zone.Where(u => u.PostCode.Trim() == postcode.Trim()).ToList();
 
-				var rate = _rateWeightBreaks
-					.Where(u => u.PostalOrgId == countryCode)
-					.WhereIf(zone != null, u => u.Zone.ToUpper().Trim() == zone.FirstOrDefault().Zone.ToUpper().Trim())
-					.Where(u => weight >= u.WeightMin && weight <= u.WeightMax)
-					.Select(u => new { u.ItemRate, u.WeightRate })
-					.FirstOrDefault();
-
-				if (rate != null)
+				if (zone.Count == 0)
 				{
-					price = rate.ItemRate.GetValueOrDefault() + rate.WeightRate.GetValueOrDefault() * weight;
+					ErrorMsg = $"No Rate found for State: {state} with City: {city} and Postcode: {postcode}. Please contact System Finance for further review.";
 				}
 				else
 				{
-					var rateHeaviest = _rateWeightBreaks
+					var rate = _rateWeightBreaks
 						.Where(u => u.PostalOrgId == countryCode)
-						.WhereIf(zone != null, u => u.Zone == zone.FirstOrDefault().Zone)
-						.OrderByDescending(u => u.WeightMax)
-						.Select(u => new { u.WeightMax, u.ItemRate, u.WeightRate })
+						.WhereIf(zone != null, u => u.Zone.ToUpper().Trim() == zone.FirstOrDefault().Zone.ToUpper().Trim())
+						.Where(u => weight >= u.WeightMin && weight <= u.WeightMax)
+						.Select(u => new { u.ItemRate, u.WeightRate })
 						.FirstOrDefault();
 
-					if (rateHeaviest != null)
+					if (rate != null)
 					{
-						if (weight > rateHeaviest.WeightMax)
-						{
-							var rateExceed = _rateWeightBreaks
-								.Where(u => u.PostalOrgId == countryCode)
-								.WhereIf(zone != null, u => u.Zone == zone.FirstOrDefault().Zone)
-								.Where(u => u.IsExceedRule == 1)
-								.Select(u => new { u.ItemRate, u.WeightRate })
-								.FirstOrDefault();
+						price = rate.ItemRate.GetValueOrDefault() + rate.WeightRate.GetValueOrDefault() * weight;
+					}
+					else
+					{
+						var rateHeaviest = _rateWeightBreaks
+							.Where(u => u.PostalOrgId == countryCode)
+							.WhereIf(zone != null, u => u.Zone.ToUpper().Trim() == zone.FirstOrDefault().Zone.ToUpper().Trim())
+							.OrderByDescending(u => u.WeightMax)
+							.Select(u => new { u.WeightMax, u.ItemRate, u.WeightRate })
+							.FirstOrDefault();
 
-							if (rateExceed != null)
+						if (rateHeaviest != null)
+						{
+							if (weight > rateHeaviest.WeightMax)
 							{
-								var weightExceed = weight - rateHeaviest.WeightMax.GetValueOrDefault();
+								var rateExceed = _rateWeightBreaks
+									.Where(u => u.PostalOrgId == countryCode)
+									.WhereIf(zone != null, u => u.Zone.ToUpper().Trim() == zone.FirstOrDefault().Zone.ToUpper().Trim())
+									.Where(u => u.IsExceedRule == 1)
+									.Select(u => new { u.ItemRate, u.WeightRate })
+									.FirstOrDefault();
+
+								if (rateExceed != null)
+								{
+									var weightExceed = weight - rateHeaviest.WeightMax.GetValueOrDefault();
 
 								price = rateHeaviest.ItemRate.GetValueOrDefault() + rateHeaviest.WeightRate.GetValueOrDefault() * rateHeaviest.WeightMax.GetValueOrDefault();
 								price += rateExceed.ItemRate.GetValueOrDefault() + rateExceed.WeightRate.GetValueOrDefault() * weightExceed;
 							}
 						}
 					}
-					else ErrorMsg = $"No Rate found for Country Code: {countryCode} with Service Code: {_serviceCode} and Product Code: {_productCode}. Please contact System Finance for further review.";
+					else ErrorMsg = $"No Rate found for Country Code: {countryCode} with Service Code: {_serviceCode} and Product Code: {_productCode} and State: {state} and City: {city} and Postcode: {postcode}. Please contact System Finance for further review.";
+					}
 				}
 			}
 
