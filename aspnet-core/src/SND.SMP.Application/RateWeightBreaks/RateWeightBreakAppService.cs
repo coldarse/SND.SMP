@@ -95,7 +95,7 @@ namespace SND.SMP.RateWeightBreaks
             //     rate.Service = "";
             //     await _rateRepository.UpdateAsync(rate);
             // }
-            await _rateRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
+            // await _rateRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
 
             foreach (var distinctedRateCard in rateCards)
             {
@@ -564,7 +564,7 @@ namespace SND.SMP.RateWeightBreaks
                     foreach (var distinctedRateCard in rateCard)
                     {
                         var rwb = await Repository.GetAllListAsync(x => x.RateId.Equals(distinctedRateCard.Id));
-                        if (rwb.Count > 0) await Repository.GetDbContext().Database.ExecuteSqlAsync($"DELETE FROM smpdb.rateweightbreaks WHERE RateId = '{distinctedRateCard.Id.ToString()}'");
+                        if (rwb.Count > 0) await Repository.GetDbContext().Database.ExecuteSqlAsync($"DELETE FROM smpdb.rateweightbreaks WHERE RateId = {distinctedRateCard.Id.ToString()}").ConfigureAwait(false);
                     }
 
                     foreach (RateWeightBreak rwb in insert)
