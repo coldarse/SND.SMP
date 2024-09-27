@@ -49,6 +49,8 @@ using SND.SMP.Chibis.Dto;
 using SND.SMP.ApplicationSettings;
 using Microsoft.EntityFrameworkCore;
 using SND.SMP.ItemTrackings;
+using SND.SMP.RateWeightBreaks;
+using SND.SMP.RateZones;
 
 namespace SND.SMP.Dispatches
 {
@@ -71,7 +73,9 @@ namespace SND.SMP.Dispatches
         IRepository<Currency, long> currencyRepository,
         IRepository<DispatchUsedAmount, int> dispatchUsedAmountRepository,
         IRepository<DispatchValidation, string> dispatchValidationRepository,
-        IRepository<ItemTracking, int> itemTrackingRepository
+        IRepository<ItemTracking, int> itemTrackingRepository,
+        IRepository<RateWeightBreak, int> rateWeightBreakRepository,
+        IRepository<RateZone, long> rateZoneRepository
     ) : AsyncCrudAppService<Dispatch, DispatchDto, int, PagedDispatchResultRequestDto>(repository)
     {
 
@@ -93,6 +97,8 @@ namespace SND.SMP.Dispatches
         private readonly IRepository<DispatchUsedAmount, int> _dispatchUsedAmountRepository = dispatchUsedAmountRepository;
         private readonly IRepository<DispatchValidation, string> _dispatchValidationRepository = dispatchValidationRepository;
         private readonly IRepository<ItemTracking, int> _itemTrackingRepository = itemTrackingRepository;
+        private readonly IRepository<RateWeightBreak, int> _rateWeightBreakRepository = rateWeightBreakRepository;
+        private readonly IRepository<RateZone, long> _rateZoneRepository = rateZoneRepository;
 
 
         [System.Text.RegularExpressions.GeneratedRegex(@"[a-zA-Z]")]
@@ -131,19 +137,9 @@ namespace SND.SMP.Dispatches
 
             return dataTable;
         }
-        private async Task<PriceAndCurrencyId> CalculatePrice(decimal weightVariance, string countryCode, int rateId, string productCode, string serviceCode, int totalItems, bool skipRegisterFee)
+        private async Task<PriceAndCurrencyId> CalculatePrice_TS(decimal weightVariance, string countryCode, int rateId, string productCode, string serviceCode, int totalItems, bool skipRegisterFee)
         {
             decimal registerFee = 0;
-            if (!skipRegisterFee)
-            {
-                var rateItemForFee = await _rateItemRepository.FirstOrDefaultAsync(x =>
-                                x.RateId.Equals(rateId) &&
-                                x.CountryCode.Equals(countryCode) &&
-                                x.ProductCode.Equals(productCode) &&
-                                x.ServiceCode.Equals(serviceCode)) ?? throw new UserFriendlyException("No Rate Item Found");
-
-                registerFee = rateItemForFee.Fee;
-            }
 
             var rateItem = await _rateItemRepository.FirstOrDefaultAsync(x =>
                                 x.RateId.Equals(rateId) &&
@@ -151,12 +147,34 @@ namespace SND.SMP.Dispatches
                                 x.ProductCode.Equals(productCode) &&
                                 x.ServiceCode.Equals(serviceCode)) ?? throw new UserFriendlyException("No Rate Item Found");
 
+            if (!skipRegisterFee) registerFee = rateItem.Fee;
+
             return new PriceAndCurrencyId()
             {
                 Price = (rateItem.Total * weightVariance) + (totalItems * registerFee),
                 CurrencyId = rateItem.CurrencyId,
             };
         }
+
+        private async Task<PriceAndCurrencyId> CalculatePrice_DE(decimal weightVariance, string state, string city, string countryCode, decimal weight)
+        {
+            var variancedWeight = weight - weightVariance;
+            var rateZone = await _rateZoneRepository.GetAllListAsync(u => u.State.ToUpper().Trim() == state.ToUpper().Trim() && u.City.ToUpper().Trim() == city.ToUpper().Trim());
+
+            var rateItem = await _rateWeightBreakRepository.GetAllListAsync(x =>
+                                x.PostalOrgId.Equals(countryCode) &&
+                                variancedWeight >= x.WeightMin &&
+                                variancedWeight <= x.WeightMax);
+
+            if (rateZone is not null) rateItem = [.. rateItem.Where(x => x.Zone.ToUpper().Trim().Equals(rateZone.FirstOrDefault().Zone.ToUpper().Trim()))];
+
+            return new PriceAndCurrencyId()
+            {
+                Price = (decimal)(rateItem.FirstOrDefault().ItemRate + rateItem.FirstOrDefault().WeightRate) * weightVariance,
+                CurrencyId = rateItem.FirstOrDefault().CurrencyId,
+            };
+        }
+
         private static byte[] CreateSLManifestExcelFile(List<SLManifest> dataList)
         {
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
@@ -1556,7 +1574,11 @@ namespace SND.SMP.Dispatches
                 decimal totalRefundPrice = 0;
                 decimal totalRefundWeight = 0;
 
-                PriceAndCurrencyId priceAndCurrencyId;
+                PriceAndCurrencyId priceAndCurrencyId = new()
+                {
+                    CurrencyId = 0,
+                    Price = 0.0m
+                };
 
                 string rateCardName = rate.CardName;
 
@@ -1568,7 +1590,19 @@ namespace SND.SMP.Dispatches
                     {
                         int totalItems = dispatchItems.Count(x => x.BagNo.Equals(waBag.BagNo));
 
-                        priceAndCurrencyId = await CalculatePrice(waBag.WeightVariance.Value, waBag.CountryCode, rate.Id, dispatch.ProductCode, dispatch.ServiceCode, totalItems, true);
+                        if (dispatch.ServiceCode == "TS")
+                        {
+                            priceAndCurrencyId = await CalculatePrice_TS((decimal)waBag.WeightVariance, waBag.CountryCode, rate.Id, dispatch.ProductCode, dispatch.ServiceCode, totalItems, true);
+                        }
+                        else
+                        {
+                            foreach (var waItem in dispatchItems)
+                            {
+                                var itemPrice = await CalculatePrice_DE((decimal)waBag.WeightVariance, waItem.State, waItem.City, waItem.CountryCode, (decimal)waItem.Weight);
+                                priceAndCurrencyId.Price += itemPrice.Price;
+                                priceAndCurrencyId.CurrencyId = itemPrice.CurrencyId;
+                            }
+                        }
                         totalWeightAdjustmentPrice = priceAndCurrencyId.Price;
                         totalWeightAdjustment = waBag.WeightVariance.Value;
 
@@ -1737,7 +1771,20 @@ namespace SND.SMP.Dispatches
                 var itemList = items.Where(x => x.BagNo == bag.BagNo).ToList();
                 int totalItems = itemList.Count;
 
-                priceAndCurrencyId = await CalculatePrice((decimal)bag.WeightVariance, bag.CountryCode, rate.Id, dispatch.ProductCode, dispatch.ServiceCode, totalItems, true);
+                if (dispatch.ServiceCode == "TS")
+                {
+                    priceAndCurrencyId = await CalculatePrice_TS((decimal)bag.WeightVariance, bag.CountryCode, rate.Id, dispatch.ProductCode, dispatch.ServiceCode, totalItems, true);
+                }
+                else
+                {
+                    foreach (var waItem in itemList)
+                    {
+                        var itemPrice = await CalculatePrice_DE((decimal)bag.WeightVariance, waItem.State, waItem.City, waItem.CountryCode, (decimal)waItem.Weight);
+                        priceAndCurrencyId.Price += itemPrice.Price;
+                        priceAndCurrencyId.CurrencyId = itemPrice.CurrencyId;
+                    }
+                }
+
                 totalWeightAdjustmentPrice = priceAndCurrencyId.Price;
                 totalWeightAdjustment = (decimal)bag.WeightVariance;
 
@@ -2587,7 +2634,7 @@ namespace SND.SMP.Dispatches
             decimal totalRefundPrice = 0;
             decimal totalRefundWeight = 0;
 
-            PriceAndCurrencyId priceAndCurrencyId;
+            PriceAndCurrencyId priceAndCurrencyId = new();
 
             string rateCardName = rate.CardName;
 
@@ -2599,7 +2646,20 @@ namespace SND.SMP.Dispatches
                 {
                     int totalItems = dispatchItems.Count(x => x.BagNo.Equals(waBag.BagNo));
 
-                    priceAndCurrencyId = await CalculatePrice(waBag.WeightVariance.Value, waBag.CountryCode, rate.Id, dispatch.ProductCode, dispatch.ServiceCode, totalItems, true);
+                    if (dispatch.ServiceCode == "TS")
+                    {
+                        priceAndCurrencyId = await CalculatePrice_TS((decimal)waBag.WeightVariance, waBag.CountryCode, rate.Id, dispatch.ProductCode, dispatch.ServiceCode, totalItems, true);
+                    }
+                    else
+                    {
+                        foreach (var waItem in dispatchItems)
+                        {
+                            var itemPrice = await CalculatePrice_DE((decimal)waBag.WeightVariance, waItem.State, waItem.City, waItem.CountryCode, (decimal)waItem.Weight);
+                            priceAndCurrencyId.Price += itemPrice.Price;
+                            priceAndCurrencyId.CurrencyId = itemPrice.CurrencyId;
+                        }
+                    }
+
                     totalWeightAdjustmentPrice = priceAndCurrencyId.Price;
                     totalWeightAdjustment = waBag.WeightVariance.Value;
 
