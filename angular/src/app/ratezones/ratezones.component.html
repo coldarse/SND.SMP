@@ -3,10 +3,10 @@
         <div class='container-fluid'>
             <div class='row'>
                 <div class='col-6'>
-                    <h1>{{ 'RateZones' | localize }}</h1>
+                    <h1>{{ 'Rate Zones' | localize }}</h1>
                 </div>
                 <div class='col-6 text-right' *ngIf='isButtonVisible("Create")'>
-                    <a href='javascript:;' class='btn bg-blue' (click)='createRateZone()'>
+                    <a href='javascript:;' class='btn bg-olive' (click)='createRateZone()'>
                         <i class='fa fa-plus-square'></i>
                         {{ 'Create' | localize }}
                     </a>
@@ -25,7 +25,7 @@
                                 <div class='input-group-prepend'>
                                     <button
                                             type='button'
-                                            class='btn bg-blue'
+                                            class='btn bg-olive'
                                             (click)='getDataPage(1)'
                                     >
                                         <i class='fas fa-search'></i>

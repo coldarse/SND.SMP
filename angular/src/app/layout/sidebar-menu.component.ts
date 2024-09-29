@@ -204,7 +204,7 @@ export class SidebarMenuComponent extends AppComponentBase implements OnInit {
           "Pages.EmailContent"
         ),
         new MenuItem(
-          this.l("RateZones"),
+          this.l("Rate Zones"),
           "/app/ratezones",
           "fas fa-warehouse",
           "Pages.RateZone"
