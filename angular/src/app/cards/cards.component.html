@@ -15,7 +15,7 @@
         <br />
         <div class="row" *ngFor="let dispatch of dispatches">
           <div class="col-sm-6">
-            <h6>{{ dispatch.customerName }}</h6>
+            <h6>{{ dispatch.customerName }}  {{ dispatch.dispatchNo }}</h6>
           </div>
           <div class="col-sm-6 text-right">
             <span class="badge badge-pill badge-light">
@@ -41,10 +41,13 @@
             }}</span>
 
             @if (dispatch.importProgress == 100) {
-              <span class="badge badge-pill info-btn ml-1">Imported <i class="fas fa-check"></i></span>
-            }
-            @else {
-              <span class="badge badge-pill info-btn ml-1">Importing <i class="fas fa-file-upload"></i></span>
+            <span class="badge badge-pill info-btn ml-1"
+              >Imported <i class="fas fa-check"></i
+            ></span>
+            } @else {
+            <span class="badge badge-pill info-btn ml-1"
+              >Importing <i class="fas fa-file-upload"></i
+            ></span>
             }
           </div>
           <hr />

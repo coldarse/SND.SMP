@@ -22,7 +22,7 @@ export class RateZonesComponent extends PagedListingComponentBase<RateZoneDto> {
 
   constructor(
     injector: Injector,
-    private _ratezoneService: RateZoneService,
+    private _rateZoneService: RateZoneService,
     private _modalService: BsModalService
   ){
     super(injector);
@@ -74,7 +74,7 @@ export class RateZonesComponent extends PagedListingComponentBase<RateZoneDto> {
       undefined,
       (result: boolean) => {
         if (result) {
-          this._ratezoneService.delete(entity.id).subscribe(() => {
+          this._rateZoneService.delete(entity.id).subscribe(() => {
             abp.notify.success(this.l('SuccessfullyDeleted'));
             this.refresh();
           });
@@ -93,7 +93,7 @@ export class RateZonesComponent extends PagedListingComponentBase<RateZoneDto> {
     finishedCallback: Function
   ): void {
     request.keyword = this.keyword;
-    this._ratezoneService
+    this._rateZoneService
     .getAll(
       request
     ).pipe(

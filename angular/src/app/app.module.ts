@@ -149,6 +149,7 @@ import { CustomerTransactionService } from "@shared/service-proxies/customer-tra
 import { UploadPostalComponent } from "./postals/upload-postal/upload-postal.component";
 import { UploadPostalCountryComponent } from "./postal-countries/upload-postal-country/upload-postal-country.component";
 import { TopUpWalletComponent } from "./wallets/topup-wallet/topup-wallet.component";
+import { ManageCreditComponent } from "./wallets/manage-credit/manage-credit.component";
 
 import { PostChecksComponent } from "./post-checks/post-checks.component";
 import { PrePostCheckWeightComponent } from "./dispatches/pre-post-check-weight/pre-post-check-weight.component";
@@ -243,6 +244,7 @@ import { DatePipe } from '@angular/common';
     UploadPostalComponent,
     UploadPostalCountryComponent,
     TopUpWalletComponent,
+    ManageCreditComponent,
     RateWeightBreaksComponent,
     UploadRateWeightBreakComponent,
     DispatchValidationErrorComponent,

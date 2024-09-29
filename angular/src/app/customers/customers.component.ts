@@ -34,10 +34,13 @@ class PagedCustomersRequestDto extends PagedRequestDto {
 export class CustomersComponent extends PagedListingComponentBase<CustomerDto> {
   keyword = "";
   postal_keyword = "";
+  specific_companyCode = "";
+  specific_showLoginName = "";
   customers: any[] = [];
   customerpostals: any[] = [];
   selectedCustomer: CustomerDto;
   openPostal = false;
+  openDashboard = false;
   searchCustomer = true;
   isAdmin = true;
 
@@ -108,10 +111,27 @@ export class CustomersComponent extends PagedListingComponentBase<CustomerDto> {
     this.getDataPage(1);
   }
 
+  dashboard(entity: CustomerDto): void {
+    this.postal_keyword = "";
+    this.keyword = entity.code;
+    this.specific_companyCode = entity.code;
+    this.specific_showLoginName = entity.companyName;
+    this.openDashboard = true;
+    this.getDataPage(1);
+  }
+
   closePostal(): void {
     this.keyword = "";
     this.openPostal = false;
     this.selectedCustomer = undefined;
+    this.getDataPage(1);
+  }
+
+  closeDashboard(): void {
+    this.keyword = "";
+    this.openDashboard = false;
+    this.specific_companyCode = "";
+    this.specific_showLoginName = "";
     this.getDataPage(1);
   }
 

@@ -56,6 +56,9 @@
                   <th *ngIf="isButtonVisible('Topup')">
                     {{ "Topup" | localize }}
                   </th>
+                  <th *ngIf="isButtonVisible('ManageCredit')">
+                    {{ "Manage Credit" | localize }}
+                  </th>
                   <th *ngIf="isButtonVisible('Edit')">
                     {{ "Edit" | localize }}
                   </th>
@@ -91,6 +94,17 @@
                     >
                       <i class="fas fa-square-plus"></i>
                       {{ "Topup" | localize }}
+                    </button>
+                  </td>
+                  <td *ngIf="isButtonVisible('ManageCredit')">
+                    <button
+                      type="button"
+                      class="btn btn-sm bg-olive mx-2"
+                      (click)="manageCredit(wallet)"
+                      *ngIf="isButtonVisible('ManageCredit')"
+                    >
+                      <i class="fas fa-dollar-sign"></i>
+                      {{ "Manage Credit" | localize }}
                     </button>
                   </td>
                   <td *ngIf="isButtonVisible('Edit')">

@@ -20,7 +20,7 @@ export class CreateUpdateRateZoneComponent extends AppComponentBase
 
   constructor(
     injector: Injector,
-    public _ratezoneService: RateZoneService,
+    public _rateZoneService: RateZoneService,
     public bsModalRef: BsModalRef
   ) {
     super(injector);
@@ -36,7 +36,7 @@ export class CreateUpdateRateZoneComponent extends AppComponentBase
     this.saving = true;
 
     if(this.ratezone.id != undefined){
-      this._ratezoneService.update(this.ratezone).subscribe(
+      this._rateZoneService.update(this.ratezone).subscribe(
         () => {
           this.notify.info(this.l('SavedSuccessfully'));
           this.bsModalRef.hide();
@@ -48,7 +48,7 @@ export class CreateUpdateRateZoneComponent extends AppComponentBase
       );
     }
     else{
-      this._ratezoneService.create(this.ratezone).subscribe(
+      this._rateZoneService.create(this.ratezone).subscribe(
         () => {
           this.notify.info(this.l('SavedSuccessfully'));
           this.bsModalRef.hide();

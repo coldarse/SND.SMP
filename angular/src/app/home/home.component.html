@@ -1,6 +1,14 @@
 ﻿<div [@routerTransition]>
   <section class="content-header">
     <div class="container-fluid">
+      <div class="row mb-2" *ngIf="fromCustomerInfo">
+        <div class="col-md-1">
+          <button (click)="closeDashboard()" class="btn btn-danger btn-md">
+            <i class="fa-solid fa-xmark"></i>
+            Close
+          </button>
+        </div>
+      </div>
       <div class="row">
         <div class="col-6">
           <h1 class="ml-3" style="font-size: 3.5rem">
