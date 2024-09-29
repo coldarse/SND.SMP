@@ -7,6 +7,7 @@ public class GetPostCheck
     public string? CompanyName { get; set; }
     public string? DispatchNo { get; set; }
     public string? FlightTrucking { get; set; }
+    public string? ServiceCode { get; set; }
     public DateOnly? ETA { get; set; }
     public DateTime? ATA { get; set; }
     public string CompanyCode { get; set; }

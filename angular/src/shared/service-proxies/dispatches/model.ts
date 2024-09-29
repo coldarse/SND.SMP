@@ -155,6 +155,7 @@ export interface GetPostCheck {
   postCheckNoOfBag: number;
   preCheckWeight: number;
   postCheckWeight: number;
+  serviceCode: string;
   bags: BagDto[];
 }
 

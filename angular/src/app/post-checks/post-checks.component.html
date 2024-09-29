@@ -35,6 +35,7 @@
                     id="weightGap"
                     maxlength="32"
                     [(ngModel)]="bypassValue"
+                    [disabled]="postchecks.serviceCode == 'DE'"
                   />
                 </div>
               </div>
@@ -86,6 +87,7 @@
                     name="uploadPostCheck"
                     id="uploadPostCheck"
                     [(ngModel)]="fileUpload"
+                    [disabled]="postchecks.serviceCode == 'DE'"
                   />
                 </div>
               </div>
@@ -93,7 +95,7 @@
                 <div class="col-md-12 text-right">
                   <button
                     class="btn bg-olive"
-                    [disabled]="fileUpload == undefined || isUploading"
+                    [disabled]="fileUpload == undefined || isUploading || postchecks.serviceCode == 'DE'"
                     (click)="UploadPostCheck()"
                   >
                     @if (!isUploading) { Upload } @else{
@@ -125,7 +127,8 @@
                     [disabled]="
                       postchecks == undefined ||
                       postchecks.companyName == undefined ||
-                      isSaving
+                      isSaving ||
+                      postchecks.serviceCode == 'DE'
                     "
                   >
                     @if (!isSaving) { Save Changes } @else{
@@ -237,6 +240,7 @@
                         name="ata"
                         id="ata"
                         [(ngModel)]="postchecks.ata"
+                        [disabled]="postchecks.serviceCode == 'DE'"
                       />
                     </div>
                   </div>
@@ -311,6 +315,7 @@
                         name="postCheckNoOfBag"
                         id="postCheckNoOfBag"
                         [(ngModel)]="postchecks.postCheckNoOfBag"
+                        [disabled]="postchecks.serviceCode == 'DE'"
                       />
                     </div>
                   </div>
@@ -346,6 +351,7 @@
                         name="postCheckWeight"
                         id="postCheckWeight"
                         [(ngModel)]="postchecks.postCheckWeight"
+                        [disabled]="postchecks.serviceCode == 'DE'"
                       />
                     </div>
                   </div>
@@ -378,6 +384,7 @@
                           [(ngModel)]="
                             bag.weightPost == null ? '' : bag.weightPost
                           "
+                          [disabled]="postchecks.serviceCode == 'DE'"
                         />
                       </td>
                       <td>
