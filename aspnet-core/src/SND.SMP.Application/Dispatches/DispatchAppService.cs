@@ -1342,6 +1342,7 @@ namespace SND.SMP.Dispatches
                 PostCheckNoOfBag = dispatch.PostCheckTotalBags ?? 0,
                 PreCheckWeight = dispatch.TotalWeight ?? Convert.ToDecimal(0),
                 PostCheckWeight = dispatch.PostCheckTotalWeight ?? Convert.ToDecimal(0),
+                ServiceCode = dispatch.ServiceCode ?? "",
                 Bags = bags ?? []
             };
         }
