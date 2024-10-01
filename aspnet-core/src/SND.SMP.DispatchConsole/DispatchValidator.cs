@@ -230,11 +230,11 @@ namespace SND.SMP.DispatchConsole
                             var strProductCode = reader[3] == null ? "" : reader[3].ToString();
                             var bagNo = reader[4] == null ? "" : reader[4].ToString();
                             var countryCode = reader[5] == null ? "" : reader[5].ToString();
-                            var weight = Convert.ToDecimal(reader[6]);
+                            var weight = (reader[6] == null || reader[6].ToString().IsNullOrWhiteSpace()) ? 0 : Convert.ToDecimal(reader[6]);
                             var itemId = reader[7] == null ? "" : reader[7].ToString();
                             var sealNo = reader[8] == null ? "" : reader[8].ToString();
                             var strDispatchNo = reader[9] == null ? "" : reader[9].ToString();
-                            var itemValue = Convert.ToDecimal(reader[10]);
+                            var itemValue = (reader[10] == null || reader[10].ToString().IsNullOrWhiteSpace()) ? 0 : Convert.ToDecimal(reader[10]);
                             var itemDesc = reader[11] == null ? "" : reader[11].ToString();
                             var recpName = reader[12] == null ? "" : reader[12].ToString();
                             var telNo = reader[13] == null ? "" : reader[13].ToString();
@@ -247,9 +247,9 @@ namespace SND.SMP.DispatchConsole
                             var identityNo = reader[20] == null ? "" : reader[20].ToString();
                             var identityType = reader[21] == null ? "" : reader[21].ToString();
                             var state = reader[22] == null ? "" : reader[22].ToString();
-                            var length = reader[23].ToString().IsNullOrWhiteSpace() ? 0 : Convert.ToDecimal(reader[23]);
-                            var width =  reader[24].ToString().IsNullOrWhiteSpace() ? 0 : Convert.ToDecimal(reader[24]);
-                            var height = reader[25].ToString().IsNullOrWhiteSpace() ? 0 : Convert.ToDecimal(reader[25]);
+                            var length = (reader[23] == null || reader[23].ToString().IsNullOrWhiteSpace()) ? 0 : Convert.ToDecimal(reader[23]);
+                            var width =  (reader[24] == null || reader[24].ToString().IsNullOrWhiteSpace()) ? 0 : Convert.ToDecimal(reader[24]);
+                            var height = (reader[25] == null || reader[25].ToString().IsNullOrWhiteSpace()) ? 0 : Convert.ToDecimal(reader[25]);
                             var taxPaymentMethod = reader[26] == null ? "" : reader[26].ToString();
                             var hsCode = reader[27] == null ? "" : reader[27].ToString();
                             var qty = reader[28] == null ? 0 : Convert.ToInt32(reader[28]);
@@ -281,7 +281,12 @@ namespace SND.SMP.DispatchConsole
                                     () => IOSS_Missing(ref validationResult_ioss_missing, listIOSSChecking, DispatchProfile.PostalCode[..2]),
                                     () => Id_HasInvalidLength(ref validationResult_id_HasInvalidLength, listItemIds),
                                     () => Id_HasInvalidPrefixSuffix(ref validationResult_id_HasInvalidPrefixSuffix, listItemIds),
-                                    () => Id_HasInvalidCheckDigit(ref validationResult_id_HasInvalidCheckDigit, listItemIds),
+                                    () => {
+                                        if (listCountryCodes.Any(u => u.CountryCode != "NG")) // bypass checking for Country Code NG
+                                        {
+                                            Id_HasInvalidCheckDigit(ref validationResult_id_HasInvalidCheckDigit, listItemIds);
+                                        }
+                                    },
                                     () => Country_IsInvalidCountry(ref validationResult_country_HasInvalidCountry, listCountryCodes),
                                     () => TrackingNo_IsPreRegistered(ref validationResult_trackingno_IsPreRegistered, listItemIds, CustomerCode, DispatchProfile.ProductCode),
                                     () => TrackingNo_IsInvalid(ref validationResult_trackingno_IsInvalid, listItemIds, CustomerCode, DispatchProfile.ProductCode, DispatchProfile.PostalCode),
@@ -342,7 +347,13 @@ namespace SND.SMP.DispatchConsole
                         () => IOSS_Missing(ref validationResult_ioss_missing, listIOSSChecking, DispatchProfile.PostalCode[..2]),
                         () => Id_HasInvalidLength(ref validationResult_id_HasInvalidLength, listItemIds),
                         () => Id_HasInvalidPrefixSuffix(ref validationResult_id_HasInvalidPrefixSuffix, listItemIds),
-                        () => Id_HasInvalidCheckDigit(ref validationResult_id_HasInvalidCheckDigit, listItemIds),
+                        () =>
+                        {
+                            if (listCountryCodes.Any(u => u.CountryCode != "NG")) // bypass checking for Country Code NG
+                            {
+                                Id_HasInvalidCheckDigit(ref validationResult_id_HasInvalidCheckDigit, listItemIds);
+                            }
+                        },
                         () => Country_IsInvalidCountry(ref validationResult_country_HasInvalidCountry, listCountryCodes),
                         () => TrackingNo_IsPreRegistered(ref validationResult_trackingno_IsPreRegistered, listItemIds, CustomerCode, DispatchProfile.ProductCode),
                         () => TrackingNo_IsInvalid(ref validationResult_trackingno_IsInvalid, listItemIds, CustomerCode, DispatchProfile.ProductCode, DispatchProfile.PostalCode),
