@@ -26,7 +26,15 @@ namespace SND.SMP.DispatchConsole
         private const string SERVICE_TS = "TS";
         private const string SERVICE_DE = "DE";
         private const int ID_LENGTH = 13;
-
+        private const decimal totalWeightLimitForCountry_NG = 30;
+        private static readonly string[] expectedHeaders = new string[]
+        {
+            "Postal", "Dispatch Date", "Service", "Product Code", "Bag No", "Country", "Weight",
+            "Tracking Number", "Seal Number", "Dispatch Name", "Item Value", "Item Desc", "Recp Name",
+            "Tel No", "Email", "Address", "Postcode", "City", "Address Line 2", "Address No",
+            "Identity No.", "Identity Type", "State", "Length", "Width", "Height",
+            "Tax Payment Method", "HS Code", "Qty"
+        };
         private uint QueueId { get; set; }
         private string FilePath { get; set; }
         private string FileType { get; set; }
@@ -143,6 +151,7 @@ namespace SND.SMP.DispatchConsole
 
             DispatchValidateDto validationResult_dispatch_IsDuplicate = new() { Category = "Duplicated Dispatch No." };
             DispatchValidateDto validationResult_dispatch_IsParticularsNotTally = new() { Category = "Dispatch Particulars Not Tally" };
+            DispatchValidateDto validationResult_dispatch_Overweight = new() { Category = "Dispatch Overweight" };
             DispatchValidateDto validationResult_bag_IsDuplicate = new() { Category = "Duplicated Bag No" };
             DispatchValidateDto validationResult_id_IsDuplicate = new() { Category = "Duplicated Item ID" };
             DispatchValidateDto validationResult_id_HasInvalidLength = new() { Category = "Invalid Length" };
@@ -222,7 +231,7 @@ namespace SND.SMP.DispatchConsole
                     {
                         if (rowTouched > 0)
                         {
-                            if (reader[0] is null) break;
+                        if (reader[0] is null && ((reader[3] == null ? "": reader[3].ToString()) != SERVICE_TS || (reader[3] == null ? "" : reader[3].ToString()) != SERVICE_DE)) break;
                             var strPostalCode = reader[0] == null ? "" : reader[0].ToString();
                             DateTime.TryParseExact(reader[1].ToString()!, "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime dateTimeCell);
                             var dispatchDate = DateOnly.FromDateTime(dateTimeCell);
@@ -279,12 +288,18 @@ namespace SND.SMP.DispatchConsole
                                     () => Id_IsDuplicate(ref validationResult_id_IsDuplicate, listItemIds),
                                     () => Bag_IsDuplicate(ref validationResult_bag_IsDuplicate, listBagNos),
                                     () => IOSS_Missing(ref validationResult_ioss_missing, listIOSSChecking, DispatchProfile.PostalCode[..2]),
-                                    () => Id_HasInvalidLength(ref validationResult_id_HasInvalidLength, listItemIds),
                                     () => Id_HasInvalidPrefixSuffix(ref validationResult_id_HasInvalidPrefixSuffix, listItemIds),
                                     () => {
-                                        if (listCountryCodes.Any(u => u.CountryCode != "NG")) // bypass checking for Country Code NG
+                                        if (listCountryCodes.Any(u => u.CountryCode != "NG") && ServiceCode == SERVICE_DE) // bypass checking for Country Code NG
                                         {
                                             Id_HasInvalidCheckDigit(ref validationResult_id_HasInvalidCheckDigit, listItemIds);
+                                            Id_HasInvalidLength(ref validationResult_id_HasInvalidLength, listItemIds);
+                                        }
+                                    },
+                                    () => {
+                                        if (listCountryCodes.Any(u => u.CountryCode == "NG") && ServiceCode == SERVICE_DE) // checking for Country Code NG
+                                        {
+                                            Dispatch_IsOverweight(ref validationResult_dispatch_Overweight, totalWeight);
                                         }
                                     },
                                     () => Country_IsInvalidCountry(ref validationResult_country_HasInvalidCountry, listCountryCodes),
@@ -345,13 +360,20 @@ namespace SND.SMP.DispatchConsole
                         () => Id_IsDuplicate(ref validationResult_id_IsDuplicate, listItemIds),
                         () => Bag_IsDuplicate(ref validationResult_bag_IsDuplicate, listBagNos),
                         () => IOSS_Missing(ref validationResult_ioss_missing, listIOSSChecking, DispatchProfile.PostalCode[..2]),
-                        () => Id_HasInvalidLength(ref validationResult_id_HasInvalidLength, listItemIds),
                         () => Id_HasInvalidPrefixSuffix(ref validationResult_id_HasInvalidPrefixSuffix, listItemIds),
                         () =>
                         {
-                            if (listCountryCodes.Any(u => u.CountryCode != "NG")) // bypass checking for Country Code NG
+                            if (listCountryCodes.Any(u => u.CountryCode != "NG") && ServiceCode == SERVICE_DE) // bypass checking for Country Code NG
                             {
                                 Id_HasInvalidCheckDigit(ref validationResult_id_HasInvalidCheckDigit, listItemIds);
+                                Id_HasInvalidLength(ref validationResult_id_HasInvalidLength, listItemIds);
+                            }
+                        },
+                        () =>
+                        {
+                            if (listCountryCodes.Any(u => u.CountryCode == "NG") && ServiceCode == SERVICE_DE) // checking for Country Code NG
+                            {
+                                Dispatch_IsOverweight(ref validationResult_dispatch_Overweight, totalWeight);
                             }
                         },
                         () => Country_IsInvalidCountry(ref validationResult_country_HasInvalidCountry, listCountryCodes),
@@ -404,6 +426,12 @@ namespace SND.SMP.DispatchConsole
                     {
                         isValid = false;
                         validations.Add(validationResult_dispatch_IsParticularsNotTally);
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(validationResult_dispatch_Overweight.Message))
+                    {
+                        isValid = false;
+                        validations.Add(validationResult_dispatch_Overweight);
                     }
 
                     if (validationResult_id_IsDuplicate.ItemIds.Count != 0 || !string.IsNullOrWhiteSpace(validationResult_id_IsDuplicate.Message))
@@ -871,6 +899,18 @@ namespace SND.SMP.DispatchConsole
 
             result = list.Count != 0;
 
+            return result;
+        }
+
+        private bool Dispatch_IsOverweight(ref Dto.DispatchValidateDto validationResult, decimal weight)
+        {   
+            var result = false;
+
+            if (weight >= totalWeightLimitForCountry_NG)
+            {
+                validationResult.Message = "$ The total weight of the items in the dispatch exceeds the maximum";
+                result = true;
+            } 
             return result;
         }
 
