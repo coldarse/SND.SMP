@@ -524,11 +524,12 @@ namespace SND.SMP.DispatchConsole
                         var initialBalance = wallet.Balance;
 
                         wallet.Balance -= totalPrice;
-wait dbconn.CustomerTransactions.AddAsync(new CustomerTransaction()
+                        
+                        await dbconn.CustomerTransactions.AddAsync(new CustomerTransaction()
                         {
                             Wallet = wallet.Id,
                             Customer = wallet.Customer,
-                            PaymentMode = eWallet.Type,
+                            PaymentMode = wallet.EWalletType.ToString(),
                             Currency = currency.Abbr,
                             TransactionType = "Pre-Alert",
                             Amount = -totalPrice,
@@ -538,7 +539,7 @@ wait dbconn.CustomerTransactions.AddAsync(new CustomerTransaction()
                         }).ConfigureAwait(false);
                         var eWallet = await dbconn.EWalletTypes.FirstOrDefaultAsync(x => x.Id.Equals(wallet.EWalletType));
 
-                        a
+                        
 
                         await dbconn.DispatchUsedAmounts.AddAsync(new DispatchUsedAmount()
                         {
