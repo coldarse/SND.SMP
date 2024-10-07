@@ -1,8 +1,10 @@
 using System.Drawing.Text;
 using System.Net.Http.Headers;
 using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore;
 using OfficeOpenXml.ExternalReferences;
 using SND.SMP.Chibis;
+using SND.SMP.CustomerTransactions;
 using SND.SMP.DispatchConsole;
 using SND.SMP.DispatchConsole.EF;
 using static SND.SMP.Shared.EnumConst;
@@ -343,6 +345,32 @@ public class InvoiceGenerator
                                 });
 
                                 tempGroup.TotalAmount += item.Amount;
+
+                                var wallet = db.Wallets
+                                                .Where(u => u.Customer == dispatches.FirstOrDefault().CustomerCode)
+                                                .Where(u => u.Currency == Convert.ToInt64(dispatches.FirstOrDefault().CurrencyId))
+                                                .FirstOrDefault();
+
+                                if (wallet is not null)
+                                {
+                                    wallet.Balance -= item.Amount;
+
+                                    var eWallet = await db.EWalletTypes.FirstOrDefaultAsync(x => x.Id.Equals(wallet.EWalletType));
+                                    var currency = await db.Currencies.FirstOrDefaultAsync(c => c.Id == Convert.ToInt64(dispatches.FirstOrDefault().CurrencyId));
+
+                                    await db.CustomerTransactions.AddAsync(new CustomerTransaction()
+                                    {
+                                        Wallet = wallet.Id,
+                                        Customer = wallet.Customer,
+                                        PaymentMode = eWallet.Type,
+                                        Currency = currency.Abbr,
+                                        TransactionType = "Pre-Alert",
+                                        Amount = -item.Amount,
+                                        ReferenceNo = item.Description,
+                                        Description = $"Deducted {currency.Abbr} {decimal.Round(item.Amount, 2, MidpointRounding.AwayFromZero)} from {wallet.Customer}'s {wallet.Id} Wallet.",
+                                        TransactionDate = DateTime.Now
+                                    }).ConfigureAwait(false);
+                                }
                             }
                         }
                     }
