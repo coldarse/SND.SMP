@@ -175,14 +175,14 @@ public class InvoiceGenerator
                                 else
                                 {
                                     // DE Rates
-                                    var rateZone = db.RateZones.Where(u => u.State.ToUpper().Trim() == x.State.ToUpper().Trim() && u.City.ToUpper().Trim() == x.City.ToUpper().Trim()).ToList();
+                                    //var rateZone = db.RateZones.Where(u => u.State.ToUpper().Trim() == x.State.ToUpper().Trim() && u.City.ToUpper().Trim() == x.City.ToUpper().Trim()).ToList();
 
-                                    var rateItem =  db.Rateweightbreaks.Where(z =>
-                                                        z.PostalOrgId.Equals(x.CountryCode) &&
-                                                        x.Weight >= z.WeightMin &&
-                                                        x.Weight <= z.WeightMax).ToList();
+                                    //var rateItem =  db.Rateweightbreaks.Where(z =>
+                                    //                    z.PostalOrgId.Equals(x.CountryCode) &&
+                                    //                    x.Weight >= z.WeightMin &&
+                                    //                    x.Weight <= z.WeightMax).ToList();
 
-                                    if (rateZone is not null) rateItem = rateItem.Where(x => x.Zone.ToUpper().Trim().Equals(rateZone.FirstOrDefault().Zone.ToUpper().Trim())).ToList();
+                                    //if (rateZone is not null) rateItem = rateItem.Where(x => x.Zone.ToUpper().Trim().Equals(rateZone.FirstOrDefault().Zone.ToUpper().Trim())).ToList();
 
                                     return new SimplifiedItem()
                                     {
@@ -190,9 +190,11 @@ public class InvoiceGenerator
                                         Weight = (decimal)x.Weight,
                                         Country = x.CountryCode,
                                         Identifier = x.Id,
-                                        Rate = (decimal)(rateItem.FirstOrDefault() is null ? 0.00m : rateItem.FirstOrDefault().ItemRate),
+                                        Rate = ratePerKG,
+                                        //Rate = (decimal)(rateItem.FirstOrDefault() is null ? 0.00m : rateItem.FirstOrDefault().ItemRate),
                                         Quantity = 1,
-                                        UnitPrice = (decimal)(rateItem.FirstOrDefault() is null ? 0.00m : rateItem.FirstOrDefault().WeightRate),
+                                        UnitPrice = unitPrice,
+                                        //UnitPrice = (decimal)(rateItem.FirstOrDefault() is null ? 0.00m : rateItem.FirstOrDefault().WeightRate),
                                         Amount = (decimal)x.Price,
                                         ProductCode = x.ProductCode
                                     };
