@@ -17,6 +17,9 @@ namespace SND.SMP.DispatchConsole
 {
     public class DispatchImporter
     {
+        private const string SERVICE_TS = "TS";
+
+        private const string SERVICE_DE = "DE";
         private uint _queueId { get; set; }
         private string _filePath { get; set; }
         private int _batchSize { get; set; }
@@ -162,7 +165,7 @@ namespace SND.SMP.DispatchConsole
                         {
                             if (rowTouched > 0)
                             {
-                                if (reader[0] is null) break;
+                                if (reader[0] is null || ((reader[3] == null ? "" : reader[3].ToString()) != SERVICE_TS || (reader[3] == null ? "" : reader[3].ToString()) != SERVICE_DE)) break;
                                 var strPostalCode = reader[0] == null ? "" : reader[0].ToString();
                                 DateTime.TryParseExact(reader[1].ToString()!, "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime dateTimeCell);
                                 var dispatchDate = DateOnly.FromDateTime(dateTimeCell);

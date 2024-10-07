@@ -18,6 +18,7 @@ using System.Text;
 using OfficeOpenXml;
 using SND.SMP.ItemTrackingReviews;
 using Abp.Extensions;
+using Abp.Collections.Extensions;
 
 namespace SND.SMP.DispatchConsole
 {
@@ -43,6 +44,8 @@ namespace SND.SMP.DispatchConsole
         private string PostalCode { get; set; }
         private long CurrencyId { get; set; }
         private int BlockSize { get; set; } = 50;
+
+        private int itemRow { get; set; }
 
         private List<string> ListPostalCountry { get; set; }
         private DispatchProfileDto DispatchProfile { get; set; }
@@ -144,7 +147,7 @@ namespace SND.SMP.DispatchConsole
         {
             bool isValid = true;
             bool isFundLack = false;
-
+           
             DateTime dateValidationStart = DateTime.Now;
 
             List<DispatchValidateDto> validations = [];
@@ -231,7 +234,7 @@ namespace SND.SMP.DispatchConsole
                     {
                         if (rowTouched > 0)
                         {
-                        if (reader[0] is null && ((reader[3] == null ? "": reader[3].ToString()) != SERVICE_TS || (reader[3] == null ? "" : reader[3].ToString()) != SERVICE_DE)) break;
+                        if (reader[0] is null || ((reader[3] == null ? "" : reader[3].ToString()) != SERVICE_TS || (reader[3] == null ? "" : reader[3].ToString()) != SERVICE_DE)) break;                            
                             var strPostalCode = reader[0] == null ? "" : reader[0].ToString();
                             DateTime.TryParseExact(reader[1].ToString()!, "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime dateTimeCell);
                             var dispatchDate = DateOnly.FromDateTime(dateTimeCell);
@@ -320,6 +323,7 @@ namespace SND.SMP.DispatchConsole
                         }
 
                         rowTouched++;
+                        itemRow = rowTouched;
 
                         #region Validation Progress
                         var perc = Convert.ToInt32(Convert.ToDecimal(rowTouched) / Convert.ToDecimal(rowCount) * 100);
@@ -612,7 +616,7 @@ wait dbconn.CustomerTransactions.AddAsync(new CustomerTransaction()
             }
             catch (Exception ex)
             {
-                validationResult_Others.Message = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
+                validationResult_Others.Message = ex.InnerException != null ? ex.InnerException.Message : string.Format("Row : {0} - {1}", itemRow, ex.Message);
                 validations.Add(validationResult_Others);
 
                 await LogQueueError(new QueueErrorEventArg
