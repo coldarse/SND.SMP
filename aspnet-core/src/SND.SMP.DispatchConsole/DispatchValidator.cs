@@ -234,7 +234,7 @@ namespace SND.SMP.DispatchConsole
                     {
                         if (rowTouched > 0)
                         {
-                        if (reader[0] is null || ((reader[3] == null ? "" : reader[3].ToString()) != SERVICE_TS || (reader[3] == null ? "" : reader[3].ToString()) != SERVICE_DE)) break;                            
+                        if (reader[0] is null && ((reader[3] == null ? "" : reader[3].ToString()) != SERVICE_TS || (reader[3] == null ? "" : reader[3].ToString()) != SERVICE_DE)) break;                            
                             var strPostalCode = reader[0] == null ? "" : reader[0].ToString();
                             DateTime.TryParseExact(reader[1].ToString()!, "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime dateTimeCell);
                             var dispatchDate = DateOnly.FromDateTime(dateTimeCell);
@@ -913,7 +913,7 @@ namespace SND.SMP.DispatchConsole
 
             if (weight >= totalWeightLimitForCountry_NG)
             {
-                validationResult.Message = "$ The total weight of the items in the dispatch exceeds the maximum";
+                validationResult.Message = "$The total weight of the items in the dispatch exceeds the maximum";
                 result = true;
             } 
             return result;
