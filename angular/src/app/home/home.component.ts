@@ -24,6 +24,8 @@ export class HomeComponent
   keyword = "";
   showLoginName = "";
   companyCode = "";
+  selected: string = '1';
+  detailed = false;
 
   @Input() specific_showLoginName : string;
   @Input() specific_companyCode : string;
@@ -38,6 +40,15 @@ export class HomeComponent
 
   constructor(injector: Injector, private _walletService: WalletService) {
     super(injector);
+  }
+
+  selectItem(item: string) {
+    this.selected = item;
+    this.showTable = item;
+  }
+
+  showDetail() {
+    this.detailed = !this.detailed;
   }
 
   ngOnInit(): void {

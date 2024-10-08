@@ -124,6 +124,9 @@ thead {
     /* background-color: #dc3545; */
     background-color: #636B2F;
     color: white;
+    position: sticky;
+    top: 0;
+    z-index: 2;
 }
 
 

@@ -2026,7 +2026,7 @@ namespace SND.SMP.Dispatches
                 };
 
 
-                dispatchInfo.Path = dispatchValidation.FirstOrDefault(x => x.DispatchNo.Equals(entity.DispatchNo)).FilePath;
+                dispatchInfo.Path = dispatchValidation.FirstOrDefault(x => x.DispatchNo.Equals(entity.DispatchNo)) is null ? "" : dispatchValidation.FirstOrDefault(x => x.DispatchNo.Equals(entity.DispatchNo)).FilePath;
 
                 result.Add(dispatchInfo);
 

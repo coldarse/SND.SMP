@@ -32,6 +32,8 @@ export class CustomerTransactionsComponent extends PagedListingComponentBase<Cus
   @Input() showHeader: boolean = true;
   @Input() showPagination: boolean = true;
   @Input() maxItems: number = 10;
+  @Input() fromCustomerInfo = false;
+  @Input() specific_companyCode: string;
 
   constructor(
     injector: Injector,
@@ -107,17 +109,36 @@ export class CustomerTransactionsComponent extends PagedListingComponentBase<Cus
     this.getDataPage(1);
   }
 
+  DeleteAndCreditWallet(transaction: CustomerTransactionDto) {
+    const body = {
+      transactionId: transaction.id,
+      code: transaction.customer,
+      currency: transaction.currency,
+      amount: transaction.amount
+    }
+
+    this._customerTransactionService.deleteAndCreditWallet(body).subscribe(() => {
+      abp.notify.success(this.l("Success"));
+      this.refresh();
+    });
+  }
+
   protected list(
     request: PagedCustomerTransactionsRequestDto,
     pageNumber: number,
     finishedCallback: Function
   ): void {
-    let admin = this.appSession
-      .getShownLoginName()
-      .replace(".\\", "")
-      .includes("admin");
-    this.isAdmin = admin;
-    this.companyCode = admin ? "" : this.appSession.getCompanyCode();
+    if (this.fromCustomerInfo) {
+      this.isAdmin = false;
+      this.companyCode = this.specific_companyCode;
+    } else {
+      let admin = this.appSession
+        .getShownLoginName()
+        .replace(".\\", "")
+        .includes("admin");
+      this.isAdmin = admin;
+      this.companyCode = admin ? "" : this.appSession.getCompanyCode();
+    }
 
     request.keyword = this.keyword;
     request.isAdmin = this.isAdmin;

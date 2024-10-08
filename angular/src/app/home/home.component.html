@@ -2,20 +2,58 @@
   <section class="content-header">
     <div class="container-fluid">
       <div class="row mb-2" *ngIf="fromCustomerInfo">
-        <div class="col-md-1">
-          <button (click)="closeDashboard()" class="btn btn-danger btn-md">
-            <i class="fa-solid fa-xmark"></i>
-            Close
+        <div class="col-md-2">
+          <button (click)="closeDashboard()" class="btn btn-info">
+            <i class="fa-solid fa-angle-left"></i>
+            Back
           </button>
         </div>
       </div>
       <div class="row">
-        <div class="col-6">
+        <div class="col-12">
           <h1 class="ml-3" style="font-size: 3.5rem">
             <b>{{ "Welcome" | localize }}, {{ showLoginName }}</b>
           </h1>
-          <br />
-          <h1 class="ml-3">Home Page</h1>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-12 d-flex justify-content-between">
+          <h1 class="ml-4">Home Page</h1>
+          <h5
+            class="card-title badge text-right mt-2 mr-4"
+            style="cursor: pointer"
+            (click)="showDetail()"
+            [ngClass]="detailed == true ? 'badge-olive' : 'info-btn'"
+          >
+            @if (detailed) { Detailed } @else { Simplified }
+          </h5>
+        </div>
+        <div class="col-12 text-left mt-2 ml-4" *ngIf="!detailed">
+          <h5
+            class="card-title badge mr-1"
+            style="cursor: pointer"
+            (click)="selectItem('1')"
+            [ngClass]="selected == '1' ? 'badge-olive' : 'info-btn'"
+          >
+            <strong>Dispatches</strong>
+          </h5>
+          <h5
+            class="card-title badge mr-1"
+            style="cursor: pointer"
+            (click)="selectItem('2')"
+            [ngClass]="selected == '2' ? 'badge-olive' : 'info-btn'"
+            *ngIf="isAdmin"
+          >
+            <strong>Dispatch Validations</strong>
+          </h5>
+          <h5
+            class="card-title badge mr-1"
+            style="cursor: pointer"
+            (click)="selectItem('3')"
+            [ngClass]="selected == '3' ? 'badge-olive' : 'info-btn'"
+          >
+            <strong>Transactions</strong>
+          </h5>
         </div>
       </div>
     </div>
@@ -32,43 +70,50 @@
         <!-- For Admin -->
         <div [ngClass]="!isAdmin ? 'col-md-9' : 'col-md-12'">
           <app-cards
+            *ngIf="detailed"
             [isAdmin]="isAdmin"
             [Customer]="companyCode"
             (selected_dashboard_item)="showSelectedTable($event)"
           ></app-cards>
 
           @if (showTable == '1') {
-          <div class="row">
-            <div class="col-md-12">
-              <app-dispatches
-                [showPagination]="false"
-                [showHeader]="false"
-                [maxItems]="5"
-              ></app-dispatches>
-            </div>
+          <!-- <div class="row"> -->
+          <div class="col-md-12">
+            <app-dispatches
+              [showPagination]="false"
+              [showHeader]="false"
+              [maxItems]="5"
+              [fromCustomerInfo]="fromCustomerInfo"
+              [specific_companyCode]="specific_companyCode"
+            ></app-dispatches>
           </div>
+          <!-- </div> -->
           } @if (showTable == '2') {
-          <div class="row">
-            <div class="col-md-12">
-              <app-dispatch-validations
-                [showPagination]="false"
-                [showHeader]="false"
-                [maxItems]="5"
-              >
-              </app-dispatch-validations>
-            </div>
+          <!-- <div class="row"> -->
+          <div class="col-md-12">
+            <app-dispatch-validations
+              [showPagination]="false"
+              [showHeader]="false"
+              [maxItems]="5"
+              [fromCustomerInfo]="fromCustomerInfo"
+              [specific_companyCode]="specific_companyCode"
+            >
+            </app-dispatch-validations>
           </div>
+          <!-- </div> -->
           } @if (showTable == '3') {
-          <div class="row">
-            <div class="col-md-12">
-              <app-customer-transactions
-                [showPagination]="false"
-                [showHeader]="false"
-                [maxItems]="3"
-              >
-              </app-customer-transactions>
-            </div>
+          <!-- <div class="row"> -->
+          <div class="col-md-12">
+            <app-customer-transactions
+              [showPagination]="false"
+              [showHeader]="false"
+              [maxItems]="3"
+              [fromCustomerInfo]="fromCustomerInfo"
+              [specific_companyCode]="specific_companyCode"
+            >
+            </app-customer-transactions>
           </div>
+          <!-- </div> -->
           }
         </div>
         <!-- Show Wallet -->
@@ -76,22 +121,20 @@
         <div class="col-md-3">
           <div class="card">
             <div class="card-body">
-              <h5 class="card-title badge badge-light">
+              <h5 class="card-title badge badge-olive">
                 <strong>Wallets</strong>
               </h5>
               <!-- <h6 class="badge badge-light"></h6> -->
               <br />
               <br />
-              <div class="row" *ngFor="let wallet of filterType(3)">
-                <div class="currency col-3 text-left">
-                  <h6 class="mt-2 ml-2">
+              <div class="row" *ngFor="let wallet of filterType(3); let last = last">
+                <div class="currency col-12 d-flex justify-content-between">
+                  <h5 class="mt-2 ml-2 text-left">
                     {{ wallet.currency }}
-                  </h6>
-                </div>
-                <div class="amount col-9 text-left">
-                  <h6 class="mt-2 ml-2">
+                  </h5>
+                  <h5 class="mt-2 ml-2 text-right">
                     {{ wallet.balance | number : "1.2-2" }}
-                  </h6>
+                  </h5>
                 </div>
               </div>
             </div>

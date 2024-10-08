@@ -1,15 +1,15 @@
 <div [@routerTransition]>
+  @if (showHeader) {
   <section class="content-header">
     <div class="container-fluid">
       <div class="row">
         <div class="col-6">
-          @if (showHeader) {
           <h1>{{ "Customer Transactions" | localize }}</h1>
-          }
         </div>
       </div>
     </div>
   </section>
+  }
   <section class="content px-2">
     <div class="container-fluid">
       <div class="card">
@@ -64,10 +64,7 @@
         </div>
         <div class="card-body">
           <div class="scroll">
-            <table
-              class="table table-bordered"
-              [busy]="isTableLoading"
-            >
+            <table class="table table-bordered" [busy]="isTableLoading">
               <thead>
                 <tr>
                   <th>{{ "Customer" | localize }}</th>
@@ -78,6 +75,7 @@
                   <th>{{ "Reference No" | localize }}</th>
                   <th>{{ "Description" | localize }}</th>
                   <th>{{ "Transaction Date" | localize }}</th>
+                  <th *ngIf="isButtonVisible('Delete')">{{ "Action" | localize }}</th>
                 </tr>
               </thead>
               <tbody>
@@ -98,24 +96,39 @@
                   <td>{{ customerTransaction.paymentMode }}</td>
                   <td>{{ customerTransaction.currency }}</td>
                   <td>{{ customerTransaction.transactionType }}</td>
-                  <td style="white-space: nowrap;">
+                  <td style="white-space: nowrap">
                     @if (customerTransaction.amount > 0) {
-                      <div class="text-success text-left">
-                        <i class="fas fa-plus-square"></i>
-                        {{ customerTransaction.amount | number : "1.2-2" }}
-                      </div>
-                    }
-                    @else {
-                      <div class="text-danger text-left">
-                        <i class="fas fa-minus-square"></i>
-                        {{ +customerTransaction.amount.toString().replace("-", "") | number : "1.2-2" }}
-                      </div>
+                    <div class="text-success text-left">
+                      <i class="fas fa-plus-square"></i>
+                      {{ customerTransaction.amount | number : "1.2-2" }}
+                    </div>
+                    } @else {
+                    <div class="text-danger text-left">
+                      <i class="fas fa-minus-square"></i>
+                      {{
+                        +customerTransaction.amount.toString().replace("-", "")
+                          | number : "1.2-2"
+                      }}
+                    </div>
                     }
                   </td>
                   <td>{{ customerTransaction.referenceNo }}</td>
                   <td>{{ customerTransaction.description }}</td>
                   <td>
-                    {{ customerTransaction.transactionDate | date : "dd/MM/yyyy HH:mm:ss aa" }}
+                    {{
+                      customerTransaction.transactionDate
+                        | date : "dd/MM/yyyy HH:mm:ss aa"
+                    }}
+                  </td>
+                  <td *ngIf="isButtonVisible('Delete')">
+                    <button
+                      type="button"
+                      class="btn btn-sm bg-danger mx-1"
+                      (click)="DeleteAndCreditWallet(customerTransaction)"
+                    >
+                      <i class="fas fa-trash"></i>
+                      {{ "Delete & Credit Amount" | localize }}
+                    </button>
                   </td>
                 </tr>
               </tbody>
@@ -130,33 +143,33 @@
               </button>
             </div>
             @if (showPagination){
-              <div class="col-sm-4 col-12 text-center">
-                <p class="mb-0 my-2">
-                  {{ "TotalRecordsCount" | localize : totalItems }}
-                </p>
+            <div class="col-sm-4 col-12 text-center">
+              <p class="mb-0 my-2">
+                {{ "TotalRecordsCount" | localize : totalItems }}
+              </p>
+            </div>
+            } @else {
+            <div class="col-sm-4 col-12 text-center"></div>
+            } @if (showPagination) {
+            <div class="col-sm-4 col-12">
+              <div class="float-sm-right m-auto">
+                <abp-pagination-controls
+                  id="server"
+                  (pageChange)="getDataPage($event)"
+                >
+                </abp-pagination-controls>
               </div>
-              } @else {
-              <div class="col-sm-4 col-12 text-center"></div>
-              } @if (showPagination) {
-              <div class="col-sm-4 col-12">
-                <div class="float-sm-right m-auto">
-                  <abp-pagination-controls
-                    id="server"
-                    (pageChange)="getDataPage($event)"
-                  >
-                  </abp-pagination-controls>
-                </div>
+            </div>
+            } @else if (!showPagination) {
+            <div class="col-sm-4 col-12">
+              <div class="float-sm-right m-auto">
+                <button class="btn info-btn" (click)="rerouteToModule()">
+                  <i class="far fa-file-alt"></i>
+                  Show More
+                </button>
               </div>
-              } @else if (!showPagination) {
-              <div class="col-sm-4 col-12">
-                <div class="float-sm-right m-auto">
-                  <button class="btn info-btn" (click)="rerouteToModule()">
-                    <i class="far fa-file-alt"></i>
-                    Show More
-                  </button>
-                </div>
-              </div>
-              }
+            </div>
+            }
           </div>
         </div>
       </div>

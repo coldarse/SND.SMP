@@ -1,5 +1,5 @@
 <div
-  class="row row-cols-1 g-4"
+  class="row row-cols-1 g-4 pl-4 pr-4 pb-4"
   [ngClass]="isAdmin ? 'row-cols-md-3' : 'row-cols-md-2'"
 >
   <div class="col" style="cursor: pointer" (click)="selectItem('1')">
@@ -7,7 +7,7 @@
       <div class="card-body">
         <h5
           class="card-title badge"
-          [ngClass]="selected == '1' ? 'badge-olive' : 'badge-light'"
+          [ngClass]="selected == '1' ? 'badge-olive' : 'info-btn'"
         >
           <strong>Dispatches</strong>
         </h5>
@@ -61,7 +61,7 @@
       <div class="card-body">
         <h5
           class="card-title badge"
-          [ngClass]="selected == '2' ? 'badge-olive' : 'badge-light'"
+          [ngClass]="selected == '2' ? 'badge-olive' : 'info-btn'"
         >
           <strong>Dispatch Validation</strong>
         </h5>
@@ -121,7 +121,7 @@
       <div class="card-body">
         <h5
           class="card-title badge"
-          [ngClass]="selected == '3' ? 'badge-olive' : 'badge-light'"
+          [ngClass]="selected == '3' ? 'badge-olive' : 'info-btn'"
         >
           <strong>Fund Monitoring</strong>
         </h5>

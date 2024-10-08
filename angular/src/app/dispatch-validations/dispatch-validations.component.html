@@ -1,24 +1,46 @@
 <div [@routerTransition]>
+  @if (showHeader) {
   <section class="content-header">
     <div class="container-fluid">
       <div class="row">
         <div class="col-6">
-          @if (showHeader) {
           <h1>{{ "Dispatch Validations" | localize }}</h1>
-          }
         </div>
       </div>
     </div>
   </section>
+  }
   <section class="content px-2">
     <div class="container-fluid">
       <div class="card">
         <div class="card-header">
           <div class="row">
             <div class="col-md-6">
-              @if (!showPagination) {
+              <!-- @if (!showPagination) {
               <h5 class="mt-2">Showing Latest {{maxItems}} Records</h5>
-              }
+              } -->
+              <div
+                class="row"
+                style="
+                  display: flex;
+                  justify-content: left;
+                  align-items: center;
+                "
+              >
+                <select
+                  name="entriesCount"
+                  id="entriesCount"
+                  class="form-control col-2"
+                  (change)="entries($event)"
+                >
+                  <option value="10">10</option>
+                  <option value="25">25</option>
+                  <option value="50">50</option>
+                  <option value="100">100</option>
+                  <option value="250">250</option>
+                </select>
+                <h6 class="ml-2 mt-2">Entries</h6>
+              </div>
             </div>
             <div class="col-md-6">
               <div class="input-group">
