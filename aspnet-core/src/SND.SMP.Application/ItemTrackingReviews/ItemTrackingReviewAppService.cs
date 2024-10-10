@@ -695,6 +695,31 @@ namespace SND.SMP.ItemTrackingReviews
                             result.Errors.Add("Invalid ItemID value. ItemID must be set to 'auto'");
                         }
                     }
+                    
+                    //Check IOSS EG : XX1234567890 - 2 Aplhabet + 10 digits of number, Length must equal 12  
+                     #region IOSS Tax
+                    var willValidateIOSS = true;
+                    if (willValidateIOSS)
+                    {
+                        var countryListIOSS = new List<string> { "EU" };
+
+                        if (countryListIOSS.Contains(input.RecipientCountry.ToUpper().Trim()))
+                        {
+                            if (string.IsNullOrWhiteSpace(input.IOSSTax))
+                            {
+                                result.Errors.Add($"IOSSTax is mandatory for {input.RecipientCountry}");
+                            }
+
+                            // Regular expression to match the pattern: two letters followed by 1-10 digits
+                            var isValid = /^[A-Za-z]{2}\d{1,10}$/.test(input.IOSSTax);
+                            if (!isValid)
+                            {
+                                result.Errors.Add($"Invalid IOSSTax for {input.IOSSTax}");
+                            }
+                        }
+                    }
+                    #endregion
+
 
                     var ParcelGenerationUrl = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_ParcelGenerationUrl"));
                     var sender_identification = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_SenderIdentification"));
@@ -786,7 +811,8 @@ namespace SND.SMP.ItemTrackingReviews
                                     serviceOptValue = 7,
                                     dimensionTypeValue = 1,
                                     weightTypeValue = 1,
-                                    commodities = commodities
+                                    commodities = commodities,
+                                    senderIOSS = input.IOSSTax
                                 });
 
 
