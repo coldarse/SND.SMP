@@ -165,6 +165,7 @@ export class CustomerTransactionsComponent extends PagedListingComponentBase<Cus
             referenceNo: element.referenceNo,
             description: element.description,
             transactionDate: element.transactionDate,
+            id: element.id,
           };
 
           this.customerTransactions.push(tempCustomerTransaction);
