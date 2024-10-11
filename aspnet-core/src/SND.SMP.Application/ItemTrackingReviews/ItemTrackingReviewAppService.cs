@@ -30,6 +30,7 @@ using Newtonsoft.Json;
 using System.Net;
 using SND.SMP.APIRequestResponses;
 using SND.SMP.Bags;
+using System.Text.RegularExpressions;
 
 
 namespace SND.SMP.ItemTrackingReviews
@@ -695,9 +696,9 @@ namespace SND.SMP.ItemTrackingReviews
                             result.Errors.Add("Invalid ItemID value. ItemID must be set to 'auto'");
                         }
                     }
-                    
+
                     //Check IOSS EG : XX1234567890 - 2 Aplhabet + 10 digits of number, Length must equal 12  
-                     #region IOSS Tax
+                    #region IOSS Tax
                     var willValidateIOSS = true;
                     if (willValidateIOSS)
                     {
@@ -711,10 +712,12 @@ namespace SND.SMP.ItemTrackingReviews
                             }
 
                             // Regular expression to match the pattern: two letters followed by 1-10 digits
-                            var isValid = /^[A-Za-z]{2}\d{1,10}$/.test(input.IOSSTax);
+                            string iossTax = input.IOSSTax;
+                            bool isValid = Regex.IsMatch(iossTax, @"^[A-Za-z]{2}\d{1,10}$");
+
                             if (!isValid)
                             {
-                                result.Errors.Add($"Invalid IOSSTax for {input.IOSSTax}");
+                                result.Errors.Add($"Invalid IOSSTax for {iossTax}");
                             }
                         }
                     }
