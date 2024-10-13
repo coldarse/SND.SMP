@@ -980,7 +980,7 @@ namespace SND.SMP.ItemTrackingReviews
                         //Check for DE postals
                         if (string.Equals(input.ServiceCode.Trim(), "DE", StringComparison.OrdinalIgnoreCase))
                         {
-                            string[] DE_Postals = ["MY", "CO",];
+                            string[] DE_Postals = ["MY", "CO"];
                             if (!DE_Postals.Contains(postalSupported))
                             {
                                 result.Errors.Add("Invalid service code");
