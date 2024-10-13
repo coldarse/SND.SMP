@@ -39,6 +39,7 @@ public class Package
     public int dimensionTypeValue { get; set; }
     public int weightTypeValue { get; set; }
     public string senderIOSS { get; set; }
+    public int mailType { get; set; }
 }
 
 public class APGRequest

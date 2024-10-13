@@ -728,6 +728,14 @@ namespace SND.SMP.ItemTrackingReviews
                     var sender_identification = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_SenderIdentification"));
                     var token_expiration = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_TokenExpiration"));
                     var token = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_Token"));
+                    var division = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_Division"));
+                    var serviceValue = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_ServiceValue"));
+                    var serviceOptValue = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_ServiceOptValue"));
+                    var dimensionTypeValue = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_DimensionTypeValue"));
+                    var weightTypeValue = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_WeightTypeValue"));
+                    var senderCountry = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_SenderCountry"));
+                    var commodities_Quantity = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_Commodities_Quantity"));
+                    var mailtype = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_MailType"));
 
                     string apgToken = token.Value.Trim() == "" ? await GetAPGToken() : token.Value.Trim();
 
@@ -783,7 +791,7 @@ namespace SND.SMP.ItemTrackingReviews
                                     value = input.ItemValue,
                                     weight = input.Weight,
                                     hsTariffNumber = input.HSCode,
-                                    quantity = 1,
+                                    quantity = Int32.Parse(commodities_Quantity.Value),
                                     countryOfGoods = ""
                                 });
 
@@ -795,7 +803,7 @@ namespace SND.SMP.ItemTrackingReviews
                                     senderCode = "",
                                     senderName = input.SenderName,
                                     senderIdentification = sender_identification.Value,
-                                    senderCountry = "HK",
+                                    senderCountry = senderCountry.Value,
                                     receiverName = input.RecipientName,
                                     receiverIdentification = "",
                                     receiverAddress1 = input.RecipientAddress,
@@ -809,13 +817,14 @@ namespace SND.SMP.ItemTrackingReviews
                                     receiverPhoneNumber = input.RecipientContactNo,
                                     receiverEmail = input.RecipientEmail,
                                     receiverTaxId = "",
-                                    division = 3,
-                                    serviceValue = 1,
-                                    serviceOptValue = 7,
-                                    dimensionTypeValue = 1,
-                                    weightTypeValue = 1,
+                                    division = Int32.Parse(division.Value),
+                                    serviceValue = Int32.Parse(serviceValue.Value),
+                                    serviceOptValue = Int32.Parse(serviceOptValue.Value),
+                                    dimensionTypeValue = Int32.Parse(dimensionTypeValue.Value),
+                                    weightTypeValue = Int32.Parse(weightTypeValue.Value),
                                     commodities = commodities,
-                                    senderIOSS = input.IOSSTax
+                                    senderIOSS = input.IOSSTax,
+                                    mailType = Int32.Parse(mailtype.Value)
                                 });
 
 
