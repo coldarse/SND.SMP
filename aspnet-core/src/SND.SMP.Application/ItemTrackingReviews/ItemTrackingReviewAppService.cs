@@ -792,7 +792,7 @@ namespace SND.SMP.ItemTrackingReviews
                                     weight = input.Weight,
                                     hsTariffNumber = input.HSCode,
                                     quantity = Int32.Parse(commodities_Quantity.Value),
-                                    countryOfGoods = ""
+                                    countryOfGoods = input.RecipientCountry
                                 });
 
                                 List<Package> packages = [];
@@ -803,7 +803,17 @@ namespace SND.SMP.ItemTrackingReviews
                                     senderCode = "",
                                     senderName = input.SenderName,
                                     senderIdentification = sender_identification.Value,
+                                    senderAddress1 = "",
+                                    senderAddress2 = "",
+                                    senderAddress3 = "",
+                                    senderNeighborhood = "",
+                                    senderZipCode = "",
+                                    senderCity = "",
+                                    senderState = "",
                                     senderCountry = senderCountry.Value,
+                                    senderPhoneNumber = "",
+                                    senderEmail = "",
+                                    receiverCode = "",
                                     receiverName = input.RecipientName,
                                     receiverIdentification = "",
                                     receiverAddress1 = input.RecipientAddress,
@@ -817,14 +827,25 @@ namespace SND.SMP.ItemTrackingReviews
                                     receiverPhoneNumber = input.RecipientContactNo,
                                     receiverEmail = input.RecipientEmail,
                                     receiverTaxId = "",
+                                    weight = 1,
+                                    width = 1,
+                                    height = 1,
+                                    length = 1,
+                                    commodities = commodities,
+                                    mawb = "",
                                     division = Int32.Parse(division.Value),
+                                    postalCharges = 0,
+                                    license = "",
+                                    certificate = "",
+                                    invoice = "",
                                     serviceValue = Int32.Parse(serviceValue.Value),
                                     serviceOptValue = Int32.Parse(serviceOptValue.Value),
                                     dimensionTypeValue = Int32.Parse(dimensionTypeValue.Value),
                                     weightTypeValue = Int32.Parse(weightTypeValue.Value),
-                                    commodities = commodities,
-                                    senderIOSS = input.IOSSTax,
+                                    officeCode = "",
+                                    originWebsite = "",                                   
                                     mailType = Int32.Parse(mailtype.Value)
+                                    senderIOSS = input.IOSSTax,                                 
                                 });
 
 
