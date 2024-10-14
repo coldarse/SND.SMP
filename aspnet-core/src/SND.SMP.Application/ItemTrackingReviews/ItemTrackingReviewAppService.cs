@@ -723,13 +723,24 @@ namespace SND.SMP.ItemTrackingReviews
                     }
                     #endregion
 
+                    var isPostalCodeMandatory = true;
+                    if (isPostalCodeMandatory)
+                    {
+                        if (string.IsNullOrWhiteSpace(input.PostalCode))
+                        {
+                            result.Errors.Add("Postal Code is mandatory");
+                        }
+                    }
+
+                    // Get Service Code
+                    int serviceValue = GetServiceValue(input.PostalCode);
 
                     var ParcelGenerationUrl = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_ParcelGenerationUrl"));
                     var sender_identification = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_SenderIdentification"));
                     var token_expiration = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_TokenExpiration"));
                     var token = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_Token"));
                     var division = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_Division"));
-                    var serviceValue = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_ServiceValue"));
+                    //var serviceValue = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_ServiceValue"));
                     var serviceOptValue = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_ServiceOptValue"));
                     var dimensionTypeValue = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_DimensionTypeValue"));
                     var weightTypeValue = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_WeightTypeValue"));
@@ -838,13 +849,13 @@ namespace SND.SMP.ItemTrackingReviews
                                     license = "",
                                     certificate = "",
                                     invoice = "",
-                                    serviceValue = Int32.Parse(serviceValue.Value),
+                                    serviceValue = serviceValue,
                                     serviceOptValue = Int32.Parse(serviceOptValue.Value),
                                     dimensionTypeValue = Int32.Parse(dimensionTypeValue.Value),
                                     weightTypeValue = Int32.Parse(weightTypeValue.Value),
                                     officeCode = "",
                                     originWebsite = "",                                   
-                                    mailType = Int32.Parse(mailtype.Value)
+                                    mailType = Int32.Parse(mailtype.Value),
                                     senderIOSS = input.IOSSTax,                                 
                                 });
 
@@ -882,10 +893,10 @@ namespace SND.SMP.ItemTrackingReviews
                                 if (httpstatus == HttpStatusCode.OK)
                                 {
 
-                                    var split = apgBody.Split(",");
-                                    var concatinated = split[0] + ", " + split[1] + "}]";
+                                    //var split = apgBody.Split(",");
+                                    //var concatinated = split[0] + ", " + split[1] + "}]";
 
-                                    var apgResult = JsonConvert.DeserializeObject<List<APGResponse>>(concatinated);
+                                    var apgResult = JsonConvert.DeserializeObject<List<APGResponse>>(apgBody);
 
                                     if (apgResult != null)
                                     {
@@ -2200,6 +2211,27 @@ namespace SND.SMP.ItemTrackingReviews
                 if (canAdd) result.Add(trackingNo);
             }
             return result;
+        }
+        private static int GetServiceValue(string postalCode)
+        {
+            // Dictionary to store postal code and its associated Type, Flag, and ServiceValue
+            Dictionary<string, (string Type, string Flag, int ServiceValue)> serviceData = new Dictionary<string, (string, string, int)>
+        {
+            { "DO01", ("TS", "O", 1) },
+            { "DO02", ("DE", "O", 1) },
+            { "DO03", ("TS", "R", 23) },
+            { "DO04", ("DE", "R", 23) }
+        };
+
+            // Check if the postal code exists in the dictionary
+            if (serviceData.ContainsKey(postalCode))
+            {
+                // Return the service value associated with the postal code
+                return serviceData[postalCode].ServiceValue;
+            }
+
+            // Return null if postal code is not found
+            return 1;
         }
     }
 }
