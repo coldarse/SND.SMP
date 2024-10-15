@@ -688,6 +688,20 @@ namespace SND.SMP.ItemTrackingReviews
 
                 if (signMatched)
                 {
+                    var ParcelGenerationUrl = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_ParcelGenerationUrl"));
+                    var sender_identification = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_SenderIdentification"));
+                    var token_expiration = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_TokenExpiration"));
+                    var token = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_Token"));
+                    var division = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_Division"));
+                    //var serviceValue = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_ServiceValue"));
+                    var serviceOptValue = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_ServiceOptValue"));
+                    var dimensionTypeValue = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_DimensionTypeValue"));
+                    var weightTypeValue = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_WeightTypeValue"));
+                    var senderCountry = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_SenderCountry"));
+                    var commodities_Quantity = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_Commodities_Quantity"));
+                    var mailtype = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_MailType"));
+                    var countryListIOSS = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_EU_CountryList"));
+
                     var isItemIDAutoMandatory = true;
                     if (isItemIDAutoMandatory)
                     {
@@ -702,23 +716,26 @@ namespace SND.SMP.ItemTrackingReviews
                     var willValidateIOSS = true;
                     if (willValidateIOSS)
                     {
-                        var countryListIOSS = new List<string> { "EU" };
+                        string[] countryCodes = countryListIOSS.Value.Split(',');
 
-                        if (countryListIOSS.Contains(input.RecipientCountry.ToUpper().Trim()))
+                        if (countryCodes.Contains(input.RecipientCountry.ToUpper().Trim()))
                         {
                             if (string.IsNullOrWhiteSpace(input.IOSSTax))
                             {
                                 result.Errors.Add($"IOSSTax is mandatory for {input.RecipientCountry}");
                             }
-
-                            // Regular expression to match the pattern: two letters followed by 1-10 digits
-                            string iossTax = input.IOSSTax;
-                            bool isValid = Regex.IsMatch(iossTax, @"^[A-Za-z]{2}\d{1,10}$");
-
-                            if (!isValid)
+                            else
                             {
-                                result.Errors.Add($"Invalid IOSSTax for {iossTax}");
+                                // Regular expression to match the pattern: two letters followed by 1-10 digits
+                                string iossTax = input.IOSSTax;
+                                bool isValid = Regex.IsMatch(iossTax, @"^[A-Za-z]{2}\d{1,10}$");
+
+                                if (!isValid)
+                                {
+                                    result.Errors.Add($"Invalid IOSSTax for {iossTax}");
+                                }
                             }
+
                         }
                     }
                     #endregion
@@ -730,23 +747,15 @@ namespace SND.SMP.ItemTrackingReviews
                         {
                             result.Errors.Add("Postal Code is mandatory");
                         }
+                        if (GetServiceValue(input.PostalCode) == 0)
+                        {
+                            result.Errors.Add("Invalid Postal Code");
+                        }    
                     }
 
                     // Get Service Code
                     int serviceValue = GetServiceValue(input.PostalCode);
 
-                    var ParcelGenerationUrl = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_ParcelGenerationUrl"));
-                    var sender_identification = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_SenderIdentification"));
-                    var token_expiration = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_TokenExpiration"));
-                    var token = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_Token"));
-                    var division = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_Division"));
-                    //var serviceValue = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_ServiceValue"));
-                    var serviceOptValue = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_ServiceOptValue"));
-                    var dimensionTypeValue = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_DimensionTypeValue"));
-                    var weightTypeValue = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_WeightTypeValue"));
-                    var senderCountry = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_SenderCountry"));
-                    var commodities_Quantity = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_Commodities_Quantity"));
-                    var mailtype = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_MailType"));
 
                     string apgToken = token.Value.Trim() == "" ? await GetAPGToken() : token.Value.Trim();
 
@@ -2231,7 +2240,7 @@ namespace SND.SMP.ItemTrackingReviews
             }
 
             // Return null if postal code is not found
-            return 1;
+            return 0;
         }
     }
 }
