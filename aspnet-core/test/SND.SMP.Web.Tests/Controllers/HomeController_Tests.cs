@@ -14,7 +14,7 @@ namespace SND.SMP.Web.Tests.Controllers
             await AuthenticateAsync(null, new AuthenticateModel
             {
                 UserNameOrEmailAddress = "admin",
-                Password = "123qwe"
+                Password = "1234qqqwe"
             });
 
             //Act

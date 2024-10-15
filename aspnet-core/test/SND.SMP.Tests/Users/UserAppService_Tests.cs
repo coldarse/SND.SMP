@@ -38,7 +38,7 @@ namespace SND.SMP.Tests.Users
                     IsActive = true,
                     Name = "John",
                     Surname = "Nash",
-                    Password = "123qwe",
+                    Password = "1234qqqwe",
                     UserName = "john.nash"
                 });
 
