@@ -31,6 +31,7 @@ using System.Net;
 using SND.SMP.APIRequestResponses;
 using SND.SMP.Bags;
 using System.Text.RegularExpressions;
+using System.Collections;
 
 
 namespace SND.SMP.ItemTrackingReviews
@@ -728,11 +729,13 @@ namespace SND.SMP.ItemTrackingReviews
                             {
                                 // Regular expression to match the pattern: two letters followed by 1-10 digits
                                 string iossTax = input.IOSSTax;
-                                bool isValid = Regex.IsMatch(iossTax, @"^[A-Za-z]{2}\d{1,10}$");
+
+                                
+                                bool isValid = Regex.IsMatch(iossTax, @"^[A-Za-z]{2}\d{10}$");
 
                                 if (!isValid)
                                 {
-                                    result.Errors.Add($"Invalid IOSSTax for {iossTax}");
+                                    result.Errors.Add($"The IOSS format is incorrect. The IOSS identifier should follow the format IM1234567890.");
                                 }
                             }
 
@@ -741,21 +744,20 @@ namespace SND.SMP.ItemTrackingReviews
                     #endregion
 
                     var isPostalCodeMandatory = true;
+                    int serviceValue = 0;
                     if (isPostalCodeMandatory)
                     {
                         if (string.IsNullOrWhiteSpace(input.PostalCode))
                         {
                             result.Errors.Add("Postal Code is mandatory");
                         }
-                        if (GetServiceValue(input.PostalCode) == 0)
+                        // Get Service Code
+                        serviceValue = GetServiceValue(input.PostalCode, input.ServiceCode, input.ProductCode);
+                        if (serviceValue == 0)
                         {
-                            result.Errors.Add("Invalid Postal Code");
+                            result.Errors.Add("Invalid Matching: DO01 does not correspond with TS or O. Please verify the input values.");
                         }    
                     }
-
-                    // Get Service Code
-                    int serviceValue = GetServiceValue(input.PostalCode);
-
 
                     string apgToken = token.Value.Trim() == "" ? await GetAPGToken() : token.Value.Trim();
 
@@ -2221,7 +2223,7 @@ namespace SND.SMP.ItemTrackingReviews
             }
             return result;
         }
-        private static int GetServiceValue(string postalCode)
+        private static int GetServiceValue(string postalCode, string serviceCode, string productCode)
         {
             // Dictionary to store postal code and its associated Type, Flag, and ServiceValue
             Dictionary<string, (string Type, string Flag, int ServiceValue)> serviceData = new Dictionary<string, (string, string, int)>
@@ -2230,17 +2232,18 @@ namespace SND.SMP.ItemTrackingReviews
             { "DO02", ("DE", "O", 1) },
             { "DO03", ("TS", "R", 23) },
             { "DO04", ("DE", "R", 23) }
-        };
+            };
 
-            // Check if the postal code exists in the dictionary
-            if (serviceData.ContainsKey(postalCode))
+            if (serviceData.TryGetValue(postalCode, out var tuple) && tuple.Item1 == serviceCode && tuple.Item2 == productCode)
             {
-                // Return the service value associated with the postal code
-                return serviceData[postalCode].ServiceValue;
+                // Return if match
+                return tuple.Item3;
             }
-
-            // Return null if postal code is not found
-            return 0;
+            else
+            {
+                // Return null if not match
+                return 0;
+            }
         }
     }
 }
