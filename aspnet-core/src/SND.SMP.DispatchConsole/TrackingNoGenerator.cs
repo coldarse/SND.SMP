@@ -45,7 +45,7 @@ namespace SND.SMP.DispatchConsole
                 await db.SaveChangesAsync().ConfigureAwait(false);
             }
 
-            var review = db.ItemTrackingReviews.FirstOrDefault(x => x.ApplicationId.Equals(ApplicationId));
+            var review = ApplicationId != 0 ? db.ItemTrackingReviews.FirstOrDefault(x => x.ApplicationId.Equals(ApplicationId)) : null;
 
             if (review is not null)
             {

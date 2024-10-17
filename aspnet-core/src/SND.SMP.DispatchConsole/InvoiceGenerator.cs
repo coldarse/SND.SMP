@@ -346,9 +346,11 @@ public class InvoiceGenerator
 
                                 tempGroup.TotalAmount += item.Amount;
 
+                                var currency = db.Currencies.FirstOrDefault(c => c.Abbr.Equals(dispatches.FirstOrDefault().CurrencyId)); 
+
                                 var wallet = db.Wallets
                                                 .Where(u => u.Customer == dispatches.FirstOrDefault().CustomerCode)
-                                                .Where(u => u.Currency == Convert.ToInt64(dispatches.FirstOrDefault().CurrencyId))
+                                                .Where(u => u.Currency == Convert.ToInt64(currency.Id))
                                                 .FirstOrDefault();
 
                                 if (wallet is not null)
@@ -356,7 +358,6 @@ public class InvoiceGenerator
                                     wallet.Balance -= item.Amount;
 
                                     var eWallet = await db.EWalletTypes.FirstOrDefaultAsync(x => x.Id.Equals(wallet.EWalletType));
-                                    var currency = await db.Currencies.FirstOrDefaultAsync(c => c.Id == Convert.ToInt64(dispatches.FirstOrDefault().CurrencyId));
 
                                     await db.CustomerTransactions.AddAsync(new CustomerTransaction()
                                     {
