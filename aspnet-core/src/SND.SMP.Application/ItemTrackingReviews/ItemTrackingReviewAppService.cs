@@ -913,7 +913,8 @@ namespace SND.SMP.ItemTrackingReviews
                                     {
                                         if (apgResult[0].status == "Successfully Saved")
                                         {
-                                            newItemIdFromSPS = apgResult[0].tracking;
+                                            //newItemIdFromSPS = apgResult[0].tracking;
+                                            newItemIdFromSPS = apgResult[0].registeredCode;
 
                                             if (string.IsNullOrWhiteSpace(newItemIdFromSPS)) result.Errors.Add("Insufficient Pool Item ID");
                                             else

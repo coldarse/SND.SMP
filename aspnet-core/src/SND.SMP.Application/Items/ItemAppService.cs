@@ -215,7 +215,7 @@ namespace SND.SMP.Items
             var postalDistinctedByServiceCode = postals.DistinctBy(x => x.ServiceCode).ToList();
 
             var itemTrackings = await _itemTrackingRepository.GetAllListAsync(x =>
-                                        !x.IsExternal &&
+                                        //!x.IsExternal &&
                                         DateOnly.FromDateTime(x.DateUsed) <= lastDayOfMonth &&
                                         DateOnly.FromDateTime(x.DateUsed) >= firstDayOfMonth);
 
