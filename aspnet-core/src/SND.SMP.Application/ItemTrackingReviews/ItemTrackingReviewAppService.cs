@@ -2229,10 +2229,10 @@ namespace SND.SMP.ItemTrackingReviews
             // Dictionary to store postal code and its associated Type, Flag, and ServiceValue
             Dictionary<string, (string Type, string Flag, int ServiceValue)> serviceData = new Dictionary<string, (string, string, int)>
         {
-            { "DO01", ("TS", "O", 1) },
-            { "DO02", ("DE", "O", 1) },
-            { "DO03", ("TS", "R", 23) },
-            { "DO04", ("DE", "R", 23) }
+            { "DO01", ("TS", "O", 23) },
+            { "DO02", ("DE", "O", 23) },
+            { "DO03", ("TS", "R", 1) },
+            { "DO04", ("DE", "R", 1) }
             };
 
             if (serviceData.TryGetValue(postalCode, out var tuple) && tuple.Item1 == serviceCode && tuple.Item2 == productCode)
