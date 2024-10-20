@@ -850,16 +850,19 @@ namespace SND.SMP.ItemTrackingReviews
         private async Task<string> GetSAToken()
         {
             var TokenGenerationUrl = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("SA_TokenGenerationUrl"));
-            var username = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("SA_UserName"));
-            var password = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("SA_Password"));
+            var DevEnvironment = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("SA_DevEnvironment"));
+            var isDevEnvironment = DevEnvironment is null || (DevEnvironment.Value == "true");
+            var username = isDevEnvironment ? await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("SA_UserName_Dev")) : await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("SA_UserName_Prod"));
+            var password = isDevEnvironment ? await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("SA_Password_Dev")) : await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("SA_Password_Prod"));
 
             var saTokenClient = new HttpClient();
             saTokenClient.DefaultRequestHeaders.Clear();
 
             SATokenRequest tokenRequest = new()
             {
-                userName = username.Value,
-                passWord = password.Value
+                UserName = username.Value,
+                Password = password.Value,
+                grant_type = "password"
             };
 
             APIRequestResponse apiRequestResponse = new()
