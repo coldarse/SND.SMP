@@ -847,6 +847,64 @@ namespace SND.SMP.ItemTrackingReviews
             }
             return result;
         }
+        private async Task<string> GetSAToken()
+        {
+            var TokenGenerationUrl = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("SA_TokenGenerationUrl"));
+            var username = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("SA_UserName"));
+            var password = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("SA_Password"));
+
+            var saTokenClient = new HttpClient();
+            saTokenClient.DefaultRequestHeaders.Clear();
+
+            SATokenRequest tokenRequest = new()
+            {
+                userName = username.Value,
+                passWord = password.Value
+            };
+
+            APIRequestResponse apiRequestResponse = new()
+            {
+                URL = TokenGenerationUrl.Value,
+                RequestBody = JsonConvert.SerializeObject(tokenRequest),
+                RequestDateTime = DateTime.Now
+            };
+
+            var content = new StringContent(JsonConvert.SerializeObject(tokenRequest), Encoding.UTF8, "application/json");
+            var saTokenRequestMessage = new HttpRequestMessage
+            {
+                Method = HttpMethod.Post,
+                RequestUri = new Uri(TokenGenerationUrl.Value),
+                Content = content,
+            };
+            using var saTokenResponse = await saTokenClient.SendAsync(saTokenRequestMessage);
+            saTokenResponse.EnsureSuccessStatusCode();
+            var saTokenBody = await saTokenResponse.Content.ReadAsStringAsync();
+
+            apiRequestResponse.ResponseBody = saTokenBody;
+            apiRequestResponse.ResponseDateTime = DateTime.Now;
+            apiRequestResponse.Duration = (apiRequestResponse.ResponseDateTime - apiRequestResponse.RequestDateTime).Seconds;
+
+            await _apiRequestResponseRepository.InsertAsync(apiRequestResponse).ConfigureAwait(false);
+
+            var saTokenResult = System.Text.Json.JsonSerializer.Deserialize<SATokenResponse>(saTokenBody);
+
+            if (saTokenResult != null)
+            {
+                var token_expiration = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("SA_TokenExpiration"));
+                token_expiration.Value = saTokenResult.token.expiration;
+
+                var token = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("SA_Token"));
+                token.Value = saTokenResult.token.token;
+
+                await _applicationSettingRepository.UpdateAsync(token_expiration);
+                await _applicationSettingRepository.UpdateAsync(token);
+                await _applicationSettingRepository.GetDbContext().SaveChangesAsync();
+
+                return saTokenResult.token.token;
+            }
+
+            return "";
+        }
 
 
         [HttpPost]
