@@ -894,16 +894,16 @@ namespace SND.SMP.ItemTrackingReviews
             if (saTokenResult != null)
             {
                 var token_expiration = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("SA_TokenExpiration"));
-                token_expiration.Value = saTokenResult.token.expiration;
+                token_expiration.Value = saTokenResult.expires;
 
                 var token = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("SA_Token"));
-                token.Value = saTokenResult.token.token;
+                token.Value = saTokenResult.token;
 
                 await _applicationSettingRepository.UpdateAsync(token_expiration);
                 await _applicationSettingRepository.UpdateAsync(token);
                 await _applicationSettingRepository.GetDbContext().SaveChangesAsync();
 
-                return saTokenResult.token.token;
+                return saTokenResult.token;
             }
 
             return "";
