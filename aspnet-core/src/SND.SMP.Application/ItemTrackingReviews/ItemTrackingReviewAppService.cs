@@ -1554,6 +1554,22 @@ namespace SND.SMP.ItemTrackingReviews
             return result;
         }
 
+        
+        [HttpGet]
+        [Route("api/GetHashCode")]
+        public async Task<string> GetHashCode(string itemId, string refNo, string clientKey)
+        {
+            string hash = "";
+            var cust = await _customerRepository.FirstOrDefaultAsync(u => u.ClientKey == clientKey);
+
+            if (cust is not null)
+            {
+                string signHashRaw = string.Format("{0}-{1}-{2}-{3}", itemId, refNo, clientKey, cust.ClientSecret);
+                hash = GenerateMD5Hash(signHashRaw).Trim().ToUpper();
+            }
+
+            return hash;
+        }
     }
 }
 
