@@ -66,7 +66,7 @@ namespace SND.SMP.CustomerTransactions
 
             var wallet = await _walletRepository.FirstOrDefaultAsync(x => x.Customer.Equals(input.Code) && x.Currency.Equals(currency.Id)) ?? throw new UserFriendlyException("Wallet Not Found");
 
-            wallet.Balance += input.Amount;
+            wallet.Balance += Math.Abs(input.Amount);
 
             await _walletRepository.UpdateAsync(wallet).ConfigureAwait(false);
 
