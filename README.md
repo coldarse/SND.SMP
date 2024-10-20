@@ -509,7 +509,7 @@ To setup Frontend, we will be using Visual Studio Code. You can use Microsoft Vi
 
 ![image](https://github.com/jackywoo1991/images/blob/main/SMP/ANGULAR/ANG13.png?raw=true)
 
-14. This is the login page. The id is `admin` and password is `1234qqqwe`.
+14. This is the login page. The id is `admin` and password is `123qwe`.
 
 ![image](https://github.com/jackywoo1991/images/blob/main/SMP/ANGULAR/ANG14.png?raw=true)
 
