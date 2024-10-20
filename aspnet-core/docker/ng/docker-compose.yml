@@ -10,7 +10,7 @@ services:
 
   abp_host:
     build: ./
-    image: dannychen98/tfs_api:v1.1.18
+    image: dannychen98/tfs_api:v1.1.20
     environment:
       ASPNETCORE_ENVIRONMENT: "Staging"
       ASPNETCORE_Kestrel__Certificates__Default__Path: "/etc/ssl/certs/tfsexp.crt"
