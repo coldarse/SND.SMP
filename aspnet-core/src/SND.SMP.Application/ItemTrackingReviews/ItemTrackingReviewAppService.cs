@@ -1221,13 +1221,13 @@ namespace SND.SMP.ItemTrackingReviews
                                 //DE ItemID Handling
                                 if (string.Equals(input.ServiceCode.Trim(), "DE", StringComparison.OrdinalIgnoreCase))
                                 {
-                                    newItemIdFromSMI = input.ItemID;
+                                    newItemIdFromSMI = input.RefNo;
 
                                     try
                                     {
                                         await InsertUpdateTrackingNumber(newItemIdFromSMI, customerCode, cust.Id, input.ProductCode, dispatchTemp, isSelfGenerated: false);
 
-                                        await AlertIfLowThreshold(postalCode, threshold);
+                                        //await AlertIfLowThreshold(postalCode, threshold); //DE no need to check threshold
 
                                         result.ItemID = newItemIdFromSMI;
                                         result.Status = SUCCESS;
