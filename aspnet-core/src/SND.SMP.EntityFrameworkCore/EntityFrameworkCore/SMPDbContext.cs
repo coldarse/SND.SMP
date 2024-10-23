@@ -4,7 +4,6 @@ using SND.SMP.Authorization.Roles;
 using SND.SMP.Authorization.Users;
 using SND.SMP.MultiTenancy;
 /* Using Definition */
-using SND.SMP.SA_Params;
 using SND.SMP.RateZones;
 using SND.SMP.Invoices;
 using SND.SMP.TrackingStatuses;
@@ -81,7 +80,6 @@ namespace SND.SMP.EntityFrameworkCore
         public DbSet<TrackingStatus> TrackingStatuses { get; set; }
         public DbSet<Invoice> Invoices { get; set; }
         public DbSet<RateZone> RateZones { get; set; }
-        public DbSet<SA_Params> SA_Params { get; set; }
         /* Define a DbSet for each entity of the application */
 
         public SMPDbContext(DbContextOptions<SMPDbContext> options)
@@ -94,19 +92,6 @@ namespace SND.SMP.EntityFrameworkCore
             base.OnModelCreating(builder);
 
             /* Define Tables */
-            builder.Entity<SA_Params>(b =>
-            {
-                b.ToTable(SMPConsts.DbTablePrefix + "SA_Params");
-                b.Property(x => x.Type).HasColumnName(nameof(SA_Params.Type)).HasMaxLength(128);
-                b.Property(x => x.Name).HasColumnName(nameof(SA_Params.Name)).HasMaxLength(128);
-                b.Property(x => x.Code).HasColumnName(nameof(SA_Params.Code)).HasMaxLength(128);
-                b.Property(x => x.PostOfficeId).HasColumnName(nameof(SA_Params.PostOfficeId)).HasMaxLength(128);
-                b.Property(x => x.CityId).HasColumnName(nameof(SA_Params.CityId)).HasMaxLength(128);
-                b.Property(x => x.FinalOfficeId).HasColumnName(nameof(SA_Params.FinalOfficeId)).HasMaxLength(128);
-                b.Property(x => x.Seq).HasColumnName(nameof(SA_Params.Seq));
-                b.HasKey(x => x.Id);
-            });
-
             builder.Entity<RateZone>(b =>
             {
                 b.ToTable(SMPConsts.DbTablePrefix + "RateZones");

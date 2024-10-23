@@ -12,11 +12,6 @@ namespace SND.SMP.Authorization
         public const string Pages_Roles = "Pages.Roles";
 
         /* Define your permissions here */
-        public const string Pages_SA_Params = "Pages.SA_Params";
-        public const string Pages_SA_Params_Create = "Pages.SA_Params.Create";
-        public const string Pages_SA_Params_Edit = "Pages.SA_Params.Edit";
-        public const string Pages_SA_Params_Delete = "Pages.SA_Params.Delete";
-
         public const string Pages_RateZone = "Pages.RateZone";
         public const string Pages_RateZone_Create = "Pages.RateZone.Create";
         public const string Pages_RateZone_Edit = "Pages.RateZone.Edit";
