@@ -109,7 +109,7 @@ import { SearchItemComponent } from "./search-item/search-item.component";
           },
           {
             path: "postchecks/:dispatchNo",
-            data: { permission: "Pages.Users" },
+            data: { permission: "Pages.Dispatch" },
             component: PostChecksComponent,
             canActivate: [AppRouteGuard],
           },
