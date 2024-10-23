@@ -1494,7 +1494,7 @@ namespace SND.SMP.ItemTrackingReviews
                             if (newItemIdFromSMI != null)
                             {
                                 var newItem = await _itemRepository.FirstOrDefaultAsync(x => x.DispatchID.Equals(dispatchTemp.Id) &&
-                                                                                             x.Id.Equals(input.ItemID));
+                                                                                             x.Id.Equals(newItemIdFromSMI));
 
                                 if (newItem is null)
                                 {
