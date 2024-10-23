@@ -12,6 +12,11 @@ namespace SND.SMP.Authorization
         public const string Pages_Roles = "Pages.Roles";
 
         /* Define your permissions here */
+        public const string Pages_SAParam = "Pages.SAParam";
+        public const string Pages_SAParam_Create = "Pages.SAParam.Create";
+        public const string Pages_SAParam_Edit = "Pages.SAParam.Edit";
+        public const string Pages_SAParam_Delete = "Pages.SAParam.Delete";
+
         public const string Pages_RateZone = "Pages.RateZone";
         public const string Pages_RateZone_Create = "Pages.RateZone.Create";
         public const string Pages_RateZone_Edit = "Pages.RateZone.Edit";

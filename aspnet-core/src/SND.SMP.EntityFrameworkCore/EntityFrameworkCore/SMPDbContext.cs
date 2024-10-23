@@ -4,6 +4,7 @@ using SND.SMP.Authorization.Roles;
 using SND.SMP.Authorization.Users;
 using SND.SMP.MultiTenancy;
 /* Using Definition */
+using SND.SMP.SAParams;
 using SND.SMP.RateZones;
 using SND.SMP.Invoices;
 using SND.SMP.TrackingStatuses;
@@ -80,6 +81,7 @@ namespace SND.SMP.EntityFrameworkCore
         public DbSet<TrackingStatus> TrackingStatuses { get; set; }
         public DbSet<Invoice> Invoices { get; set; }
         public DbSet<RateZone> RateZones { get; set; }
+        public DbSet<SAParam> SAParams { get; set; }
         /* Define a DbSet for each entity of the application */
 
         public SMPDbContext(DbContextOptions<SMPDbContext> options)
@@ -92,6 +94,19 @@ namespace SND.SMP.EntityFrameworkCore
             base.OnModelCreating(builder);
 
             /* Define Tables */
+            builder.Entity<SAParam>(b =>
+            {
+                b.ToTable(SMPConsts.DbTablePrefix + "SAParams");
+                b.Property(x => x.Type).HasColumnName(nameof(SAParam.Type)).HasMaxLength(300);
+                b.Property(x => x.Name).HasColumnName(nameof(SAParam.Name)).HasMaxLength(300);
+                b.Property(x => x.Code).HasColumnName(nameof(SAParam.Code)).HasMaxLength(300);
+                b.Property(x => x.PostOfficeId).HasColumnName(nameof(SAParam.PostOfficeId)).HasMaxLength(128);
+                b.Property(x => x.CityId).HasColumnName(nameof(SAParam.CityId)).HasMaxLength(128);
+                b.Property(x => x.FinalOfficeId).HasColumnName(nameof(SAParam.FinalOfficeId)).HasMaxLength(128);
+                b.Property(x => x.Seq).HasColumnName(nameof(SAParam.Seq));
+                b.HasKey(x => x.Id);
+            });
+
             builder.Entity<RateZone>(b =>
             {
                 b.ToTable(SMPConsts.DbTablePrefix + "RateZones");
