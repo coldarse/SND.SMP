@@ -1699,7 +1699,7 @@ namespace SND.SMP.ItemTrackingReviews
 
                     #region Validate Final Office
                     SAParam po = await _saParamRepository.FirstOrDefaultAsync(x => x.Type.Equals("SAFinalOffices") &&
-                                                                               x.Name.Equals(input.PostOfficeName.ToUpper().Trim()));
+                                                                               x.FinalOfficeId.Equals(input.PostOfficeName.ToUpper().Trim()));
 
 
                     string cityId = po != null ? po.CityId : "3";
