@@ -1703,7 +1703,7 @@ namespace SND.SMP.ItemTrackingReviews
 
 
                     string cityId = po != null ? po.CityId : "3";
-                    string postOfficeId = po != null ? po.PostOfficeId : "20300";
+                    string postOfficeId = po != null ? po.FinalOfficeId : "20300";
 
                     #endregion
 
