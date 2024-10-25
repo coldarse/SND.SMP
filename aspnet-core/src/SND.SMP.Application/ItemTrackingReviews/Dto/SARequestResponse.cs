@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-public class InPost
+public class SARequest
 {
     public string CRMAccountId { get; set; } = "521017871";
     public int PickupType { get; set; } = 1;
@@ -45,7 +45,7 @@ public class InAddressDetail
     public string AdditionalNo { get; set; } = "";
 }
 
-public class OutPost
+public class SAResponse
 {
     public List<OutPostItem> Items { get; set; }
     public string Status { get; set; }
