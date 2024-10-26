@@ -854,7 +854,7 @@ namespace SND.SMP.ItemTrackingReviews
         {
             var TokenGenerationUrl = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("SA_TokenGenerationUrl"));
             var DevEnvironment = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("SA_DevEnvironment"));
-            var isDevEnvironment = DevEnvironment is null || (DevEnvironment.Value == "true");
+            var isDevEnvironment = (DevEnvironment.Value.Trim() == "false") ? false : (DevEnvironment.Value.Trim() == "true");
             var username = isDevEnvironment ? await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("SA_UserName_Dev")) : await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("SA_UserName_Prod"));
             var password = isDevEnvironment ? await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("SA_Password_Dev")) : await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("SA_Password_Prod"));
 
@@ -863,14 +863,14 @@ namespace SND.SMP.ItemTrackingReviews
 
             SATokenRequest tokenRequest = new()
             {
-                UserName = username.Value,
-                Password = password.Value,
+                UserName = username.Value.Trim(),
+                Password = password.Value.Trim(),
                 grant_type = "password"
             };
 
             APIRequestResponse apiRequestResponse = new()
             {
-                URL = TokenGenerationUrl.Value,
+                URL = TokenGenerationUrl.Value.Trim(),
                 RequestBody = JsonConvert.SerializeObject(tokenRequest),
                 RequestDateTime = DateTime.Now
             };
@@ -879,7 +879,7 @@ namespace SND.SMP.ItemTrackingReviews
             var saTokenRequestMessage = new HttpRequestMessage
             {
                 Method = HttpMethod.Post,
-                RequestUri = new Uri(TokenGenerationUrl.Value),
+                RequestUri = new Uri(TokenGenerationUrl.Value.Trim()),
                 Content = content,
             };
             using var saTokenResponse = await saTokenClient.SendAsync(saTokenRequestMessage);
@@ -1660,7 +1660,7 @@ namespace SND.SMP.ItemTrackingReviews
                 if (signMatched)
                 {
                     var DevEnvironment = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("SA_DevEnvironment"));
-                    var isDevEnvironment = DevEnvironment is null || (DevEnvironment.Value == "true");
+                    var isDevEnvironment = (DevEnvironment.Value.Trim() == "false") ? false : (DevEnvironment.Value.Trim() == "true");
                     var ParcelGenerationUrl = isDevEnvironment ? await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("SA_ParcelGenerationUrl_Dev")) : await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("SA_ParcelGenerationUrl_Prod"));
                     var countryListIOSS = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("SA_EU_CountryList"));
                     var token_expiration = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("SA_TokenExpiration"));
@@ -1909,7 +1909,7 @@ namespace SND.SMP.ItemTrackingReviews
 
                                 APIRequestResponse apiRequestResponse = new()
                                 {
-                                    URL = ParcelGenerationUrl.Value,
+                                    URL = ParcelGenerationUrl.Value.Trim(),
                                     RequestBody = JsonConvert.SerializeObject(request),
                                     RequestDateTime = DateTime.Now
                                 };
@@ -1918,7 +1918,7 @@ namespace SND.SMP.ItemTrackingReviews
                                 var saRequestMessage = new HttpRequestMessage
                                 {
                                     Method = HttpMethod.Post,
-                                    RequestUri = new Uri(ParcelGenerationUrl.Value),
+                                    RequestUri = new Uri(ParcelGenerationUrl.Value.Trim()),
                                     Content = content,
                                 };
                                 using var apgResponse = await saClient.SendAsync(saRequestMessage);
