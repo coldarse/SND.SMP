@@ -1940,7 +1940,7 @@ namespace SND.SMP.ItemTrackingReviews
                                     {
                                         if (saResult.Message == "Success")
                                         {
-                                            newItemIdFromSPS = saResult.Items[0].ReferenceId;
+                                            newItemIdFromSPS = saResult.Items[0].Barcode;
 
                                             if (string.IsNullOrWhiteSpace(newItemIdFromSPS)) result.Errors.Add("Insufficient Pool Item ID");
                                             else
