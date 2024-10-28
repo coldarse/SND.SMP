@@ -861,12 +861,12 @@ namespace SND.SMP.ItemTrackingReviews
             var saTokenClient = new HttpClient();
             saTokenClient.DefaultRequestHeaders.Clear();
 
-            SATokenRequest tokenRequest = new()
-            {
-                UserName = username.Value.Trim(),
-                Password = password.Value.Trim(),
-                grant_type = "password"
-            };
+            var tokenRequest = new FormUrlEncodedContent(
+            [
+                new KeyValuePair<string, string>("UserName", username.Value.Trim()),
+                new KeyValuePair<string, string>("Password", password.Value.Trim()),
+                new KeyValuePair<string, string>("grant_type", "password")
+            ]);
 
             APIRequestResponse apiRequestResponse = new()
             {
@@ -875,12 +875,11 @@ namespace SND.SMP.ItemTrackingReviews
                 RequestDateTime = DateTime.Now
             };
 
-            var content = new StringContent(JsonConvert.SerializeObject(tokenRequest), Encoding.UTF8, "application/json");
             var saTokenRequestMessage = new HttpRequestMessage
             {
                 Method = HttpMethod.Post,
                 RequestUri = new Uri(TokenGenerationUrl.Value.Trim()),
-                Content = content,
+                Content = tokenRequest,
             };
             using var saTokenResponse = await saTokenClient.SendAsync(saTokenRequestMessage);
             saTokenResponse.EnsureSuccessStatusCode();
@@ -892,7 +891,7 @@ namespace SND.SMP.ItemTrackingReviews
 
             await _apiRequestResponseRepository.InsertAsync(apiRequestResponse).ConfigureAwait(false);
 
-            var saTokenResult = System.Text.Json.JsonSerializer.Deserialize<SATokenResponse>(saTokenBody);
+            var saTokenResult = JsonConvert.DeserializeObject<SATokenResponse>(saTokenBody);
 
             if (saTokenResult != null)
             {
@@ -904,7 +903,7 @@ namespace SND.SMP.ItemTrackingReviews
 
                 await _applicationSettingRepository.UpdateAsync(token_expiration);
                 await _applicationSettingRepository.UpdateAsync(token);
-                await _applicationSettingRepository.GetDbContext().SaveChangesAsync();
+                await _applicationSettingRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
 
                 return saTokenResult.token;
             }
@@ -1764,7 +1763,7 @@ namespace SND.SMP.ItemTrackingReviews
                     }
                     #endregion
 
-                    var isItemIDAutoMandatory = true;
+                    var isItemIDAutoMandatory = false;
                     if (isItemIDAutoMandatory)
                     {
                         if ((string.IsNullOrWhiteSpace(input.ItemID) ? "" : input.ItemID.ToLower().Trim()) != auto.ToLower().Trim())
@@ -1930,18 +1929,18 @@ namespace SND.SMP.ItemTrackingReviews
                                 apiRequestResponse.ResponseDateTime = DateTime.Now;
                                 apiRequestResponse.Duration = (apiRequestResponse.ResponseDateTime - apiRequestResponse.RequestDateTime).Seconds;
 
-                                await _apiRequestResponseRepository.InsertAsync(apiRequestResponse).ConfigureAwait(false);
+                                await _apiRequestResponseRepository.InsertAsync(apiRequestResponse);
+                                await _apiRequestResponseRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
 
                                 if (httpstatus == HttpStatusCode.OK)
                                 {
-
-                                    var saResult = JsonConvert.DeserializeObject<List<SAResponse>>(saBody);
+                                    var saResult = JsonConvert.DeserializeObject<SAResponse>(saBody);
 
                                     if (saResult != null)
                                     {
-                                        if (saResult[0].Message == "Success")
+                                        if (saResult.Message == "Success")
                                         {
-                                            newItemIdFromSPS = saResult[0].Items[0].ReferenceId;
+                                            newItemIdFromSPS = saResult.Items[0].ReferenceId;
 
                                             if (string.IsNullOrWhiteSpace(newItemIdFromSPS)) result.Errors.Add("Insufficient Pool Item ID");
                                             else
@@ -1963,9 +1962,19 @@ namespace SND.SMP.ItemTrackingReviews
                                         }
                                         else
                                         {
-                                            result.APIItemID = saResult[0].Status;
+                                            result.APIItemID = saResult.Status;
                                             result.Status = FAILED;
-                                            result.Errors.Add(saResult[0].Message);
+                                            if (saResult.Items.Count != 0)
+                                            {
+                                                foreach (var item in saResult.Items)
+                                                {
+                                                    result.Errors.Add(item.Message);
+                                                }
+                                            }
+                                            else
+                                            {
+                                                result.Errors.Add(saResult.Message);
+                                            }
                                         }
                                     }
                                     else

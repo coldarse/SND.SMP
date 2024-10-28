@@ -232,7 +232,7 @@ namespace SND.SMP.EntityFrameworkCore
                 b.Property(x => x.Prefix).HasColumnName(nameof(ItemTrackingReview.Prefix)).HasMaxLength(2);
                 b.Property(x => x.PrefixNo).HasColumnName(nameof(ItemTrackingReview.PrefixNo)).HasMaxLength(4);
                 b.Property(x => x.Suffix).HasColumnName(nameof(ItemTrackingReview.Suffix)).HasMaxLength(2);
-                b.Property(x => x.ProductCode).HasColumnName(nameof(ItemTrackingReview.ProductCode)).HasMaxLength(12);
+                b.Property(x => x.ProductCode).HasColumnName(nameof(ItemTrackingReview.ProductCode)).HasMaxLength(128);
                 b.Property(x => x.Remark).HasColumnName(nameof(ItemTrackingReview.Remark)).HasMaxLength(255);
                 b.HasKey(x => x.Id);
             });
@@ -245,7 +245,7 @@ namespace SND.SMP.EntityFrameworkCore
                 b.Property(x => x.PostalCode).HasColumnName(nameof(ItemTrackingApplication.PostalCode)).HasMaxLength(2);
                 b.Property(x => x.PostalDesc).HasColumnName(nameof(ItemTrackingApplication.PostalDesc)).HasMaxLength(255);
                 b.Property(x => x.Total).HasColumnName(nameof(ItemTrackingApplication.Total));
-                b.Property(x => x.ProductCode).HasColumnName(nameof(ItemTrackingApplication.ProductCode)).HasMaxLength(12);
+                b.Property(x => x.ProductCode).HasColumnName(nameof(ItemTrackingApplication.ProductCode)).HasMaxLength(128);
                 b.Property(x => x.ProductDesc).HasColumnName(nameof(ItemTrackingApplication.ProductDesc)).HasMaxLength(255);
                 b.Property(x => x.Status).HasColumnName(nameof(ItemTrackingApplication.Status)).HasMaxLength(128);
                 b.Property(x => x.DateCreated).HasColumnName(nameof(ItemTrackingApplication.DateCreated));
@@ -338,7 +338,7 @@ namespace SND.SMP.EntityFrameworkCore
                 b.Property(x => x.Month                         ).HasColumnName(nameof(Item.Month                         ));
                 b.Property(x => x.PostalCode                    ).HasColumnName(nameof(Item.PostalCode                    )).HasMaxLength(5);
                 b.Property(x => x.ServiceCode                   ).HasColumnName(nameof(Item.ServiceCode                   )).HasMaxLength(10);
-                b.Property(x => x.ProductCode                   ).HasColumnName(nameof(Item.ProductCode                   )).HasMaxLength(10);
+                b.Property(x => x.ProductCode                   ).HasColumnName(nameof(Item.ProductCode                   )).HasMaxLength(128);
                 b.Property(x => x.CountryCode                   ).HasColumnName(nameof(Item.CountryCode                   )).HasMaxLength(2);
                 b.Property(x => x.Weight                        ).HasColumnName(nameof(Item.Weight                        )).HasPrecision(18, 3);
                 b.Property(x => x.BagNo                         ).HasColumnName(nameof(Item.BagNo                         )).HasMaxLength(20);
@@ -449,7 +449,7 @@ namespace SND.SMP.EntityFrameworkCore
                 b.Property(x => x.IsValid                         ).HasColumnName(nameof(DispatchValidation.IsValid                         ));
                 b.Property(x => x.PostalCode                      ).HasColumnName(nameof(DispatchValidation.PostalCode                      )).HasMaxLength(5);
                 b.Property(x => x.ServiceCode                     ).HasColumnName(nameof(DispatchValidation.ServiceCode                     )).HasMaxLength(10);
-                b.Property(x => x.ProductCode                     ).HasColumnName(nameof(DispatchValidation.ProductCode                     )).HasMaxLength(10);
+                b.Property(x => x.ProductCode                     ).HasColumnName(nameof(DispatchValidation.ProductCode                     )).HasMaxLength(128);
                 b.Property(x => x.Status                          ).HasColumnName(nameof(DispatchValidation.Status                          )).HasMaxLength(20);
                 b.Property(x => x.TookInSec                       ).HasColumnName(nameof(DispatchValidation.TookInSec                       ));
                 b.Property(x => x.ValidationProgress              ).HasColumnName(nameof(DispatchValidation.ValidationProgress              ));
@@ -464,7 +464,7 @@ namespace SND.SMP.EntityFrameworkCore
                 b.Property(x => x.PPI                             ).HasColumnName(nameof(Dispatch.PPI                             )).HasMaxLength(10);
                 b.Property(x => x.PostalCode                      ).HasColumnName(nameof(Dispatch.PostalCode                      )).HasMaxLength(5);
                 b.Property(x => x.ServiceCode                     ).HasColumnName(nameof(Dispatch.ServiceCode                     )).HasMaxLength(10);
-                b.Property(x => x.ProductCode                     ).HasColumnName(nameof(Dispatch.ProductCode                     )).HasMaxLength(10);
+                b.Property(x => x.ProductCode                     ).HasColumnName(nameof(Dispatch.ProductCode                     )).HasMaxLength(128);
                 b.Property(x => x.DispatchDate                    ).HasColumnName(nameof(Dispatch.DispatchDate                    ));
                 b.Property(x => x.DispatchNo                      ).HasColumnName(nameof(Dispatch.DispatchNo                      )).HasMaxLength(128);
                 b.Property(x => x.ETAtoHKG                        ).HasColumnName(nameof(Dispatch.ETAtoHKG                        ));
@@ -575,7 +575,7 @@ namespace SND.SMP.EntityFrameworkCore
                 b.Property(x => x.PostalOrgId).HasColumnName(nameof(RateWeightBreak.PostalOrgId));
                 b.Property(x => x.WeightMin).HasColumnName(nameof(RateWeightBreak.WeightMin)).HasPrecision(18, 2).IsRequired(false);
                 b.Property(x => x.WeightMax).HasColumnName(nameof(RateWeightBreak.WeightMax)).HasPrecision(18, 2).IsRequired(false);
-                b.Property(x => x.ProductCode).HasColumnName(nameof(RateWeightBreak.ProductCode)).HasMaxLength(10);
+                b.Property(x => x.ProductCode).HasColumnName(nameof(RateWeightBreak.ProductCode)).HasMaxLength(128);
                 b.Property(x => x.CurrencyId).HasColumnName(nameof(RateWeightBreak.CurrencyId));
                 b.Property(x => x.ItemRate).HasColumnName(nameof(RateWeightBreak.ItemRate)).HasPrecision(18, 2).IsRequired(false);
                 b.Property(x => x.WeightRate).HasColumnName(nameof(RateWeightBreak.WeightRate)).HasPrecision(18, 2).IsRequired(false);
@@ -621,7 +621,7 @@ namespace SND.SMP.EntityFrameworkCore
                 b.Property(x => x.PostalDesc).HasColumnName(nameof(Postal.PostalDesc)).HasMaxLength(30);
                 b.Property(x => x.ServiceCode).HasColumnName(nameof(Postal.ServiceCode)).HasMaxLength(10);
                 b.Property(x => x.ServiceDesc).HasColumnName(nameof(Postal.ServiceDesc)).HasMaxLength(30);
-                b.Property(x => x.ProductCode).HasColumnName(nameof(Postal.ProductCode)).HasMaxLength(10);
+                b.Property(x => x.ProductCode).HasColumnName(nameof(Postal.ProductCode)).HasMaxLength(128);
                 b.Property(x => x.ProductDesc).HasColumnName(nameof(Postal.ProductDesc)).HasMaxLength(30);
                 b.Property(x => x.ItemTopUpValue).HasColumnName(nameof(Postal.ItemTopUpValue)).HasPrecision(18, 2);
                 b.HasKey(x => x.Id);
@@ -632,7 +632,7 @@ namespace SND.SMP.EntityFrameworkCore
                 b.ToTable(SMPConsts.DbTablePrefix + "RateItems");
                 b.Property(x => x.RateId).HasColumnName(nameof(RateItem.RateId));
                 b.Property(x => x.ServiceCode).HasColumnName(nameof(RateItem.ServiceCode)).HasMaxLength(2);
-                b.Property(x => x.ProductCode).HasColumnName(nameof(RateItem.ProductCode)).HasMaxLength(10);
+                b.Property(x => x.ProductCode).HasColumnName(nameof(RateItem.ProductCode)).HasMaxLength(128);
                 b.Property(x => x.CountryCode).HasColumnName(nameof(RateItem.CountryCode)).HasMaxLength(2);
                 b.Property(x => x.Total).HasColumnName(nameof(RateItem.Total)).HasPrecision(18, 2);
                 b.Property(x => x.Fee).HasColumnName(nameof(RateItem.Fee)).HasPrecision(18, 2);
