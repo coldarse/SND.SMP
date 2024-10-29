@@ -1,13 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30709.64
+# Visual Studio Version 17
+VisualStudioVersion = 17.8.34525.116
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{AFAA0841-BD93-466F-B8F4-FB4EEC86F1FC}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SND.SMP.Core", "src\SND.SMP.Core\SND.SMP.Core.csproj", "{0FA75A5B-AB83-4FD0-B545-279774C01E87}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SND.SMP.Application", "src\SND.SMP.Application\SND.SMP.Application.csproj", "{3870C648-4AEA-4B85-BA3F-F2F63B96136A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SND.SMP.Application", "src\SND.SMP.Application\SND.SMP.Application.csproj", "{3870C648-4AEA-4B85-BA3F-F2F63B96136A}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SND.SMP.Migrator", "src\SND.SMP.Migrator\SND.SMP.Migrator.csproj", "{880B3591-E057-46FE-B525-10BD83828B93}"
 EndProject
@@ -17,9 +17,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SND.SMP.Web.Core", "src\SND
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SND.SMP.EntityFrameworkCore", "src\SND.SMP.EntityFrameworkCore\SND.SMP.EntityFrameworkCore.csproj", "{E0580562-F8F2-4EBB-B07A-ABFC6F2C314F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SND.SMP.DispatchConsole", "src\SND.SMP.DispatchConsole\SND.SMP.DispatchConsole.csproj", "{93B2E888-D9E8-4622-A1C7-528595538DCE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SND.SMP.DispatchConsole", "src\SND.SMP.DispatchConsole\SND.SMP.DispatchConsole.csproj", "{93B2E888-D9E8-4622-A1C7-528595538DCE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SND.SMP.Shared", "src\SND.SMP.Shared\SND.SMP.Shared.csproj", "{6B9B8487-A3DC-4017-AF28-ACD676B630D0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SND.SMP.Shared", "src\SND.SMP.Shared\SND.SMP.Shared.csproj", "{6B9B8487-A3DC-4017-AF28-ACD676B630D0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SND.SMP.DispatchImporter", "SND.SMP.DispatchImporter\SND.SMP.DispatchImporter.csproj", "{8EA7F5F5-0481-4EC7-9435-5331887E83B7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -59,6 +61,10 @@ Global
 		{6B9B8487-A3DC-4017-AF28-ACD676B630D0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6B9B8487-A3DC-4017-AF28-ACD676B630D0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6B9B8487-A3DC-4017-AF28-ACD676B630D0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8EA7F5F5-0481-4EC7-9435-5331887E83B7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8EA7F5F5-0481-4EC7-9435-5331887E83B7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8EA7F5F5-0481-4EC7-9435-5331887E83B7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8EA7F5F5-0481-4EC7-9435-5331887E83B7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -72,6 +78,7 @@ Global
 		{E0580562-F8F2-4EBB-B07A-ABFC6F2C314F} = {AFAA0841-BD93-466F-B8F4-FB4EEC86F1FC}
 		{93B2E888-D9E8-4622-A1C7-528595538DCE} = {AFAA0841-BD93-466F-B8F4-FB4EEC86F1FC}
 		{6B9B8487-A3DC-4017-AF28-ACD676B630D0} = {AFAA0841-BD93-466F-B8F4-FB4EEC86F1FC}
+		{8EA7F5F5-0481-4EC7-9435-5331887E83B7} = {AFAA0841-BD93-466F-B8F4-FB4EEC86F1FC}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {9A55C749-0BFF-4EFD-8499-12A2CB3B5B07}
