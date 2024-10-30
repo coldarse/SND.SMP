@@ -296,27 +296,85 @@ namespace SND.SMP.Chibis
             return result;
         }
 
+        // private async Task<List<Album>> GetAlbumsAsync()
+        // {
+        //     var chibiKey = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("ChibiKey"));
+        //     var chibiURL = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("ChibiURL"));
+        //     var client = new HttpClient();
+        //     client.DefaultRequestHeaders.Clear();
+        //     client.DefaultRequestHeaders.Add("x-api-key", chibiKey.Value);
+
+        //     var request = new HttpRequestMessage
+        //     {
+        //         Method = HttpMethod.Get,
+        //         RequestUri = new Uri(chibiURL.Value + "albums"),
+        //     };
+
+        //     using var response = await client.SendAsync(request);
+
+        //     response.EnsureSuccessStatusCode();
+        //     var body = await response.Content.ReadAsStringAsync();
+        //     var result = JsonSerializer.Deserialize<AlbumDto>(body);
+
+        //     return result.albums;
+        // }
+
         private async Task<List<Album>> GetAlbumsAsync()
         {
+            // Fetch settings from repository
             var chibiKey = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("ChibiKey"));
             var chibiURL = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("ChibiURL"));
-            var client = new HttpClient();
+
+            // Check if key and URL exist
+            if (chibiKey == null || string.IsNullOrEmpty(chibiKey.Value) || chibiURL == null || string.IsNullOrEmpty(chibiURL.Value))
+            {
+                throw new UserFriendlyException("ChibiKey or ChibiURL not found or invalid.");
+            }
+
+            // Use HttpClient as a singleton or injected instance to prevent socket exhaustion
+            using var client = new HttpClient();
+
+            // Clear any default headers and set the API key
             client.DefaultRequestHeaders.Clear();
             client.DefaultRequestHeaders.Add("x-api-key", chibiKey.Value);
 
+            // Prepare the HTTP request
             var request = new HttpRequestMessage
             {
                 Method = HttpMethod.Get,
                 RequestUri = new Uri(chibiURL.Value + "albums"),
             };
 
-            using var response = await client.SendAsync(request);
+            try
+            {
+                // Send the request and ensure success
+                using var response = await client.SendAsync(request);
+                response.EnsureSuccessStatusCode();
 
-            response.EnsureSuccessStatusCode();
-            var body = await response.Content.ReadAsStringAsync();
-            var result = JsonSerializer.Deserialize<AlbumDto>(body);
+                // Read the response content
+                var body = await response.Content.ReadAsStringAsync();
 
-            return result.albums;
+                // Deserialize JSON response into AlbumDto
+                var result = JsonSerializer.Deserialize<AlbumDto>(body, new JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase // Adjust to match JSON property names
+                });
+
+                // Return the albums list, check for null
+                return result?.albums ?? [];
+            }
+            catch (HttpRequestException ex)
+            {
+                // Log and handle HTTP request errors
+                Console.WriteLine($"Request error: {ex.Message}");
+                throw;
+            }
+            catch (JsonException ex)
+            {
+                // Handle JSON deserialization errors
+                Console.WriteLine($"Deserialization error: {ex.Message}");
+                throw;
+            }
         }
 
         private async Task<CreateAlbumDto> CreateAlbumAsync(string name)
