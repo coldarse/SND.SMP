@@ -27,6 +27,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SND.SMP.DispatchImporter", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SND.SMP.ItemTrackingGenerator", "src\SND.SMP.ItemTrackingGenerator\SND.SMP.ItemTrackingGenerator.csproj", "{085C263B-6949-4E38-8B48-CA07730F8080}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SND.SMP.ItemTrackingUpdater", "src\SND.SMP.ItemTrackingUpdator\SND.SMP.ItemTrackingUpdater.csproj", "{7B4744EA-9339-4533-8B49-88BAFA556995}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -77,6 +79,10 @@ Global
 		{085C263B-6949-4E38-8B48-CA07730F8080}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{085C263B-6949-4E38-8B48-CA07730F8080}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{085C263B-6949-4E38-8B48-CA07730F8080}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7B4744EA-9339-4533-8B49-88BAFA556995}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7B4744EA-9339-4533-8B49-88BAFA556995}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7B4744EA-9339-4533-8B49-88BAFA556995}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7B4744EA-9339-4533-8B49-88BAFA556995}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -93,6 +99,7 @@ Global
 		{8B96EC87-928A-43B4-A7AD-2188F3A5B391} = {AFAA0841-BD93-466F-B8F4-FB4EEC86F1FC}
 		{68FC0B08-0A8C-4C0C-BC7E-FEF387A84184} = {AFAA0841-BD93-466F-B8F4-FB4EEC86F1FC}
 		{085C263B-6949-4E38-8B48-CA07730F8080} = {AFAA0841-BD93-466F-B8F4-FB4EEC86F1FC}
+		{7B4744EA-9339-4533-8B49-88BAFA556995} = {AFAA0841-BD93-466F-B8F4-FB4EEC86F1FC}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {9A55C749-0BFF-4EFD-8499-12A2CB3B5B07}
