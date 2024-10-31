@@ -2,11 +2,35 @@ version: '3'
 
 services:
 
-  # dispatch_console:
-  #   build: ./
-  #   image: dannychen98/dispatch_console:v1.2.17
-  #   environment:
-  #     ConnectionStrings__Default: "server=65.21.224.66;port=3306;database=SMPDb;uid=droot;pwd=snd@1234"
+  dispatch_importer:
+    build: ./
+    image: dannychen98/dispatch_importer:v1.0.0
+    environment:
+      ConnectionStrings__Default: "server=65.21.224.66;port=3306;database=SMPDb;uid=droot;pwd=snd@1234"
+
+  dispatch_validator:
+    build: ./
+    image: dannychen98/dispatch_validator:v1.0.0
+    environment:
+      ConnectionStrings__Default: "server=65.21.224.66;port=3306;database=SMPDb;uid=droot;pwd=snd@1234"
+
+  dispatch_tracking_updater:
+    build: ./
+    image: dannychen98/dispatch_tracking_updater:v1.0.0
+    environment:
+      ConnectionStrings__Default: "server=65.21.224.66;port=3306;database=SMPDb;uid=droot;pwd=snd@1234"
+
+  item_tracking_generator:
+    build: ./
+    image: dannychen98/item_tracking_generator:v1.0.0
+    environment:
+      ConnectionStrings__Default: "server=65.21.224.66;port=3306;database=SMPDb;uid=droot;pwd=snd@1234"
+
+  item_tracking_updater:
+    build: ./
+    image: dannychen98/item_tracking_updater:v1.0.0
+    environment:
+      ConnectionStrings__Default: "server=65.21.224.66;port=3306;database=SMPDb;uid=droot;pwd=snd@1234"
 
   abp_host:
     build: ./
