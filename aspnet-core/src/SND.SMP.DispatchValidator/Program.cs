@@ -1,8 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using MySqlConnector;
 
-namespace SND.SMP.DispatchConsole;
+namespace SND.SMP.DispatchValidator;
 
 public class Program
 {
@@ -14,15 +16,7 @@ public class Program
         builder.Services.AddTransient<MySqlConnection>(_ =>
             new MySqlConnection(builder.Configuration.GetConnectionString("Default")));
 
-        builder.Services.AddHostedService<WorkerInvoiceGenerate>();
-        //builder.Services.AddHostedService<WorkerDispatchImport>();
-        //builder.Services.AddHostedService<WorkerDispatchValidate>();
-        //builder.Services.AddHostedService<WorkerItemTrackingGenerate>();
-        //builder.Services.AddHostedService<WorkerItemTrackingNoUpdate>();
-        //builder.Services.AddHostedService<WorkerDispatchTrackingUpdate>();
-
-        //builder.Services.AddHostedService<WorkerRateWeightBreak>();
-        //builder.Services.AddHostedService<WorkerTracking>();
+        builder.Services.AddHostedService<WorkerDispatchValidate>();
 
         System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
 
