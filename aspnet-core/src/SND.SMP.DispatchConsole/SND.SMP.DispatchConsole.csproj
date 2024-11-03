@@ -4,6 +4,7 @@
     <Nullable>disable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>dotnet-SND.SMP.DispatchConsole-5e45b15c-6d95-42c2-b14f-5c6c68fd345e</UserSecretsId>
+    <OutputType>Exe</OutputType>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="itextsharp" Version="5.5.13.4" />

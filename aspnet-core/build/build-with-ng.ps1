@@ -9,40 +9,40 @@ $SMP_DISPATCH_1_DOCKERFILE_PATH="src/SND.SMP.DispatchImporter/Dockerfile"
 $SMP_DISPATCH_2_DOCKERFILE_PATH="src/SND.SMP.DispatchValidator/Dockerfile"
 $SMP_DISPATCH_3_DOCKERFILE_PATH="src/SND.SMP.DispatchTrackingUpdater/Dockerfile"
 $SMP_DISPATCH_4_DOCKERFILE_PATH="src/SND.SMP.ItemTrackingGenerator/Dockerfile"
-$SMP_DISPATCH_5_DOCKERFILE_PATH="src/SND.SMP.ItemTrackingUpdator/Dockerfile"
+$SMP_DISPATCH_5_DOCKERFILE_PATH="src/SND.SMP.ItemTrackingUpdater/Dockerfile"
 $SMP_DISPATCH_1="dannychen98/dispatch_importer:v1.0.0"
 $SMP_DISPATCH_2="dannychen98/dispatch_validator:v1.0.0"
 $SMP_DISPATCH_3="dannychen98/dispatch_tracking_updater:v1.0.0"
 $SMP_DISPATCH_4="dannychen98/item_tracking_generator:v1.0.0"
 $SMP_DISPATCH_5="dannychen98/item_tracking_updater:v1.0.0"
 
-cd ..
-echo " Building docker image $SMP_DISPATCH_1..."
-docker build -t $SMP_DISPATCH_1 -f $SMP_DISPATCH_1_DOCKERFILE_PATH . 
-echo " Done. -- Building docker image $SMP_DISPATCH_1..."
-echo ""
-echo ""
+# cd ..
+# echo " Building docker image $SMP_DISPATCH_1..."
+# docker build -t $SMP_DISPATCH_1 -f $SMP_DISPATCH_1_DOCKERFILE_PATH . 
+# echo " Done. -- Building docker image $SMP_DISPATCH_1..."
+# echo ""
+# echo ""
 
-cd ..
-echo " Building docker image $SMP_DISPATCH_2..."
-docker build -t $SMP_DISPATCH_2 -f $SMP_DISPATCH_2_DOCKERFILE_PATH . 
-echo " Done. -- Building docker image $SMP_DISPATCH_2..."
-echo ""
-echo ""
+# cd ..
+# echo " Building docker image $SMP_DISPATCH_2..."
+# docker build -t $SMP_DISPATCH_2 -f $SMP_DISPATCH_2_DOCKERFILE_PATH . 
+# echo " Done. -- Building docker image $SMP_DISPATCH_2..."
+# echo ""
+# echo ""
 
-cd ..
-echo " Building docker image $SMP_DISPATCH_3..."
-docker build -t $SMP_DISPATCH_3 -f $SMP_DISPATCH_3_DOCKERFILE_PATH . 
-echo " Done. -- Building docker image $SMP_DISPATCH_3..."
-echo ""
-echo ""
+# cd ..
+# echo " Building docker image $SMP_DISPATCH_3..."
+# docker build -t $SMP_DISPATCH_3 -f $SMP_DISPATCH_3_DOCKERFILE_PATH . 
+# echo " Done. -- Building docker image $SMP_DISPATCH_3..."
+# echo ""
+# echo ""
 
-cd ..
-echo " Building docker image $SMP_DISPATCH_4..."
-docker build -t $SMP_DISPATCH_4 -f $SMP_DISPATCH_4_DOCKERFILE_PATH . 
-echo " Done. -- Building docker image $SMP_DISPATCH_4..."
-echo ""
-echo ""
+# cd ..
+# echo " Building docker image $SMP_DISPATCH_4..."
+# docker build -t $SMP_DISPATCH_4 -f $SMP_DISPATCH_4_DOCKERFILE_PATH . 
+# echo " Done. -- Building docker image $SMP_DISPATCH_4..."
+# echo ""
+# echo ""
 
 cd ..
 echo " Building docker image $SMP_DISPATCH_5..."

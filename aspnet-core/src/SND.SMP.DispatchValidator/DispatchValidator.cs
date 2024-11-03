@@ -63,7 +63,7 @@ namespace SND.SMP.DispatchValidator
                 .Where(u => u.Status == QueueEnumConst.STATUS_RUNNING)
                 .Any();
 
-            if (hasRunning) return;
+           if (hasRunning) return;
 
             var newTask = db.Queues
                 .Where(u => u.EventType == QueueEnumConst.EVENT_TYPE_DISPATCH_VALIDATE)

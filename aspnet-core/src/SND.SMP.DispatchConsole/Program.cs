@@ -16,7 +16,7 @@ public class Program
 
         builder.Services.AddHostedService<WorkerInvoiceGenerate>();
         //builder.Services.AddHostedService<WorkerDispatchImport>();
-        //builder.Services.AddHostedService<WorkerDispatchValidate>();
+        builder.Services.AddHostedService<WorkerDispatchValidate>();
         //builder.Services.AddHostedService<WorkerItemTrackingGenerate>();
         //builder.Services.AddHostedService<WorkerItemTrackingNoUpdate>();
         //builder.Services.AddHostedService<WorkerDispatchTrackingUpdate>();
