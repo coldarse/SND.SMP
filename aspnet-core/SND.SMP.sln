@@ -27,7 +27,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SND.SMP.DispatchImporter", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SND.SMP.ItemTrackingGenerator", "src\SND.SMP.ItemTrackingGenerator\SND.SMP.ItemTrackingGenerator.csproj", "{085C263B-6949-4E38-8B48-CA07730F8080}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SND.SMP.ItemTrackingUpdater", "src\SND.SMP.ItemTrackingUpdator\SND.SMP.ItemTrackingUpdater.csproj", "{7B4744EA-9339-4533-8B49-88BAFA556995}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SND.SMP.ItemTrackingUpdater", "src\SND.SMP.ItemTrackingUpdater\SND.SMP.ItemTrackingUpdater.csproj", "{7B4744EA-9339-4533-8B49-88BAFA556995}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SND.SMP.DispatchTrackingUpdater", "src\SND.SMP.DispatchTrackingUpdater\SND.SMP.DispatchTrackingUpdater.csproj", "{CCB0166E-C51E-43D5-BB74-7AF50DE270A9}"
 EndProject
