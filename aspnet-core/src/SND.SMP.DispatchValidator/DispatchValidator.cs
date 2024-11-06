@@ -288,7 +288,8 @@ namespace SND.SMP.DispatchValidator
                                     () => IOSS_Missing(ref validationResult_ioss_missing, listIOSSChecking, DispatchProfile.PostalCode[..2]),
                                     () => Id_HasInvalidPrefixSuffix(ref validationResult_id_HasInvalidPrefixSuffix, listItemIds),
                                     () => {
-                                        if (listCountryCodes.Any(u => u.CountryCode != "NG") && ServiceCode == SERVICE_DE) // bypass checking for Country Code NG
+                                        
+                                        if (listCountryCodes.Any(u => u.CountryCode != "NG" || u.CountryCode != "SA") && ServiceCode == SERVICE_DE) // bypass checking for Country Code NG, SA
                                         {
                                             Id_HasInvalidCheckDigit(ref validationResult_id_HasInvalidCheckDigit, listItemIds);
                                             Id_HasInvalidLength(ref validationResult_id_HasInvalidLength, listItemIds);
@@ -362,7 +363,7 @@ namespace SND.SMP.DispatchValidator
                         () => Id_HasInvalidPrefixSuffix(ref validationResult_id_HasInvalidPrefixSuffix, listItemIds),
                         () =>
                         {
-                            if (listCountryCodes.Any(u => u.CountryCode != "NG") && ServiceCode == SERVICE_DE) // bypass checking for Country Code NG
+                            if (listCountryCodes.Any(u => u.CountryCode != "NG" || u.CountryCode != "SA") && ServiceCode == SERVICE_DE) // bypass checking for Country Code NG, SA
                             {
                                 Id_HasInvalidCheckDigit(ref validationResult_id_HasInvalidCheckDigit, listItemIds);
                                 Id_HasInvalidLength(ref validationResult_id_HasInvalidLength, listItemIds);
