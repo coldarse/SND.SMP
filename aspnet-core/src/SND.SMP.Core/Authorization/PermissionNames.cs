@@ -12,6 +12,11 @@ namespace SND.SMP.Authorization
         public const string Pages_Roles = "Pages.Roles";
 
         /* Define your permissions here */
+        public const string Pages_ItemTrackingEvent = "Pages.ItemTrackingEvent";
+        public const string Pages_ItemTrackingEvent_Create = "Pages.ItemTrackingEvent.Create";
+        public const string Pages_ItemTrackingEvent_Edit = "Pages.ItemTrackingEvent.Edit";
+        public const string Pages_ItemTrackingEvent_Delete = "Pages.ItemTrackingEvent.Delete";
+
         public const string Pages_SAParam = "Pages.SAParam";
         public const string Pages_SAParam_Create = "Pages.SAParam.Create";
         public const string Pages_SAParam_Edit = "Pages.SAParam.Edit";

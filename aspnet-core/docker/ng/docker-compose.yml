@@ -10,7 +10,7 @@ services:
 
   dispatch_validator:
     build: ./
-    image: dannychen98/dispatch_validator:v1.0.1
+    image: dannychen98/dispatch_validator:v1.0.4
     environment:
       ConnectionStrings__Default: "server=65.21.224.66;port=3306;database=SMPDb;uid=droot;pwd=snd@1234"
 

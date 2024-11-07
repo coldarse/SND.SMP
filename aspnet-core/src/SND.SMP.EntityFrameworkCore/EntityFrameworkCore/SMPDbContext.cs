@@ -4,6 +4,7 @@ using SND.SMP.Authorization.Roles;
 using SND.SMP.Authorization.Users;
 using SND.SMP.MultiTenancy;
 /* Using Definition */
+using SND.SMP.ItemTrackingEvents;
 using SND.SMP.SAParams;
 using SND.SMP.RateZones;
 using SND.SMP.Invoices;
@@ -82,6 +83,7 @@ namespace SND.SMP.EntityFrameworkCore
         public DbSet<Invoice> Invoices { get; set; }
         public DbSet<RateZone> RateZones { get; set; }
         public DbSet<SAParam> SAParams { get; set; }
+        public DbSet<ItemTrackingEvent> ItemTrackingEvents { get; set; }
         /* Define a DbSet for each entity of the application */
 
         public SMPDbContext(DbContextOptions<SMPDbContext> options)
@@ -94,6 +96,18 @@ namespace SND.SMP.EntityFrameworkCore
             base.OnModelCreating(builder);
 
             /* Define Tables */
+            builder.Entity<ItemTrackingEvent>(b =>
+            {
+                b.ToTable(SMPConsts.DbTablePrefix + "ItemTrackingEvents");
+                b.Property(x => x.TrackingNo).HasColumnName(nameof(ItemTrackingEvent.TrackingNo)).HasMaxLength(64);
+                b.Property(x => x.Event).HasColumnName(nameof(ItemTrackingEvent.Event));
+                b.Property(x => x.Status).HasColumnName(nameof(ItemTrackingEvent.Status)).HasMaxLength(512);
+                b.Property(x => x.Country).HasColumnName(nameof(ItemTrackingEvent.Country)).HasMaxLength(4);
+                b.Property(x => x.EventTime).HasColumnName(nameof(ItemTrackingEvent.EventTime));
+                b.Property(x => x.DispatchNo).HasColumnName(nameof(ItemTrackingEvent.DispatchNo)).HasMaxLength(64);
+                b.HasKey(x => x.Id);
+            });
+
             builder.Entity<SAParam>(b =>
             {
                 b.ToTable(SMPConsts.DbTablePrefix + "SAParams");
