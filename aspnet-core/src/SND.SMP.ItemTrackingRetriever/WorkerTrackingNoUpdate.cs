@@ -2,7 +2,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-namespace SND.SMP.ItemTrackingUpdater;
+namespace SND.SMP.ItemTrackingRetriever;
 
 public class WorkerItemTrackingNoUpdate : BackgroundService
 {
@@ -23,12 +23,11 @@ public class WorkerItemTrackingNoUpdate : BackgroundService
     {
         while (!stoppingToken.IsCancellationRequested)
         {
-            var pollInMs = _configuration.GetValue<int>("UpdateTrackingNo:TrackingNoUpdatePollInSec") * 1000;
-            int blockSize = _configuration.GetValue<int>("Import:BlockSize");
+            var pollInMs = _configuration.GetValue<int>("Retrieve:TrackingNoRetrievePollInSec") * 1000;
 
-            TrackingNoUpdater trackingNoUpdater = new TrackingNoUpdater();
+            ItemTrackingRetriever trackingNoUpdater = new ItemTrackingRetriever();
 
-            await trackingNoUpdater.DiscoverAndUpdate(blockSize);
+            await trackingNoUpdater.RetrieveItemTrackingDetails();
 
             #region Logger
             if (_logger.IsEnabled(LogLevel.Information))
