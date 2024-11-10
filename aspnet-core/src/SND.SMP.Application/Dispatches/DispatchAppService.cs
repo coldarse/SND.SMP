@@ -159,14 +159,14 @@ namespace SND.SMP.Dispatches
         private async Task<PriceAndCurrencyId> CalculatePrice_DE(decimal weightVariance, string state, string city, string countryCode, decimal weight)
         {
             var variancedWeight = weight - weightVariance;
-            var rateZone = await _rateZoneRepository.GetAllListAsync(u => u.State.ToUpper().Trim() == state.ToUpper().Trim() && u.City.ToUpper().Trim() == city.ToUpper().Trim());
+            var rateZone = await _rateZoneRepository.FirstOrDefaultAsync(u => u.State.ToUpper().Trim() == state.ToUpper().Trim() && u.City.ToUpper().Trim() == city.ToUpper().Trim());
 
             var rateItem = await _rateWeightBreakRepository.GetAllListAsync(x =>
                                 x.PostalOrgId.Equals(countryCode) &&
                                 variancedWeight >= x.WeightMin &&
                                 variancedWeight <= x.WeightMax);
 
-            if (rateZone is not null) rateItem = [.. rateItem.Where(x => x.Zone.ToUpper().Trim().Equals(rateZone.FirstOrDefault().Zone.ToUpper().Trim()))];
+            if (rateZone is not null) rateItem = [.. rateItem.Where(x => x.Zone.ToUpper().Trim().Equals(rateZone.Zone.ToUpper().Trim()))];
 
             return new PriceAndCurrencyId()
             {
