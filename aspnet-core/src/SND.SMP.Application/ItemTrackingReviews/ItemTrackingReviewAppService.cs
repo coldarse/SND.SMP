@@ -854,7 +854,7 @@ namespace SND.SMP.ItemTrackingReviews
         {
             var TokenGenerationUrl = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("SA_TokenGenerationUrl"));
             var DevEnvironment = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("SA_DevEnvironment"));
-            var isDevEnvironment = (DevEnvironment.Value.Trim() == "false") ? false : (DevEnvironment.Value.Trim() == "true");
+            var isDevEnvironment = DevEnvironment.Value.Trim() != "false" && (DevEnvironment.Value.Trim() == "true");
             var username = isDevEnvironment ? await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("SA_UserName_Dev")) : await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("SA_UserName_Prod"));
             var password = isDevEnvironment ? await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("SA_Password_Dev")) : await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("SA_Password_Prod"));
 

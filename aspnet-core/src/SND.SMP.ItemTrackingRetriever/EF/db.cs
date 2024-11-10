@@ -85,6 +85,10 @@ public partial class db : DbContext
 
     public virtual DbSet<SND.SMP.RateZones.RateZone> RateZones { get; set; }
 
+    public virtual DbSet<SND.SMP.APIRequestResponses.APIRequestResponse> APIRequestResponses { get; set; }
+    
+    public virtual DbSet<SND.SMP.ItemTrackingEvents.ItemTrackingEvent> ItemTrackingEvents { get; set; }
+
 
 
     // public virtual DbSet<SND.SMP.ApplicationSettings.ApplicationSetting> ApplicationSettings { get; set; }
