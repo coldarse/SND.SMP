@@ -14,13 +14,14 @@ namespace SND.SMP.ItemTrackingRetriever
 
         private static System.Timers.Timer taskTimer; // Define the timer
         private static List<DateTime> taskSchedule;
+        private static bool isRunning = false;
 
         public async Task RetrieveItemTrackingDetails()
         {
             using db db = new();
 
-            var tracking_Interval = db.ApplicationSettings.FirstOrDefault(x => x.Name.Equals("TrackingIntervalPerDay", StringComparison.OrdinalIgnoreCase));
-            var grace_period = db.ApplicationSettings.FirstOrDefault(x => x.Name.Equals("GracePeriod", StringComparison.OrdinalIgnoreCase));
+            var tracking_Interval = db.ApplicationSettings.FirstOrDefault(x => x.Name.Equals("TrackingIntervalPerDay"));
+            var grace_period = db.ApplicationSettings.FirstOrDefault(x => x.Name.Equals("GracePeriod"));
 
             int timesToPerform = tracking_Interval is not null ? Convert.ToInt32(tracking_Interval.Value) : 4; // Example: 4 times per day (e.g., every 6 hours)
             int gracePeriodInMinutes = grace_period is not null ? Convert.ToInt32(grace_period.Value) : 2; // Set the grace period in minute(s)
@@ -34,7 +35,7 @@ namespace SND.SMP.ItemTrackingRetriever
             }
 
             // Set up the timer to check every minute
-            taskTimer = new System.Timers.Timer(60000); // 60000 ms = 1 minute
+            taskTimer = new System.Timers.Timer(60000 * gracePeriodInMinutes); // (60000 ms = 1 minute) x gracePeriodInMinutes
             taskTimer.Elapsed += async (sender, e) => await CheckForScheduledTaskAsync(sender, e, gracePeriodInMinutes, timesToPerform);
             taskTimer.AutoReset = true;
             taskTimer.Start();
@@ -53,7 +54,7 @@ namespace SND.SMP.ItemTrackingRetriever
                 if (nextTaskTime.HasValue)
                 {
                     TimeSpan timeUntilNextTask = nextTaskTime.Value - currentTime;
-                    if (timeUntilNextTask.TotalMinutes <= gracePeriodInMinutes && timeUntilNextTask.TotalMinutes >= 0)
+                    if (timeUntilNextTask.TotalMinutes <= gracePeriodInMinutes && timeUntilNextTask.TotalMinutes >= 0 && !isRunning)
                     {
                         await PerformTaskAsync();
                     }
@@ -109,6 +110,7 @@ namespace SND.SMP.ItemTrackingRetriever
 
         private async Task PerformTaskAsync()
         {
+            isRunning = true;
             Console.WriteLine($"Task started at {DateTime.Now:hh:mm tt}");
             try
             {
@@ -124,7 +126,7 @@ namespace SND.SMP.ItemTrackingRetriever
                 List<ItemTrackingEvent> events = [];
                 string country = "SA";
 
-                var SA_items_not_delivered = db.Items.Where(x => x.CountryCode.Equals("SA") && !x.IsDelivered.Equals(1) && x.DateStage1 != null).ToList();
+                var SA_items_not_delivered = db.Items.Where(x => x.CountryCode.Equals("SA") && x.IsDelivered != 1 && x.DateStage1 != null).ToList();
 
                 string saToken = token.Value.Trim() == "" ? await GetSAToken() : token.Value.Trim();
 
@@ -137,7 +139,7 @@ namespace SND.SMP.ItemTrackingRetriever
 
                 var httpstatus = HttpStatusCode.Unauthorized;
 
-                if (ParcelTrackingUrl != null)
+                if (ParcelTrackingUrl != null && SA_items_not_delivered.Count > 0)
                 {
                     foreach (var item in SA_items_not_delivered)
                     {
@@ -147,7 +149,7 @@ namespace SND.SMP.ItemTrackingRetriever
 
                         InSATrack request = new()
                         {
-                            ItemBarCode = ""
+                            ItemBarCode = item.Id
                         };
 
                         APIRequestResponse apiRequestResponse = new()
@@ -194,6 +196,8 @@ namespace SND.SMP.ItemTrackingRetriever
                                     // Get the latest stored event for incremental event number.
                                     int lasted_event = itemTrackingEvents.Count == 0 ? 0 : itemTrackingEvents.FirstOrDefault().Event;
 
+                                    new_statuses = [.. new_statuses.OrderBy(x => x.CreationDate)];
+
                                     foreach (var status in new_statuses)
                                     {
                                         DateTime date = DateTime.MinValue;
@@ -202,7 +206,7 @@ namespace SND.SMP.ItemTrackingRetriever
                                         var delivered = status.EventId == "18";
 
                                         var stage1Date = item.DateStage1;
-                                        var statusDesc = status.EventNameEN.Trim();
+                                        var statusDesc = status.EventNameEN is null ? "" : status.EventNameEN.Trim();
 
                                         var dispatch = db.Dispatches.FirstOrDefault(x => x.Id.Equals(item.DispatchId));
 
@@ -242,6 +246,7 @@ namespace SND.SMP.ItemTrackingRetriever
             finally
             {
                 Console.WriteLine($"Task completed at {DateTime.Now:hh:mm tt}");
+                isRunning = false;
             }
         }
 
