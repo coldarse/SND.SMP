@@ -33,6 +33,7 @@ using System.Text.RegularExpressions;
 using System.Net;
 using Newtonsoft.Json;
 using SND.SMP.SAParams;
+using SND.SMP.ItemTrackingEvents;
 
 
 namespace SND.SMP.ItemTrackingReviews
@@ -51,7 +52,8 @@ namespace SND.SMP.ItemTrackingReviews
         IRepository<APIRequestResponse, long> apiRequestResponseRepository,
         IRepository<Bag, int> bagRepository,
         IRepository<RateZone, long> rateZoneRepository,
-        IRepository<SAParam, long> saParamRepository
+        IRepository<SAParam, long> saParamRepository,
+        IRepository<ItemTrackingEvent, long> itemTrackingEventRepository
     ) : AsyncCrudAppService<ItemTrackingReview, ItemTrackingReviewDto, int, PagedItemTrackingReviewResultRequestDto>(repository)
     {
         private readonly IRepository<ItemTrackingApplication, int> _itemTrackingApplicationRepository = itemTrackingApplicationRepository;
@@ -233,31 +235,40 @@ namespace SND.SMP.ItemTrackingReviews
 
             if (tracking)
             {
-                if (IsExternal)
-                {
-                    List<string> trackingNos = [];
-                    trackingNos.Add(trackingNo);
-                    //Call External
-                }
-                else
-                {
-                    var item = await _itemRepository.FirstOrDefaultAsync(x => x.Id.Equals(trackingNo));
+                var item = await _itemRepository.FirstOrDefaultAsync(x => x.Id.Equals(trackingNo));
 
-                    if (item is not null)
+                if (item is not null)
+                {
+                    List<StageResult> stageResult = GetTouchedStages(item);
+                    for (int i = 0; i < stageResult.Count; i++)
                     {
-                        List<StageResult> stageResult = GetTouchedStages(item);
-                        for (int i = 0; i < stageResult.Count; i++)
+                        itemInfo.trackingDetails.Add(new TrackingDetails()
                         {
-                            itemInfo.trackingDetails.Add(new TrackingDetails()
-                            {
-                                trackingNo = trackingNo,
-                                location = item.CountryCode,
-                                description = stageResult[i].Description,
-                                dateTime = stageResult[i].DateStage.ToString("dd/MM/yyyy HH:mm:ss")
-                            });
-                        }
+                            trackingNo = trackingNo,
+                            location = item.CountryCode,
+                            description = stageResult[i].Description,
+                            dateTime = stageResult[i].DateStage.ToString("dd/MM/yyyy HH:mm:ss")
+                        });
                     }
                 }
+
+                if (IsExternal)
+                {
+                    var itemTrackingEvents = await itemTrackingEventRepository.GetAllListAsync(x => x.TrackingNo.Equals(trackingNo));
+
+                    foreach (var itemTrackingEvent in itemTrackingEvents)
+                    {
+                        itemInfo.trackingDetails.Add(new TrackingDetails()
+                        {
+                            trackingNo = trackingNo,
+                            location = item.CountryCode,
+                            description = itemTrackingEvent.Status,
+                            dateTime = itemTrackingEvent.EventTime.ToString("dd/MM/yyyy HH:mm:ss")
+                        });
+                    }
+                }
+
+                _ = itemInfo.trackingDetails.OrderBy(x => DateTime.Parse(x.dateTime));
             }
             return itemInfo;
         }
@@ -331,25 +342,6 @@ namespace SND.SMP.ItemTrackingReviews
             }
 
             return dataTable;
-        }
-        private static DataTable ConcatenateDataTables(params DataTable[] tables)
-        {
-            if (tables == null || tables.Length == 0)
-                throw new ArgumentException("At least one DataTable must be provided", nameof(tables));
-
-            // Clone the schema of the first table (assuming all tables have the same schema)
-            DataTable mergedTable = tables[0].Clone();
-
-            // Import rows from each table into the merged table
-            foreach (DataTable table in tables)
-            {
-                foreach (DataRow row in table.Rows)
-                {
-                    mergedTable.ImportRow(row);
-                }
-            }
-
-            return mergedTable;
         }
         private async Task<bool> IsTrackingNoOwner(string customerCode, string trackingNo, string productCode)
         {
