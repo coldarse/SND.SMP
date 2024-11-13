@@ -34,4 +34,6 @@ public class TrackingDetails
     public string location { get; set; }
     public string description { get; set; }
     public string dateTime { get; set; }
+    public string date { get; set; }
+    public string time { get; set; }
 }

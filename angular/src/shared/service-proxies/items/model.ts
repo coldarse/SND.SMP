@@ -225,6 +225,8 @@ export interface TrackingDetails {
     location: string;
     description: string;
     dateTime: Date;
+    date: string;
+    time: string;
 }
 
 export interface ItemInfo {

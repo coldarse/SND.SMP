@@ -247,7 +247,9 @@ namespace SND.SMP.ItemTrackingReviews
                             trackingNo = trackingNo,
                             location = item.CountryCode,
                             description = stageResult[i].Description,
-                            dateTime = stageResult[i].DateStage.ToString("dd/MM/yyyy HH:mm:ss")
+                            dateTime = stageResult[i].DateStage.ToString("dd/MM/yyyy hh:mm:ss tt"),
+                            date = stageResult[i].DateStage.ToString("dd/MM/yyyy"),
+                            time = stageResult[i].DateStage.ToString("hh:mm:ss tt")
                         });
                     }
                 }
@@ -263,12 +265,15 @@ namespace SND.SMP.ItemTrackingReviews
                             trackingNo = trackingNo,
                             location = item.CountryCode,
                             description = itemTrackingEvent.Status,
-                            dateTime = itemTrackingEvent.EventTime.ToString("dd/MM/yyyy HH:mm:ss")
+                            dateTime = itemTrackingEvent.EventTime.ToString("dd/MM/yyyy hh:mm:ss tt"),
+                            date = itemTrackingEvent.EventTime.ToString("dd/MM/yyyy"),
+                            time = itemTrackingEvent.EventTime.ToString("hh:mm:ss tt")
                         });
                     }
                 }
 
                 _ = itemInfo.trackingDetails.OrderBy(x => DateTime.Parse(x.dateTime));
+                itemInfo.trackingDetails = itemInfo.trackingDetails.Where(item => item.description != "NA" && item.description != "").ToList();
             }
             return itemInfo;
         }
