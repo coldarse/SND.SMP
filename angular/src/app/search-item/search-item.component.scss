@@ -72,7 +72,7 @@
 }
 
 .item-section {
-    width: 680px;
+    width: 880px;
     padding: 1rem;
     border-radius: 1rem;
 }
@@ -90,19 +90,21 @@
 }
 
 .item-card {
-    width: 648px;
-    background: #fff;
+    width: 800px;
+    background: #d4de95;
     border-radius: 2.5rem;
     padding: 2rem;
-    color: #212529;
+    color: #636B2F;
+    margin: auto;
 }
 
 .tracking-card {
-    width: 848px;
-    background: #fff;
+    width: 800px;
+    background: #d4de95;
     border-radius: 2.5rem;
     padding: 2rem;
-    color: #212529;
+    color: #636B2F;
+    margin: auto;
 }
 
 .item-header {
@@ -119,6 +121,12 @@
 
 .long-desc {
     width: 98.88px;
+}
+
+.scroll-container {
+  height: 70vh;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 $gray-light:            #f1F1F1;

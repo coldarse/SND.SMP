@@ -293,6 +293,25 @@ namespace SND.SMP.ItemTrackingReviews
 
             if (tracking)
             {
+                var item = await _itemRepository.FirstOrDefaultAsync(x => x.Id.Equals(trackingNo));
+
+                if (item is not null)
+                {
+                    List<StageResult> stageResult = GetTouchedStages(item);
+                    for (int i = 0; i < stageResult.Count; i++)
+                    {
+                        itemInfo.trackingDetails.Add(new TrackingDetails()
+                        {
+                            trackingNo = trackingNo,
+                            location = item.CountryCode,
+                            description = stageResult[i].Description,
+                            dateTime = stageResult[i].DateStage.ToString("dd/MM/yyyy hh:mm:ss tt"),
+                            date = stageResult[i].DateStage.ToString("dd/MM/yyyy"),
+                            time = stageResult[i].DateStage.ToString("hh:mm:ss tt")
+                        });
+                    }
+                }
+
                 if (IsExternal)
                 {
                     List<string> trackingNos = [];
@@ -306,33 +325,18 @@ namespace SND.SMP.ItemTrackingReviews
                         {
                             itemInfo.trackingDetails.Add(new TrackingDetails()
                             {
-                                trackingNo = apg.package.tracking,
-                                location = status.location,
-                                description = status.description,
-                                dateTime = DateTime.Parse(status.statusDate.Replace(" UTC", "")).ToString("dd/MM/yyyy HH:mm:ss")
-                            });
-                        }
-                    }
-
-                }
-                else
-                {
-                    var item = await _itemRepository.FirstOrDefaultAsync(x => x.Id.Equals(trackingNo));
-
-                    if (item is not null)
-                    {
-                        List<StageResult> stageResult = GetTouchedStages(item);
-                        for (int i = 0; i < stageResult.Count; i++)
-                        {
-                            itemInfo.trackingDetails.Add(new TrackingDetails()
-                            {
                                 trackingNo = trackingNo,
                                 location = item.CountryCode,
-                                description = stageResult[i].Description,
-                                dateTime = stageResult[i].DateStage.ToString("dd/MM/yyyy HH:mm:ss")
+                                description = status.description,
+                                dateTime = DateTime.Parse(status.statusDate).ToString("dd/MM/yyyy hh:mm:ss tt"),
+                                date = DateTime.Parse(status.statusDate).ToString("dd/MM/yyyy"),
+                                time = DateTime.Parse(status.statusDate).ToString("hh:mm:ss tt")
                             });
                         }
                     }
+
+                    _ = itemInfo.trackingDetails.OrderBy(x => DateTime.Parse(x.dateTime));
+                    itemInfo.trackingDetails = itemInfo.trackingDetails.Where(item => item.description != "NA" && item.description != "").ToList();
                 }
             }
             return itemInfo;
@@ -730,7 +734,7 @@ namespace SND.SMP.ItemTrackingReviews
                                 // Regular expression to match the pattern: two letters followed by 1-10 digits
                                 string iossTax = input.IOSSTax;
 
-                                
+
                                 bool isValid = Regex.IsMatch(iossTax, @"^[A-Za-z]{2}\d{10}$");
 
                                 if (!isValid)
@@ -756,7 +760,7 @@ namespace SND.SMP.ItemTrackingReviews
                         if (serviceValue == 0)
                         {
                             result.Errors.Add("Invalid Matching: DO01 does not correspond with TS or O. Please verify the input values.");
-                        }    
+                        }
                     }
 
                     string apgToken = token.Value.Trim() == "" ? await GetAPGToken() : token.Value.Trim();
@@ -865,9 +869,9 @@ namespace SND.SMP.ItemTrackingReviews
                                     dimensionTypeValue = Int32.Parse(dimensionTypeValue.Value),
                                     weightTypeValue = Int32.Parse(weightTypeValue.Value),
                                     officeCode = "",
-                                    originWebsite = "",                                   
+                                    originWebsite = "",
                                     mailType = Int32.Parse(mailtype.Value),
-                                    senderIOSS = input.IOSSTax,                                 
+                                    senderIOSS = input.IOSSTax,
                                 });
 
 
