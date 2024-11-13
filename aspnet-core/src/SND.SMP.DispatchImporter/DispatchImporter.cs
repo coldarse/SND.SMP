@@ -155,6 +155,8 @@ namespace SND.SMP.DispatchImporter
 
                     var listBags = new List<EF.Bag>();
 
+                    string[] external_tracking_countries = ["SA"];
+
                     var month = Convert.ToInt32($"{_dispatchProfile.DateDispatch.Year}{_dispatchProfile.DateDispatch.Month.ToString().PadLeft(2, '0')}");
 
                     do
@@ -341,6 +343,10 @@ namespace SND.SMP.DispatchImporter
 
                                     db.ItemTrackings.UpdateRange(registeredItems);
 
+                                    bool isExternal = false;
+
+                                    if (external_tracking_countries.Any(x => x.Equals(countryCode))) isExternal = true;
+
                                     var unregistered = listItems
                                                             .Where(b => !itemTrackings.Any(a => a.TrackingNo == b.TrackingNo))
                                                             .Select(a => new ItemTracking
@@ -354,7 +360,8 @@ namespace SND.SMP.DispatchImporter
                                                                 DateUsed = DateTime.Now,
                                                                 DispatchId = (int)savedDispatch.Id,
                                                                 DispatchNo = _dispatchProfile.DispatchNo,
-                                                                ProductCode = a.ProductCode
+                                                                ProductCode = a.ProductCode,
+                                                                IsExternal = isExternal
                                                             })
                                                             .ToList();
 
@@ -458,6 +465,10 @@ namespace SND.SMP.DispatchImporter
 
                         db.ItemTrackings.UpdateRange(registeredItems);
 
+                        bool isExternal = false;
+
+                        if (external_tracking_countries.Any(x => x.Equals(listItems[0].CountryCode))) isExternal = true;
+
                         var unregistered = listItems
                                                 .Where(b => !itemTrackings.Any(a => a.TrackingNo == b.TrackingNo))
                                                 .Select(a => new ItemTracking
@@ -471,7 +482,8 @@ namespace SND.SMP.DispatchImporter
                                                     DateUsed = DateTime.Now,
                                                     DispatchId = (int)savedDispatch.Id,
                                                     DispatchNo = _dispatchProfile.DispatchNo,
-                                                    ProductCode = a.ProductCode
+                                                    ProductCode = a.ProductCode,
+                                                    IsExternal = isExternal
                                                 })
                                                 .ToList();
 
