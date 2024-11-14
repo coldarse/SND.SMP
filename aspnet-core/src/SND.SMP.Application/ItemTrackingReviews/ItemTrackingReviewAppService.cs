@@ -659,6 +659,415 @@ namespace SND.SMP.ItemTrackingReviews
         }
 
         [HttpPost]
+        [Route("api/PreRegisterItem/EP")]
+        public async Task<OutPreRegisterItem> PreRegisterItemEP(InPreRegisterItem input)
+        {
+            const string SUCCESS = "success";
+            const string FAILED = "failed";
+            string auto = "auto";
+
+            string customerCode = "";
+            string clientSecret = "";
+
+            var result = new OutPreRegisterItem();
+            var newResponseIDRaw = Guid.NewGuid().ToString();
+
+            result.ResponseID = GenerateMD5Hash(newResponseIDRaw);
+            result.RefNo = input.RefNo;
+            result.Status = FAILED;
+            result.Errors = [];
+            result.APIItemID = "";
+
+            var cust = await _customerRepository.FirstOrDefaultAsync(u => u.ClientKey == input.ClientKey);
+
+            if (cust is not null)
+            {
+                customerCode = cust.Code;
+                clientSecret = cust.ClientSecret;
+
+                string signHashRequest = input.SignatureHash.Trim().ToUpper();
+                string signHashRaw = string.Format("{0}-{1}-{2}-{3}", input.ItemID, input.RefNo, input.ClientKey, clientSecret);
+                string signHashServer = GenerateMD5Hash(signHashRaw).Trim().ToUpper();
+
+                var signMatched = signHashRequest.Equals(signHashServer);
+
+                if (signMatched)
+                {
+                    var CreateShipmentUrl = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("EP_CreateShipmentUrl"));
+                    var token = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("EP_Token"));
+                    var accountNumber = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("EP_AccountNumber"));
+                    var printType = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("EP_PrintType"));
+                    var transportMode = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("EP_TransportMode"));
+                    var deliveredDuty = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("EP_DeliveredDuty"));
+
+                    var isItemIDAutoMandatory = true;
+                    if (isItemIDAutoMandatory)
+                    {
+                        if ((string.IsNullOrWhiteSpace(input.ItemID) ? "" : input.ItemID.ToLower().Trim()) != auto.ToLower().Trim())
+                        {
+                            result.Errors.Add("Invalid ItemID value. ItemID must be set to 'auto'");
+                        }
+                    }
+
+                    var isPostalCodeMandatory = true;
+                    string serviceType = "";
+                    if (isPostalCodeMandatory)
+                    {
+                        if (string.IsNullOrWhiteSpace(input.PostalCode))
+                        {
+                            result.Errors.Add("Postal Code is mandatory");
+                        }
+                        // Get Service Code
+                        serviceType = await GetServiceType(input.PostalCode, input.ServiceCode, input.ProductCode);
+                        if (serviceType == "")
+                        {
+                            result.Errors.Add("Invalid Matching: No Postal Found");
+                        }
+                    }
+
+                    var httpstatus = HttpStatusCode.Unauthorized;
+
+                    if (CreateShipmentUrl != null)
+                    {
+                        if (result.Errors.Count == 0)
+                        {
+                            //---- Create a Temporary Dispatch to insert Items ----//
+                            string dispNo = string.Format("TempDisp-{0}-{1}-{2}-{3}", customerCode, input.PostalCode, input.ServiceCode, input.ProductCode);
+
+                            var dispatchTemp = await _dispatchRepository.FirstOrDefaultAsync(x =>
+                                                                                                x.DispatchNo.Equals(dispNo) &&
+                                                                                                x.CustomerCode.Equals(customerCode)
+                                                                                            );
+                            if (dispatchTemp == null)
+                            {
+                                dispatchTemp = await _dispatchRepository.InsertAsync(new Dispatch
+                                {
+                                    DispatchNo = dispNo,
+                                    CustomerCode = customerCode,
+                                    PostalCode = input.PostalCode,
+                                    ServiceCode = input.ServiceCode,
+                                    ProductCode = input.ProductCode,
+                                    DispatchDate = DateOnly.FromDateTime(DateTime.Now),
+                                    BatchId = "",
+                                    TransactionDateTime = DateTime.Now
+                                });
+
+                                await _dispatchRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
+                            }
+
+                            string newItemIdFromSPS = null;
+
+                            do
+                            {
+                                var epClient = new HttpClient();
+                                epClient.DefaultRequestHeaders.Clear();
+                                epClient.DefaultRequestHeaders.Add("x-api-key", token.Value);
+
+                                EPRequest epRequest = new()
+                                {
+                                    Weight = new Weight
+                                    {
+                                        Value = input.Weight,
+                                        Unit = "Kilograms"
+                                    },
+                                    Shipper = new Sender
+                                    {
+                                        Contact = new Contact
+                                        {
+                                            Name = "Emirates Post",
+                                            MobileNumber = "502178999",
+                                            PhoneNumber = "",
+                                            EmailAddress = "a@ac.com",
+                                            CompanyName = "Emirates Post"
+                                        },
+                                        Address = new Address
+                                        {
+                                            Line1 = "Ramool Dubai",
+                                            RegionCode = null,
+                                            City = "Dubai",
+                                            CityCode = "DXB",
+                                            State = "DXB",
+                                            CountryCode = "AE",
+                                            ZipCode = "000000",
+                                            Point = new Point
+                                            {
+                                                Latitude = null,
+                                                Longitude = null
+                                            },
+                                            CountryName = "United Arab Emirates"
+                                        },
+                                        ReferenceNo1 = "",
+                                        ReferenceNo2 = ""
+                                    },
+                                    Consignee = new Consignee
+                                    {
+                                        Contact = new Contact
+                                        {
+                                            Name = input.RecipientName,
+                                            MobileNumber = input.RecipientContactNo,
+                                            PhoneNumber = "",
+                                            EmailAddress = input.RecipientEmail,
+                                            CompanyName = ""
+                                        },
+                                        Address = new Address
+                                        {
+                                            Line1 = input.RecipientAddress,
+                                            RegionCode = "",
+                                            City = input.RecipientCity,
+                                            CityCode = null,
+                                            State = input.RecipientState,
+                                            CountryCode = input.RecipientCountry,
+                                            ZipCode = input.RecipientPostcode,
+                                            Point = new Point
+                                            {
+                                                Latitude = "",
+                                                Longitude = ""
+                                            },
+                                            CountryName = "UAE"
+                                        },
+                                        ReferenceNo1 = "",
+                                        ReferenceNo2 = "string"
+                                    },
+                                    Dimensions = new Dimensions
+                                    {
+                                        Length = 10,
+                                        Height = 10,
+                                        Width = 10,
+                                        Unit = "Meter"
+                                    },
+                                    Account = new Account
+                                    {
+                                        Number = Convert.ToInt32(accountNumber.Value),
+                                    },
+                                    ProductCode = "Domestic", // ETOEPARCEL
+                                    ServiceType = "None", // serviceType
+                                    PrintType = "AWBOnly",
+                                    SendMailToSender = false,
+                                    SendMailToReceiver = false,
+                                    IsInsured = true,
+                                    CustomsDeclarations = [],
+                                    DeclaredValue = new DeclaredValue
+                                    {
+                                        Amount = input.ItemValue,
+                                        Currency = "AED"
+                                    },
+                                    NumberOfPieces = 1,
+                                    ReferenceNumber1 = "",
+                                    ReferenceNumber2 = "",
+                                    ReferenceNumber3 = "",
+                                    ReferenceNumber4 = "",
+                                    SpecialNotes = "",
+                                    Remarks = "",
+                                    BranchName = null,
+                                    DeliveryType = "DoorToDoor",
+                                    ContentType = "NonDocument",
+                                    IsCod = true,
+                                    CoDAmount = new CoDAmount
+                                    {
+                                        Amount = 0,
+                                        Currency = null
+                                    }
+                                };
+
+                                APIRequestResponse apiRequestResponse = new()
+                                {
+                                    URL = CreateShipmentUrl.Value,
+                                    RequestBody = JsonConvert.SerializeObject(epRequest),
+                                    RequestDateTime = DateTime.Now
+                                };
+
+                                var content = new StringContent(JsonConvert.SerializeObject(epRequest), Encoding.UTF8, "application/json");
+                                var epRequestMessage = new HttpRequestMessage
+                                {
+                                    Method = HttpMethod.Post,
+                                    RequestUri = new Uri(CreateShipmentUrl.Value),
+                                    Content = content,
+                                };
+                                using var epResponse = await epClient.SendAsync(epRequestMessage);
+                                httpstatus = epResponse.StatusCode;
+
+                                var epBody = await epResponse.Content.ReadAsStringAsync();
+
+                                apiRequestResponse.ResponseBody = epBody;
+                                apiRequestResponse.ResponseDateTime = DateTime.Now;
+                                apiRequestResponse.Duration = (apiRequestResponse.ResponseDateTime - apiRequestResponse.RequestDateTime).Seconds;
+
+                                await _apiRequestResponseRepository.InsertAsync(apiRequestResponse).ConfigureAwait(false);
+
+                                if (httpstatus == HttpStatusCode.OK)
+                                {
+                                    var epResult = JsonConvert.DeserializeObject<EPResponse>(epBody);
+
+                                    if (epResult != null)
+                                    {
+                                        if (epResult.AwbNumber.Length > 0)
+                                        {
+                                            //newItemIdFromSPS = apgResult[0].tracking;
+                                            newItemIdFromSPS = epResult.AwbNumber;
+
+                                            try
+                                            {
+                                                await InsertUpdateTrackingNumber(newItemIdFromSPS, customerCode, cust.Id, input.ProductCode, dispatchTemp, isSelfGenerated: false);
+
+                                                result.ItemID = newItemIdFromSPS;
+                                                result.Status = SUCCESS;
+                                            }
+                                            catch (Exception ex)
+                                            {
+                                                result.Status = FAILED;
+                                                result.Errors.Add(ex.Message);
+                                            }
+                                            input.ItemID = newItemIdFromSPS;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        result.APIItemID = "";
+                                        result.Status = FAILED;
+                                        result.Errors.Add("Response was empty.");
+                                    }
+                                }
+                                else
+                                {
+                                    var epError = JsonConvert.DeserializeObject<EPError>(epBody);
+                                    result.APIItemID = "";
+                                    result.Status = FAILED;
+                                    result.Errors.Add(epError.Detail);
+                                }
+                            }
+                            while (httpstatus == HttpStatusCode.Unauthorized);
+
+
+
+                            if (result.Errors.Count == 0)
+                            {
+                                var newItem = await _itemRepository.FirstOrDefaultAsync(x =>
+                                                                                        x.DispatchID.Equals(dispatchTemp.Id) &&
+                                                                                        x.Id.Equals(input.ItemID)
+                                                                                   );
+
+
+                                if (newItem is null && newItemIdFromSPS is not null)
+                                {
+                                    newItem = await _itemRepository.InsertAsync(new Item
+                                    {
+                                        Id = newItemIdFromSPS,
+                                        DispatchID = dispatchTemp.Id,
+                                        BagID = null,
+                                        DispatchDate = dispatchTemp.DispatchDate,
+                                        Month = 0,
+                                        PostalCode = input.PostalCode,
+                                        ServiceCode = input.ServiceCode,
+                                        ProductCode = input.ProductCode,
+                                        CountryCode = input.RecipientCountry,
+                                        Weight = input.Weight,
+                                        BagNo = "",
+                                        SealNo = "",
+                                        Price = 0m,
+                                        ItemValue = input.ItemValue,
+                                        ItemDesc = input.ItemDesc,
+                                        RecpName = input.RecipientName,
+                                        TelNo = input.RecipientContactNo,
+                                        Email = input.RecipientEmail,
+                                        Address = input.RecipientAddress,
+                                        Postcode = input.RecipientPostcode,
+                                        City = input.RecipientCity,
+                                        Address2 = "",
+                                        AddressNo = "",
+                                        State = input.RecipientState,
+                                        Length = 0,
+                                        Width = 0,
+                                        Height = 0,
+                                        Qty = 0,
+                                        TaxPayMethod = "",
+                                        IdentityType = "",
+                                        PassportNo = input.IdentityNo
+                                    });
+
+                                    #region Item Topup Value
+                                    var itemTopupValue = await GetItemTopupValueFromPostalMaintenance(input.PostalCode, input.ServiceCode, input.ProductCode);
+                                    newItem.ItemValue = newItem.ItemValue is null ? 0m + itemTopupValue : (decimal)newItem.ItemValue + itemTopupValue;
+
+                                    #endregion
+
+                                }
+                                else
+                                {
+                                    newItem.DispatchID = dispatchTemp.Id;
+                                    newItem.DispatchDate = dispatchTemp.DispatchDate;
+                                    newItem.Weight = input.Weight;
+                                    newItem.ItemValue = input.ItemValue;
+                                    newItem.ItemDesc = input.ItemDesc;
+                                    newItem.RecpName = input.RecipientName;
+                                    newItem.TelNo = input.RecipientContactNo;
+                                    newItem.Email = input.RecipientEmail;
+                                    newItem.Address = input.RecipientAddress;
+                                    newItem.City = input.RecipientCity;
+                                    newItem.Postcode = input.RecipientPostcode;
+                                    newItem.CountryCode = input.RecipientCountry;
+                                    newItem.RefNo = input.RefNo;
+                                    newItem.HSCode = input.HSCode;
+                                    newItem.SenderName = input.SenderName;
+                                    newItem.IOSSTax = input.IOSSTax;
+                                    newItem.AddressNo = input.AddressNo;
+                                    newItem.PassportNo = input.IdentityNo;
+                                    newItem.IdentityType = input.IdentityType;
+
+                                    #region Item Topup Value
+                                    var itemTopupValue = await GetItemTopupValueFromPostalMaintenance(input.PostalCode, input.ServiceCode, input.ProductCode);
+                                    newItem.ItemValue = newItem.ItemValue is null ? 0m + itemTopupValue : (decimal)newItem.ItemValue + itemTopupValue;
+                                    #endregion
+
+                                    newItem = await _itemRepository.UpdateAsync(newItem);
+                                }
+
+                                string apiItemId = newItem.Id;
+
+                                if (!string.IsNullOrWhiteSpace(apiItemId))
+                                {
+                                    result.APIItemID = apiItemId;
+
+                                    result.Status = SUCCESS;
+                                    result.Errors.Clear();
+                                }
+                                else
+                                {
+                                    var newId = newItem.Id;
+
+                                    apiItemId = newItem.Id;
+
+                                    result.APIItemID = apiItemId;
+
+                                    result.Status = SUCCESS;
+                                    result.Errors.Clear();
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        result.APIItemID = "";
+                        result.Status = FAILED;
+                        result.Errors.Add("Endpoint Not Found.");
+                    }
+                }
+                else
+                {
+                    result.APIItemID = "";
+                    result.Status = FAILED;
+                    result.Errors.Add("Invalid SignatureHash.");
+                }
+            }
+
+            string signHashRespRaw = string.Format("{0}-{1}-{2}-{3}-{4}", result.ResponseID, result.RefNo, result.APIItemID, input.ClientKey, clientSecret);
+            string signHashRespServer = GenerateMD5Hash(signHashRespRaw);
+
+            result.SignatureHash = signHashRespServer;
+
+            return result;
+        }
+
+        [HttpPost]
         [Route("api/PreRegisterItem/APG")]
         public async Task<OutPreRegisterItem> PreRegisterItemAPG(InPreRegisterItem input)
         {
@@ -2228,15 +2637,16 @@ namespace SND.SMP.ItemTrackingReviews
             }
             return result;
         }
+
         private static int GetServiceValue(string postalCode, string serviceCode, string productCode)
         {
             // Dictionary to store postal code and its associated Type, Flag, and ServiceValue
             Dictionary<string, (string Type, string Flag, int ServiceValue)> serviceData = new Dictionary<string, (string, string, int)>
-        {
-            { "DO01", ("TS", "O", 23) },
-            { "DO02", ("DE", "O", 23) },
-            { "DO03", ("TS", "R", 1) },
-            { "DO04", ("DE", "R", 1) }
+            {
+                { "DO01", ("TS", "O", 23) },
+                { "DO02", ("DE", "O", 23) },
+                { "DO03", ("TS", "R", 1) },
+                { "DO04", ("DE", "R", 1) }
             };
 
             if (serviceData.TryGetValue(postalCode, out var tuple) && tuple.Item1 == serviceCode && tuple.Item2 == productCode)
@@ -2249,6 +2659,17 @@ namespace SND.SMP.ItemTrackingReviews
                 // Return null if not match
                 return 0;
             }
+        }
+
+        private async Task<string> GetServiceType(string postalCode, string serviceCode, string productCode)
+        {
+            var postal = await _postalRepository.FirstOrDefaultAsync(x => x.PostalCode.Equals(postalCode) &&
+                                                                          x.ServiceCode.Equals(serviceCode) &&
+                                                                          x.ProductCode.Equals(productCode));
+
+            if (postal == null) return "";
+
+            return postal.ServiceDesc.Replace(" ", "");
         }
     }
 }
