@@ -213,6 +213,7 @@ namespace SND.SMP.ItemTrackingReviews
         public async Task<ItemInfo> GetItem(string trackingNo, bool details, bool tracking)
         {
             var itemtracking = await _itemTrackingRepository.FirstOrDefaultAsync(x => x.TrackingNo.Equals(trackingNo)) ?? throw new UserFriendlyException("No Tracking Found.");
+            var item_detail = await _itemRepository.FirstOrDefaultAsync(x => x.Id.Equals(trackingNo) && x.DispatchID.Equals(itemtracking.DispatchId));
 
             bool IsExternal = itemtracking.IsExternal;
 
@@ -314,23 +315,42 @@ namespace SND.SMP.ItemTrackingReviews
 
                 if (IsExternal)
                 {
-                    List<string> trackingNos = [];
-                    trackingNos.Add(trackingNo);
-                    //Call APG
-                    List<APGTracking> apgTrackings = await GetAPGTrackings(trackingNos);
-                    apgTrackings = apgTrackings.Where(x => x.response.Equals("OK")).ToList();
-                    foreach (var apg in apgTrackings)
+                    if (item_detail.CountryCode.Equals("DO"))
                     {
-                        foreach (var status in apg.status)
+                        List<string> trackingNos = [];
+                        trackingNos.Add(trackingNo);
+                        //Call APG
+                        List<APGTracking> apgTrackings = await GetAPGTrackings(trackingNos);
+                        apgTrackings = apgTrackings.Where(x => x.response.Equals("OK")).ToList();
+                        foreach (var apg in apgTrackings)
+                        {
+                            foreach (var status in apg.status)
+                            {
+                                itemInfo.trackingDetails.Add(new TrackingDetails()
+                                {
+                                    trackingNo = trackingNo,
+                                    location = item.CountryCode,
+                                    description = status.description,
+                                    dateTime = DateTime.Parse(status.statusDate).ToString("dd/MM/yyyy hh:mm:ss tt"),
+                                    date = DateTime.Parse(status.statusDate).ToString("dd/MM/yyyy"),
+                                    time = DateTime.Parse(status.statusDate).ToString("hh:mm:ss tt")
+                                });
+                            }
+                        }
+                    }
+                    else if (item_detail.CountryCode.Equals("AE"))
+                    {
+                        List<T_Event> epTrackings = await GetEPTrackings(trackingNo);
+                        foreach (var ep in epTrackings)
                         {
                             itemInfo.trackingDetails.Add(new TrackingDetails()
                             {
                                 trackingNo = trackingNo,
                                 location = item.CountryCode,
-                                description = status.description,
-                                dateTime = DateTime.Parse(status.statusDate).ToString("dd/MM/yyyy hh:mm:ss tt"),
-                                date = DateTime.Parse(status.statusDate).ToString("dd/MM/yyyy"),
-                                time = DateTime.Parse(status.statusDate).ToString("hh:mm:ss tt")
+                                description = ep.Status.DescriptionEn,
+                                dateTime = DateTime.Parse(ep.TimeStamp).ToString("dd/MM/yyyy hh:mm:ss tt"),
+                                date = DateTime.Parse(ep.TimeStamp).ToString("dd/MM/yyyy"),
+                                time = DateTime.Parse(ep.TimeStamp).ToString("hh:mm:ss tt")
                             });
                         }
                     }
@@ -368,6 +388,70 @@ namespace SND.SMP.ItemTrackingReviews
             {
                 touchedStages.Add(new StageResult((DateTime)dateStage, stageDesc));
             }
+        }
+
+        [HttpGet]
+        [Route("api/Tracking/EP")]
+        //For Postman Use
+        public async Task<List<T_Event>> GetEPTrackings(string trackingNo)
+        {
+            var TrackingUrl = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("EP_TrackingUrl"));
+            var token = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("EP_Token"));
+
+            var httpstatus = HttpStatusCode.Unauthorized;
+
+            if (TrackingUrl != null)
+            {
+                var epClient = new HttpClient();
+                epClient.DefaultRequestHeaders.Clear();
+                // epClient.DefaultRequestHeaders.Add("x-api-key", token.Value);
+
+                var requestURL = TrackingUrl.Value + trackingNo;
+
+
+                APIRequestResponse apiRequestResponse = new()
+                {
+                    URL = requestURL,
+                    RequestBody = trackingNo,
+                    RequestDateTime = DateTime.Now
+                };
+
+                var epRequestMessage = new HttpRequestMessage
+                {
+                    Method = HttpMethod.Get,
+                    RequestUri = new Uri(requestURL),
+                };
+                using var epResponse = await epClient.SendAsync(epRequestMessage);
+                httpstatus = epResponse.StatusCode;
+
+                var epBody = await epResponse.Content.ReadAsStringAsync();
+
+                apiRequestResponse.ResponseBody = epBody;
+                apiRequestResponse.ResponseDateTime = DateTime.Now;
+                apiRequestResponse.Duration = (apiRequestResponse.ResponseDateTime - apiRequestResponse.RequestDateTime).Seconds;
+
+                await _apiRequestResponseRepository.InsertAsync(apiRequestResponse).ConfigureAwait(false);
+
+                if (httpstatus == HttpStatusCode.OK)
+                {
+                    var epResult = JsonConvert.DeserializeObject<List<EPTracking>>(epBody);
+
+                    if (epResult != null)
+                    {
+                        return epResult[0].Events;
+                    }
+                    else throw new UserFriendlyException("Unable to get tracking.");
+                }
+                else
+                {
+                    var epError = JsonConvert.DeserializeObject<EPError>(epBody);
+
+                    throw new UserFriendlyException(epError.Detail);
+                }
+            }
+            else throw new UserFriendlyException("TrackingUrl not found");
+
+            throw new UserFriendlyException("Unable to get Tracking");
         }
 
         [HttpPost]
@@ -465,7 +549,6 @@ namespace SND.SMP.ItemTrackingReviews
 
         [HttpGet]
         [Route("api/Tracking/APG")]
-        //For Postman Use
         public async Task<ItemsCollection> GetAPGTracking(string trackingNos)
         {
             var splits = trackingNos.Split(',');
@@ -2116,25 +2199,6 @@ namespace SND.SMP.ItemTrackingReviews
             }
 
             return dataTable;
-        }
-        private static DataTable ConcatenateDataTables(params DataTable[] tables)
-        {
-            if (tables == null || tables.Length == 0)
-                throw new ArgumentException("At least one DataTable must be provided", nameof(tables));
-
-            // Clone the schema of the first table (assuming all tables have the same schema)
-            DataTable mergedTable = tables[0].Clone();
-
-            // Import rows from each table into the merged table
-            foreach (DataTable table in tables)
-            {
-                foreach (DataRow row in table.Rows)
-                {
-                    mergedTable.ImportRow(row);
-                }
-            }
-
-            return mergedTable;
         }
         private async Task<bool> IsTrackingNoOwner(string customerCode, string trackingNo, string productCode)
         {
