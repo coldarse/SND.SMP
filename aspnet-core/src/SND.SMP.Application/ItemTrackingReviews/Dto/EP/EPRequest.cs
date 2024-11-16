@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 public class EPRequest
@@ -22,11 +23,8 @@ public class EPRequest
     public string ReferenceNumber4 { get; set; }
     public string SpecialNotes { get; set; }
     public string Remarks { get; set; }
-    public string BranchName { get; set; }
-    public string DeliveryType { get; set; }
-    public string ContentType { get; set; }
-    public bool IsCod { get; set; }
-    public CoDAmount CoDAmount { get; set; }
+    public string TransportMode { get; set; }
+    public string DeliveredDuty { get; set; }
 }
 
 public class Weight
@@ -66,7 +64,6 @@ public class Address
     public string RegionCode { get; set; }
     public string City { get; set; }
     public string CityCode { get; set; }
-    public string State { get; set; }
     public string CountryCode { get; set; }
     public string ZipCode { get; set; }
     public Point Point { get; set; }
@@ -81,9 +78,9 @@ public class Point
 
 public class Dimensions
 {
-    public int Length { get; set; }
-    public int Height { get; set; }
-    public int Width { get; set; }
+    public decimal Length { get; set; }
+    public decimal Height { get; set; }
+    public decimal Width { get; set; }
     public string Unit { get; set; }
 }
 
@@ -95,11 +92,5 @@ public class Account
 public class DeclaredValue
 {
     public decimal Amount { get; set; }
-    public string Currency { get; set; }
-}
-
-public class CoDAmount
-{
-    public int Amount { get; set; }
     public string Currency { get; set; }
 }

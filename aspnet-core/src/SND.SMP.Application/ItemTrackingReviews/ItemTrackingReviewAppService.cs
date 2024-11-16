@@ -869,7 +869,6 @@ namespace SND.SMP.ItemTrackingReviews
                                             RegionCode = null,
                                             City = "Dubai",
                                             CityCode = "DXB",
-                                            State = "DXB",
                                             CountryCode = "AE",
                                             ZipCode = "000000",
                                             Point = new Point
@@ -898,7 +897,6 @@ namespace SND.SMP.ItemTrackingReviews
                                             RegionCode = "",
                                             City = input.RecipientCity,
                                             CityCode = null,
-                                            State = input.RecipientState,
                                             CountryCode = input.RecipientCountry,
                                             ZipCode = input.RecipientPostcode,
                                             Point = new Point
@@ -906,7 +904,7 @@ namespace SND.SMP.ItemTrackingReviews
                                                 Latitude = "",
                                                 Longitude = ""
                                             },
-                                            CountryName = "UAE"
+                                            CountryName = "United Arab Emirates"
                                         },
                                         ReferenceNo1 = "",
                                         ReferenceNo2 = "string"
@@ -922,9 +920,9 @@ namespace SND.SMP.ItemTrackingReviews
                                     {
                                         Number = Convert.ToInt32(accountNumber.Value),
                                     },
-                                    ProductCode = "Domestic", // ETOEPARCEL
-                                    ServiceType = "None", // serviceType
-                                    PrintType = "AWBOnly",
+                                    ProductCode = "ETOEPARCEL",
+                                    ServiceType = serviceType,
+                                    PrintType = printType.Value,
                                     SendMailToSender = false,
                                     SendMailToReceiver = false,
                                     IsInsured = true,
@@ -941,15 +939,8 @@ namespace SND.SMP.ItemTrackingReviews
                                     ReferenceNumber4 = "",
                                     SpecialNotes = "",
                                     Remarks = "",
-                                    BranchName = null,
-                                    DeliveryType = "DoorToDoor",
-                                    ContentType = "NonDocument",
-                                    IsCod = true,
-                                    CoDAmount = new CoDAmount
-                                    {
-                                        Amount = 0,
-                                        Currency = null
-                                    }
+                                    TransportMode = transportMode.Value,
+                                    DeliveredDuty = deliveredDuty.Value
                                 };
 
                                 APIRequestResponse apiRequestResponse = new()

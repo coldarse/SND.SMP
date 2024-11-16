@@ -325,15 +325,17 @@ namespace SND.SMP.CustomerPostals
             foreach (CustomerPostal cp in customerPostals.ToList())
             {
                 var postal = postals.FirstOrDefault(x => x.PostalCode.Equals(cp.Postal));
-                string rateCardName = rates.FirstOrDefault(x => x.Id.Equals(cp.Rate)).CardName;
+                var rateCard = rates.FirstOrDefault(x => x.Id.Equals(cp.Rate));
 
-                postalDDLs.Add(new PostalDDL()
+                if (postal is not null && rateCard is not null)
                 {
-                    PostalCode = postal.PostalCode,
-                    PostalDesc = postal.PostalDesc + $" ({rateCardName})",
-                });
+                    postalDDLs.Add(new PostalDDL()
+                    {
+                        PostalCode = postal.PostalCode,
+                        PostalDesc = postal.PostalDesc + $" ({rateCard.CardName})",
+                    });
+                }
             }
-
             return postalDDLs;
         }
 
