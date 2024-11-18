@@ -62,6 +62,24 @@ namespace SND.SMP.ItemTrackingReviews
         private readonly IRepository<ApplicationSetting, int> _applicationSettingRepository = applicationSettingRepository;
         private readonly IRepository<APIRequestResponse, long> _apiRequestResponseRepository = apiRequestResponseRepository;
         private readonly IRepository<Bag, int> _bagRepository = bagRepository;
+        private static readonly Dictionary<string, (string ServiceCode, string ProductCode, int ServiceValue)> APG_ServiceData = new()
+        {
+            { "DO01", ("TS", "O" , 23) },
+            { "DO02", ("DE", "O" , 23) },
+            { "DO03", ("TS", "R" , 1 ) },
+            { "DO04", ("DE", "R" , 1 ) },
+            { "DO05", ("TS", "PR", 27) },
+            { "DO06", ("TS", "EM", 26) }
+        };
+
+        private static readonly Dictionary<string, (string ServiceCode, string ProductCode, string ServiceType)> EP_ServiceData = new()
+        {
+            { "EP01", ("TS", "R" , "Registered"     ) },
+            { "EP02", ("TS", "P" , "Parcel"         ) },
+            { "EP03", ("TS", "PR", "PrimeRegistered") },
+            { "EP04", ("TS", "PT", "PrimeTracked"   ) },
+            { "EP05", ("TS", "PE", "PrimeExpress"   ) }
+        };
 
         protected override IQueryable<ItemTrackingReview> CreateFilteredQuery(PagedItemTrackingReviewResultRequestDto input)
         {
@@ -801,7 +819,7 @@ namespace SND.SMP.ItemTrackingReviews
                             result.Errors.Add("Postal Code is mandatory");
                         }
                         // Get Service Code
-                        serviceType = await GetServiceType(input.PostalCode, input.ServiceCode, input.ProductCode);
+                        serviceType = GetServiceType(input.PostalCode, input.ServiceCode, input.ProductCode);
                         if (serviceType == "")
                         {
                             result.Errors.Add("Invalid Matching: No Postal Found");
@@ -2695,36 +2713,26 @@ namespace SND.SMP.ItemTrackingReviews
 
         private static int GetServiceValue(string postalCode, string serviceCode, string productCode)
         {
-            // Dictionary to store postal code and its associated Type, Flag, and ServiceValue
-            Dictionary<string, (string Type, string Flag, int ServiceValue)> serviceData = new Dictionary<string, (string, string, int)>
+            if (APG_ServiceData.TryGetValue(postalCode, out var tuple) &&
+                                tuple.ServiceCode == serviceCode &&
+                                tuple.ProductCode == productCode)
             {
-                { "DO01", ("TS", "O", 23) },
-                { "DO02", ("DE", "O", 23) },
-                { "DO03", ("TS", "R", 1) },
-                { "DO04", ("DE", "R", 1) }
-            };
+                return tuple.ServiceValue;
+            }
 
-            if (serviceData.TryGetValue(postalCode, out var tuple) && tuple.Item1 == serviceCode && tuple.Item2 == productCode)
-            {
-                // Return if match
-                return tuple.Item3;
-            }
-            else
-            {
-                // Return null if not match
-                return 0;
-            }
+            return 0;
         }
 
-        private async Task<string> GetServiceType(string postalCode, string serviceCode, string productCode)
+        private static string GetServiceType(string postalCode, string serviceCode, string productCode)
         {
-            var postal = await _postalRepository.FirstOrDefaultAsync(x => x.PostalCode.Equals(postalCode) &&
-                                                                          x.ServiceCode.Equals(serviceCode) &&
-                                                                          x.ProductCode.Equals(productCode));
+            if (EP_ServiceData.TryGetValue(postalCode, out var tuple) &&
+                                tuple.ServiceCode == serviceCode &&
+                                tuple.ProductCode == productCode)
+            {
+                return tuple.ServiceType;
+            }
 
-            if (postal == null) return "";
-
-            return postal.ServiceDesc.Replace(" ", "");
+            return string.Empty;
         }
     }
 }
