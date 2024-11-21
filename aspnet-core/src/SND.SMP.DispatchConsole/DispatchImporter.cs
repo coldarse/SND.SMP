@@ -521,26 +521,37 @@ namespace SND.SMP.DispatchConsole
 
                     if (apiUrl != null)
                     {
-                        var emailclient = new HttpClient();
-                        emailclient.DefaultRequestHeaders.Clear();
-
-                        PreAlertSuccessEmail preAlertFailureEmail = new()
+                        try
                         {
-                            customerCode = dispatch.CustomerCode,
-                            dispatchNo = dispatch.DispatchNo,
-                            totalWeight = dispatch.TotalWeight ?? 0m,
-                            totalBags = dispatch.NoofBag ?? 0,
-                            avgItemValue = Math.Round(avgItemValue / dispatch.ItemCount ?? 0, 2, MidpointRounding.AwayFromZero).ToString()
-                        };
+                            var emailclient = new HttpClient();
+                            emailclient.DefaultRequestHeaders.Clear();
 
-                        var content = new StringContent(JsonConvert.SerializeObject(preAlertFailureEmail), Encoding.UTF8, "application/json");
-                        var emailrequest = new HttpRequestMessage
+                            PreAlertSuccessEmail preAlertFailureEmail = new()
+                            {
+                                customerCode = dispatch.CustomerCode,
+                                dispatchNo = dispatch.DispatchNo,
+                                totalWeight = dispatch.TotalWeight ?? 0m,
+                                totalBags = dispatch.NoofBag ?? 0,
+                                avgItemValue = Math.Round(avgItemValue / dispatch.ItemCount ?? 0, 2, MidpointRounding.AwayFromZero).ToString()
+                            };
+
+                            var content = new StringContent(JsonConvert.SerializeObject(preAlertFailureEmail), Encoding.UTF8, "application/json");
+                            var emailrequest = new HttpRequestMessage
+                            {
+                                Method = HttpMethod.Post,
+                                RequestUri = new Uri(apiUrl.Value + "services/app/EmailContent/SendPreAlertSuccessEmail"),
+                                Content = content,
+                            };
+                            await emailclient.SendAsync(emailrequest).ConfigureAwait(false);
+                        }
+                        catch (Exception ex)
                         {
-                            Method = HttpMethod.Post,
-                            RequestUri = new Uri(apiUrl.Value + "services/app/EmailContent/SendPreAlertSuccessEmail"),
-                            Content = content,
-                        };
-                        await emailclient.SendAsync(emailrequest).ConfigureAwait(false);
+                            await LogQueueError(new QueueErrorEventArg
+                            {
+                                FilePath = _filePath,
+                                ErrorMsg = ex.InnerException != null ? ex.InnerException.Message : ex.Message,
+                            });
+                        }
                     }
 
                     await db.SaveChangesAsync();
