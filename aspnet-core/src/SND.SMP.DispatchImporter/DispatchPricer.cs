@@ -136,10 +136,10 @@ namespace SND.SMP.DispatchImporter
 
 				//if(zone.Count > 1) zone = zone.Where(u => u.PostCode.Trim() == postcode.Trim()).ToList();
 
-				if (zone.Count == 0)
-				{
-					ErrorMsg = $"No Rate found for State: {state} with City: {city} and Postcode: {postcode}. Please contact System Finance for further review.";
-				}
+				if (zone.Count == 0) zone = null;
+				//{
+				//	ErrorMsg = $"No Rate found for State: {state} with City: {city} and Postcode: {postcode}. Please contact System Finance for further review.";
+				//}
 				else
 				{
 					var rate = _rateWeightBreaks
@@ -177,12 +177,12 @@ namespace SND.SMP.DispatchImporter
 								{
 									var weightExceed = weight - rateHeaviest.WeightMax.GetValueOrDefault();
 
-								price = rateHeaviest.ItemRate.GetValueOrDefault() + rateHeaviest.WeightRate.GetValueOrDefault() * rateHeaviest.WeightMax.GetValueOrDefault();
-								price += rateExceed.ItemRate.GetValueOrDefault() + rateExceed.WeightRate.GetValueOrDefault() * weightExceed;
+									price = rateHeaviest.ItemRate.GetValueOrDefault() + rateHeaviest.WeightRate.GetValueOrDefault() * rateHeaviest.WeightMax.GetValueOrDefault();
+									price += rateExceed.ItemRate.GetValueOrDefault() + rateExceed.WeightRate.GetValueOrDefault() * weightExceed;
+								}
 							}
 						}
-					}
-					else ErrorMsg = $"No Rate found for Country Code: {countryCode} with Service Code: {_serviceCode} and Product Code: {_productCode} and State: {state} and City: {city} and Postcode: {postcode}. Please contact System Finance for further review.";
+						else ErrorMsg = $"No Rate found for Country Code: {countryCode} with Service Code: {_serviceCode} and Product Code: {_productCode} and State: {state} and City: {city} and Postcode: {postcode}. Please contact System Finance for further review.";
 					}
 				}
 			}

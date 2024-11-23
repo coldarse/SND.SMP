@@ -539,10 +539,6 @@ namespace SND.SMP.DispatchConsole
                         }).ConfigureAwait(false);
                         var eWallet = await dbconn.EWalletTypes.FirstOrDefaultAsync(x => x.Id.Equals(wallet.EWalletType));
 
-                        
-
-                        var eWallet = await dbconn.EWalletTypes.FirstOrDefaultAsync(x => x.Id.Equals(wallet.EWalletType));
-
                         await dbconn.DispatchUsedAmounts.AddAsync(new DispatchUsedAmount()
                         {
                             CustomerCode = wallet.Customer,

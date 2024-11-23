@@ -18,5 +18,6 @@ public class DispatchInfoDto
     public int TotalCountry { get; set; }
     public string Status { get; set; }
     public string Path { get; set; }
+    public int ImportProgress { get; set; }
     public List<string> Countries { get; set; }
 }
