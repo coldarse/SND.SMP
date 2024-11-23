@@ -26,4 +26,11 @@ namespace SND.SMP.Customers.Dto
         public string ClientSecret { get; set; }
         public string APIAccessToken { get; set; }
     }
+
+    public class CustomerCurrency
+    {
+        public string Code { get; set; }
+        public string CompanyName { get; set; }
+        public string Currency { get; set; }    
+    }
 }

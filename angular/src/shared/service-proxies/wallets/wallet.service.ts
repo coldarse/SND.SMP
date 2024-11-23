@@ -171,6 +171,18 @@ export class WalletService {
         )
     }
 
+    //Manage Credit
+    manageCredit(body: TopUpEWalletDto){
+        return this.http.post(
+            this.url + '/api/services/app/Wallet/ManageCredit',
+            body,
+            this.options_
+        ).pipe(
+            retry(1),
+            catchError(this.errorMessage.HandleErrorResponse),
+        )
+    }
+
     // Get All Wallets Async By Customer ID
     getAllWalletsAsync(code: string){
         return this.http.get(

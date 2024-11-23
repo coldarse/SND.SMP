@@ -2433,6 +2433,31 @@ namespace SND.SMP.Migrations
                     b.ToTable("IMPCS", (string)null);
                 });
 
+            modelBuilder.Entity("SND.SMP.Invoices.Invoice", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<string>("Customer")
+                        .HasMaxLength(512)
+                        .HasColumnType("varchar(512)")
+                        .HasColumnName("Customer");
+
+                    b.Property<DateTime>("DateTime")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("DateTime");
+
+                    b.Property<string>("InvoiceNo")
+                        .HasMaxLength(128)
+                        .HasColumnType("varchar(128)")
+                        .HasColumnName("InvoiceNo");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Invoices", (string)null);
+                });
+
             modelBuilder.Entity("SND.SMP.ItemIdRunningNos.ItemIdRunningNo", b =>
                 {
                     b.Property<long>("Id")
@@ -3570,6 +3595,51 @@ namespace SND.SMP.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Refunds", (string)null);
+                });
+
+            modelBuilder.Entity("SND.SMP.SAParams.SAParam", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("CityId")
+                        .HasMaxLength(128)
+                        .HasColumnType("varchar(128)")
+                        .HasColumnName("CityId");
+
+                    b.Property<string>("Code")
+                        .HasMaxLength(300)
+                        .HasColumnType("varchar(300)")
+                        .HasColumnName("Code");
+
+                    b.Property<string>("FinalOfficeId")
+                        .HasMaxLength(128)
+                        .HasColumnType("varchar(128)")
+                        .HasColumnName("FinalOfficeId");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(300)
+                        .HasColumnType("varchar(300)")
+                        .HasColumnName("Name");
+
+                    b.Property<string>("PostOfficeId")
+                        .HasMaxLength(128)
+                        .HasColumnType("varchar(128)")
+                        .HasColumnName("PostOfficeId");
+
+                    b.Property<int>("Seq")
+                        .HasColumnType("int")
+                        .HasColumnName("Seq");
+
+                    b.Property<string>("Type")
+                        .HasMaxLength(300)
+                        .HasColumnType("varchar(300)")
+                        .HasColumnName("Type");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("SAParams", (string)null);
                 });
 
             modelBuilder.Entity("SND.SMP.TrackingNoForUpdates.TrackingNoForUpdate", b =>

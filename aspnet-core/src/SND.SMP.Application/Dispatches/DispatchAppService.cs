@@ -1367,6 +1367,7 @@ namespace SND.SMP.Dispatches
                 bag.WeightVariance = null;
                 bag.WeightPost = null;
                 bag.ItemCountPost = null;
+                bag.UnderAmount = 0.00m;
             }
 
             var items = await _itemRepository.GetAllListAsync(x => x.DispatchID.Equals(dispatch.Id));
@@ -1410,7 +1411,7 @@ namespace SND.SMP.Dispatches
                     TransactionType = "Refund Amount",
                     Amount = Math.Abs(refundAmount),
                     ReferenceNo = dispatch.DispatchNo,
-                    Description = $"Credited {currency.Abbr} {decimal.Round(Math.Abs(refundAmount), 2, MidpointRounding.AwayFromZero)} to {wallet.Customer}'s {wallet.Id} Wallet. Remaining {currency.Abbr} {decimal.Round(wallet.Balance, 2, MidpointRounding.AwayFromZero)}.",
+                    Description = $"Credited {currency.Abbr} {decimal.Round(Math.Abs(refundAmount), 2, MidpointRounding.AwayFromZero)} to {wallet.Customer}'s {wallet.Id} Wallet.",
                     TransactionDate = DateTime.Now
                 });
 
@@ -1649,7 +1650,7 @@ namespace SND.SMP.Dispatches
                             TransactionType = "Surcharge Amount",
                             Amount = -totalSurchargePrice,
                             ReferenceNo = dispatch.DispatchNo,
-                            Description = $"Deducted {currency.Abbr} {decimal.Round(Math.Abs(totalSurchargePrice), 2, MidpointRounding.AwayFromZero)} from {wallet.Customer}'s {wallet.Id} Wallet. Remaining {currency.Abbr} {decimal.Round(wallet.Balance, 2, MidpointRounding.AwayFromZero)}.",
+                            Description = $"Deducted {currency.Abbr} {decimal.Round(Math.Abs(totalSurchargePrice), 2, MidpointRounding.AwayFromZero)} from {wallet.Customer}'s {wallet.Id} Wallet.",
                             TransactionDate = DateTime.Now
                         }).ConfigureAwait(false);
 
@@ -1831,7 +1832,7 @@ namespace SND.SMP.Dispatches
                     TransactionType = "Surcharge Amount",
                     Amount = -totalSurchargePrice,
                     ReferenceNo = dispatch.DispatchNo,
-                    Description = $"Deducted {currency.Abbr} {decimal.Round(Math.Abs(totalSurchargePrice), 2, MidpointRounding.AwayFromZero)} from {wallet.Customer}'s {wallet.Id} Wallet. Remaining {currency.Abbr} {decimal.Round(wallet.Balance, 2, MidpointRounding.AwayFromZero)}.",
+                    Description = $"Deducted {currency.Abbr} {decimal.Round(Math.Abs(totalSurchargePrice), 2, MidpointRounding.AwayFromZero)} from {wallet.Customer}'s {wallet.Id} Wallet.",
                     TransactionDate = DateTime.Now
                 }).ConfigureAwait(false);
 
@@ -1937,6 +1938,8 @@ namespace SND.SMP.Dispatches
                 dispatchInfo.TotalBags = dispatch.NoofBag;
                 dispatchInfo.TotalWeight = dispatch.TotalWeight;
 
+                dispatchInfo.ImportProgress = dispatch.ImportProgress ?? 0;
+
                 var bags = await _bagRepository.GetAllListAsync(x => x.DispatchId.Equals(dispatch.Id));
                 dispatchInfo.TotalCountry = bags.GroupBy(x => x.CountryCode).Count();
 
@@ -2030,7 +2033,7 @@ namespace SND.SMP.Dispatches
                 };
 
 
-                dispatchInfo.Path = dispatchValidation.FirstOrDefault(x => x.DispatchNo.Equals(entity.DispatchNo)).FilePath;
+                dispatchInfo.Path = dispatchValidation.FirstOrDefault(x => x.DispatchNo.Equals(entity.DispatchNo)) is null ? "" : dispatchValidation.FirstOrDefault(x => x.DispatchNo.Equals(entity.DispatchNo)).FilePath;
 
                 result.Add(dispatchInfo);
 
@@ -2713,7 +2716,7 @@ namespace SND.SMP.Dispatches
                         TransactionType = "Surcharge Amount",
                         Amount = -totalSurchargePrice,
                         ReferenceNo = dispatch.DispatchNo,
-                        Description = $"Deducted {currency.Abbr} {decimal.Round(Math.Abs(totalSurchargePrice), 2, MidpointRounding.AwayFromZero)} from {wallet.Customer}'s {wallet.Id} Wallet. Remaining {currency.Abbr} {decimal.Round(wallet.Balance, 2, MidpointRounding.AwayFromZero)}.",
+                        Description = $"Deducted {currency.Abbr} {decimal.Round(Math.Abs(totalSurchargePrice), 2, MidpointRounding.AwayFromZero)} from {wallet.Customer}'s {wallet.Id} Wallet.",
                         TransactionDate = DateTime.Now
                     });
 

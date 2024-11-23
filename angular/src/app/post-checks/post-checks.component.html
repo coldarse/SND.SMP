@@ -67,7 +67,7 @@
                   </h4>
                 </div>
                 <div class="col-md-6 text-right">
-                  <button class="btn btn-info" (click)="downloadTemplate()">
+                  <button class="btn info-btn" (click)="downloadTemplate()">
                     Download Template
                   </button>
                 </div>
@@ -94,8 +94,8 @@
               <div class="row">
                 <div class="col-md-12 text-right">
                   <button
-                    class="btn btn-primary"
-                    [disabled]="fileUpload == undefined || isUploading"
+                    class="btn bg-olive"
+                    [disabled]="fileUpload == undefined || isUploading || postchecks.serviceCode == 'DE'"
                     (click)="UploadPostCheck()"
                   >
                     @if (!isUploading) { Upload } @else{
@@ -122,7 +122,7 @@
                 </div>
                 <div class="col-md-6 text-right">
                   <button
-                    class="btn btn-primary"
+                    class="btn bg-olive"
                     (click)="SubmitPostCheck()"
                     [disabled]="
                       postchecks == undefined ||
@@ -152,7 +152,7 @@
             </div>
             }@else if (postchecks.companyName == undefined) {
             <div class="text-center mt-3 mb-3">
-              <button class="btn btn-info" (click)="backToHome()">
+              <button class="btn info-btn" (click)="backToHome()">
                 Back To Home
               </button>
             </div>

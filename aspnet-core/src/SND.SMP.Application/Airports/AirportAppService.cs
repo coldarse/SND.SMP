@@ -23,9 +23,11 @@ namespace SND.SMP.Airports
                     x.Country.Contains(input.Keyword));
         }
 
-        public async Task<List<Airport>> GetAllAirports()
+        public async Task<List<AirportDto>> GetAirportList()
         {
-            return await Repository.GetAllListAsync();
+            var airports = await Repository.GetAllListAsync();
+
+            return ObjectMapper.Map<List<AirportDto>>(airports);
         }
     }
 }

@@ -2,7 +2,11 @@
 using Abp.Domain.Repositories;
 using Abp.Extensions;
 using Abp.Linq.Extensions;
+using Abp.UI;
+using Microsoft.AspNetCore.Mvc;
+using SND.SMP.Currencies;
 using SND.SMP.CustomerTransactions.Dto;
+using SND.SMP.Wallets;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,8 +15,14 @@ using System.Threading.Tasks;
 
 namespace SND.SMP.CustomerTransactions
 {
-    public class CustomerTransactionAppService(IRepository<CustomerTransaction, long> repository) : AsyncCrudAppService<CustomerTransaction, CustomerTransactionDto, long, PagedCustomerTransactionsResultRequestDto>(repository)
+    public class CustomerTransactionAppService(
+        IRepository<CustomerTransaction, long> repository,
+        IRepository<Wallet, string> walletRepository,
+        IRepository<Currency, long> currencyRepository
+    ) : AsyncCrudAppService<CustomerTransaction, CustomerTransactionDto, long, PagedCustomerTransactionsResultRequestDto>(repository)
     {
+        private readonly IRepository<Wallet, string> _walletRepository = walletRepository;
+        private readonly IRepository<Currency, long> _currencyRepository = currencyRepository;
         protected override IQueryable<CustomerTransaction> CreateFilteredQuery(PagedCustomerTransactionsResultRequestDto input)
         {
             return input.isAdmin ?
@@ -46,7 +56,23 @@ namespace SND.SMP.CustomerTransactions
         {
             var transactions = isAdmin ? await Repository.GetAllListAsync() : await Repository.GetAllListAsync(x => x.Customer.Equals(customer));
 
-            return [.. transactions.OrderByDescending(x => x.Id).Take(top)];
+            return [.. transactions.OrderByDescending(x => x.TransactionDate).Take(top)];
+        }
+
+        [HttpPost]
+        public async Task<bool> DeleteAndCreditWallet(TransactionDetailAndAmount input)
+        {
+            var currency = await _currencyRepository.FirstOrDefaultAsync(x => x.Abbr.Equals(input.Currency));
+
+            var wallet = await _walletRepository.FirstOrDefaultAsync(x => x.Customer.Equals(input.Code) && x.Currency.Equals(currency.Id)) ?? throw new UserFriendlyException("Wallet Not Found");
+
+            wallet.Balance += Math.Abs(input.Amount);
+
+            await _walletRepository.UpdateAsync(wallet).ConfigureAwait(false);
+
+            await Repository.DeleteAsync(input.TransactionId).ConfigureAwait(false);
+
+            return true;
         }
     }
 }

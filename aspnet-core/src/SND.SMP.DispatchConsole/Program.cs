@@ -14,10 +14,13 @@ public class Program
         builder.Services.AddTransient<MySqlConnection>(_ =>
             new MySqlConnection(builder.Configuration.GetConnectionString("Default")));
 
-        builder.Services.AddHostedService<WorkerDispatchImport>();
-        builder.Services.AddHostedService<WorkerDispatchValidate>();
-        builder.Services.AddHostedService<WorkerItemTrackingGenerate>();
-        builder.Services.AddHostedService<WorkerItemTrackingNoUpdate>();
+        builder.Services.AddHostedService<WorkerInvoiceGenerate>();
+        //builder.Services.AddHostedService<WorkerDispatchImport>();
+        //builder.Services.AddHostedService<WorkerDispatchValidate>();
+        //builder.Services.AddHostedService<WorkerItemTrackingGenerate>();
+        //builder.Services.AddHostedService<WorkerItemTrackingNoUpdate>();
+        //builder.Services.AddHostedService<WorkerDispatchTrackingUpdate>();
+
         //builder.Services.AddHostedService<WorkerRateWeightBreak>();
         //builder.Services.AddHostedService<WorkerTracking>();
 

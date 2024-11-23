@@ -534,9 +534,12 @@ namespace SND.SMP.DispatchConsole
                             TransactionType = "Pre-Alert",
                             Amount = -totalPrice,
                             ReferenceNo = DispatchProfile.DispatchNo,
-                            Description = $"Initial Balance: {Currency} {initialBalance}. Deducted {Currency} {decimal.Round(totalPrice, 2, MidpointRounding.AwayFromZero)} from {wallet.Customer}'s {wallet.Id} Wallet. Remaining {Currency} {decimal.Round(wallet.Balance, 2, MidpointRounding.AwayFromZero)}.",
+                            Description = $"Initial Balance: {Currency} {initialBalance}. Deducted {Currency} {decimal.Round(totalPrice, 2, MidpointRounding.AwayFromZero)} from {wallet.Customer}'s {wallet.Id} Wallet.",
                             TransactionDate = DateTime.Now
                         }).ConfigureAwait(false);
+                        var eWallet = await dbconn.EWalletTypes.FirstOrDefaultAsync(x => x.Id.Equals(wallet.EWalletType));
+
+                        
 
                         var eWallet = await dbconn.EWalletTypes.FirstOrDefaultAsync(x => x.Id.Equals(wallet.EWalletType));
 

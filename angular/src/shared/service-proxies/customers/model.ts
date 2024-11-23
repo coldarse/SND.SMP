@@ -44,3 +44,9 @@ export interface CompanyNameAndCode {
     code: string;
     id: number;
 }
+
+export interface CustomerCurrency {
+    code: string;
+    companyName: string;
+    currency: string;
+}

@@ -40,6 +40,7 @@ using SND.SMP.Currencies;
 using SND.SMP.ItemTrackingApplications;
 using SND.SMP.TrackingNoForUpdates;
 using static SND.SMP.Shared.EnumConst;
+using SND.SMP.Invoices;
 
 namespace SND.SMP.Chibis
 {
@@ -62,7 +63,8 @@ namespace SND.SMP.Chibis
         IRepository<Currency, long> currencyRepository,
         IRepository<ItemTrackingApplication, int> itemTrackingApplicationRepository,
         IRepository<ItemTrackingReview, int> itemTrackingReviewRepository,
-        IRepository<TrackingNoForUpdate, long> trackingNoForUpdateRepository
+        IRepository<TrackingNoForUpdate, long> trackingNoForUpdateRepository,
+        IRepository<Invoice, int> invoiceRepository
     ) : AsyncCrudAppService<Chibi, ChibiDto, long, PagedChibiResultRequestDto>(repository)
     {
         private readonly IRepository<Queue, long> _queueRepository = queueRepository;
@@ -83,6 +85,7 @@ namespace SND.SMP.Chibis
         private readonly IRepository<ItemTrackingApplication, int> _itemTrackingApplicationRepository = itemTrackingApplicationRepository;
         private readonly IRepository<ItemTrackingReview, int> _itemTrackingReviewRepository = itemTrackingReviewRepository;
         private readonly IRepository<TrackingNoForUpdate, long> _trackingNoForUpdateRepository = trackingNoForUpdateRepository;
+        private readonly IRepository<Invoice, int> _invoiceRepository = invoiceRepository;
 
         private static async Task<string> GetFileStreamAsString(string url)
         {
@@ -180,7 +183,7 @@ namespace SND.SMP.Chibis
             return true;
         }
 
-        private async Task<bool> InsertFileToAlbum(string file_uuid, bool isError, string postalCode = null, string serviceCode = null, string productCode = null)
+        private async Task<bool> InsertFileToAlbum(string file_uuid, bool isError, bool isDispatchTrackingUpdate, bool isInvoiceGeneration, string postalCode = null, string serviceCode = null, string productCode = null)
         {
             List<Album> albums = await GetDictAlbums();
             if (isError)
@@ -196,6 +199,42 @@ namespace SND.SMP.Chibis
                     if (error_album == null)
                     {
                         var album = await CreateAlbumAsync("ErrorDetails");
+                        await AddFileToAlbum(album.album.uuid, file_uuid).ConfigureAwait(false);
+                    }
+                    else await AddFileToAlbum(error_album.uuid, file_uuid).ConfigureAwait(false);
+                }
+            }
+            else if (isDispatchTrackingUpdate)
+            {
+                if (albums.Count == 0)
+                {
+                    var album = await CreateAlbumAsync("DispatchTrackingUpdates");
+                    await AddFileToAlbum(album.album.uuid, file_uuid).ConfigureAwait(false);
+                }
+                else
+                {
+                    var error_album = albums.FirstOrDefault(a => a.name == "DispatchTrackingUpdates");
+                    if (error_album == null)
+                    {
+                        var album = await CreateAlbumAsync("DispatchTrackingUpdates");
+                        await AddFileToAlbum(album.album.uuid, file_uuid).ConfigureAwait(false);
+                    }
+                    else await AddFileToAlbum(error_album.uuid, file_uuid).ConfigureAwait(false);
+                }
+            }
+            else if (isInvoiceGeneration)
+            {
+                if (albums.Count == 0)
+                {
+                    var album = await CreateAlbumAsync("InvoiceInfosForGeneration");
+                    await AddFileToAlbum(album.album.uuid, file_uuid).ConfigureAwait(false);
+                }
+                else
+                {
+                    var error_album = albums.FirstOrDefault(a => a.name == "InvoiceInfosForGeneration");
+                    if (error_album == null)
+                    {
+                        var album = await CreateAlbumAsync("InvoiceInfosForGeneration");
                         await AddFileToAlbum(album.album.uuid, file_uuid).ConfigureAwait(false);
                     }
                     else await AddFileToAlbum(error_album.uuid, file_uuid).ConfigureAwait(false);
@@ -497,7 +536,7 @@ namespace SND.SMP.Chibis
 
                 await Repository.InsertAsync(entity).ConfigureAwait(false);
 
-                await InsertFileToAlbum(result.uuid, false, postalCode, null, productCode);
+                await InsertFileToAlbum(result.uuid, false, false, false, postalCode, null, productCode);
             }
 
             return result;
@@ -670,6 +709,20 @@ namespace SND.SMP.Chibis
             return true;
         }
 
+        public async Task<bool> DeleteInvoice(string path)
+        {
+            var invoice = await _invoiceRepository.FirstOrDefaultAsync(x => x.InvoiceNo.Contains(path)) ?? throw new UserFriendlyException("No Invoice Found.");
+            await _invoiceRepository.DeleteAsync(invoice);
+
+            var chibi = await Repository.FirstOrDefaultAsync(x => x.URL.Equals(path));
+            if (chibi is not null) await Repository.DeleteAsync(chibi);
+
+            var uuid = await GetFileUUIDByPath(path);
+            if (!uuid.Equals("")) await DeleteFile(uuid).ConfigureAwait(false);
+
+            return true;
+        }
+
         public async Task<bool> DeleteDispatch(string path, string dispatchNo)
         {
             var dispatchValidation = await _dispatchValidationRepository.FirstOrDefaultAsync(x => x.DispatchNo.Equals(dispatchNo)) ?? throw new UserFriendlyException("No Dispatch Validation Found");
@@ -767,7 +820,7 @@ namespace SND.SMP.Chibis
                             TransactionType = "Refund Amount after Delete Dispatch",
                             Amount = Math.Abs(refundAmount),
                             ReferenceNo = dispatch.DispatchNo,
-                            Description = $"Credited {currency.Abbr} {decimal.Round(Math.Abs(refundAmount), 2, MidpointRounding.AwayFromZero)} to {wallet.Customer}'s {wallet.Id} Wallet. Remaining {currency.Abbr} {decimal.Round(wallet.Balance, 2, MidpointRounding.AwayFromZero)}.",
+                            Description = $"Credited {currency.Abbr} {decimal.Round(Math.Abs(refundAmount), 2, MidpointRounding.AwayFromZero)} to {wallet.Customer}'s {wallet.Id} Wallet.",
                             TransactionDate = DateTime.Now,
                         }).ConfigureAwait(false);
                     }
@@ -884,6 +937,74 @@ namespace SND.SMP.Chibis
             };
         }
 
+        public async Task<bool> CreateTrackingFileForDispatches(List<DispatchInfo> dispatchTracking)
+        {
+            var dispatches = dispatchTracking.Where(di => di.DispatchCountries.Any(dc => dc.Select)).ToList();
+            string json_dispatchTracking = Newtonsoft.Json.JsonConvert.SerializeObject(dispatches);
+
+            string dispatchNo_concatinated = "";
+            foreach (var dispatch in dispatches) dispatchNo_concatinated += dispatch.Dispatch + "_";
+
+            string fileName = dispatchNo_concatinated + DateTime.Now.ToString("ddMMyyyyHHmmss") + ".json";
+
+            ChibiUploadDto chibiUpload = new()
+            {
+                fileName = fileName,
+                fileType = "json",
+                json = json_dispatchTracking
+            };
+
+            var jsonFile = await UploadFile(chibiUpload, fileName);
+
+            await InsertFileToAlbum(jsonFile.uuid, false, true, false).ConfigureAwait(false);
+
+            var existingQueuesByPath = await _queueRepository.GetAllListAsync(x => x.FilePath.Equals(jsonFile.url));
+
+            foreach (var queue in existingQueuesByPath) await _queueRepository.DeleteAsync(queue);
+
+            await _queueRepository.InsertAsync(new Queue()
+            {
+                EventType = "Update Dispatch Tracking",
+                FilePath = jsonFile.url,
+                DateCreated = DateTime.Now,
+                Status = "New"
+            }).ConfigureAwait(false);
+
+            return true;
+        }
+
+        public async Task<bool> CreateInvoiceQueue(GenerateInvoice input)
+        {
+            string invoice_info = Newtonsoft.Json.JsonConvert.SerializeObject(input);
+
+            string fileName = input.InvoiceNo + "_" + DateTime.Now.ToString("ddMMyyyyHHmmss") + ".json";
+
+            ChibiUploadDto chibiUpload = new()
+            {
+                fileName = fileName,
+                fileType = "json",
+                json = invoice_info
+            };
+
+            var jsonFile = await UploadFile(chibiUpload, fileName);
+
+            await InsertFileToAlbum(jsonFile.uuid, false, true, false).ConfigureAwait(false);
+
+            var existingQueuesByPath = await _queueRepository.GetAllListAsync(x => x.FilePath.Equals(jsonFile.url));
+
+            foreach (var queue in existingQueuesByPath) await _queueRepository.DeleteAsync(queue);
+
+            await _queueRepository.InsertAsync(new Queue()
+            {
+                EventType = "Invoice",
+                FilePath = jsonFile.url,
+                DateCreated = DateTime.Now,
+                Status = "New"
+            }).ConfigureAwait(false);
+
+            return true;
+        }
+
         [Consumes("multipart/form-data")]
         public async Task<bool> PreCheckRetryUpload([FromForm] PreCheckRetryDto uploadRetryPreCheck)
         {
@@ -929,8 +1050,8 @@ namespace SND.SMP.Chibis
 
                 var deserializedFileString = Newtonsoft.Json.JsonConvert.DeserializeObject<PreCheckDetails>(fileString);
 
-                await InsertFileToAlbum(xlsxFile.uuid, false, deserializedFileString.PostalCode, deserializedFileString.ServiceCode, deserializedFileString.ProductCode).ConfigureAwait(false);
-                await InsertFileToAlbum(jsonFile.uuid, false, deserializedFileString.PostalCode, deserializedFileString.ServiceCode, deserializedFileString.ProductCode).ConfigureAwait(false);
+                await InsertFileToAlbum(xlsxFile.uuid, false, false, false, deserializedFileString.PostalCode, deserializedFileString.ServiceCode, deserializedFileString.ProductCode).ConfigureAwait(false);
+                await InsertFileToAlbum(jsonFile.uuid, false, false, false, deserializedFileString.PostalCode, deserializedFileString.ServiceCode, deserializedFileString.ProductCode).ConfigureAwait(false);
 
                 var queue = await _queueRepository.FirstOrDefaultAsync(x => (x.FilePath == uploadRetryPreCheck.path) && (x.EventType == "Validate Dispatch"));
 
@@ -977,7 +1098,7 @@ namespace SND.SMP.Chibis
 
                 var deserializedFileString = Newtonsoft.Json.JsonConvert.DeserializeObject<PreCheckDetails>(fileString);
 
-                await InsertFileToAlbum(jsonFile.uuid, false, deserializedFileString.PostalCode, deserializedFileString.ServiceCode, deserializedFileString.ProductCode).ConfigureAwait(false);
+                await InsertFileToAlbum(jsonFile.uuid, false, false, false, deserializedFileString.PostalCode, deserializedFileString.ServiceCode, deserializedFileString.ProductCode).ConfigureAwait(false);
 
                 var queue = await _queueRepository.FirstOrDefaultAsync(x => (x.FilePath == uploadRetryPreCheck.path) && (x.EventType == "Validate Dispatch"));
 
@@ -1087,8 +1208,8 @@ namespace SND.SMP.Chibis
                 uploadPreCheck.UploadFile.fileType = "json";
                 var jsonFile = await UploadFile(uploadPreCheck.UploadFile, xlsxFile.originalName);
 
-                await InsertFileToAlbum(xlsxFile.uuid, false, uploadPreCheck.Details.PostalCode, uploadPreCheck.Details.ServiceCode, uploadPreCheck.Details.ProductCode).ConfigureAwait(false);
-                await InsertFileToAlbum(jsonFile.uuid, false, uploadPreCheck.Details.PostalCode, uploadPreCheck.Details.ServiceCode, uploadPreCheck.Details.ProductCode).ConfigureAwait(false);
+                await InsertFileToAlbum(xlsxFile.uuid, false, false, false, uploadPreCheck.Details.PostalCode, uploadPreCheck.Details.ServiceCode, uploadPreCheck.Details.ProductCode).ConfigureAwait(false);
+                await InsertFileToAlbum(jsonFile.uuid, false, false, false, uploadPreCheck.Details.PostalCode, uploadPreCheck.Details.ServiceCode, uploadPreCheck.Details.ProductCode).ConfigureAwait(false);
 
                 var existingQueuesByPath = await _queueRepository.GetAllListAsync(x => x.FilePath.Equals(xlsxFile.url));
 

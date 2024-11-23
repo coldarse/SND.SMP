@@ -36,6 +36,13 @@ export class QueuesComponent extends PagedListingComponentBase<QueueDto> {
     this.showCreateOrEditQueueDialog(entity);
   }
 
+  restartQueue(queueId: number){
+    this._queueService.restartQueue(queueId).subscribe(() => {
+      this.notify.info(this.l("UploadedSuccessfully"));
+      this.refresh();
+    });
+  }
+
   private showCreateOrEditQueueDialog(entity?: QueueDto){
     let createOrEditQueueDialog: BsModalRef;
     if(!entity){

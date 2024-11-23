@@ -128,6 +128,26 @@ namespace SND.SMP.DispatchConsole
             return true;
         }
 
+        public static async Task<bool> DeleteFile(string uuid)
+        {
+            using db dbconn = new();
+            var obj_ChibiKey = await dbconn.ApplicationSettings.FirstOrDefaultAsync(x => x.Name.Equals("ChibiKey"));
+            var obj_ChibiURL = await dbconn.ApplicationSettings.FirstOrDefaultAsync(x => x.Name.Equals("ChibiURL"));
+            var client = new HttpClient();
+            client.DefaultRequestHeaders.Clear();
+            client.DefaultRequestHeaders.Add("x-api-key", obj_ChibiKey.Value);
+
+            var request = new HttpRequestMessage
+            {
+                Method = HttpMethod.Delete,
+                RequestUri = new Uri(obj_ChibiURL.Value + $"file/{uuid}"),
+            };
+
+            using var response = await client.SendAsync(request);
+            response.EnsureSuccessStatusCode();
+            return true;
+        }
+
 
         public static async Task<ChibiUpload> InsertExcelFileToChibi(Stream excel, string fileName, string originalName = null, string postalCode = null, string productCode = null)
         {
@@ -179,7 +199,7 @@ namespace SND.SMP.DispatchConsole
             return result;
         }
 
-        public static async Task<bool> InsertFileToAlbum(string file_uuid, bool isError, db dbconn, string postalCode = null, string serviceCode = null, string productCode = null)
+        public static async Task<bool> InsertFileToAlbum(string file_uuid, bool isError, db dbconn, string postalCode = null, string serviceCode = null, string productCode = null, bool isInvoice = false)
         {
             List<Album> albums = await GetAlbumsAsync(dbconn);
             if (isError)
@@ -200,6 +220,24 @@ namespace SND.SMP.DispatchConsole
                     else await AddFileToAlbum(error_album.uuid, file_uuid, dbconn);
                 }
                 return true;
+            }
+            else if (isInvoice)
+            {
+                if (albums.Count == 0)
+                {
+                    var album = await CreateAlbumAsync("Invoices", dbconn);
+                    await AddFileToAlbum(album.album.uuid, file_uuid, dbconn).ConfigureAwait(false);
+                }
+                else
+                {
+                    var invoice_album = albums.FirstOrDefault(a => a.name == "Invoices");
+                    if (invoice_album == null)
+                    {
+                        var album = await CreateAlbumAsync("Invoices", dbconn);
+                        await AddFileToAlbum(album.album.uuid, file_uuid, dbconn).ConfigureAwait(false);
+                    }
+                    else await AddFileToAlbum(invoice_album.uuid, file_uuid, dbconn).ConfigureAwait(false);
+                }
             }
             else
             {

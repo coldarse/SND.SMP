@@ -39,16 +39,21 @@ import { SidebarLogoComponent } from "./layout/sidebar-logo.component";
 import { SidebarUserPanelComponent } from "./layout/sidebar-user-panel.component";
 import { SidebarMenuComponent } from "./layout/sidebar-menu.component";
 /* Insert Import */
-import { EmailContentsComponent } from './emailcontents/emailcontents.component';
-import { CreateUpdateEmailContentComponent } from './emailcontents/create-update-emailcontent/create-update-emailcontent.component';
-import { EmailContentService } from '@shared/service-proxies/emailcontents/emailcontent.service';
-import { RateZonesComponent } from './ratezones/ratezones.component';
-import { CreateUpdateRateZoneComponent } from './ratezones/create-update-ratezone/create-update-ratezone.component';
-import { RateZoneService } from '@shared/service-proxies/ratezones/ratezone.service';
+import { RateZonesComponent } from "./ratezones/ratezones.component";
+import { CreateUpdateRateZoneComponent } from "./ratezones/create-update-ratezone/create-update-ratezone.component";
+import { RateZoneService } from "@shared/service-proxies/ratezones/ratezone.service";
 
-import { AirportsComponent } from './airports/airports.component';
-import { CreateUpdateAirportComponent } from './airports/create-update-airport/create-update-airport.component';
-import { AirportService } from '@shared/service-proxies/airports/airport.service';
+import { InvoicesComponent } from "./invoices/invoices.component";
+import { CreateUpdateInvoiceComponent } from "./invoices/create-update-invoice/create-update-invoice.component";
+import { InvoiceService } from "@shared/service-proxies/invoices/invoice.service";
+
+import { EmailContentsComponent } from "./emailcontents/emailcontents.component";
+import { CreateUpdateEmailContentComponent } from "./emailcontents/create-update-emailcontent/create-update-emailcontent.component";
+import { EmailContentService } from "@shared/service-proxies/emailcontents/emailcontent.service";
+
+import { AirportsComponent } from "./airports/airports.component";
+import { CreateUpdateAirportComponent } from "./airports/create-update-airport/create-update-airport.component";
+import { AirportService } from "@shared/service-proxies/airports/airport.service";
 
 import { ItemTrackingReviewService } from "@shared/service-proxies/item-tracking-reviews/item-tracking-review.service";
 import { ItemTrackingApplicationsComponent } from "./item-tracking-applications/item-tracking-application.component";
@@ -144,6 +149,7 @@ import { CustomerTransactionService } from "@shared/service-proxies/customer-tra
 import { UploadPostalComponent } from "./postals/upload-postal/upload-postal.component";
 import { UploadPostalCountryComponent } from "./postal-countries/upload-postal-country/upload-postal-country.component";
 import { TopUpWalletComponent } from "./wallets/topup-wallet/topup-wallet.component";
+import { ManageCreditComponent } from "./wallets/manage-credit/manage-credit.component";
 
 import { PostChecksComponent } from "./post-checks/post-checks.component";
 import { PrePostCheckWeightComponent } from "./dispatches/pre-post-check-weight/pre-post-check-weight.component";
@@ -154,7 +160,10 @@ import { Stage4AirportComponent } from "./dispatches/stage-4-airport/stage-4-air
 import { APIItemIdComponent } from "./api-item-ids/api-item-id.component";
 
 import { SearchItemComponent } from "./search-item/search-item.component";
-import { AngularEditorModule } from '@kolkov/angular-editor';
+import { AngularEditorModule } from "@kolkov/angular-editor";
+import { DispatchTrackingComponent } from "./dispatch-tracking/dispatch-tracking.component";
+import { DatePipe } from "@angular/common";
+import { NgSelectModule } from '@ng-select/ng-select';
 
 @NgModule({
   declarations: [
@@ -186,8 +195,8 @@ import { AngularEditorModule } from '@kolkov/angular-editor';
     SidebarUserPanelComponent,
     SidebarMenuComponent,
     /* Insert Component */
-        RateZonesComponent,
-        CreateUpdateRateZoneComponent,
+    RateZonesComponent,
+    CreateUpdateRateZoneComponent,
     EmailContentsComponent,
     CreateUpdateEmailContentComponent,
     AirportsComponent,
@@ -234,6 +243,7 @@ import { AngularEditorModule } from '@kolkov/angular-editor';
     UploadPostalComponent,
     UploadPostalCountryComponent,
     TopUpWalletComponent,
+    ManageCreditComponent,
     RateWeightBreaksComponent,
     UploadRateWeightBreakComponent,
     DispatchValidationErrorComponent,
@@ -246,6 +256,7 @@ import { AngularEditorModule } from '@kolkov/angular-editor';
     ReviewItemTrackingApplicationComponent,
     Stage4AirportComponent,
     APIItemIdComponent,
+    DispatchTrackingComponent,
     SearchItemComponent,
   ],
   imports: [
@@ -264,12 +275,13 @@ import { AngularEditorModule } from '@kolkov/angular-editor';
     NgxPaginationModule,
     CardsComponent,
     AngularEditorModule,
+    NgSelectModule,
   ],
   providers: [
     /* Insert Service */
-        EmailContentService,
-        AirportService,
-        RateZoneService,
+    EmailContentService,
+    AirportService,
+    RateZoneService,
     EmailContentService,
     AirportService,
     ItemTrackingReviewService,
@@ -296,6 +308,7 @@ import { AngularEditorModule } from '@kolkov/angular-editor';
     CustomerTransactionService,
     RateWeightBreakService,
     QueueService,
+    DatePipe,
   ],
 })
 export class AppModule {}

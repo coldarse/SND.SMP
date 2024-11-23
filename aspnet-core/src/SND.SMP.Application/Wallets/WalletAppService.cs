@@ -15,6 +15,7 @@ using SND.SMP.Currencies;
 using SND.SMP.EWalletTypes;
 using SND.SMP.CustomerTransactions;
 using System.Linq.Dynamic.Core;
+using System.Formats.Asn1;
 
 namespace SND.SMP.Wallets
 {
@@ -175,6 +176,20 @@ namespace SND.SMP.Wallets
                     Description = input.Description,
                     TransactionDate = DateTime.Now
                 });
+                return true;
+            }
+            return false;
+        }
+
+        public async Task<bool> ManageCredit(TopUpEWalletDto input)
+        {
+            var ewallet = await Repository.FirstOrDefaultAsync(x => x.Id.Equals(input.Id));
+
+            if (ewallet is not null)
+            {
+                ewallet.Balance = input.Amount;
+                await Repository.UpdateAsync(ewallet);
+
                 return true;
             }
             return false;

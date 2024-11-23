@@ -16,6 +16,7 @@ import { CustomerService } from "@shared/service-proxies/customers/customer.serv
 import { TopUpWalletComponent } from "./topup-wallet/topup-wallet.component";
 import { HttpErrorResponse } from "@angular/common/http";
 import { ErrorModalComponent } from "@shared/components/error-modal/error-modal.component";
+import { ManageCreditComponent } from "./manage-credit/manage-credit.component";
 
 class PagedWalletsRequestDto extends PagedRequestDto {
   keyword: string;
@@ -85,8 +86,13 @@ export class WalletsComponent extends PagedListingComponentBase<WalletDto> {
 
   topupWallet(entity: WalletDto) {
     this._walletService.getEWalletAsync(entity).subscribe((result: any) => {
-      console.log(result.result)
       this.showTopUpWalletDialog(result.result);
+    });
+  }
+
+  manageCredit(entity: WalletDto) {
+    this._walletService.getEWalletAsync(entity).subscribe((result: any) => {
+      this.showManageCreditDialog(result.result);
     });
   }
 
@@ -100,6 +106,20 @@ export class WalletsComponent extends PagedListingComponentBase<WalletDto> {
     });
 
     topupWalletDialog.content.onSave.subscribe(() => {
+      this.refresh();
+    });
+  }
+
+  private showManageCreditDialog(entity: EWalletDto) {
+    let manageCreditDialog: BsModalRef;
+    manageCreditDialog = this._modalService.show(ManageCreditComponent, {
+      class: "modal-lg",
+      initialState: {
+        wallet: entity,
+      },
+    });
+
+    manageCreditDialog.content.onSave.subscribe(() => {
       this.refresh();
     });
   }

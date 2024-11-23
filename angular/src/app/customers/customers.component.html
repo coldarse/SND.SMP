@@ -1,4 +1,5 @@
 <div [@routerTransition]>
+  @if (!openDashboard) {
   <section class="content-header">
     <div class="container-fluid">
       <div class="row">
@@ -75,12 +76,17 @@
                   <th>{{ "Country" | localize }}</th>
                   <th>{{ "Phone Number" | localize }}</th>
                   <th>{{ "Registration No" | localize }}</th>
-                  <th>{{ "Email Address 2" | localize }}</th>
-                  <th>{{ "Email Address 3" | localize }}</th>
+                  <!-- <th>{{ "Email Address 2" | localize }}</th>
+                  <th>{{ "Email Address 3" | localize }}</th> -->
                   <th>{{ "IsActive" | localize }}</th>
-                  <th *ngIf="isButtonVisible('Edit')">{{ "Edit" | localize }}</th>
-                  <th *ngIf="isButtonVisible('Delete')">{{ "Delete" | localize }}</th>
-                  <th>{{ "Postal" | localize }}</th>
+                  <th *ngIf="isButtonVisible('Edit')">
+                    {{ "Edit" | localize }}
+                  </th>
+                  <th *ngIf="isButtonVisible('Delete')">
+                    {{ "Delete" | localize }}
+                  </th>
+                  <th *ngIf="isAdmin">{{ "Postal" | localize }}</th>
+                  <th *ngIf="isAdmin">{{ "Dashboard" | localize }}</th>
                 </tr>
               </thead>
               <tbody>
@@ -106,8 +112,8 @@
                   <td>{{ customer.country }}</td>
                   <td>{{ customer.phoneNumber }}</td>
                   <td>{{ customer.registrationNo }}</td>
-                  <td>{{ customer.emailAddress2 }}</td>
-                  <td>{{ customer.emailAddress3 }}</td>
+                  <!-- <td>{{ customer.emailAddress2 }}</td>
+                  <td>{{ customer.emailAddress3 }}</td> -->
                   <td
                     *ngIf="customer.isActive"
                     class="text-center"
@@ -122,9 +128,7 @@
                   >
                     <i class="fas fa-times-circle"></i>
                   </td>
-                  <td
-                    *ngIf="isButtonVisible('Edit')"
-                  >
+                  <td *ngIf="isButtonVisible('Edit')">
                     <button
                       type="button"
                       class="btn btn-sm bg-secondary"
@@ -146,15 +150,24 @@
                       {{ "Delete" | localize }}
                     </button>
                   </td>
-                  <td>
+                  <td *ngIf="isAdmin">
                     <button
                       type="button"
                       class="btn btn-sm bg-warning mx-2"
                       (click)="postal(customer)"
-                      *ngIf="isButtonVisible('Delete')"
                     >
                       <i class="fas fa-parachute-box"></i>
                       {{ "Postal" | localize }}
+                    </button>
+                  </td>
+                  <td *ngIf="isAdmin">
+                    <button
+                      type="button"
+                      class="btn btn-sm bg-info mx-2"
+                      (click)="dashboard(customer)"
+                    >
+                      <i class="fas fa-columns"></i>
+                      {{ "Dashboard" | localize }}
                     </button>
                   </td>
                 </tr>
@@ -190,8 +203,7 @@
       </div>
     </div>
   </section>
-
-  @if (openPostal) {
+  } @if (openPostal) {
   <section class="content px-2">
     <app-customer-postals
       [selectedCustomer]="selectedCustomer"
@@ -200,6 +212,16 @@
       (closeEmit)="closePostal()"
     >
     </app-customer-postals>
+  </section>
+  } @if (openDashboard) {
+  <section class="content px-2">
+    <app-home
+      [specific_companyCode]="specific_companyCode"
+      [specific_showLoginName]="specific_showLoginName"
+      [fromCustomerInfo]="true"
+      (closeEmit)="closeDashboard()"
+    >
+    </app-home>
   </section>
   }
 </div>

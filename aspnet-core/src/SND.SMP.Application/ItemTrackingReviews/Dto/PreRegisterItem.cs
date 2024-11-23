@@ -9,6 +9,7 @@ public class InPreRegisterItem : PreRegisterItem
     public string AddressNo { get; set; }
     public string IdentityType { get; set; }
     public string IdentityNo { get; set; }
+    public string? PostOfficeName { get; set; }
 }
 
 public class PreRegisterItem

@@ -584,5 +584,275 @@ namespace SND.SMP.RateWeightBreaks
             }
 
         }
+
+        private static List<List<string>> GroupZones(List<string> zones)
+        {
+            List<List<string>> result = [];
+            List<string> currentGroup = [];
+
+            foreach (string zone in zones)
+            {
+                // If we encounter 'Zone 1' and there is already a current group, start a new group
+                if (zone == "Zone 1" && currentGroup.Count > 0)
+                {
+                    result.Add(new List<string>(currentGroup));
+                    currentGroup.Clear();
+                }
+
+                currentGroup.Add(zone);
+            }
+
+            // Add the last group if it's not empty
+            if (currentGroup.Count > 0)
+            {
+                result.Add(currentGroup);
+            }
+
+            return result;
+        }
+
+
+        private static Dictionary<string, List<string>> GroupZoneByProductCode(DataTable table)
+        {
+            // Dictionary to hold parent headers and their corresponding child columns
+            var groupedColumns = new Dictionary<string, List<string>>();
+
+            // Adjust the rows: first row for child headers, second row for parent headers
+            DataRow childHeaderRow = table.Rows[1];  // First row (EAST, WEST, etc.)
+            DataRow parentHeaderRow = table.Rows[2]; // Second row (EMS, PRT, etc.)
+
+            // Variable to track the last non-empty parent header
+            string currentParentHeader = string.Empty;
+
+            // Loop through each column and build the groupings dynamically
+            for (int i = 0; i < table.Columns.Count; i++)
+            {
+                string parentHeader = parentHeaderRow[i].ToString().Trim(); // EMS, PRT, etc.
+                string childHeader = childHeaderRow[i].ToString().Trim();   // EAST, WEST, etc.
+
+                // If the current parent header is empty, use the previous non-empty parent header
+                if (!string.IsNullOrEmpty(parentHeader))
+                {
+                    currentParentHeader = parentHeader; // Update current parent header
+                }
+
+                // Now, use the currentParentHeader for the childHeader
+                if (!groupedColumns.ContainsKey(currentParentHeader))
+                {
+                    groupedColumns[currentParentHeader] = new List<string>();
+                }
+
+                // Add child header under current parent if it's not empty
+                if (!string.IsNullOrEmpty(childHeader))
+                {
+                    groupedColumns[currentParentHeader].Add(childHeader);
+                }
+            }
+
+            // Remove the entry where the key is an empty string (if it exists)
+            if (groupedColumns.ContainsKey(string.Empty))
+            {
+                groupedColumns.Remove(string.Empty);
+            }
+
+            // Remove any empty values (child headers) from the dictionary
+            foreach (var key in new List<string>(groupedColumns.Keys))
+            {
+                // Remove entries where the child headers list is empty
+                groupedColumns[key].RemoveAll(childHeader => string.IsNullOrEmpty(childHeader));
+
+                // Optionally, remove the entire key if it no longer has any valid child headers
+                if (groupedColumns[key].Count == 0)
+                {
+                    groupedColumns.Remove(key);
+                }
+            }
+
+            // // Convert Dictionary<string, List<string>> to List<List<string>>
+            // var resultList = new List<List<string>>();
+
+            // // Loop through the grouped columns and add only the child headers to the result
+            // foreach (var key in groupedColumns.Keys)
+            // {
+            //     resultList.Add(groupedColumns[key]); // We are adding only the child headers
+            // }
+
+            return groupedColumns;
+        }
+
+        [Consumes("multipart/form-data")]
+        public async Task<List<RateCardWeightBreakDto>> UploadRateWeightBreakFileWithZones([FromForm] UploadPostal input)
+        {
+            try
+            {
+                if (input.file == null || input.file.Length == 0) return [];
+
+                const string EXCEEDS = "Exceeds";
+
+                DataSet dataSet = new();
+
+                List<string> rateCards = [];
+                List<RateCardWeightBreakDto> listRateCards = [];
+                List<Rate> rateCard = [];
+                List<RateWeightBreak> insert = [];
+
+                ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
+                var postalOrgs = await _postalOrgRepository.GetAllListAsync();
+                var currencies = await _currencyRepository.GetAllListAsync();
+                var rateZones = await _rateZoneRepository.GetAllListAsync();
+                var distinctedZones = rateZones.DistinctBy(x => x.Zone).ToList().Select(y => y.Zone);
+
+                using (var package = new ExcelPackage(input.file.OpenReadStream()))
+                {
+                    var worksheets = package.Workbook.Worksheets;
+
+                    foreach (ExcelWorksheet ws in worksheets)
+                    {
+                        DataTable dataTable = new();
+                        dataTable = ws.Cells[1, 1, ws.Dimension.End.Row, ws.Dimension.End.Column].ToDataTable(c =>
+                        {
+                            c.FirstRowIsColumnNames = false;
+                        });
+                        dataTable.TableName = ws.Name;
+                        dataSet.Tables.Add(dataTable);
+                        rateCards.Add(ws.Name);
+                    }
+
+                    var tables = dataSet.Tables;
+
+                    rateCard = await InsertAndGetUpdatedRateCards(rateCards);
+
+                    foreach (DataTable table in tables)
+                    {
+                        List<WeightBreakDto> listWeightBreak = [];
+
+                        var rateCardName = table.TableName; //Convert.ToString(table.Rows[0][1]);
+                        var currency = Convert.ToString(table.Rows[0][4]);
+                        var postal = Convert.ToString(table.Rows[0][7]);
+                        var paymentMode = Convert.ToString(table.Rows[0][10]);
+
+                        var zones = table.Rows[1].ItemArray.Where(u => !string.IsNullOrWhiteSpace(Convert.ToString(u))).Select(Convert.ToString).ToList();
+                        bool containsZone = zones.Count > 1; // Check if this rate has zones
+                        var grouped_zones_by_prod = containsZone ? GroupZoneByProductCode(table) : []; // If rate has zones then group the zones
+                        var productCodes = table.Rows[2].ItemArray.Where(u => !string.IsNullOrWhiteSpace(Convert.ToString(u))).Select(Convert.ToString).ToList();
+
+                        var rate = rateCard.FirstOrDefault(x => x.CardName.Equals(rateCardName));
+                        var curr = currencies.FirstOrDefault(x => x.Abbr.Equals(currency));
+                        var postalorg = postalOrgs.FirstOrDefault(x => x.Id.Equals(postal));
+
+                        long currId = curr is not null ? curr.Id : await InsertAndGetIdForCurrency(currency);
+                        string postalOrgId = postalorg is not null ? postalorg.Id : await InsertAndGetIdForPostalOrg(postal);
+
+                        for (int i = 4; i < table.Rows.Count; i++)
+                        {
+                            int colIndex = 2;
+
+                            if (grouped_zones_by_prod.Count > 0)
+                            {
+                                foreach (var productCode in grouped_zones_by_prod)
+                                {
+                                    foreach (var zone in productCode.Value)
+                                    {
+                                        bool IsExceedRule = Convert.ToString(table.Rows[i][0]) == EXCEEDS;
+
+                                        var wb = new WeightBreakDto();
+                                        wb.IsExceedRule = IsExceedRule;
+                                        wb.WeightMinKg = !IsExceedRule ? Convert.ToDecimal(table.Rows[i][0].ToString().IsNullOrWhiteSpace() ? 0 : table.Rows[i][0]) / 1000 : 0;
+                                        wb.WeightMaxKg = !IsExceedRule ? Convert.ToDecimal(table.Rows[i][1].ToString().IsNullOrWhiteSpace() ? 0 : table.Rows[i][1]) / 1000 : 0;
+                                        wb.ProductCode = productCode.Key!;
+                                        wb.ItemRate = table.Rows[i][colIndex].ToString().IsNullOrWhiteSpace() ? 0 : Convert.ToDecimal(table.Rows[i][colIndex]);
+                                        wb.WeightRate = table.Rows[i][colIndex + 1].ToString().IsNullOrWhiteSpace() ? 0 : Convert.ToDecimal(table.Rows[i][colIndex + 1]);
+
+                                        listWeightBreak.Add(wb);
+
+                                        insert.Add(new RateWeightBreak()
+                                        {
+                                            RateId = rate.Id,
+                                            PostalOrgId = postalOrgId,
+                                            WeightMin = wb.WeightMinKg,
+                                            WeightMax = wb.WeightMaxKg,
+                                            ProductCode = wb.ProductCode,
+                                            CurrencyId = currId,
+                                            ItemRate = wb.ItemRate,
+                                            WeightRate = wb.WeightRate,
+                                            IsExceedRule = wb.IsExceedRule,
+                                            PaymentMode = paymentMode,
+                                            Zone = zone
+                                        });
+                                        colIndex += 2;
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                foreach (var productCode in productCodes)
+                                {
+                                    bool IsExceedRule = Convert.ToString(table.Rows[i][0]) == EXCEEDS;
+
+                                    var wb = new WeightBreakDto();
+                                    wb.IsExceedRule = IsExceedRule;
+                                    wb.WeightMinKg = !IsExceedRule ? Convert.ToDecimal(table.Rows[i][0].ToString().IsNullOrWhiteSpace() ? 0 : table.Rows[i][0]) / 1000 : 0;
+                                    wb.WeightMaxKg = !IsExceedRule ? Convert.ToDecimal(table.Rows[i][1].ToString().IsNullOrWhiteSpace() ? 0 : table.Rows[i][1]) / 1000 : 0;
+                                    wb.ProductCode = productCode!;
+                                    wb.ItemRate = table.Rows[i][colIndex].ToString().IsNullOrWhiteSpace() ? 0 : Convert.ToDecimal(table.Rows[i][colIndex]);
+                                    wb.WeightRate = table.Rows[i][colIndex + 1].ToString().IsNullOrWhiteSpace() ? 0 : Convert.ToDecimal(table.Rows[i][colIndex + 1]);
+
+                                    listWeightBreak.Add(wb);
+
+                                    insert.Add(new RateWeightBreak()
+                                    {
+                                        RateId = rate.Id,
+                                        PostalOrgId = postalOrgId,
+                                        WeightMin = wb.WeightMinKg,
+                                        WeightMax = wb.WeightMaxKg,
+                                        ProductCode = wb.ProductCode,
+                                        CurrencyId = currId,
+                                        ItemRate = wb.ItemRate,
+                                        WeightRate = wb.WeightRate,
+                                        IsExceedRule = wb.IsExceedRule,
+                                        PaymentMode = paymentMode,
+                                        Zone = ""
+                                    });
+                                    colIndex += 2;
+                                }
+                            }
+                        }
+
+                        listRateCards.Add(new RateCardWeightBreakDto
+                        {
+                            RateCardName = rateCardName!,
+                            Currency = currency!,
+                            Postal = postal!,
+                            PaymentMode = paymentMode!,
+                            WeightBreaks = listWeightBreak
+                        });
+                    }
+                    //Insert into DB
+
+                    //----Delete Existing Rate Cards in RateWeightBreak ----//
+                    foreach (var distinctedRateCard in rateCard)
+                    {
+                        var rwb = await Repository.GetAllListAsync(x => x.RateId.Equals(distinctedRateCard.Id));
+                        if (rwb.Count > 0) await Repository.GetDbContext().Database.ExecuteSqlAsync($"DELETE FROM smpdb.rateweightbreaks WHERE RateId = {distinctedRateCard.Id.ToString()}").ConfigureAwait(false);
+                    }
+
+                    foreach (RateWeightBreak rwb in insert)
+                    {
+                        var insertedItem = await Repository.InsertAsync(rwb);
+                        await Repository.GetDbContext().SaveChangesAsync();
+                    }
+
+                }
+
+                return listRateCards;
+            }
+            catch (Exception ex)
+            {
+                Console.Write(ex.Message);
+                return [];
+            }
+
+        }
     }
 }

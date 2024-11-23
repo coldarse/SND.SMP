@@ -42,7 +42,7 @@ namespace SND.SMP.DispatchConsole
 
                     newTask.Status = QueueEnumConst.STATUS_RUNNING;
                     newTask.ErrorMsg = null;
-                    newTask.TookInSec = null;
+                    newTask.TookInSec = 0;
 
                     await db.SaveChangesAsync();
                 }

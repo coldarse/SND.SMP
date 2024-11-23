@@ -10,6 +10,7 @@ using SND.SMP.Queues.Dto;
 using System.Threading.Tasks;
 using Abp.UI;
 using Abp.EntityFrameworkCore.Repositories;
+using Microsoft.AspNetCore.Mvc;
 
 namespace SND.SMP.Queues
 {
@@ -33,6 +34,25 @@ namespace SND.SMP.Queues
 
             queue.Status = "New";
             queue.TookInSec = 0;
+
+            await Repository.UpdateAsync(queue);
+            await Repository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
+
+            return true;
+        }
+
+        [HttpGet]
+        public async Task<bool> RestartQueue(long queueId)
+        {
+            var queue = await Repository.FirstOrDefaultAsync(x => x.Id.Equals(queueId));
+
+            if (queue is null) return false;
+
+            queue.Status = "New";
+            queue.TookInSec = 0;
+            queue.ErrorMsg = "";
+            queue.StartTime = DateTime.MinValue;
+            queue.EndTime = DateTime.MinValue;
 
             await Repository.UpdateAsync(queue);
             await Repository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);

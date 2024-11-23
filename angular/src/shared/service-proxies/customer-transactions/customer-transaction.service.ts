@@ -18,7 +18,7 @@ export class CustomerTransactionService {
   url = "";
   options_: any;
 
-  constructor(private http: HttpClient, private errorMessage: ErrorMessage){
+  constructor(private http: HttpClient, private errorMessage: ErrorMessage) {
     this.url = AppConsts.remoteServiceBaseUrl;
     this.options_ = {
       headers: new HttpHeaders({
@@ -101,9 +101,8 @@ export class CustomerTransactionService {
       url_ += "Customer=" + encodeURIComponent("" + body.customer) + "&";
 
     let count = 10;
-    if (body.maxResultCount !== undefined)
-      count = body.maxResultCount;
-    
+    if (body.maxResultCount !== undefined) count = body.maxResultCount;
+
     url_ = url_.replace(/[?&]$/, "");
 
     return this.http
@@ -125,12 +124,25 @@ export class CustomerTransactionService {
   //Get Dashboard Transaction
   getDashboardTransaction(isAdmin: boolean, top: number, customer: string) {
     return this.http
-    .get(
-      isAdmin ? 
-        this.url + `/api/services/app/CustomerTransaction/GetDashboardTransaction?isAdmin=${isAdmin}&top=${top}` :
-        this.url + `/api/services/app/CustomerTransaction/GetDashboardTransaction?isAdmin=${isAdmin}&top=${top}&customer=${customer}`,
-      this.options_
-    )
-    .pipe(retry(1), catchError(this.errorMessage.HandleErrorResponse));
+      .get(
+        isAdmin
+          ? this.url +
+              `/api/services/app/CustomerTransaction/GetDashboardTransaction?isAdmin=${isAdmin}&top=${top}`
+          : this.url +
+              `/api/services/app/CustomerTransaction/GetDashboardTransaction?isAdmin=${isAdmin}&top=${top}&customer=${customer}`,
+        this.options_
+      )
+      .pipe(retry(1), catchError(this.errorMessage.HandleErrorResponse));
+  }
+
+  //Delete And Credit Wallet
+  deleteAndCreditWallet(body: any) {
+    return this.http
+      .post(
+        this.url + `/api/services/app/CustomerTransaction/DeleteAndCreditWallet`,
+        body,
+        this.options_
+      )
+      .pipe(retry(1), catchError(this.errorMessage.HandleErrorResponse));
   }
 }

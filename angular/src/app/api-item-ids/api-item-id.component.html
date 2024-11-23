@@ -106,7 +106,7 @@
                                             (click)='details(apiItemId)'
                                             [disabled]="apiItemId.isLoading"
                                     >
-                                        @if (!apiItemId.isLoading) { 
+                                        @if (!apiItemId.isLoading) {
                                             <i class='fas fa-info-circle'></i>
                                             Details
                                         }
@@ -117,7 +117,7 @@
                                             >
                                                 <span class="sr-only">Loading...</span>
                                             </div>
-                                            Loading 
+                                            Loading
                                         }
                                     </button>
                                 </td>
@@ -169,9 +169,9 @@
                             <tbody>
                             <tr *ngFor='let distinctedApiItemId of distinctedApiItemIds'>
                                 <td>{{ distinctedApiItemId.date }}</td>
-                                <td>{{ distinctedApiItemId.totalItems_Uploaded | number: '1.' }} / {{ distinctedApiItemId.totalItems_Pending | number: '1.' }} / {{ distinctedApiItemId.totalItems_Unregistered | number: '1.' }}</td>                             
-                                <td>{{ distinctedApiItemId.totalWeight_Uploaded | number: '.3' }} / {{ distinctedApiItemId.totalWeight_Pending | number: '.3' }} / {{ distinctedApiItemId.totalWeight_Unregistered | number: '.3' }}</td>                             
-                                <td>{{ distinctedApiItemId.averageValue_Uploaded | number: '.2' }} / {{ distinctedApiItemId.averageValue_Pending | number: '.2' }} / {{ distinctedApiItemId.averageValue_Unregistered | number: '.2' }}</td>                             
+                                <td>{{ distinctedApiItemId.totalItems_Uploaded | number: '1.' }} / {{ distinctedApiItemId.totalItems_Pending | number: '1.' }} / {{ distinctedApiItemId.totalItems_Unregistered | number: '1.' }}</td>
+                                <td>{{ distinctedApiItemId.totalWeight_Uploaded | number: '.3' }} / {{ distinctedApiItemId.totalWeight_Pending | number: '.3' }} / {{ distinctedApiItemId.totalWeight_Unregistered | number: '.3' }}</td>
+                                <td>{{ distinctedApiItemId.averageValue_Uploaded | number: '.2' }} / {{ distinctedApiItemId.averageValue_Pending | number: '.2' }} / {{ distinctedApiItemId.averageValue_Unregistered | number: '.2' }}</td>
                             </tr>
                             </tbody>
                         </table>
