@@ -12,25 +12,25 @@ services:
     build: ./
     image: dannychen98/tfs_dispatch_importer:v1.0.0
     environment:
-      ConnectionStrings__Default: "server=65.21.224.66;port=3306;database=SMPDb;uid=droot;pwd=snd@1234"
+      ConnectionStrings__Default: "server=rm-3ns047wo8pox13094go.mysql.rds.aliyuncs.com;port=3306;database=tfsdb;uid=tfs_admin;pwd=tfs@1234"
 
   dispatch_validator:
     build: ./
     image: dannychen98/tfs_dispatch_validator:v1.0.0
     environment:
-      ConnectionStrings__Default: "server=65.21.224.66;port=3306;database=SMPDb;uid=droot;pwd=snd@1234"
+      ConnectionStrings__Default: "server=rm-3ns047wo8pox13094go.mysql.rds.aliyuncs.com;port=3306;database=tfsdb;uid=tfs_admin;pwd=tfs@1234"
 
   dispatch_tracking_updater:
     build: ./
     image: dannychen98/tfs_dispatch_tracking_updater:v1.0.0
     environment:
-      ConnectionStrings__Default: "server=65.21.224.66;port=3306;database=SMPDb;uid=droot;pwd=snd@1234"
+      ConnectionStrings__Default: "server=rm-3ns047wo8pox13094go.mysql.rds.aliyuncs.com;port=3306;database=tfsdb;uid=tfs_admin;pwd=tfs@1234"
 
   item_tracking_generator:
     build: ./
     image: dannychen98/tfs_item_tracking_generator:v1.0.0
     environment:
-      ConnectionStrings__Default: "server=65.21.224.66;port=3306;database=SMPDb;uid=droot;pwd=snd@1234"
+      ConnectionStrings__Default: "server=rm-3ns047wo8pox13094go.mysql.rds.aliyuncs.com;port=3306;database=tfsdb;uid=tfs_admin;pwd=tfs@1234"
 
   abp_host:
     build: ./
