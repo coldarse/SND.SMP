@@ -10,4 +10,8 @@ RUN yarn run ng build --configuration production --base-href /
 # stage 2
 FROM nginx
 COPY --from=node /app/dist /usr/share/nginx/html
+
+COPY ./fullchain.pem /etc/ssl/certs/fullchain.pem
+COPY ./privkey.pem /etc/ssl/private/privkey.pem
+
 COPY fast-nginx-default.conf /etc/nginx/conf.d/default.conf

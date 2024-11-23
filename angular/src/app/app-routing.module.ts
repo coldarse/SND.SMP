@@ -36,9 +36,10 @@ import { CustomerTransactionsComponent } from "./customer-transactions/customer-
 import { PreAlertComponent } from "./pre-alerts/pre-alerts.component";
 import { PostChecksComponent } from "./post-checks/post-checks.component";
 import { APIItemIdComponent } from "./api-item-ids/api-item-id.component";
-import { DispatchTrackingComponent } from "./dispatch-tracking/dispatch-tracking.component";
+import { SearchItemComponent } from "./search-item/search-item.component";
 
 @NgModule({
+  imports:[
     RouterModule.forChild([
       {
         path: "",
@@ -151,12 +152,6 @@ import { DispatchTrackingComponent } from "./dispatch-tracking/dispatch-tracking
             path: "dispatches",
             data: { permission: "Pages.Dispatch" },
             component: DispatchesComponent,
-            canActivate: [AppRouteGuard],
-          },
-          {
-            path: "dispatch-tracking",
-            data: { permission: "Pages.Dispatch" },
-            component: DispatchTrackingComponent,
             canActivate: [AppRouteGuard],
           },
           {
