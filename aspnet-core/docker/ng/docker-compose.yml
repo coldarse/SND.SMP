@@ -49,6 +49,6 @@ services:
 
   abp_ng:
     build: ./
-    image: dannychen98/tfs_ms:v1.1.16
+    image: dannychen98/tfs_ms:v1.1.18
     ports:
       - "8443:443"
