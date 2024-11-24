@@ -43,9 +43,6 @@ import { RateZonesComponent } from "./ratezones/ratezones.component";
 import { CreateUpdateRateZoneComponent } from "./ratezones/create-update-ratezone/create-update-ratezone.component";
 import { RateZoneService } from "@shared/service-proxies/ratezones/ratezone.service";
 
-import { InvoicesComponent } from "./invoices/invoices.component";
-import { CreateUpdateInvoiceComponent } from "./invoices/create-update-invoice/create-update-invoice.component";
-import { InvoiceService } from "@shared/service-proxies/invoices/invoice.service";
 
 import { EmailContentsComponent } from "./emailcontents/emailcontents.component";
 import { CreateUpdateEmailContentComponent } from "./emailcontents/create-update-emailcontent/create-update-emailcontent.component";
@@ -161,7 +158,6 @@ import { APIItemIdComponent } from "./api-item-ids/api-item-id.component";
 
 import { SearchItemComponent } from "./search-item/search-item.component";
 import { AngularEditorModule } from "@kolkov/angular-editor";
-import { DispatchTrackingComponent } from "./dispatch-tracking/dispatch-tracking.component";
 import { DatePipe } from "@angular/common";
 import { NgSelectModule } from '@ng-select/ng-select';
 
@@ -256,7 +252,6 @@ import { NgSelectModule } from '@ng-select/ng-select';
     ReviewItemTrackingApplicationComponent,
     Stage4AirportComponent,
     APIItemIdComponent,
-    DispatchTrackingComponent,
     SearchItemComponent,
   ],
   imports: [
