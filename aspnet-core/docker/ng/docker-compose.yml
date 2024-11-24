@@ -2,12 +2,6 @@ version: '3'
 
 services:
 
-  # dispatch_console:
-  #   build: ./
-  #   image: dannychen98/tfs_dispatch_console:v1.1.7
-  #   environment:
-  #     ConnectionStrings__Default: "server=65.21.224.66;port=3306;database=SMPDb;uid=droot;pwd=snd@1234"
-
   dispatch_importer:
     build: ./
     image: dannychen98/tfs_dispatch_importer:v1.0.0
@@ -37,24 +31,24 @@ services:
     image: dannychen98/tfs_api:v1.1.22
     environment:
       ASPNETCORE_ENVIRONMENT: "Staging"
-      ASPNETCORE_Kestrel__Certificates__Default__Path: "/etc/ssl/certs/tfsexp.crt"
-      ASPNETCORE_Kestrel__Certificates__Default__KeyPath: "/etc/ssl/private/tfsexp.key"
+      ASPNETCORE_Kestrel__Certificates__Default__Path: "/etc/ssl/certs/fullchain.pem"
+      ASPNETCORE_Kestrel__Certificates__Default__KeyPath: "/etc/ssl/private/privkey.pem"
       ConnectionStrings__Default: "server=rm-3ns047wo8pox13094go.mysql.rds.aliyuncs.com;port=3306;database=tfsdb;uid=tfs_admin;pwd=tfs@1234"
-      App__ServerRootAddress: "http://tfsexp.com:44311/"
-      App__ClientRootAddress: "http://tfsexp.com:4200/"
-      App__CorsOrigins: "http://tfsexp.com:4200"
+      App__ServerRootAddress: "https://app.tfsexp.com:44311/"
+      App__ClientRootAddress: "https://app.tfsexp.com:8443/"
+      App__CorsOrigins: "https://app.tfsexp.com:8443"
       TZ: "America/Toronto"
-      Kestrel__Endpoints__Http__Url: "http://+:80"
+      Kestrel__Endpoints__Http__Url: "https://+:443"
     ports:
-      - "44311:80"
+      - "44311:443"
     volumes:
       - "./Host-Logs:/app/App_Data/Logs"
-      - ./tfsexp.crt:/etc/ssl/certs/tfsexp.crt:ro
-      - ./tfsexp.key:/etc/ssl/private/tfsexp.key:ro
+      - ./fullchain.pem:/etc/ssl/certs/fullchain.pem:ro
+      - ./privkey.pem:/etc/ssl/private/privkey.pem:ro
     restart: always
 
   abp_ng:
     build: ./
-    image: dannychen98/tfs_ms:v1.1.14
+    image: dannychen98/tfs_ms:v1.1.16
     ports:
-      - "4200:80"
+      - "8443:443"
