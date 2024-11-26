@@ -32,7 +32,7 @@ namespace SND.SMP.DispatchValidator
             "Tax Payment Method", "HS Code", "Qty"
         };
         private uint QueueId { get; set; }
-        private string FilePath { get; set; }
+        private static string FilePath { get; set; }
         private string FileType { get; set; }
         private string CustomerCode { get; set; }
         private string ServiceCode { get; set; }
@@ -142,7 +142,7 @@ namespace SND.SMP.DispatchValidator
         {
             bool isValid = true;
             bool isFundLack = false;
-           
+
             DateTime dateValidationStart = DateTime.Now;
 
             List<DispatchValidateDto> validations = [];
@@ -229,7 +229,7 @@ namespace SND.SMP.DispatchValidator
                     {
                         if (rowTouched > 0)
                         {
-                        if (reader[0] is null && ((reader[3] == null ? "" : reader[3].ToString()) != SERVICE_TS || (reader[3] == null ? "" : reader[3].ToString()) != SERVICE_DE)) break;                            
+                            if (reader[0] is null && ((reader[3] == null ? "" : reader[3].ToString()) != SERVICE_TS || (reader[3] == null ? "" : reader[3].ToString()) != SERVICE_DE)) break;
                             var strPostalCode = reader[0] == null ? "" : reader[0].ToString();
                             DateTime.TryParseExact(reader[1].ToString()!, "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime dateTimeCell);
                             var dispatchDate = DateOnly.FromDateTime(dateTimeCell);
@@ -255,7 +255,7 @@ namespace SND.SMP.DispatchValidator
                             var identityType = reader[21] == null ? "" : reader[21].ToString();
                             var state = reader[22] == null ? "" : reader[22].ToString();
                             var length = (reader[23] == null || reader[23].ToString().IsNullOrWhiteSpace()) ? 0 : Convert.ToDecimal(reader[23]);
-                            var width =  (reader[24] == null || reader[24].ToString().IsNullOrWhiteSpace()) ? 0 : Convert.ToDecimal(reader[24]);
+                            var width = (reader[24] == null || reader[24].ToString().IsNullOrWhiteSpace()) ? 0 : Convert.ToDecimal(reader[24]);
                             var height = (reader[25] == null || reader[25].ToString().IsNullOrWhiteSpace()) ? 0 : Convert.ToDecimal(reader[25]);
                             var taxPaymentMethod = reader[26] == null ? "" : reader[26].ToString();
                             var hsCode = reader[27] == null ? "" : reader[27].ToString();
@@ -287,14 +287,16 @@ namespace SND.SMP.DispatchValidator
                                     () => Bag_IsDuplicate(ref validationResult_bag_IsDuplicate, listBagNos),
                                     () => IOSS_Missing(ref validationResult_ioss_missing, listIOSSChecking, DispatchProfile.PostalCode[..2]),
                                     () => Id_HasInvalidPrefixSuffix(ref validationResult_id_HasInvalidPrefixSuffix, listItemIds),
-                                    () => {
+                                    () =>
+                                    {
                                         if (listCountryCodes.Any(u => u.CountryCode != "NG") && ServiceCode == SERVICE_DE) // bypass checking for Country Code NG
                                         {
                                             Id_HasInvalidCheckDigit(ref validationResult_id_HasInvalidCheckDigit, listItemIds);
                                             Id_HasInvalidLength(ref validationResult_id_HasInvalidLength, listItemIds);
                                         }
                                     },
-                                    () => {
+                                    () =>
+                                    {
                                         if (listCountryCodes.Any(u => u.CountryCode == "NG") && ServiceCode == SERVICE_DE) // checking for Country Code NG
                                         {
                                             Dispatch_IsOverweight(ref validationResult_dispatch_Overweight, totalWeight);
@@ -519,7 +521,7 @@ namespace SND.SMP.DispatchValidator
                         var initialBalance = wallet.Balance;
 
                         wallet.Balance -= totalPrice;
-                        
+
                         await dbconn.CustomerTransactions.AddAsync(new CustomerTransaction()
                         {
                             Wallet = wallet.Id,
@@ -534,7 +536,7 @@ namespace SND.SMP.DispatchValidator
                         }).ConfigureAwait(false);
                         var eWallet = await dbconn.EWalletTypes.FirstOrDefaultAsync(x => x.Id.Equals(wallet.EWalletType));
 
-                        
+
 
                         await dbconn.DispatchUsedAmounts.AddAsync(new DispatchUsedAmount()
                         {
@@ -676,25 +678,38 @@ namespace SND.SMP.DispatchValidator
 
             if (apiUrl != null)
             {
-                var emailclient = new HttpClient();
-                emailclient.DefaultRequestHeaders.Clear();
-
-                PreAlertFailureEmail preAlertFailureEmail = new()
+                try
                 {
-                    customerCode = customerCode,
-                    dispatchNo = dispatchNo,
-                    validations = validations
-                };
+                    var emailclient = new HttpClient();
+                    emailclient.DefaultRequestHeaders.Clear();
 
-                var urlEndpoint = successEmail ? "services/app/EmailContent/SendPreAlertSuccessWithErrorsEmailAsync" : "services/app/EmailContent/SendPreAlertFailureEmail";
-                var content = new StringContent(JsonConvert.SerializeObject(preAlertFailureEmail), Encoding.UTF8, "application/json");
-                var emailrequest = new HttpRequestMessage
+                    PreAlertFailureEmail preAlertFailureEmail = new()
+                    {
+                        customerCode = customerCode,
+                        dispatchNo = dispatchNo,
+                        validations = validations
+                    };
+
+                    var urlEndpoint = successEmail ? "services/app/EmailContent/SendPreAlertSuccessWithErrorsEmailAsync" : "services/app/EmailContent/SendPreAlertFailureEmail";
+                    var content = new StringContent(JsonConvert.SerializeObject(preAlertFailureEmail), Encoding.UTF8, "application/json");
+                    var emailrequest = new HttpRequestMessage
+                    {
+                        Method = HttpMethod.Post,
+                        RequestUri = new Uri(apiUrl.Value + urlEndpoint),
+                        Content = content,
+                    };
+                    await emailclient.SendAsync(emailrequest).ConfigureAwait(false);
+                }
+                catch (Exception ex)
                 {
-                    Method = HttpMethod.Post,
-                    RequestUri = new Uri(apiUrl.Value + urlEndpoint),
-                    Content = content,
-                };
-                await emailclient.SendAsync(emailrequest).ConfigureAwait(false);
+                    await LogQueueError(new QueueErrorEventArg
+                    {
+                        FilePath = FilePath,
+                        ErrorMsg = ex.InnerException != null ? ex.InnerException.Message : ex.Message,
+                        Validations = []
+                    });
+                }
+
             }
         }
 
@@ -903,14 +918,14 @@ namespace SND.SMP.DispatchValidator
         }
 
         private bool Dispatch_IsOverweight(ref Dto.DispatchValidateDto validationResult, decimal weight)
-        {   
+        {
             var result = false;
 
             if (weight >= totalWeightLimitForCountry_NG)
             {
                 validationResult.Message = "$The total weight of the items in the dispatch exceeds the maximum";
                 result = true;
-            } 
+            }
             return result;
         }
 
