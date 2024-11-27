@@ -78,7 +78,7 @@ namespace SND.SMP.ItemTrackingReviews
             { "EP02", ("TS", "P" , "Parcel"         ) },
             { "EP03", ("TS", "PR", "PrimeRegistered") },
             { "EP04", ("TS", "PT", "PrimeTracked"   ) },
-            { "EP05", ("TS", "PE", "PrimeExpress"   ) }
+            { "EP05", ("TS", "PE", "PrimeExpres"   ) }
         };
 
         protected override IQueryable<ItemTrackingReview> CreateFilteredQuery(PagedItemTrackingReviewResultRequestDto input)
