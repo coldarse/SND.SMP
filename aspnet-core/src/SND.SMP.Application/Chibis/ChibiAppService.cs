@@ -40,7 +40,6 @@ using SND.SMP.Currencies;
 using SND.SMP.ItemTrackingApplications;
 using SND.SMP.TrackingNoForUpdates;
 using static SND.SMP.Shared.EnumConst;
-using SND.SMP.Invoices;
 
 namespace SND.SMP.Chibis
 {
@@ -63,8 +62,7 @@ namespace SND.SMP.Chibis
         IRepository<Currency, long> currencyRepository,
         IRepository<ItemTrackingApplication, int> itemTrackingApplicationRepository,
         IRepository<ItemTrackingReview, int> itemTrackingReviewRepository,
-        IRepository<TrackingNoForUpdate, long> trackingNoForUpdateRepository,
-        IRepository<Invoice, int> invoiceRepository
+        IRepository<TrackingNoForUpdate, long> trackingNoForUpdateRepository
     ) : AsyncCrudAppService<Chibi, ChibiDto, long, PagedChibiResultRequestDto>(repository)
     {
         private readonly IRepository<Queue, long> _queueRepository = queueRepository;
@@ -85,7 +83,6 @@ namespace SND.SMP.Chibis
         private readonly IRepository<ItemTrackingApplication, int> _itemTrackingApplicationRepository = itemTrackingApplicationRepository;
         private readonly IRepository<ItemTrackingReview, int> _itemTrackingReviewRepository = itemTrackingReviewRepository;
         private readonly IRepository<TrackingNoForUpdate, long> _trackingNoForUpdateRepository = trackingNoForUpdateRepository;
-        private readonly IRepository<Invoice, int> _invoiceRepository = invoiceRepository;
 
         private static async Task<string> GetFileStreamAsString(string url)
         {
@@ -709,20 +706,6 @@ namespace SND.SMP.Chibis
             return true;
         }
 
-        public async Task<bool> DeleteInvoice(string path)
-        {
-            var invoice = await _invoiceRepository.FirstOrDefaultAsync(x => x.InvoiceNo.Contains(path)) ?? throw new UserFriendlyException("No Invoice Found.");
-            await _invoiceRepository.DeleteAsync(invoice);
-
-            var chibi = await Repository.FirstOrDefaultAsync(x => x.URL.Equals(path));
-            if (chibi is not null) await Repository.DeleteAsync(chibi);
-
-            var uuid = await GetFileUUIDByPath(path);
-            if (!uuid.Equals("")) await DeleteFile(uuid).ConfigureAwait(false);
-
-            return true;
-        }
-
         public async Task<bool> DeleteDispatch(string path, string dispatchNo)
         {
             var dispatchValidation = await _dispatchValidationRepository.FirstOrDefaultAsync(x => x.DispatchNo.Equals(dispatchNo)) ?? throw new UserFriendlyException("No Dispatch Validation Found");
@@ -965,38 +948,6 @@ namespace SND.SMP.Chibis
             await _queueRepository.InsertAsync(new Queue()
             {
                 EventType = "Update Dispatch Tracking",
-                FilePath = jsonFile.url,
-                DateCreated = DateTime.Now,
-                Status = "New"
-            }).ConfigureAwait(false);
-
-            return true;
-        }
-
-        public async Task<bool> CreateInvoiceQueue(GenerateInvoice input)
-        {
-            string invoice_info = Newtonsoft.Json.JsonConvert.SerializeObject(input);
-
-            string fileName = input.InvoiceNo + "_" + DateTime.Now.ToString("ddMMyyyyHHmmss") + ".json";
-
-            ChibiUploadDto chibiUpload = new()
-            {
-                fileName = fileName,
-                fileType = "json",
-                json = invoice_info
-            };
-
-            var jsonFile = await UploadFile(chibiUpload, fileName);
-
-            await InsertFileToAlbum(jsonFile.uuid, false, true, false).ConfigureAwait(false);
-
-            var existingQueuesByPath = await _queueRepository.GetAllListAsync(x => x.FilePath.Equals(jsonFile.url));
-
-            foreach (var queue in existingQueuesByPath) await _queueRepository.DeleteAsync(queue);
-
-            await _queueRepository.InsertAsync(new Queue()
-            {
-                EventType = "Invoice",
                 FilePath = jsonFile.url,
                 DateCreated = DateTime.Now,
                 Status = "New"
