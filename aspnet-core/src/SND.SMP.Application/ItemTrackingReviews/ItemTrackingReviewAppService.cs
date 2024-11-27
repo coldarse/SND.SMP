@@ -915,6 +915,7 @@ namespace SND.SMP.ItemTrackingReviews
                                             RegionCode = "",
                                             City = input.RecipientCity,
                                             CityCode = null,
+                                            State = input.RecipientState,
                                             CountryCode = input.RecipientCountry,
                                             ZipCode = input.RecipientPostcode,
                                             Point = new Point
@@ -948,7 +949,7 @@ namespace SND.SMP.ItemTrackingReviews
                                     DeclaredValue = new DeclaredValue
                                     {
                                         Amount = input.ItemValue,
-                                        Currency = "AED"
+                                        Currency = "USD"
                                     },
                                     NumberOfPieces = 1,
                                     ReferenceNumber1 = "",
