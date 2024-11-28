@@ -50,9 +50,9 @@ public class Package
     public string mawb { get; set; }
     public int division { get; set; }
     public int postalCharges { get; set; }
-    public string license { get; set; }
-    public string certificate { get; set; }
-    public string invoice { get; set; }
+    //public string license { get; set; }
+    //public string certificate { get; set; }
+    //public string invoice { get; set; }
     public int serviceValue { get; set; }
     public int serviceOptValue { get; set; }
     public int dimensionTypeValue { get; set; }
