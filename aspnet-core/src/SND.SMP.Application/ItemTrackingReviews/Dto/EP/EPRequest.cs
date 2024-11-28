@@ -64,6 +64,7 @@ public class Address
     public string RegionCode { get; set; }
     public string City { get; set; }
     public string CityCode { get; set; }
+    public string State { get; set; }
     public string CountryCode { get; set; }
     public string ZipCode { get; set; }
     public Point Point { get; set; }
