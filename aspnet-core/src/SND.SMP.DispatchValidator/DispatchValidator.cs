@@ -293,7 +293,7 @@ namespace SND.SMP.DispatchValidator
             }
         }
 
-        private void ResetVariables()
+        private void ResetVariables(db database)
         {
             validations = [];
             validationResult_dispatch_IsDuplicate = new() { Category = "Duplicated Dispatch No." };
@@ -323,6 +323,14 @@ namespace SND.SMP.DispatchValidator
                                         paymentMode: DispatchProfile.PaymentMode);
 
             if (Pricer.ErrorMsg != "") throw new Exception(Pricer.ErrorMsg);
+
+            ListPostalCountry = [.. database.Postalcountries
+                                .Where(u => u.PostalCode == PostalCode)
+                                .Select(u => u.CountryCode)];
+
+            var currency = database.Currencies.FirstOrDefault(c => c.Id == Pricer.CurrencyId);
+            CurrencyId = currency.Id;
+            Currency = currency.Abbr;
         }
 
         private async Task DeductWalletBalanceAndRecordTransaction(db database)
@@ -532,7 +540,7 @@ namespace SND.SMP.DispatchValidator
             }
             await database.SaveChangesAsync();
         }
-        
+
         private async Task ValidateFromExcel()
         {
             DateTime validationStart = DateTime.Now;
@@ -543,7 +551,7 @@ namespace SND.SMP.DispatchValidator
 
             try
             {
-                ResetVariables();
+                ResetVariables(database);
 
                 var fileStream = await FileServer.GetFileStream(FilePath);
 
