@@ -2,7 +2,7 @@ echo " Welcome to docker build"
 echo ""
 echo ""
 
-$ABP_HOST="dannychen98/tfs_api:v1.1.23"
+$ABP_HOST="dannychen98/tfs_api:v1.1.25"
 $ABP_HOST_DOCKERFILE_PATH="src/SND.SMP.Web.Host/Dockerfile"
 $SMP_DISPATCH_DOCKERFILE_PATH="src/SND.SMP.DispatchConsole/Dockerfile"
 $SMP_DISPATCH_1_DOCKERFILE_PATH="src/SND.SMP.DispatchImporter/Dockerfile"
