@@ -1200,7 +1200,6 @@ namespace SND.SMP.ItemTrackingReviews
                     var token_expiration = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_TokenExpiration"));
                     var token = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_Token"));
                     var division = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_Division"));
-                    //var serviceValue = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_ServiceValue"));
                     var serviceOptValue = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_ServiceOptValue"));
                     var dimensionTypeValue = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_DimensionTypeValue"));
                     var weightTypeValue = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_WeightTypeValue"));
@@ -1210,12 +1209,10 @@ namespace SND.SMP.ItemTrackingReviews
                     var countryListIOSS = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_EU_CountryList"));
 
                     var isItemIDAutoMandatory = true;
-                    if (isItemIDAutoMandatory)
+                    if (isItemIDAutoMandatory &&
+                        (string.IsNullOrWhiteSpace(input.ItemID) ? "" : input.ItemID.ToLower().Trim()) != auto.ToLower().Trim())
                     {
-                        if ((string.IsNullOrWhiteSpace(input.ItemID) ? "" : input.ItemID.ToLower().Trim()) != auto.ToLower().Trim())
-                        {
-                            result.Errors.Add("Invalid ItemID value. ItemID must be set to 'auto'");
-                        }
+                        result.Errors.Add("Invalid ItemID value. ItemID must be set to 'auto'");
                     }
 
                     //Check IOSS EG : XX1234567890 - 2 Aplhabet + 10 digits of number, Length must equal 12  
@@ -1225,26 +1222,17 @@ namespace SND.SMP.ItemTrackingReviews
                     {
                         string[] countryCodes = countryListIOSS.Value.Split(',');
 
-                        if (countryCodes.Contains(input.RecipientCountry.ToUpper().Trim()))
+                        if (countryCodes.Contains(input.RecipientCountry.ToUpper().Trim()) && string.IsNullOrWhiteSpace(input.IOSSTax))
                         {
-                            if (string.IsNullOrWhiteSpace(input.IOSSTax))
+                            result.Errors.Add($"IOSSTax is mandatory for {input.RecipientCountry}");
+                        }
+                        else
+                        {
+                            // Regular expression to match the pattern: two letters followed by 1-10 digits
+                            if (Regex.IsMatch(input.IOSSTax, @"^[A-Za-z]{2}\d{10}$"))
                             {
-                                result.Errors.Add($"IOSSTax is mandatory for {input.RecipientCountry}");
+                                result.Errors.Add($"The IOSS format is incorrect. The IOSS identifier should follow the format IM1234567890.");
                             }
-                            else
-                            {
-                                // Regular expression to match the pattern: two letters followed by 1-10 digits
-                                string iossTax = input.IOSSTax;
-
-
-                                bool isValid = Regex.IsMatch(iossTax, @"^[A-Za-z]{2}\d{10}$");
-
-                                if (!isValid)
-                                {
-                                    result.Errors.Add($"The IOSS format is incorrect. The IOSS identifier should follow the format IM1234567890.");
-                                }
-                            }
-
                         }
                     }
                     #endregion
@@ -1538,6 +1526,444 @@ namespace SND.SMP.ItemTrackingReviews
                                     newItem.CountryCode = input.RecipientCountry;
                                     newItem.RefNo = input.RefNo;
                                     newItem.HSCode = input.HSCode;
+                                    newItem.SenderName = input.SenderName;
+                                    newItem.IOSSTax = input.IOSSTax;
+                                    newItem.AddressNo = input.AddressNo;
+                                    newItem.PassportNo = input.IdentityNo;
+                                    newItem.IdentityType = input.IdentityType;
+
+                                    #region Item Topup Value
+                                    var itemTopupValue = await GetItemTopupValueFromPostalMaintenance(input.PostalCode, input.ServiceCode, input.ProductCode);
+                                    newItem.ItemValue = newItem.ItemValue is null ? 0m + itemTopupValue : (decimal)newItem.ItemValue + itemTopupValue;
+                                    #endregion
+
+                                    newItem = await _itemRepository.UpdateAsync(newItem);
+                                }
+
+                                string apiItemId = newItem.Id;
+
+                                if (!string.IsNullOrWhiteSpace(apiItemId))
+                                {
+                                    result.APIItemID = apiItemId;
+
+                                    result.Status = SUCCESS;
+                                    result.Errors.Clear();
+                                }
+                                else
+                                {
+                                    var newId = newItem.Id;
+
+                                    apiItemId = newItem.Id;
+
+                                    result.APIItemID = apiItemId;
+
+                                    result.Status = SUCCESS;
+                                    result.Errors.Clear();
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        result.APIItemID = "";
+                        result.Status = FAILED;
+                        result.Errors.Add("Endpoint Not Found.");
+                    }
+                }
+                else
+                {
+                    result.APIItemID = "";
+                    result.Status = FAILED;
+                    result.Errors.Add("Invalid SignatureHash.");
+                }
+            }
+
+            string signHashRespRaw = string.Format("{0}-{1}-{2}-{3}-{4}", result.ResponseID, result.RefNo, result.APIItemID, input.ClientKey, clientSecret);
+            string signHashRespServer = GenerateMD5Hash(signHashRespRaw);
+
+            result.SignatureHash = signHashRespServer;
+
+            return result;
+        }
+
+        [HttpPost]
+        [Route("api/PreRegisterItems/APG")]
+        public async Task<OutPreRegisterItem> PreRegisterItemsAPG(InPreRegisterItems input)
+        {
+            const string SUCCESS = "success";
+            const string FAILED = "failed";
+            string auto = "auto";
+
+            string customerCode = "";
+            string clientSecret = "";
+
+            var result = new OutPreRegisterItem();
+            var newResponseIDRaw = Guid.NewGuid().ToString();
+
+            result.ResponseID = GenerateMD5Hash(newResponseIDRaw);
+            result.RefNo = input.RefNo;
+            result.Status = FAILED;
+            result.Errors = [];
+            result.APIItemID = "";
+
+            string item_description = "";
+            decimal item_value = 0m;
+            decimal item_weight = 0m;
+
+            var cust = await _customerRepository.FirstOrDefaultAsync(u => u.ClientKey == input.ClientKey);
+
+            if (cust is not null)
+            {
+                customerCode = cust.Code;
+                clientSecret = cust.ClientSecret;
+
+                string signHashRequest = input.SignatureHash.Trim().ToUpper();
+                string signHashRaw = string.Format("{0}-{1}-{2}-{3}", input.ItemID, input.RefNo, input.ClientKey, clientSecret);
+                string signHashServer = GenerateMD5Hash(signHashRaw).Trim().ToUpper();
+
+                var signMatched = signHashRequest.Equals(signHashServer);
+
+                if (signMatched)
+                {
+                    var ParcelGenerationUrl = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_ParcelGenerationUrl"));
+                    var sender_identification = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_SenderIdentification"));
+                    var token_expiration = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_TokenExpiration"));
+                    var token = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_Token"));
+                    var division = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_Division"));
+                    var serviceOptValue = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_ServiceOptValue"));
+                    var dimensionTypeValue = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_DimensionTypeValue"));
+                    var weightTypeValue = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_WeightTypeValue"));
+                    var senderCountry = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_SenderCountry"));
+                    var mailtype = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_MailType"));
+                    var countryListIOSS = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("APG_EU_CountryList"));
+
+                    var isItemIDAutoMandatory = true;
+                    if (isItemIDAutoMandatory &&
+                        (string.IsNullOrWhiteSpace(input.ItemID) ? "" : input.ItemID.ToLower().Trim()) != auto.ToLower().Trim())
+                    {
+                        result.Errors.Add("Invalid ItemID value. ItemID must be set to 'auto'");
+                    }
+
+                    //Check IOSS EG : XX1234567890 - 2 Aplhabet + 10 digits of number, Length must equal 12  
+                    #region IOSS Tax
+                    var willValidateIOSS = true;
+                    if (willValidateIOSS)
+                    {
+                        string[] countryCodes = countryListIOSS.Value.Split(',');
+
+                        if (countryCodes.Contains(input.RecipientCountry.ToUpper().Trim()) && string.IsNullOrWhiteSpace(input.IOSSTax))
+                        {
+                            result.Errors.Add($"IOSSTax is mandatory for {input.RecipientCountry}");
+                        }
+                        else
+                        {
+                            // Regular expression to match the pattern: two letters followed by 1-10 digits
+                            if (Regex.IsMatch(input.IOSSTax, @"^[A-Za-z]{2}\d{10}$"))
+                            {
+                                result.Errors.Add($"The IOSS format is incorrect. The IOSS identifier should follow the format IM1234567890.");
+                            }
+                        }
+                    }
+                    #endregion
+
+                    var isPostalCodeMandatory = true;
+                    int serviceValue = 0;
+                    if (isPostalCodeMandatory)
+                    {
+                        if (string.IsNullOrWhiteSpace(input.PostalCode))
+                        {
+                            result.Errors.Add("Postal Code is mandatory");
+                        }
+                        // Get Service Code
+                        serviceValue = GetServiceValue(input.PostalCode, input.ServiceCode, input.ProductCode);
+                        if (serviceValue == 0)
+                        {
+                            result.Errors.Add("Invalid Matching: DO01 does not correspond with TS or O. Please verify the input values.");
+                        }
+                    }
+
+                    string apgToken = token.Value.Trim() == "" ? await GetAPGToken() : token.Value.Trim();
+
+                    if (token.Value.Trim() != "")
+                    {
+                        var dateString = token_expiration.Value.Replace(" UTC", "");
+                        var token_expiration_date = DateTime.Parse(dateString);
+                        if (token_expiration_date < DateTime.Now) apgToken = await GetAPGToken();
+                    }
+
+                    var httpstatus = HttpStatusCode.Unauthorized;
+
+                    if (ParcelGenerationUrl != null)
+                    {
+                        if (result.Errors.Count == 0)
+                        {
+                            //---- Create a Temporary Dispatch to insert Items ----//
+                            string dispNo = string.Format("TempDisp-{0}-{1}-{2}-{3}", customerCode, input.PostalCode, input.ServiceCode, input.ProductCode);
+
+                            var dispatchTemp = await _dispatchRepository.FirstOrDefaultAsync(x =>
+                                                                                                x.DispatchNo.Equals(dispNo) &&
+                                                                                                x.CustomerCode.Equals(customerCode)
+                                                                                            );
+                            if (dispatchTemp == null)
+                            {
+                                dispatchTemp = await _dispatchRepository.InsertAsync(new Dispatch
+                                {
+                                    DispatchNo = dispNo,
+                                    CustomerCode = customerCode,
+                                    PostalCode = input.PostalCode,
+                                    ServiceCode = input.ServiceCode,
+                                    ProductCode = input.ProductCode,
+                                    DispatchDate = DateOnly.FromDateTime(DateTime.Now),
+                                    BatchId = "",
+                                    TransactionDateTime = DateTime.Now
+                                });
+
+                                await _dispatchRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
+                            }
+
+                            string newItemIdFromSPS = null;
+
+                            do
+                            {
+                                var apgClient = new HttpClient();
+                                apgClient.DefaultRequestHeaders.Clear();
+                                apgClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", apgToken);
+
+                                List<Commodity> commodities = [];
+                                foreach (var item in input.ItemList)
+                                {
+                                    commodities.Add(new Commodity()
+                                    {
+                                        description = item.ItemDesc,
+                                        value = item.ItemValue,
+                                        weight = item.Weight,
+                                        hsTariffNumber = item.HSCode,
+                                        quantity = item.Qty,
+                                        countryOfGoods = input.RecipientCountry
+                                    });
+
+                                    item_weight += item.Weight;
+                                    item_value += item.ItemValue;
+                                }
+
+                                item_description = string.Join(",", input.ItemList.Select(item => item.ItemDesc));
+
+
+                                List<Package> packages = [];
+                                packages.Add(new Package()
+                                {
+                                    preAlertCode = "",
+                                    stamp = input.RefNo,
+                                    senderCode = "",
+                                    senderName = input.SenderName,
+                                    senderIdentification = sender_identification.Value,
+                                    senderAddress1 = "",
+                                    senderAddress2 = "",
+                                    senderAddress3 = "",
+                                    senderNeighborhood = "",
+                                    senderZipCode = "",
+                                    senderCity = "",
+                                    senderState = "",
+                                    senderCountry = senderCountry.Value,
+                                    senderPhoneNumber = "",
+                                    senderEmail = "",
+                                    receiverCode = "",
+                                    receiverName = input.RecipientName,
+                                    receiverIdentification = "",
+                                    receiverAddress1 = input.RecipientAddress,
+                                    receiverAddress2 = "",
+                                    receiverAddress3 = "",
+                                    receiverNeighborhood = "",
+                                    receiverZipCode = input.RecipientPostcode,
+                                    receiverCity = input.RecipientCity,
+                                    receiverState = input.RecipientCity,
+                                    receiverCountry = input.RecipientCountry,
+                                    receiverPhoneNumber = input.RecipientContactNo,
+                                    receiverEmail = input.RecipientEmail,
+                                    receiverTaxId = "",
+                                    weight = 1,
+                                    width = 1,
+                                    height = 1,
+                                    length = 1,
+                                    commodities = commodities,
+                                    mawb = "",
+                                    division = Int32.Parse(division.Value),
+                                    postalCharges = 0,
+                                    //license = "",
+                                    //certificate = "",
+                                    //invoice = "",
+                                    serviceValue = serviceValue,
+                                    serviceOptValue = Int32.Parse(serviceOptValue.Value),
+                                    dimensionTypeValue = Int32.Parse(dimensionTypeValue.Value),
+                                    weightTypeValue = Int32.Parse(weightTypeValue.Value),
+                                    officeCode = "",
+                                    originWebsite = "",
+                                    mailType = Int32.Parse(mailtype.Value),
+                                    senderIOSS = input.IOSSTax,
+                                });
+
+
+                                APGRequest apgRequest = new()
+                                {
+                                    packages = packages
+                                };
+
+                                APIRequestResponse apiRequestResponse = new()
+                                {
+                                    URL = ParcelGenerationUrl.Value,
+                                    RequestBody = JsonConvert.SerializeObject(apgRequest),
+                                    RequestDateTime = DateTime.Now
+                                };
+
+                                var content = new StringContent(JsonConvert.SerializeObject(apgRequest), Encoding.UTF8, "application/json");
+                                var apgRequestMessage = new HttpRequestMessage
+                                {
+                                    Method = HttpMethod.Post,
+                                    RequestUri = new Uri(ParcelGenerationUrl.Value),
+                                    Content = content,
+                                };
+                                using var apgResponse = await apgClient.SendAsync(apgRequestMessage);
+                                httpstatus = apgResponse.StatusCode;
+
+                                var apgBody = await apgResponse.Content.ReadAsStringAsync();
+
+                                apiRequestResponse.ResponseBody = apgBody;
+                                apiRequestResponse.ResponseDateTime = DateTime.Now;
+                                apiRequestResponse.Duration = (apiRequestResponse.ResponseDateTime - apiRequestResponse.RequestDateTime).Seconds;
+
+                                await _apiRequestResponseRepository.InsertAsync(apiRequestResponse).ConfigureAwait(false);
+
+                                if (httpstatus == HttpStatusCode.OK)
+                                {
+
+                                    //var split = apgBody.Split(",");
+                                    //var concatinated = split[0] + ", " + split[1] + "}]";
+
+                                    var apgResult = JsonConvert.DeserializeObject<List<APGResponse>>(apgBody);
+
+                                    if (apgResult != null)
+                                    {
+                                        if (apgResult[0].status == "Successfully Saved")
+                                        {
+                                            //newItemIdFromSPS = apgResult[0].tracking;
+                                            newItemIdFromSPS = apgResult[0].registeredCode;
+
+                                            if (string.IsNullOrWhiteSpace(newItemIdFromSPS)) result.Errors.Add("Insufficient Pool Item ID");
+                                            else
+                                            {
+                                                try
+                                                {
+                                                    await InsertUpdateTrackingNumber(newItemIdFromSPS, customerCode, cust.Id, input.ProductCode, dispatchTemp, isSelfGenerated: false);
+
+                                                    result.ItemID = newItemIdFromSPS;
+                                                    result.Status = SUCCESS;
+                                                }
+                                                catch (Exception ex)
+                                                {
+                                                    result.Status = FAILED;
+                                                    result.Errors.Add(ex.Message);
+                                                }
+                                                input.ItemID = newItemIdFromSPS;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            result.APIItemID = apgResult[0].tracking;
+                                            result.Status = FAILED;
+                                            result.Errors.Add(apgResult[0].status);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        result.APIItemID = "";
+                                        result.Status = FAILED;
+                                        result.Errors.Add("Response was empty.");
+                                    }
+
+                                }
+                                else
+                                {
+                                    if (httpstatus == HttpStatusCode.Unauthorized) apgToken = await GetAPGToken();
+                                    else
+                                    {
+                                        result.APIItemID = "";
+                                        result.Status = FAILED;
+                                        result.Errors.Add(httpstatus.ToString());
+                                    }
+                                }
+                            }
+                            while (httpstatus == HttpStatusCode.Unauthorized);
+
+
+
+                            if (result.Errors.Count == 0)
+                            {
+                                var newItem = await _itemRepository.FirstOrDefaultAsync(x =>
+                                                                                        x.DispatchID.Equals(dispatchTemp.Id) &&
+                                                                                        x.Id.Equals(input.ItemID)
+                                                                                   );
+
+
+                                if (newItem is null && newItemIdFromSPS is not null)
+                                {
+                                    newItem = await _itemRepository.InsertAsync(new Item
+                                    {
+                                        Id = newItemIdFromSPS,
+                                        DispatchID = dispatchTemp.Id,
+                                        BagID = null,
+                                        DispatchDate = dispatchTemp.DispatchDate,
+                                        Month = 0,
+                                        PostalCode = input.PostalCode,
+                                        ServiceCode = input.ServiceCode,
+                                        ProductCode = input.ProductCode,
+                                        CountryCode = input.RecipientCountry,
+                                        Weight = item_weight,
+                                        BagNo = "",
+                                        SealNo = "",
+                                        Price = 0m,
+                                        ItemValue = item_value,
+                                        ItemDesc = item_description,
+                                        RecpName = input.RecipientName,
+                                        TelNo = input.RecipientContactNo,
+                                        Email = input.RecipientEmail,
+                                        Address = input.RecipientAddress,
+                                        Postcode = input.RecipientPostcode,
+                                        City = input.RecipientCity,
+                                        Address2 = "",
+                                        AddressNo = "",
+                                        State = input.RecipientState,
+                                        Length = 0,
+                                        Width = 0,
+                                        Height = 0,
+                                        Qty = 0,
+                                        TaxPayMethod = "",
+                                        IdentityType = "",
+                                        PassportNo = input.IdentityNo
+                                    });
+
+                                    #region Item Topup Value
+                                    var itemTopupValue = await GetItemTopupValueFromPostalMaintenance(input.PostalCode, input.ServiceCode, input.ProductCode);
+                                    newItem.ItemValue = newItem.ItemValue is null ? 0m + itemTopupValue : (decimal)newItem.ItemValue + itemTopupValue;
+
+                                    #endregion
+
+                                }
+                                else
+                                {
+                                    newItem.DispatchID = dispatchTemp.Id;
+                                    newItem.DispatchDate = dispatchTemp.DispatchDate;
+                                    newItem.Weight = item_weight;
+                                    newItem.ItemValue = item_value;
+                                    newItem.ItemDesc = item_description;
+                                    newItem.RecpName = input.RecipientName;
+                                    newItem.TelNo = input.RecipientContactNo;
+                                    newItem.Email = input.RecipientEmail;
+                                    newItem.Address = input.RecipientAddress;
+                                    newItem.City = input.RecipientCity;
+                                    newItem.Postcode = input.RecipientPostcode;
+                                    newItem.CountryCode = input.RecipientCountry;
+                                    newItem.RefNo = input.RefNo;
+                                    newItem.HSCode = input.ItemList[0].HSCode;
                                     newItem.SenderName = input.SenderName;
                                     newItem.IOSSTax = input.IOSSTax;
                                     newItem.AddressNo = input.AddressNo;

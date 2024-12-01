@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
-public class PreRegisterItem
+public class PreRegisterItems
 {
     [Required]
     public string ClientKey { get; set; }
@@ -34,35 +34,30 @@ public class PreRegisterItem
     [Required]
     public string RecipientCountry { get; set; }
     [Required]
+    public List<ItemDetail> ItemList { get; set; }
+    public string PoolItemId { get; set; }
+}
+
+public class ItemDetail 
+{
+    [Required]
     public decimal Weight { get; set; }
     [Required]
     public decimal ItemValue { get; set; }
     [Required]
     public string ItemDesc { get; set; }
-
-    public string PoolItemId { get; set; }
+    [Required]
+    public int Qty { get; set; }
+    [Required]
+    public string HSCode { get; set; }
 }
 
-public class InPreRegisterItem : PreRegisterItem
+public class InPreRegisterItems : PreRegisterItems
 {
-    public string HSCode { get; set; }
     public string SenderName { get; set; }
     public string IOSSTax { get; set; }
     public string AddressNo { get; set; }
     public string IdentityType { get; set; }
     public string IdentityNo { get; set; }
     public string PostOfficeName { get; set; }
-}
-
-public class OutPreRegisterItem
-{
-    public string Status { get; set; }
-    public List<string> Errors { get; set; }
-    public string RefNo { get; set; }
-    public string ResponseID { get; set; }
-    public string ItemID { get; set; }
-    public string APIItemID { get; set; }
-    public string SignatureHash { get; set; }
-    public string Destino { get; set; }
-    public string Remarks { get; set; }
 }
