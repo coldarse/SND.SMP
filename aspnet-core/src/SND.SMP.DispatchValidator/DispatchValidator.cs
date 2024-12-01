@@ -23,37 +23,29 @@ namespace SND.SMP.DispatchValidator
         private const string SERVICE_DE = "DE";
         private const int ID_LENGTH = 13;
         private const decimal totalWeightLimitForCountry_NG = 30;
-        private static readonly string[] expectedHeaders = new string[]
-        {
+        private static readonly string[] expectedHeaders =
+        [
             "Postal", "Dispatch Date", "Service", "Product Code", "Bag No", "Country", "Weight",
             "Tracking Number", "Seal Number", "Dispatch Name", "Item Value", "Item Desc", "Recp Name",
             "Tel No", "Email", "Address", "Postcode", "City", "Address Line 2", "Address No",
             "Identity No.", "Identity Type", "State", "Length", "Width", "Height",
             "Tax Payment Method", "HS Code", "Qty"
-        };
-        private uint QueueId { get; set; }
+        ];
+
         private static string FilePath { get; set; }
+        
         private string FileType { get; set; }
         private string CustomerCode { get; set; }
         private string ServiceCode { get; set; }
         private string PostalCode { get; set; }
+        private string Currency { get; set; }
         private long CurrencyId { get; set; }
+        private uint QueueId { get; set; }
+        private int ItemRow { get; set; } = 0;
+        private int ItemCount { get; set; } = 0;
         private int BlockSize { get; set; } = 50;
-
-        private int itemRow { get; set; }
-
         private List<string> ListPostalCountry { get; set; }
         private DispatchProfileDto DispatchProfile { get; set; }
-
-        private string Currency { get; set; }
-
-        private DispatchPricer Pricer { get; set; }
-        private int ItemCount { get; set; } = 0;
-        private decimal TotalWeight { get; set; } = 0m;
-        private decimal TotalPrice { get; set; } = 0m;
-
-
-
 
 
         public DispatchValidator() { }
@@ -64,18 +56,18 @@ namespace SND.SMP.DispatchValidator
             BlockSize = blockSize;
 
             using db dbConn = new();
-            var hasRunning = dbConn.Queues
+            var hasRunning = await dbConn.Queues
                 .Where(u => u.EventType == QueueEnumConst.EVENT_TYPE_DISPATCH_VALIDATE)
                 .Where(u => u.Status == QueueEnumConst.STATUS_RUNNING)
-                .Any();
+                .AnyAsync();
 
             if (hasRunning) return;
 
-            var newTask = dbConn.Queues
+            var newTask = await dbConn.Queues
                 .Where(u => u.EventType == QueueEnumConst.EVENT_TYPE_DISPATCH_VALIDATE)
                 .Where(u => u.Status == QueueEnumConst.STATUS_NEW)
                 .OrderBy(u => u.DateCreated)
-                .FirstOrDefault();
+                .FirstOrDefaultAsync();
 
             if (newTask is not null)
             {
@@ -92,17 +84,17 @@ namespace SND.SMP.DispatchValidator
             if (!string.IsNullOrWhiteSpace(FilePath))
             {
                 var fileProfile = "";
-                using db chibiDB = new();
-                var dispatchFile = chibiDB.Chibis.FirstOrDefault(x => x.URL.Equals(FilePath));
+                var dispatchFile = await dbConn.Chibis.FirstOrDefaultAsync(x => x.URL.Equals(FilePath));
                 if (dispatchFile is not null)
                 {
-                    var dispatchFilePair = chibiDB.Chibis.Where(x => x.OriginalName.Equals(dispatchFile.OriginalName)).ToList();
+                    var dispatchFilePair = await dbConn.Chibis.Where(x => x.OriginalName.Equals(dispatchFile.OriginalName)).ToListAsync();
                     var jsonDispatchFile = dispatchFilePair.FirstOrDefault(x => x.URL.Contains("json"));
                     fileProfile = jsonDispatchFile.URL;
                 }
-                var fileString = await FileServer.GetFileStreamAsString(fileProfile);
+                
+                var fileString = fileProfile.Equals("") ? "" : await FileServer.GetFileStreamAsString(fileProfile);
 
-                if (fileString is not null)
+                if (!string.IsNullOrEmpty(fileString))
                 {
                     DispatchProfile = JsonConvert.DeserializeObject<DispatchProfileDto>(fileString);
 
@@ -112,9 +104,7 @@ namespace SND.SMP.DispatchValidator
                         ServiceCode = DispatchProfile.ServiceCode;
                         PostalCode = DispatchProfile.PostalCode;
 
-                        dbConn.DispatchValidations
-                            .RemoveRange(dbConn.DispatchValidations
-                            .Where(u => u.DispatchNo == DispatchProfile.DispatchNo));
+                        dbConn.DispatchValidations.RemoveRange(dbConn.DispatchValidations.Where(u => u.DispatchNo == DispatchProfile.DispatchNo));
 
                         await dbConn.DispatchValidations.AddAsync(new EF.Dispatchvalidation
                         {
@@ -131,9 +121,9 @@ namespace SND.SMP.DispatchValidator
                             Status = DispatchValidationEnumConst.STATUS_RUNNING,
                             TookInSec = 0,
                             ValidationProgress = 0
-                        }).ConfigureAwait(false);
+                        });
 
-                        await dbConn.SaveChangesAsync();
+                        await dbConn.SaveChangesAsync().ConfigureAwait(false);
 
                         if (FileType == DispatchEnumConst.ImportFileType.Excel.ToString())
                         {
@@ -572,7 +562,7 @@ namespace SND.SMP.DispatchValidator
         //     }
         //     catch (Exception ex)
         //     {
-        //         validationResult_Others.Message = ex.InnerException != null ? ex.InnerException.Message : string.Format("Row : {0} - {1}", itemRow, ex.Message);
+        //         validationResult_Others.Message = ex.InnerException != null ? ex.InnerException.Message : string.Format("Row : {0} - {1}", ItemRow, ex.Message);
         //         validations.Add(validationResult_Others);
 
         //         await LogQueueError(new QueueErrorEventArg
@@ -713,7 +703,7 @@ namespace SND.SMP.DispatchValidator
                 foreach (DispatchRow row in preparedDispatchRows)
                 {
                     rowTouched++;
-                    itemRow = rowTouched;
+                    ItemRow = rowTouched;
 
                     var price = pricer.CalculatePrice(countryCode: row.CountryCode, weight: row.Weight, state: row.State, city: row.City, postcode: row.PostalCode);
 
@@ -781,7 +771,7 @@ namespace SND.SMP.DispatchValidator
 
                         await dbConn.SaveChangesAsync().ConfigureAwait(false);
                     }
-                    
+
                     #endregion Validation Progress
                 }
 
@@ -920,7 +910,7 @@ namespace SND.SMP.DispatchValidator
                 //         }
 
                 //         rowTouched++;
-                //         itemRow = rowTouched;
+                //         ItemRow = rowTouched;
 
                 //         #region Validation Progress
                 //         var perc = Convert.ToInt32(Convert.ToDecimal(rowTouched) / Convert.ToDecimal(rowCount) * 100);
@@ -1189,7 +1179,7 @@ namespace SND.SMP.DispatchValidator
             }
             catch (Exception ex)
             {
-                validationResult_Others.Message = ex.InnerException != null ? ex.InnerException.Message : string.Format("Row : {0} - {1}", itemRow, ex.Message);
+                validationResult_Others.Message = ex.InnerException != null ? ex.InnerException.Message : string.Format("Row : {0} - {1}", ItemRow, ex.Message);
                 validations.Add(validationResult_Others);
 
                 await LogQueueError(new QueueErrorEventArg
