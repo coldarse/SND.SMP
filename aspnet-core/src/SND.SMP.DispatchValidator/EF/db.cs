@@ -37,7 +37,7 @@ public partial class db : DbContext
 
     public virtual DbSet<Dispatch> Dispatches { get; set; }
 
-    public virtual DbSet<Dispatchvalidation> Dispatchvalidations { get; set; }
+    public virtual DbSet<Dispatchvalidation> DispatchValidations { get; set; }
 
     public virtual DbSet<Item> Items { get; set; }
 

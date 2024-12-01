@@ -51,21 +51,7 @@ namespace SND.SMP.DispatchValidator
         private int ItemCount { get; set; } = 0;
         private decimal TotalWeight { get; set; } = 0m;
         private decimal TotalPrice { get; set; } = 0m;
-        private List<DispatchValidateDto> validations { get; set; } = [];
-        private DispatchValidateDto validationResult_dispatch_IsDuplicate = new() { Category = "Duplicated Dispatch No." };
-        private DispatchValidateDto validationResult_dispatch_IsParticularsNotTally = new() { Category = "Dispatch Particulars Not Tally" };
-        private DispatchValidateDto validationResult_dispatch_Overweight = new() { Category = "Dispatch Overweight" };
-        private DispatchValidateDto validationResult_bag_IsDuplicate = new() { Category = "Duplicated Bag No" };
-        private DispatchValidateDto validationResult_id_IsDuplicate = new() { Category = "Duplicated Item ID" };
-        private DispatchValidateDto validationResult_id_HasInvalidLength = new() { Category = "Invalid Length" };
-        private DispatchValidateDto validationResult_id_HasInvalidPrefixSuffix = new() { Category = "Invalid Prefix & Suffix" };
-        private DispatchValidateDto validationResult_id_HasInvalidCheckDigit = new() { Category = "Invalid Check Digit" };
-        private DispatchValidateDto validationResult_country_HasInvalidCountry = new() { Category = "Invalid Country Code" };
-        private DispatchValidateDto validationResult_wallet_InsufficientBalance = new() { Category = "Insufficient Wallet Balance" };
-        private DispatchValidateDto validationResult_ioss_missing = new() { Category = "Missing IOSS" };
-        private DispatchValidateDto validationResult_trackingno_IsPreRegistered = new() { Category = "Unregistered Tracking Number(s)" };
-        private DispatchValidateDto validationResult_trackingno_IsInvalid = new() { Category = "Invalid Tracking Number(s)" };
-        private DispatchValidateDto validationResult_Others = new() { Category = "Caught Error" };
+
 
 
 
@@ -77,15 +63,15 @@ namespace SND.SMP.DispatchValidator
             FileType = fileType;
             BlockSize = blockSize;
 
-            using db db = new();
-            var hasRunning = db.Queues
+            using db dbConn = new();
+            var hasRunning = dbConn.Queues
                 .Where(u => u.EventType == QueueEnumConst.EVENT_TYPE_DISPATCH_VALIDATE)
                 .Where(u => u.Status == QueueEnumConst.STATUS_RUNNING)
                 .Any();
 
             if (hasRunning) return;
 
-            var newTask = db.Queues
+            var newTask = dbConn.Queues
                 .Where(u => u.EventType == QueueEnumConst.EVENT_TYPE_DISPATCH_VALIDATE)
                 .Where(u => u.Status == QueueEnumConst.STATUS_NEW)
                 .OrderBy(u => u.DateCreated)
@@ -100,7 +86,7 @@ namespace SND.SMP.DispatchValidator
                 newTask.ErrorMsg = null;
                 newTask.TookInSec = 0;
 
-                await db.SaveChangesAsync().ConfigureAwait(false);
+                await dbConn.SaveChangesAsync().ConfigureAwait(false);
             }
 
             if (!string.IsNullOrWhiteSpace(FilePath))
@@ -126,11 +112,11 @@ namespace SND.SMP.DispatchValidator
                         ServiceCode = DispatchProfile.ServiceCode;
                         PostalCode = DispatchProfile.PostalCode;
 
-                        db.Dispatchvalidations
-                            .RemoveRange(db.Dispatchvalidations
+                        dbConn.DispatchValidations
+                            .RemoveRange(dbConn.DispatchValidations
                             .Where(u => u.DispatchNo == DispatchProfile.DispatchNo));
 
-                        await db.Dispatchvalidations.AddAsync(new EF.Dispatchvalidation
+                        await dbConn.DispatchValidations.AddAsync(new EF.Dispatchvalidation
                         {
                             DispatchNo = DispatchProfile.DispatchNo,
                             CustomerCode = DispatchProfile.AccNo,
@@ -147,7 +133,7 @@ namespace SND.SMP.DispatchValidator
                             ValidationProgress = 0
                         }).ConfigureAwait(false);
 
-                        await db.SaveChangesAsync();
+                        await dbConn.SaveChangesAsync();
 
                         if (FileType == DispatchEnumConst.ImportFileType.Excel.ToString())
                         {
@@ -169,7 +155,7 @@ namespace SND.SMP.DispatchValidator
 
                 var tempRow = new DispatchRow
                 {
-                    Row = ItemCount + 1,
+                    Row = (ItemCount + 1).ToString(),
                     PostalCode = reader[0] == null ? "" : reader[0].ToString(),
                     DispatchDate = DateOnly.FromDateTime(
                             DateTime.TryParseExact(
@@ -207,870 +193,382 @@ namespace SND.SMP.DispatchValidator
                     TaxPaymentMethod = reader[26] == null ? "" : reader[26].ToString(),
                     HSCode = reader[27] == null ? "" : reader[27].ToString(),
                     Quantity = reader[28] == null ? 0 : Convert.ToInt32(reader[28]),
-                    Price = Pricer.CalculatePrice(countryCode: reader[5]?.ToString(), weight: Convert.ToDecimal(reader[6]), state: reader[22]?.ToString(), city: reader[17]?.ToString(), postcode: reader[16]?.ToString())
+                    // Price = Pricer.CalculatePrice(countryCode: reader[5]?.ToString(), weight: Convert.ToDecimal(reader[6]), state: reader[22]?.ToString(), city: reader[17]?.ToString(), postcode: reader[16]?.ToString())
                 };
 
-                if (Pricer.ErrorMsg != "") throw new Exception(Pricer.ErrorMsg);
+                // if (Pricer.ErrorMsg != "") throw new Exception(Pricer.ErrorMsg);
 
                 rows.Add(tempRow);
 
-                ItemCount++;
-                TotalWeight += tempRow.Weight;
-                TotalPrice += tempRow.Price;
+                // ItemCount++;
+                // TotalWeight += tempRow.Weight;
+                // TotalPrice += tempRow.Price;
             }
             return rows;
         }
 
-        private async Task PerformBlockValidations(List<DispatchRow> rows)
-        {
-            int totalRows = rows.Count;
-            int processedRows = 0;
+        // private async Task PerformBlockValidations(List<DispatchRow> rows)
+        // {
+        //     int totalRows = rows.Count;
+        //     int processedRows = 0;
 
-            for (int i = 0; i < totalRows; i += BlockSize)
-            {
-                var dispatch_Rows = rows.Skip(i).Take(BlockSize).ToList();
-                var dispatch_Items = dispatch_Rows.Select(x => x.ItemId).ToList();
-                var dispatch_Bags = dispatch_Rows.Select(x => x.BagNo).ToList();
-                var dispatch_IOSSs = dispatch_Rows.Select(x => new DispatchValidateIOSSDto { Row = x.Row, TrackingNo = x.ItemId, CountryCode = x.CountryCode, IOSS = x.TaxPaymentMethod }).ToList();
-                var dispatch_Countries = dispatch_Rows.Select(x => new DispatchValidateCountryDto { Id = x.ItemId, CountryCode = x.CountryCode }).ToList();
-                var dispatch_Particulars = dispatch_Rows.Select(x => new DispatchValidateParticularsDto { Id = x.ItemId, DispatchNo = x.DispatchNo, PostalCode = x.PostalCode, ServiceCode = x.ServiceCode, ProductCode = x.ProductCode }).ToList();
+        //     for (int i = 0; i < totalRows; i += BlockSize)
+        //     {
+        //         var dispatch_Rows = rows.Skip(i).Take(BlockSize).ToList();
+        //         var dispatch_Items = dispatch_Rows.Select(x => x.ItemId).ToList();
+        //         var dispatch_Bags = dispatch_Rows.Select(x => x.BagNo).ToList();
+        //         var dispatch_IOSSs = dispatch_Rows.Select(x => new DispatchValidateIOSSDto { Row = x.Row, TrackingNo = x.ItemId, CountryCode = x.CountryCode, IOSS = x.TaxPaymentMethod }).ToList();
+        //         var dispatch_Countries = dispatch_Rows.Select(x => new DispatchValidateCountryDto { Id = x.ItemId, CountryCode = x.CountryCode }).ToList();
+        //         var dispatch_Particulars = dispatch_Rows.Select(x => new DispatchValidateParticularsDto { Id = x.ItemId, DispatchNo = x.DispatchNo, PostalCode = x.PostalCode, ServiceCode = x.ServiceCode, ProductCode = x.ProductCode }).ToList();
 
-                // Perform validations on the current block
-                await Task.WhenAll(
-                    Task.Run(() => Id_IsDuplicate(ref validationResult_id_IsDuplicate, dispatch_Items)),
-                    Task.Run(() => Bag_IsDuplicate(ref validationResult_bag_IsDuplicate, dispatch_Bags)),
-                    Task.Run(() => IOSS_Missing(ref validationResult_ioss_missing, dispatch_IOSSs, DispatchProfile.PostalCode[..2])),
-                    Task.Run(() => Id_HasInvalidPrefixSuffix(ref validationResult_id_HasInvalidPrefixSuffix, dispatch_Items)),
-                    Task.Run(() =>
-                                    {
-                                        if (dispatch_Countries.Any(u => u.CountryCode != "NG") && ServiceCode == SERVICE_DE) // bypass checking for Country Code NG
-                                        {
-                                            Id_HasInvalidCheckDigit(ref validationResult_id_HasInvalidCheckDigit, dispatch_Items);
-                                            Id_HasInvalidLength(ref validationResult_id_HasInvalidLength, dispatch_Items);
-                                        }
-                                    }),
-                    Task.Run(() =>
-                                    {
-                                        if (dispatch_Countries.Any(u => u.CountryCode == "NG") && ServiceCode == SERVICE_DE) // checking for Country Code NG
-                                        {
-                                            Dispatch_IsOverweight(ref validationResult_dispatch_Overweight, TotalWeight);
-                                        }
-                                    }),
-                    Task.Run(() => Country_IsInvalidCountry(ref validationResult_country_HasInvalidCountry, dispatch_Countries)),
-                    Task.Run(() => TrackingNo_IsPreRegistered(ref validationResult_trackingno_IsPreRegistered, dispatch_Items, CustomerCode, DispatchProfile.ProductCode)),
-                    Task.Run(() => TrackingNo_IsInvalid(ref validationResult_trackingno_IsInvalid, dispatch_Items, CustomerCode, DispatchProfile.ProductCode, DispatchProfile.PostalCode)),
-                    Task.Run(() => Dispatch_IsParticularsNotTally(ref validationResult_dispatch_IsParticularsNotTally, dispatch_Particulars))
-                // Add more validation tasks as needed
-                );
+        //         // Perform validations on the current block
+        //         await Task.WhenAll(
+        //             Task.Run(() => Id_IsDuplicate(ref validationResult_id_IsDuplicate, dispatch_Items)),
+        //             Task.Run(() => Bag_IsDuplicate(ref validationResult_bag_IsDuplicate, dispatch_Bags)),
+        //             Task.Run(() => IOSS_Missing(ref validationResult_ioss_missing, dispatch_IOSSs, DispatchProfile.PostalCode[..2])),
+        //             Task.Run(() => Id_HasInvalidPrefixSuffix(ref validationResult_id_HasInvalidPrefixSuffix, dispatch_Items)),
+        //             Task.Run(() =>
+        //                             {
+        //                                 if (dispatch_Countries.Any(u => u.CountryCode != "NG") && ServiceCode == SERVICE_DE) // bypass checking for Country Code NG
+        //                                 {
+        //                                     Id_HasInvalidCheckDigit(ref validationResult_id_HasInvalidCheckDigit, dispatch_Items);
+        //                                     Id_HasInvalidLength(ref validationResult_id_HasInvalidLength, dispatch_Items);
+        //                                 }
+        //                             }),
+        //             Task.Run(() =>
+        //                             {
+        //                                 if (dispatch_Countries.Any(u => u.CountryCode == "NG") && ServiceCode == SERVICE_DE) // checking for Country Code NG
+        //                                 {
+        //                                     Dispatch_IsOverweight(ref validationResult_dispatch_Overweight, TotalWeight);
+        //                                 }
+        //                             }),
+        //             Task.Run(() => Country_IsInvalidCountry(ref validationResult_country_HasInvalidCountry, dispatch_Countries)),
+        //             Task.Run(() => TrackingNo_IsPreRegistered(ref validationResult_trackingno_IsPreRegistered, dispatch_Items, CustomerCode, DispatchProfile.ProductCode)),
+        //             Task.Run(() => TrackingNo_IsInvalid(ref validationResult_trackingno_IsInvalid, dispatch_Items, CustomerCode, DispatchProfile.ProductCode, DispatchProfile.PostalCode)),
+        //             Task.Run(() => Dispatch_IsParticularsNotTally(ref validationResult_dispatch_IsParticularsNotTally, dispatch_Particulars))
+        //         // Add more validation tasks as needed
+        //         );
 
-                processedRows += dispatch_Rows.Count;
+        //         processedRows += dispatch_Rows.Count;
 
-                // Update progress
-                int progress = (int)((double)processedRows / totalRows * 100);
-                await UpdateValidationProgress(progress);
-            }
-        }
+        //         // Update progress
+        //         int progress = (int)((double)processedRows / totalRows * 100);
+        //         await UpdateValidationProgress(progress);
+        //     }
+        // }
 
-        private async Task UpdateValidationProgress(int progress)
-        {
-            using var db = new db();
-            var dispatchValidation = await db.Dispatchvalidations.FirstOrDefaultAsync(v => v.DispatchNo == DispatchProfile.DispatchNo);
+        // private async Task UpdateValidationProgress(int progress)
+        // {
+        //     using var db = new db();
+        //     var dispatchValidation = await dbConn.DispatchValidations.FirstOrDefaultAsync(v => v.DispatchNo == DispatchProfile.DispatchNo);
 
-            if (dispatchValidation != null)
-            {
-                dispatchValidation.ValidationProgress = progress;
-                await db.SaveChangesAsync();
-            }
-        }
+        //     if (dispatchValidation != null)
+        //     {
+        //         dispatchValidation.ValidationProgress = progress;
+        //         await dbConn.SaveChangesAsync();
+        //     }
+        // }
 
-        private async Task IsDispatchDuplicate(db database, string DispatchNo)
-        {
-            var dispatchNoDuplicate = await database.Dispatches.FirstOrDefaultAsync(u => u.DispatchNo == DispatchNo);
+        // private async Task IsDispatchDuplicate(db database, string DispatchNo)
+        // {
+        //     var dispatchNoDuplicate = await database.Dispatches.FirstOrDefaultAsync(u => u.DispatchNo == DispatchNo);
 
-            if (dispatchNoDuplicate is null)
-            {
-                validationResult_dispatch_IsDuplicate.Message = $"{DispatchProfile.DispatchNo} already existed in system";
-            }
-        }
+        //     if (dispatchNoDuplicate is null)
+        //     {
+        //         validationResult_dispatch_IsDuplicate.Message = $"{DispatchProfile.DispatchNo} already existed in system";
+        //     }
+        // }
 
-        private void ResetVariables(db database)
-        {
-            validations = [];
-            validationResult_dispatch_IsDuplicate = new() { Category = "Duplicated Dispatch No." };
-            validationResult_dispatch_IsParticularsNotTally = new() { Category = "Dispatch Particulars Not Tally" };
-            validationResult_dispatch_Overweight = new() { Category = "Dispatch Overweight" };
-            validationResult_bag_IsDuplicate = new() { Category = "Duplicated Bag No" };
-            validationResult_id_IsDuplicate = new() { Category = "Duplicated Item ID" };
-            validationResult_id_HasInvalidLength = new() { Category = "Invalid Length" };
-            validationResult_id_HasInvalidPrefixSuffix = new() { Category = "Invalid Prefix & Suffix" };
-            validationResult_id_HasInvalidCheckDigit = new() { Category = "Invalid Check Digit" };
-            validationResult_country_HasInvalidCountry = new() { Category = "Invalid Country Code" };
-            validationResult_wallet_InsufficientBalance = new() { Category = "Insufficient Wallet Balance" };
-            validationResult_ioss_missing = new() { Category = "Missing IOSS" };
-            validationResult_trackingno_IsPreRegistered = new() { Category = "Unregistered Tracking Number(s)" };
-            validationResult_trackingno_IsInvalid = new() { Category = "Invalid Tracking Number(s)" };
-            validationResult_Others = new() { Category = "Caught Error" };
+        // private void ResetVariables(db database)
+        // {
+        //     validations = [];
+        //     validationResult_dispatch_IsDuplicate = new() { Category = "Duplicated Dispatch No." };
+        //     validationResult_dispatch_IsParticularsNotTally = new() { Category = "Dispatch Particulars Not Tally" };
+        //     validationResult_dispatch_Overweight = new() { Category = "Dispatch Overweight" };
+        //     validationResult_bag_IsDuplicate = new() { Category = "Duplicated Bag No" };
+        //     validationResult_id_IsDuplicate = new() { Category = "Duplicated Item ID" };
+        //     validationResult_id_HasInvalidLength = new() { Category = "Invalid Length" };
+        //     validationResult_id_HasInvalidPrefixSuffix = new() { Category = "Invalid Prefix & Suffix" };
+        //     validationResult_id_HasInvalidCheckDigit = new() { Category = "Invalid Check Digit" };
+        //     validationResult_country_HasInvalidCountry = new() { Category = "Invalid Country Code" };
+        //     validationResult_wallet_InsufficientBalance = new() { Category = "Insufficient Wallet Balance" };
+        //     validationResult_ioss_missing = new() { Category = "Missing IOSS" };
+        //     validationResult_trackingno_IsPreRegistered = new() { Category = "Unregistered Tracking Number(s)" };
+        //     validationResult_trackingno_IsInvalid = new() { Category = "Invalid Tracking Number(s)" };
+        //     validationResult_Others = new() { Category = "Caught Error" };
 
-            TotalPrice = 0m;
-            TotalWeight = 0m;
-            ItemCount = 0;
+        //     TotalPrice = 0m;
+        //     TotalWeight = 0m;
+        //     ItemCount = 0;
 
-            Pricer = new DispatchPricer(accNo: DispatchProfile.AccNo,
-                                        postalCode: DispatchProfile.PostalCode,
-                                        serviceCode: DispatchProfile.ServiceCode,
-                                        productCode: DispatchProfile.ProductCode,
-                                        rateOptionId: DispatchProfile.RateOptionId,
-                                        paymentMode: DispatchProfile.PaymentMode);
+        //     Pricer = new DispatchPricer(accNo: DispatchProfile.AccNo,
+        //                                 postalCode: DispatchProfile.PostalCode,
+        //                                 serviceCode: DispatchProfile.ServiceCode,
+        //                                 productCode: DispatchProfile.ProductCode,
+        //                                 rateOptionId: DispatchProfile.RateOptionId,
+        //                                 paymentMode: DispatchProfile.PaymentMode);
 
-            if (Pricer.ErrorMsg != "") throw new Exception(Pricer.ErrorMsg);
+        //     if (Pricer.ErrorMsg != "") throw new Exception(Pricer.ErrorMsg);
 
-            ListPostalCountry = [.. database.Postalcountries
-                                .Where(u => u.PostalCode == PostalCode)
-                                .Select(u => u.CountryCode)];
+        //     ListPostalCountry = [.. database.Postalcountries
+        //                         .Where(u => u.PostalCode == PostalCode)
+        //                         .Select(u => u.CountryCode)];
 
-            var currency = database.Currencies.FirstOrDefault(c => c.Id == Pricer.CurrencyId);
-            CurrencyId = currency.Id;
-            Currency = currency.Abbr;
-        }
+        //     var currency = database.Currencies.FirstOrDefault(c => c.Id == Pricer.CurrencyId);
+        //     CurrencyId = currency.Id;
+        //     Currency = currency.Abbr;
+        // }
 
-        private async Task DeductWalletBalanceAndRecordTransaction(db database)
-        {
-            var wallet = await database.Wallets.FirstOrDefaultAsync(w => w.Customer == CustomerCode && w.Currency == CurrencyId) ?? throw new InvalidOperationException("Wallet not found.");
-            decimal initialBalance = wallet.Balance;
-            wallet.Balance -= TotalPrice;
+        // private async Task DeductWalletBalanceAndRecordTransaction(db database)
+        // {
+        //     var wallet = await database.Wallets.FirstOrDefaultAsync(w => w.Customer == CustomerCode && w.Currency == CurrencyId) ?? throw new InvalidOperationException("Wallet not found.");
+        //     decimal initialBalance = wallet.Balance;
+        //     wallet.Balance -= TotalPrice;
 
-            // Add transaction for the deduction
-            await database.CustomerTransactions.AddAsync(new CustomerTransaction
-            {
-                Wallet = wallet.Id,
-                Customer = wallet.Customer,
-                PaymentMode = wallet.EWalletType.ToString(),
-                Currency = Currency,
-                TransactionType = "Pre-Alert",
-                Amount = -TotalPrice,
-                ReferenceNo = DispatchProfile.DispatchNo,
-                Description = $"Initial Balance: {Currency} {initialBalance}. Deducted {Currency} {decimal.Round(TotalPrice, 2)} from {wallet.Customer}'s {wallet.Id} Wallet.",
-                TransactionDate = DateTime.Now
-            });
+        //     // Add transaction for the deduction
+        //     await database.CustomerTransactions.AddAsync(new CustomerTransaction
+        //     {
+        //         Wallet = wallet.Id,
+        //         Customer = wallet.Customer,
+        //         PaymentMode = wallet.EWalletType.ToString(),
+        //         Currency = Currency,
+        //         TransactionType = "Pre-Alert",
+        //         Amount = -TotalPrice,
+        //         ReferenceNo = DispatchProfile.DispatchNo,
+        //         Description = $"Initial Balance: {Currency} {initialBalance}. Deducted {Currency} {decimal.Round(TotalPrice, 2)} from {wallet.Customer}'s {wallet.Id} Wallet.",
+        //         TransactionDate = DateTime.Now
+        //     });
 
-            // Add dispatch used amount record
-            await database.DispatchUsedAmounts.AddAsync(new DispatchUsedAmount
-            {
-                CustomerCode = wallet.Customer,
-                Wallet = wallet.Id,
-                Amount = TotalPrice,
-                DispatchNo = DispatchProfile.DispatchNo,
-                DateTime = DateTime.Now,
-                Description = "Pre-Alert"
-            });
+        //     // Add dispatch used amount record
+        //     await database.DispatchUsedAmounts.AddAsync(new DispatchUsedAmount
+        //     {
+        //         CustomerCode = wallet.Customer,
+        //         Wallet = wallet.Id,
+        //         Amount = TotalPrice,
+        //         DispatchNo = DispatchProfile.DispatchNo,
+        //         DateTime = DateTime.Now,
+        //         Description = "Pre-Alert"
+        //     });
 
-            await database.SaveChangesAsync();
-        }
+        //     await database.SaveChangesAsync();
+        // }
 
-        private async Task<bool> ProcessValidationResults(db database, bool allowUploadIfInsufficientFund, bool allowUploadIfUnregisteredIds)
-        {
-            bool isValid = true;
+        // private async Task<bool> ProcessValidationResults(db database, bool allowUploadIfInsufficientFund, bool allowUploadIfUnregisteredIds)
+        // {
+        //     bool isValid = true;
 
-            // Check each validation result
-            if (!string.IsNullOrWhiteSpace(validationResult_dispatch_IsDuplicate.Message))
-            {
-                isValid = false;
-                validations.Add(validationResult_dispatch_IsDuplicate);
-            }
+        //     // Check each validation result
+        //     if (!string.IsNullOrWhiteSpace(validationResult_dispatch_IsDuplicate.Message))
+        //     {
+        //         isValid = false;
+        //         validations.Add(validationResult_dispatch_IsDuplicate);
+        //     }
 
-            if (validationResult_dispatch_IsParticularsNotTally.ItemIds.Count != 0 || !string.IsNullOrWhiteSpace(validationResult_dispatch_IsParticularsNotTally.Message))
-            {
-                isValid = false;
-                validations.Add(validationResult_dispatch_IsParticularsNotTally);
-            }
+        //     if (validationResult_dispatch_IsParticularsNotTally.ItemIds.Count != 0 || !string.IsNullOrWhiteSpace(validationResult_dispatch_IsParticularsNotTally.Message))
+        //     {
+        //         isValid = false;
+        //         validations.Add(validationResult_dispatch_IsParticularsNotTally);
+        //     }
 
-            if (!string.IsNullOrWhiteSpace(validationResult_dispatch_Overweight.Message))
-            {
-                isValid = false;
-                validations.Add(validationResult_dispatch_Overweight);
-            }
+        //     if (!string.IsNullOrWhiteSpace(validationResult_dispatch_Overweight.Message))
+        //     {
+        //         isValid = false;
+        //         validations.Add(validationResult_dispatch_Overweight);
+        //     }
 
-            if (validationResult_id_IsDuplicate.ItemIds.Count != 0 || !string.IsNullOrWhiteSpace(validationResult_id_IsDuplicate.Message))
-            {
-                isValid = false;
-                validations.Add(validationResult_id_IsDuplicate);
-            }
+        //     if (validationResult_id_IsDuplicate.ItemIds.Count != 0 || !string.IsNullOrWhiteSpace(validationResult_id_IsDuplicate.Message))
+        //     {
+        //         isValid = false;
+        //         validations.Add(validationResult_id_IsDuplicate);
+        //     }
 
-            if (validationResult_bag_IsDuplicate.ItemIds.Count != 0 || !string.IsNullOrWhiteSpace(validationResult_bag_IsDuplicate.Message))
-            {
-                isValid = false;
-                validations.Add(validationResult_bag_IsDuplicate);
-            }
+        //     if (validationResult_bag_IsDuplicate.ItemIds.Count != 0 || !string.IsNullOrWhiteSpace(validationResult_bag_IsDuplicate.Message))
+        //     {
+        //         isValid = false;
+        //         validations.Add(validationResult_bag_IsDuplicate);
+        //     }
 
-            if (validationResult_id_HasInvalidLength.ItemIds.Count != 0 || !string.IsNullOrWhiteSpace(validationResult_id_HasInvalidLength.Message))
-            {
-                isValid = false;
-                validations.Add(validationResult_id_HasInvalidLength);
-            }
+        //     if (validationResult_id_HasInvalidLength.ItemIds.Count != 0 || !string.IsNullOrWhiteSpace(validationResult_id_HasInvalidLength.Message))
+        //     {
+        //         isValid = false;
+        //         validations.Add(validationResult_id_HasInvalidLength);
+        //     }
 
-            if (validationResult_id_HasInvalidPrefixSuffix.ItemIds.Count != 0 || !string.IsNullOrWhiteSpace(validationResult_id_HasInvalidPrefixSuffix.Message))
-            {
-                isValid = false;
-                validations.Add(validationResult_id_HasInvalidPrefixSuffix);
-            }
+        //     if (validationResult_id_HasInvalidPrefixSuffix.ItemIds.Count != 0 || !string.IsNullOrWhiteSpace(validationResult_id_HasInvalidPrefixSuffix.Message))
+        //     {
+        //         isValid = false;
+        //         validations.Add(validationResult_id_HasInvalidPrefixSuffix);
+        //     }
 
-            if (validationResult_id_HasInvalidCheckDigit.ItemIds.Count != 0 || !string.IsNullOrWhiteSpace(validationResult_id_HasInvalidCheckDigit.Message))
-            {
-                isValid = false;
-                validations.Add(validationResult_id_HasInvalidCheckDigit);
-            }
+        //     if (validationResult_id_HasInvalidCheckDigit.ItemIds.Count != 0 || !string.IsNullOrWhiteSpace(validationResult_id_HasInvalidCheckDigit.Message))
+        //     {
+        //         isValid = false;
+        //         validations.Add(validationResult_id_HasInvalidCheckDigit);
+        //     }
 
-            if (validationResult_country_HasInvalidCountry.ItemIds.Count != 0 || !string.IsNullOrWhiteSpace(validationResult_country_HasInvalidCountry.Message))
-            {
-                isValid = false;
-                validations.Add(validationResult_country_HasInvalidCountry);
-            }
+        //     if (validationResult_country_HasInvalidCountry.ItemIds.Count != 0 || !string.IsNullOrWhiteSpace(validationResult_country_HasInvalidCountry.Message))
+        //     {
+        //         isValid = false;
+        //         validations.Add(validationResult_country_HasInvalidCountry);
+        //     }
 
-            if (validationResult_ioss_missing.ItemIds.Count != 0 || !string.IsNullOrWhiteSpace(validationResult_ioss_missing.Message))
-            {
-                isValid = false;
-                validations.Add(validationResult_ioss_missing);
-            }
+        //     if (validationResult_ioss_missing.ItemIds.Count != 0 || !string.IsNullOrWhiteSpace(validationResult_ioss_missing.Message))
+        //     {
+        //         isValid = false;
+        //         validations.Add(validationResult_ioss_missing);
+        //     }
 
-            if (validationResult_trackingno_IsInvalid.ItemIds.Count != 0 || !string.IsNullOrWhiteSpace(validationResult_trackingno_IsInvalid.Message))
-            {
-                isValid = false;
-                validations.Add(validationResult_trackingno_IsInvalid);
-            }
+        //     if (validationResult_trackingno_IsInvalid.ItemIds.Count != 0 || !string.IsNullOrWhiteSpace(validationResult_trackingno_IsInvalid.Message))
+        //     {
+        //         isValid = false;
+        //         validations.Add(validationResult_trackingno_IsInvalid);
+        //     }
 
-            if (validationResult_wallet_InsufficientBalance.ItemIds.Count != 0 || !string.IsNullOrWhiteSpace(validationResult_wallet_InsufficientBalance.Message))
-            {
-                isValid = allowUploadIfInsufficientFund;
-                validations.Add(validationResult_wallet_InsufficientBalance);
-            }
+        //     if (validationResult_wallet_InsufficientBalance.ItemIds.Count != 0 || !string.IsNullOrWhiteSpace(validationResult_wallet_InsufficientBalance.Message))
+        //     {
+        //         isValid = allowUploadIfInsufficientFund;
+        //         validations.Add(validationResult_wallet_InsufficientBalance);
+        //     }
 
-            if (validationResult_trackingno_IsPreRegistered.ItemIds.Count != 0 || !string.IsNullOrWhiteSpace(validationResult_trackingno_IsPreRegistered.Message))
-            {
-                isValid = allowUploadIfUnregisteredIds;
-                validations.Add(validationResult_trackingno_IsPreRegistered);
-            }
+        //     if (validationResult_trackingno_IsPreRegistered.ItemIds.Count != 0 || !string.IsNullOrWhiteSpace(validationResult_trackingno_IsPreRegistered.Message))
+        //     {
+        //         isValid = allowUploadIfUnregisteredIds;
+        //         validations.Add(validationResult_trackingno_IsPreRegistered);
+        //     }
 
-            if (!isValid)
-            {
-                await ValidationsHandling(validations, DispatchProfile.DispatchNo, CustomerCode);
-            }
-            else
-            {
-                if (validations.Count == 1 && validations[0].Category == "Insufficient Wallet Balance")
-                {
-                    await ValidationsHandling(validations, DispatchProfile.DispatchNo, CustomerCode, true);
-                }
+        //     if (!isValid)
+        //     {
+        //         await ValidationsHandling(validations, DispatchProfile.DispatchNo, CustomerCode);
+        //     }
+        //     else
+        //     {
+        //         if (validations.Count == 1 && validations[0].Category == "Insufficient Wallet Balance")
+        //         {
+        //             await ValidationsHandling(validations, DispatchProfile.DispatchNo, CustomerCode, true);
+        //         }
 
-                if (validations.Any(u => u.Category.Equals("Unregistered Tracking Number(s)")))
-                {
-                    await ValidationsHandling(validations, DispatchProfile.DispatchNo, CustomerCode, true);
-                }
+        //         if (validations.Any(u => u.Category.Equals("Unregistered Tracking Number(s)")))
+        //         {
+        //             await ValidationsHandling(validations, DispatchProfile.DispatchNo, CustomerCode, true);
+        //         }
 
-                await DeductWalletBalanceAndRecordTransaction(database);
-            }
+        //         await DeductWalletBalanceAndRecordTransaction(database);
+        //     }
 
-            return isValid;
-        }
+        //     return isValid;
+        // }
 
-        private async Task<bool> CheckWalletBalance(db database)
-        {
-            var wallet = await database.Wallets.FirstOrDefaultAsync(w => w.Customer == CustomerCode && w.Currency == CurrencyId);
+        // private async Task<bool> CheckWalletBalance(db database)
+        // {
+        //     var wallet = await database.Wallets.FirstOrDefaultAsync(w => w.Customer == CustomerCode && w.Currency == CurrencyId);
 
-            if (wallet.Balance < TotalPrice)
-            {
-                var lack = TotalPrice - wallet.Balance;
-                validationResult_wallet_InsufficientBalance.Message = $"Insufficient fund by {Currency} {lack:N2}. Your wallet balance is {Currency} {wallet.Balance:N2}. Total payment is {Currency} {TotalPrice:N2}.";
+        //     if (wallet.Balance < TotalPrice)
+        //     {
+        //         var lack = TotalPrice - wallet.Balance;
+        //         validationResult_wallet_InsufficientBalance.Message = $"Insufficient fund by {Currency} {lack:N2}. Your wallet balance is {Currency} {wallet.Balance:N2}. Total payment is {Currency} {TotalPrice:N2}.";
 
-                return true;
-            }
-            return false;
-        }
+        //         return true;
+        //     }
+        //     return false;
+        // }
 
-        private async Task SaveValidationResults(db database, bool isValid, bool isFundLack, DateTime validationStart)
-        {
-            DateTime validationEnd = DateTime.Now;
-            double totalSeconds = Math.Round(validationEnd.Subtract(validationStart).TotalSeconds, 0);
+        // private async Task SaveValidationResults(db database, bool isValid, bool isFundLack, DateTime validationStart)
+        // {
+        //     DateTime validationEnd = DateTime.Now;
+        //     double totalSeconds = Math.Round(validationEnd.Subtract(validationStart).TotalSeconds, 0);
 
-            var dispatchValidation = await database.Dispatchvalidations.FirstOrDefaultAsync(v => v.DispatchNo == DispatchProfile.DispatchNo);
+        //     var dispatchValidation = await database.DispatchValidations.FirstOrDefaultAsync(v => v.DispatchNo == DispatchProfile.DispatchNo);
 
-            if (dispatchValidation != null)
-            {
-                dispatchValidation.IsValid = isValid ? 1u : 0u;
-                dispatchValidation.TookInSec = totalSeconds;
-                dispatchValidation.DateCompleted = validationEnd;
-                dispatchValidation.Status = DispatchValidationEnumConst.STATUS_FINISH;
-                dispatchValidation.ValidationProgress = 100;
-                dispatchValidation.IsFundLack = isFundLack ? 1u : 0u;
+        //     if (dispatchValidation != null)
+        //     {
+        //         dispatchValidation.IsValid = isValid ? 1u : 0u;
+        //         dispatchValidation.TookInSec = totalSeconds;
+        //         dispatchValidation.DateCompleted = validationEnd;
+        //         dispatchValidation.Status = DispatchValidationEnumConst.STATUS_FINISH;
+        //         dispatchValidation.ValidationProgress = 100;
+        //         dispatchValidation.IsFundLack = isFundLack ? 1u : 0u;
 
-                await database.SaveChangesAsync();
-            }
-        }
+        //         await database.SaveChangesAsync();
+        //     }
+        // }
 
-        private async Task PrepareImportQueue(db database, bool isValid, bool isFundLack, bool allowUploadIfInsufficientFund, DateTime validationStart)
-        {
-            var queueTask = await database.Queues.FirstOrDefaultAsync(x => x.Id == QueueId);
-            if (queueTask is not null)
-            {
-                DateTime dateImportCompleted = DateTime.Now;
-                var tookInSec = dateImportCompleted.Subtract(validationStart).TotalSeconds;
+        // private async Task PrepareImportQueue(db database, bool isValid, bool isFundLack, bool allowUploadIfInsufficientFund, DateTime validationStart)
+        // {
+        //     var queueTask = await database.Queues.FirstOrDefaultAsync(x => x.Id == QueueId);
+        //     if (queueTask is not null)
+        //     {
+        //         DateTime dateImportCompleted = DateTime.Now;
+        //         var tookInSec = dateImportCompleted.Subtract(validationStart).TotalSeconds;
 
-                queueTask.Status = QueueEnumConst.STATUS_FINISH;
-                queueTask.ErrorMsg = null;
-                queueTask.TookInSec = Math.Round(tookInSec, 0);
-                queueTask.StartTime = validationStart;
-                queueTask.EndTime = dateImportCompleted;
-                queueTask.DeleteFileOnFailed = 0;
-                queueTask.DeleteFileOnSuccess = 0;
+        //         queueTask.Status = QueueEnumConst.STATUS_FINISH;
+        //         queueTask.ErrorMsg = null;
+        //         queueTask.TookInSec = Math.Round(tookInSec, 0);
+        //         queueTask.StartTime = validationStart;
+        //         queueTask.EndTime = dateImportCompleted;
+        //         queueTask.DeleteFileOnFailed = 0;
+        //         queueTask.DeleteFileOnSuccess = 0;
 
-                if (isValid && (!isFundLack || allowUploadIfInsufficientFund))
-                {
-                    await database.Queues.AddAsync(new Queue
-                    {
-                        EventType = "Upload Dispatch",
-                        FilePath = FilePath,
-                        Status = QueueEnumConst.STATUS_NEW,
-                        DateCreated = DateTime.Now,
-                        DeleteFileOnFailed = 0,
-                        DeleteFileOnSuccess = 0,
-                        StartTime = DateTime.Now,
-                        EndTime = DateTime.MinValue,
-                        TookInSec = 0,
-                    }).ConfigureAwait(false);
-                }
-            }
-            await database.SaveChangesAsync();
-        }
-
-        private async Task ValidateFromExcel()
-        {
-            DateTime validationStart = DateTime.Now;
-            var validations = new List<DispatchValidateDto>();
-            bool isValid = true;
-            bool isFundLack = false;
-            using db database = new();
-
-            try
-            {
-                ResetVariables(database);
-
-                var fileStream = await FileServer.GetFileStream(FilePath);
-
-                await IsDispatchDuplicate(database, DispatchProfile.DispatchNo);
-
-                // Step 1: Parse the Excel file into a list of DispatchRow objects
-                var rows = ReadExcelFile(fileStream);
-
-                // Step 2: Perform block-based validations with progress tracking
-                await PerformBlockValidations(rows);
-
-                // Step 3: Check wallet balance
-                isFundLack = await CheckWalletBalance(database);
-
-                bool allowUploadIfInsufficientFund = false;
-                bool allowUploadIfUnregisteredIds = true;
-
-                var appSetting_insufficientFund = await database.ApplicationSettings.FirstOrDefaultAsync(u => u.Name.Equals("AllowUploadIfInsufficientFund"));
-                var appSetting_unregisteredId = await database.ApplicationSettings.FirstOrDefaultAsync(u => u.Name.Equals("AllowUploadIfUnregisteredIds"));
-
-                if (appSetting_insufficientFund is not null) allowUploadIfInsufficientFund = appSetting_insufficientFund.Value.ToString() == "true";
-                if (appSetting_unregisteredId is not null) allowUploadIfUnregisteredIds = appSetting_unregisteredId.Value.ToString() == "true";
-
-                // Step 4: Process Validation Results
-                isValid = await ProcessValidationResults(database, allowUploadIfInsufficientFund, allowUploadIfUnregisteredIds);
-
-                // Step 5: Save Validation Results
-                await SaveValidationResults(database, isValid, isFundLack, validationStart);
-
-                // Step 6: Prepare Import Queue
-                await PrepareImportQueue(database, isValid, isFundLack, allowUploadIfInsufficientFund, validationStart);
-            }
-            catch (Exception ex)
-            {
-                validationResult_Others.Message = ex.InnerException != null ? ex.InnerException.Message : string.Format("Row : {0} - {1}", itemRow, ex.Message);
-                validations.Add(validationResult_Others);
-
-                await LogQueueError(new QueueErrorEventArg
-                {
-                    FilePath = FilePath,
-                    ErrorMsg = ex.InnerException != null ? ex.InnerException.Message : ex.Message,
-                    Validations = validations,
-                });
-            }
-        }
+        //         if (isValid && (!isFundLack || allowUploadIfInsufficientFund))
+        //         {
+        //             await database.Queues.AddAsync(new Queue
+        //             {
+        //                 EventType = "Upload Dispatch",
+        //                 FilePath = FilePath,
+        //                 Status = QueueEnumConst.STATUS_NEW,
+        //                 DateCreated = DateTime.Now,
+        //                 DeleteFileOnFailed = 0,
+        //                 DeleteFileOnSuccess = 0,
+        //                 StartTime = DateTime.Now,
+        //                 EndTime = DateTime.MinValue,
+        //                 TookInSec = 0,
+        //             }).ConfigureAwait(false);
+        //         }
+        //     }
+        //     await database.SaveChangesAsync();
+        // }
 
         // private async Task ValidateFromExcel()
         // {
+        //     DateTime validationStart = DateTime.Now;
+        //     var validations = new List<DispatchValidateDto>();
         //     bool isValid = true;
         //     bool isFundLack = false;
+        //     using db database = new();
 
-        //     DateTime dateValidationStart = DateTime.Now;
-
-        //     List<DispatchValidateDto> validations = [];
-
-        //     DispatchValidateDto validationResult_dispatch_IsDuplicate = new() { Category = "Duplicated Dispatch No." };
-        //     DispatchValidateDto validationResult_dispatch_IsParticularsNotTally = new() { Category = "Dispatch Particulars Not Tally" };
-        //     DispatchValidateDto validationResult_dispatch_Overweight = new() { Category = "Dispatch Overweight" };
-        //     DispatchValidateDto validationResult_bag_IsDuplicate = new() { Category = "Duplicated Bag No" };
-        //     DispatchValidateDto validationResult_id_IsDuplicate = new() { Category = "Duplicated Item ID" };
-        //     DispatchValidateDto validationResult_id_HasInvalidLength = new() { Category = "Invalid Length" };
-        //     DispatchValidateDto validationResult_id_HasInvalidPrefixSuffix = new() { Category = "Invalid Prefix & Suffix" };
-        //     DispatchValidateDto validationResult_id_HasInvalidCheckDigit = new() { Category = "Invalid Check Digit" };
-        //     DispatchValidateDto validationResult_country_HasInvalidCountry = new() { Category = "Invalid Country Code" };
-        //     DispatchValidateDto validationResult_wallet_InsufficientBalance = new() { Category = "Insufficient Wallet Balance" };
-        //     DispatchValidateDto validationResult_ioss_missing = new() { Category = "Missing IOSS" };
-        //     DispatchValidateDto validationResult_trackingno_IsPreRegistered = new() { Category = "Unregistered Tracking Number(s)" };
-        //     DispatchValidateDto validationResult_trackingno_IsInvalid = new() { Category = "Invalid Tracking Number(s)" };
-        //     DispatchValidateDto validationResult_Others = new() { Category = "Caught Error" };
-
-        //     using db db = new();
         //     try
         //     {
-        //         ListPostalCountry = [.. db.Postalcountries
-        //             .Where(u => u.PostalCode == PostalCode)
-        //             .Select(u => u.CountryCode)];
+        //         ResetVariables(database);
 
-        //         var dispatchNoDuplicate = db.Dispatches.Where(u => u.DispatchNo == DispatchProfile.DispatchNo).Any();
+        //         var fileStream = await FileServer.GetFileStream(FilePath);
 
-        //         if (dispatchNoDuplicate)
-        //         {
-        //             validationResult_dispatch_IsDuplicate.Message = $"{DispatchProfile.DispatchNo} already existed in system";
-        //         }
+        //         await IsDispatchDuplicate(database, DispatchProfile.DispatchNo);
 
-        //         #region Validation
+        //         // Step 1: Parse the Excel file into a list of DispatchRow objects
+        //         var rows = ReadExcelFile(fileStream);
 
-        //         var stream = await FileServer.GetFileStream(FilePath);
+        //         // Step 2: Perform block-based validations with progress tracking
+        //         await PerformBlockValidations(rows);
 
-        //         using var reader = ExcelReaderFactory.CreateReader(stream);
-
-        //         var rowCount = reader.RowCount;
-        //         var ran = new Random();
-        //         var milestoneCount = 4;
-        //         var milestones = new List<int>();
-        //         var g = 0;
-        //         var percHistory = new List<int>();
-
-        //         for (var i = 1; i <= milestoneCount; i++)
-        //         {
-        //             g += 1 * ran.Next(15, 25);
-        //             milestones.Add(g);
-        //         }
-
-        //         var pricer = new DispatchPricer(
-        //                         accNo: DispatchProfile.AccNo,
-        //                         postalCode: DispatchProfile.PostalCode,
-        //                         serviceCode: DispatchProfile.ServiceCode,
-        //                         productCode: DispatchProfile.ProductCode,
-        //                         rateOptionId: DispatchProfile.RateOptionId,
-        //                         paymentMode: DispatchProfile.PaymentMode);
-
-        //         if (pricer.ErrorMsg != "") throw new Exception(pricer.ErrorMsg);
-
-        //         var currency = await db.Currencies.FirstOrDefaultAsync(c => c.Id == pricer.CurrencyId);
-        //         CurrencyId = currency.Id;
-        //         Currency = currency.Abbr;
-
-        //         var rowTouched = 0;
-        //         var listItems = new List<DispatchItemDto>();
-
-        //         var itemCount = 0;
-        //         var totalWeight = 0m;
-        //         var totalPrice = 0m;
-
-        //         var month = Convert.ToInt32($"{DispatchProfile.DateDispatch.Year}{DispatchProfile.DateDispatch.Month.ToString().PadLeft(2, '0')}");
-        //         var listItemIds = new List<string>();
-        //         var listBagNos = new List<string>();
-        //         var listIOSSChecking = new List<DispatchValidateIOSSDto>();
-        //         var listCountryCodes = new List<DispatchValidateCountryDto>();
-        //         var listParticulars = new List<DispatchValidateParticularsDto>();
-        //         var listItemIdsForUpdate = new List<string>();
-        //         do
-        //         {
-        //             while (reader.Read())
-        //             {
-        //                 if (rowTouched > 0)
-        //                 {
-        //                     if (reader[0] is null && ((reader[3] == null ? "" : reader[3].ToString()) != SERVICE_TS || (reader[3] == null ? "" : reader[3].ToString()) != SERVICE_DE)) break;
-        //                     var strPostalCode = reader[0] == null ? "" : reader[0].ToString();
-        //                     DateTime.TryParseExact(reader[1].ToString()!, "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime dateTimeCell);
-        //                     var dispatchDate = DateOnly.FromDateTime(dateTimeCell);
-        //                     var strServiceCode = reader[2] == null ? "" : reader[2].ToString();
-        //                     var strProductCode = reader[3] == null ? "" : reader[3].ToString();
-        //                     var bagNo = reader[4] == null ? "" : reader[4].ToString();
-        //                     var countryCode = reader[5] == null ? "" : reader[5].ToString();
-        //                     var weight = (reader[6] == null || reader[6].ToString().IsNullOrWhiteSpace()) ? 0 : Convert.ToDecimal(reader[6]);
-        //                     var itemId = reader[7] == null ? "" : reader[7].ToString();
-        //                     var sealNo = reader[8] == null ? "" : reader[8].ToString();
-        //                     var strDispatchNo = reader[9] == null ? "" : reader[9].ToString();
-        //                     var itemValue = (reader[10] == null || reader[10].ToString().IsNullOrWhiteSpace()) ? 0 : Convert.ToDecimal(reader[10]);
-        //                     var itemDesc = reader[11] == null ? "" : reader[11].ToString();
-        //                     var recpName = reader[12] == null ? "" : reader[12].ToString();
-        //                     var telNo = reader[13] == null ? "" : reader[13].ToString();
-        //                     var email = reader[14] == null ? "" : reader[14].ToString();
-        //                     var address = reader[15] == null ? "" : reader[15].ToString();
-        //                     var postcode = reader[16] == null ? "" : reader[16].ToString();
-        //                     var city = reader[17] == null ? "" : reader[17].ToString();
-        //                     var addressLine2 = reader[18] == null ? "" : reader[18].ToString();
-        //                     var addressNo = reader[19] == null ? "" : reader[19].ToString();
-        //                     var identityNo = reader[20] == null ? "" : reader[20].ToString();
-        //                     var identityType = reader[21] == null ? "" : reader[21].ToString();
-        //                     var state = reader[22] == null ? "" : reader[22].ToString();
-        //                     var length = (reader[23] == null || reader[23].ToString().IsNullOrWhiteSpace()) ? 0 : Convert.ToDecimal(reader[23]);
-        //                     var width = (reader[24] == null || reader[24].ToString().IsNullOrWhiteSpace()) ? 0 : Convert.ToDecimal(reader[24]);
-        //                     var height = (reader[25] == null || reader[25].ToString().IsNullOrWhiteSpace()) ? 0 : Convert.ToDecimal(reader[25]);
-        //                     var taxPaymentMethod = reader[26] == null ? "" : reader[26].ToString();
-        //                     var hsCode = reader[27] == null ? "" : reader[27].ToString();
-        //                     var qty = reader[28] == null ? 0 : Convert.ToInt32(reader[28]);
-
-        //                     var price = pricer.CalculatePrice(countryCode: countryCode, weight: weight, state: state, city: city, postcode: postcode);
-
-        //                     if (pricer.ErrorMsg != "") throw new Exception(pricer.ErrorMsg);
-
-        //                     itemCount++;
-
-        //                     totalWeight += weight;
-        //                     totalPrice += price;
-
-        //                     listItemIds.Add(itemId);
-        //                     listItemIdsForUpdate.Add(itemId);
-        //                     if (!listBagNos.Contains(bagNo)) listBagNos.Add(bagNo);
-        //                     listIOSSChecking.Add(new DispatchValidateIOSSDto { Row = rowTouched, TrackingNo = itemId, CountryCode = countryCode, IOSS = taxPaymentMethod });
-        //                     listCountryCodes.Add(new DispatchValidateCountryDto { Id = itemId, CountryCode = countryCode });
-        //                     listParticulars.Add(new DispatchValidateParticularsDto { Id = itemId, DispatchNo = strDispatchNo, PostalCode = strPostalCode, ServiceCode = strServiceCode, ProductCode = strProductCode });
-
-        //                     var blockMilestone = rowTouched % BlockSize;
-        //                     if (blockMilestone == 0)
-        //                     {
-        //                         //Block validation
-        //                         Parallel.Invoke(new ParallelOptions
-        //                         { MaxDegreeOfParallelism = Environment.ProcessorCount },
-        //                             () => Id_IsDuplicate(ref validationResult_id_IsDuplicate, listItemIds),
-        //                             () => Bag_IsDuplicate(ref validationResult_bag_IsDuplicate, listBagNos),
-        //                             () => IOSS_Missing(ref validationResult_ioss_missing, listIOSSChecking, DispatchProfile.PostalCode[..2]),
-        //                             () => Id_HasInvalidPrefixSuffix(ref validationResult_id_HasInvalidPrefixSuffix, listItemIds),
-        //                             () =>
-        //                             {
-        //                                 if (listCountryCodes.Any(u => u.CountryCode != "NG") && ServiceCode == SERVICE_DE) // bypass checking for Country Code NG
-        //                                 {
-        //                                     Id_HasInvalidCheckDigit(ref validationResult_id_HasInvalidCheckDigit, listItemIds);
-        //                                     Id_HasInvalidLength(ref validationResult_id_HasInvalidLength, listItemIds);
-        //                                 }
-        //                             },
-        //                             () =>
-        //                             {
-        //                                 if (listCountryCodes.Any(u => u.CountryCode == "NG") && ServiceCode == SERVICE_DE) // checking for Country Code NG
-        //                                 {
-        //                                     Dispatch_IsOverweight(ref validationResult_dispatch_Overweight, totalWeight);
-        //                                 }
-        //                             },
-        //                             () => Country_IsInvalidCountry(ref validationResult_country_HasInvalidCountry, listCountryCodes),
-        //                             () => TrackingNo_IsPreRegistered(ref validationResult_trackingno_IsPreRegistered, listItemIds, CustomerCode, DispatchProfile.ProductCode),
-        //                             () => TrackingNo_IsInvalid(ref validationResult_trackingno_IsInvalid, listItemIds, CustomerCode, DispatchProfile.ProductCode, DispatchProfile.PostalCode),
-        //                             () => Dispatch_IsParticularsNotTally(ref validationResult_dispatch_IsParticularsNotTally, listParticulars));
-
-        //                         listItemIds.Clear();
-        //                         listCountryCodes.Clear();
-        //                         listParticulars.Clear();
-        //                     }
-        //                     // else
-        //                     // {
-        //                     //     Single validation
-        //                     //     Parallel.Invoke(new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount },
-        //                     //        () => Id_HasInvalidCheckDigit(ref validationResult_id_HasInvalidCheckDigit, itemId));
-        //                     // }
-        //                 }
-
-        //                 rowTouched++;
-        //                 itemRow = rowTouched;
-
-        //                 #region Validation Progress
-        //                 var perc = Convert.ToInt32(Convert.ToDecimal(rowTouched) / Convert.ToDecimal(rowCount) * 100);
-
-        //                 if (perc > 0)
-        //                 {
-        //                     if (milestones.Contains(perc) && !percHistory.Contains(perc))
-        //                     {
-        //                         percHistory.Add(perc);
-
-        //                         Parallel.Invoke(async () =>
-        //                         {
-        //                             using db db = new();
-        //                             var dispatchValidation = db.Dispatchvalidations
-        //                                 .Where(u => u.DispatchNo == DispatchProfile.DispatchNo)
-        //                                 .FirstOrDefault();
-
-        //                             if (dispatchValidation is not null)
-        //                             {
-        //                                 dispatchValidation.ValidationProgress = perc;
-        //                             }
-
-        //                             await db.SaveChangesAsync().ConfigureAwait(false);
-        //                         });
-        //                     }
-        //                 }
-        //                 #endregion
-        //             }
-        //         } while (reader.NextResult());
-
-
-
-        //         if (listItemIds.Count != 0)
-        //         {
-        //             //Block validation
-        //             Parallel.Invoke(new ParallelOptions
-        //             { MaxDegreeOfParallelism = Environment.ProcessorCount },
-        //                 () => Id_IsDuplicate(ref validationResult_id_IsDuplicate, listItemIds),
-        //                 () => Bag_IsDuplicate(ref validationResult_bag_IsDuplicate, listBagNos),
-        //                 () => IOSS_Missing(ref validationResult_ioss_missing, listIOSSChecking, DispatchProfile.PostalCode[..2]),
-        //                 () => Id_HasInvalidPrefixSuffix(ref validationResult_id_HasInvalidPrefixSuffix, listItemIds),
-        //                 () =>
-        //                 {
-        //                     if (listCountryCodes.Any(u => u.CountryCode != "NG") && ServiceCode == SERVICE_DE) // bypass checking for Country Code NG
-        //                     {
-        //                         Id_HasInvalidCheckDigit(ref validationResult_id_HasInvalidCheckDigit, listItemIds);
-        //                         Id_HasInvalidLength(ref validationResult_id_HasInvalidLength, listItemIds);
-        //                     }
-        //                 },
-        //                 () =>
-        //                 {
-        //                     if (listCountryCodes.Any(u => u.CountryCode == "NG") && ServiceCode == SERVICE_DE) // checking for Country Code NG
-        //                     {
-        //                         Dispatch_IsOverweight(ref validationResult_dispatch_Overweight, totalWeight);
-        //                     }
-        //                 },
-        //                 () => Country_IsInvalidCountry(ref validationResult_country_HasInvalidCountry, listCountryCodes),
-        //                 () => TrackingNo_IsPreRegistered(ref validationResult_trackingno_IsPreRegistered, listItemIds, CustomerCode, DispatchProfile.ProductCode),
-        //                 () => TrackingNo_IsInvalid(ref validationResult_trackingno_IsInvalid, listItemIds, CustomerCode, DispatchProfile.ProductCode, DispatchProfile.PostalCode),
-        //                 () => Dispatch_IsParticularsNotTally(ref validationResult_dispatch_IsParticularsNotTally, listParticulars));
-        //         }
-
-        //         #region Check Wallet Balance
-
-        //         var wallet = db.Wallets
-        //             .Where(u => u.Customer == CustomerCode)
-        //             .Where(u => u.Currency == CurrencyId)
-        //             .FirstOrDefault();
-
-        //         if (wallet.Balance < totalPrice)
-        //         {
-        //             isFundLack = true;
-        //             var lack = totalPrice - wallet.Balance;
-        //             validationResult_wallet_InsufficientBalance.Message = $"Insufficient fund by {Currency} {lack:N2}. Your wallet balance is {Currency} {wallet.Balance:N2}. Total payment is {Currency} {totalPrice:N2}.";
-        //         }
-
-        //         #endregion
+        //         // Step 3: Check wallet balance
+        //         isFundLack = await CheckWalletBalance(database);
 
         //         bool allowUploadIfInsufficientFund = false;
         //         bool allowUploadIfUnregisteredIds = true;
 
-        //         var appSetting_insufficientFund = db.ApplicationSettings.FirstOrDefault(u => u.Name.Equals("AllowUploadIfInsufficientFund"));
-        //         var appSetting_unregisteredId = db.ApplicationSettings.FirstOrDefault(u => u.Name.Equals("AllowUploadIfUnregisteredIds"));
+        //         var appSetting_insufficientFund = await database.ApplicationSettings.FirstOrDefaultAsync(u => u.Name.Equals("AllowUploadIfInsufficientFund"));
+        //         var appSetting_unregisteredId = await database.ApplicationSettings.FirstOrDefaultAsync(u => u.Name.Equals("AllowUploadIfUnregisteredIds"));
 
         //         if (appSetting_insufficientFund is not null) allowUploadIfInsufficientFund = appSetting_insufficientFund.Value.ToString() == "true";
         //         if (appSetting_unregisteredId is not null) allowUploadIfUnregisteredIds = appSetting_unregisteredId.Value.ToString() == "true";
 
-        //         #region Dispatch Validation
+        //         // Step 4: Process Validation Results
+        //         isValid = await ProcessValidationResults(database, allowUploadIfInsufficientFund, allowUploadIfUnregisteredIds);
 
-        //         //----- Write Error Details -----//
-        //         Parallel.Invoke(async () =>
-        //         {
-        //             var dateValidationEnd = DateTime.Now;
-        //             var tookInSec = Math.Round(dateValidationEnd.Subtract(dateValidationStart).TotalSeconds, 0);
-        //             #region Validation Result JSON
+        //         // Step 5: Save Validation Results
+        //         await SaveValidationResults(database, isValid, isFundLack, validationStart);
 
-        //             if (!string.IsNullOrWhiteSpace(validationResult_dispatch_IsDuplicate.Message))
-        //             {
-        //                 isValid = false;
-        //                 validations.Add(validationResult_dispatch_IsDuplicate);
-        //             }
-
-        //             if (validationResult_dispatch_IsParticularsNotTally.ItemIds.Count != 0 || !string.IsNullOrWhiteSpace(validationResult_dispatch_IsParticularsNotTally.Message))
-        //             {
-        //                 isValid = false;
-        //                 validations.Add(validationResult_dispatch_IsParticularsNotTally);
-        //             }
-
-        //             if (!string.IsNullOrWhiteSpace(validationResult_dispatch_Overweight.Message))
-        //             {
-        //                 isValid = false;
-        //                 validations.Add(validationResult_dispatch_Overweight);
-        //             }
-
-        //             if (validationResult_id_IsDuplicate.ItemIds.Count != 0 || !string.IsNullOrWhiteSpace(validationResult_id_IsDuplicate.Message))
-        //             {
-        //                 isValid = false;
-        //                 validations.Add(validationResult_id_IsDuplicate);
-        //             }
-
-        //             if (validationResult_bag_IsDuplicate.ItemIds.Count != 0 || !string.IsNullOrWhiteSpace(validationResult_bag_IsDuplicate.Message))
-        //             {
-        //                 isValid = false;
-        //                 validations.Add(validationResult_bag_IsDuplicate);
-        //             }
-
-        //             if (validationResult_id_HasInvalidLength.ItemIds.Count != 0 || !string.IsNullOrWhiteSpace(validationResult_id_HasInvalidLength.Message))
-        //             {
-        //                 isValid = false;
-        //                 validations.Add(validationResult_id_HasInvalidLength);
-        //             }
-
-        //             if (validationResult_id_HasInvalidPrefixSuffix.ItemIds.Count != 0 || !string.IsNullOrWhiteSpace(validationResult_id_HasInvalidPrefixSuffix.Message))
-        //             {
-        //                 isValid = false;
-        //                 validations.Add(validationResult_id_HasInvalidPrefixSuffix);
-        //             }
-
-        //             if (validationResult_id_HasInvalidCheckDigit.ItemIds.Count != 0 || !string.IsNullOrWhiteSpace(validationResult_id_HasInvalidCheckDigit.Message))
-        //             {
-        //                 isValid = false;
-        //                 validations.Add(validationResult_id_HasInvalidCheckDigit);
-        //             }
-
-        //             if (validationResult_country_HasInvalidCountry.ItemIds.Count != 0 || !string.IsNullOrWhiteSpace(validationResult_country_HasInvalidCountry.Message))
-        //             {
-        //                 isValid = false;
-        //                 validations.Add(validationResult_country_HasInvalidCountry);
-        //             }
-
-        //             if (validationResult_ioss_missing.ItemIds.Count != 0 || !string.IsNullOrWhiteSpace(validationResult_ioss_missing.Message))
-        //             {
-        //                 isValid = false;
-        //                 validations.Add(validationResult_ioss_missing);
-        //             }
-
-        //             if (validationResult_trackingno_IsInvalid.ItemIds.Count != 0 || !string.IsNullOrWhiteSpace(validationResult_trackingno_IsInvalid.Message))
-        //             {
-        //                 isValid = false;
-        //                 validations.Add(validationResult_trackingno_IsInvalid);
-        //             }
-
-        //             if (validationResult_wallet_InsufficientBalance.ItemIds.Count != 0 || !string.IsNullOrWhiteSpace(validationResult_wallet_InsufficientBalance.Message))
-        //             {
-        //                 isValid = allowUploadIfInsufficientFund;
-        //                 validations.Add(validationResult_wallet_InsufficientBalance);
-        //             }
-
-        //             if (validationResult_trackingno_IsPreRegistered.ItemIds.Count != 0 || !string.IsNullOrWhiteSpace(validationResult_trackingno_IsPreRegistered.Message))
-        //             {
-        //                 isValid = allowUploadIfUnregisteredIds;
-        //                 validations.Add(validationResult_trackingno_IsPreRegistered);
-        //             }
-
-        //             if (!isValid)
-        //             {
-        //                 await ValidationsHandling(validations, DispatchProfile.DispatchNo, CustomerCode);
-        //             }
-        //             else //---- Deduct Amount If Valid ----//
-        //             {
-
-        //                 if (validations.Count == 1 && validations[0].Category == "Insufficient Wallet Balance")
-        //                 {
-        //                     await ValidationsHandling(validations, DispatchProfile.DispatchNo, CustomerCode, true);
-        //                 }
-
-        //                 if (validations.Any(u => u.Category.Equals("Unregistered Tracking Number(s)")))
-        //                 {
-        //                     await ValidationsHandling(validations, DispatchProfile.DispatchNo, CustomerCode, true);
-        //                 }
-
-        //                 using var dbconn = new db();
-        //                 var wallet = dbconn.Wallets
-        //                                         .Where(u => u.Customer == CustomerCode)
-        //                                         .Where(u => u.Currency == CurrencyId)
-        //                                         .FirstOrDefault();
-
-        //                 var initialBalance = wallet.Balance;
-
-        //                 wallet.Balance -= totalPrice;
-
-        //                 await dbconn.CustomerTransactions.AddAsync(new CustomerTransaction()
-        //                 {
-        //                     Wallet = wallet.Id,
-        //                     Customer = wallet.Customer,
-        //                     PaymentMode = wallet.EWalletType.ToString(),
-        //                     Currency = currency.Abbr,
-        //                     TransactionType = "Pre-Alert",
-        //                     Amount = -totalPrice,
-        //                     ReferenceNo = DispatchProfile.DispatchNo,
-        //                     Description = $"Initial Balance: {Currency} {initialBalance}. Deducted {Currency} {decimal.Round(totalPrice, 2, MidpointRounding.AwayFromZero)} from {wallet.Customer}'s {wallet.Id} Wallet.",
-        //                     TransactionDate = DateTime.Now
-        //                 }).ConfigureAwait(false);
-        //                 var eWallet = await dbconn.EWalletTypes.FirstOrDefaultAsync(x => x.Id.Equals(wallet.EWalletType));
-
-
-
-        //                 await dbconn.DispatchUsedAmounts.AddAsync(new DispatchUsedAmount()
-        //                 {
-        //                     CustomerCode = wallet.Customer,
-        //                     Wallet = wallet.Id,
-        //                     Amount = totalPrice,
-        //                     DispatchNo = DispatchProfile.DispatchNo,
-        //                     DateTime = DateTime.Now,
-        //                     Description = "Pre-Alert"
-        //                 }).ConfigureAwait(false);
-
-        //                 await dbconn.SaveChangesAsync();
-        //             }
-
-
-        //             #endregion
-
-
-        //             using db db = new();
-        //             var dispatchValidation = db.Dispatchvalidations
-        //                                         .Where(u => u.DispatchNo == DispatchProfile.DispatchNo)
-        //                                         .FirstOrDefault();
-
-        //             if (dispatchValidation is not null)
-        //             {
-        //                 dispatchValidation.TookInSec = tookInSec;
-        //                 dispatchValidation.IsValid = isValid ? 1u : 0u;
-        //                 dispatchValidation.FilePath = FilePath;
-        //                 dispatchValidation.DateCompleted = dateValidationEnd;
-        //                 dispatchValidation.Status = DispatchValidationEnumConst.STATUS_FINISH;
-        //                 dispatchValidation.ValidationProgress = 100;
-        //                 dispatchValidation.IsFundLack = isFundLack ? 1u : 0u;
-        //             }
-
-        //             await db.SaveChangesAsync().ConfigureAwait(false);
-        //         });
-        //         #endregion
-
-        //         var queueTask = db.Queues.Find(QueueId);
-        //         if (queueTask is not null)
-        //         {
-        //             DateTime dateImportCompleted = DateTime.Now;
-        //             var tookInSec = dateImportCompleted.Subtract(dateValidationStart).TotalSeconds;
-
-        //             queueTask.Status = QueueEnumConst.STATUS_FINISH;
-        //             queueTask.ErrorMsg = null;
-        //             queueTask.TookInSec = Math.Round(tookInSec, 0);
-        //             queueTask.StartTime = dateValidationStart;
-        //             queueTask.EndTime = dateImportCompleted;
-        //             queueTask.DeleteFileOnFailed = 0;
-        //             queueTask.DeleteFileOnSuccess = 0;
-
-        //             if (isValid)
-        //             {
-        //                 if (isFundLack == false || allowUploadIfInsufficientFund == true)
-        //                 {
-        //                     await db.Queues.AddAsync(new Queue
-        //                     {
-        //                         EventType = "Upload Dispatch",
-        //                         FilePath = FilePath,
-        //                         Status = QueueEnumConst.STATUS_NEW,
-        //                         DateCreated = DateTime.Now,
-        //                         DeleteFileOnFailed = 0,
-        //                         DeleteFileOnSuccess = 0,
-        //                         StartTime = DateTime.Now,
-        //                         EndTime = DateTime.MinValue,
-        //                         TookInSec = 0,
-        //                     }).ConfigureAwait(false);
-        //                 }
-        //             }
-        //         }
-
-        //         await db.SaveChangesAsync();
-        //         #endregion
+        //         // Step 6: Prepare Import Queue
+        //         await PrepareImportQueue(database, isValid, isFundLack, allowUploadIfInsufficientFund, validationStart);
         //     }
         //     catch (Exception ex)
         //     {
@@ -1086,13 +584,630 @@ namespace SND.SMP.DispatchValidator
         //     }
         // }
 
+
+        private async Task ValidateFromExcel()
+        {
+            bool isValid = true;
+            bool isFundLack = false;
+
+            DateTime dateValidationStart = DateTime.Now;
+
+            List<DispatchValidateDto> validations = [];
+
+            DispatchValidateDto validationResult_dispatch_IsDuplicate = new() { Category = "Duplicated Dispatch No." };
+            DispatchValidateDto validationResult_dispatch_IsParticularsNotTally = new() { Category = "Dispatch Particulars Not Tally" };
+            DispatchValidateDto validationResult_dispatch_Overweight = new() { Category = "Dispatch Overweight" };
+            DispatchValidateDto validationResult_bag_IsDuplicate = new() { Category = "Duplicated Bag No" };
+            DispatchValidateDto validationResult_id_IsDuplicate = new() { Category = "Duplicated Item ID" };
+            DispatchValidateDto validationResult_id_HasInvalidLength = new() { Category = "Invalid Length" };
+            DispatchValidateDto validationResult_id_HasInvalidPrefixSuffix = new() { Category = "Invalid Prefix & Suffix" };
+            DispatchValidateDto validationResult_id_HasInvalidCheckDigit = new() { Category = "Invalid Check Digit" };
+            DispatchValidateDto validationResult_country_HasInvalidCountry = new() { Category = "Invalid Country Code" };
+            DispatchValidateDto validationResult_wallet_InsufficientBalance = new() { Category = "Insufficient Wallet Balance" };
+            DispatchValidateDto validationResult_ioss_missing = new() { Category = "Missing IOSS" };
+            DispatchValidateDto validationResult_trackingno_IsPreRegistered = new() { Category = "Unregistered Tracking Number(s)" };
+            DispatchValidateDto validationResult_trackingno_IsInvalid = new() { Category = "Invalid Tracking Number(s)" };
+            DispatchValidateDto validationResult_Others = new() { Category = "Caught Error" };
+
+            using db dbConn = new();
+            try
+            {
+                ListPostalCountry = [.. dbConn.Postalcountries
+                    .Where(u => u.PostalCode == PostalCode)
+                    .Select(u => u.CountryCode)];
+
+                var dispatchNoDuplicate = dbConn.Dispatches.Where(u => u.DispatchNo == DispatchProfile.DispatchNo).Any();
+
+                if (dispatchNoDuplicate)
+                {
+                    validationResult_dispatch_IsDuplicate.Message = $"{DispatchProfile.DispatchNo} already existed in system";
+                }
+
+                #region Validation
+
+                var stream = await FileServer.GetFileStream(FilePath);
+
+                using var reader = ExcelReaderFactory.CreateReader(stream);
+
+                var rowCount = reader.RowCount;
+                var ran = new Random();
+                var milestoneCount = 4;
+                var milestones = new List<int>();
+                var g = 0;
+                var percentageHistory = new List<int>();
+
+                for (var i = 1; i <= milestoneCount; i++)
+                {
+                    g += 1 * ran.Next(15, 25);
+                    milestones.Add(g);
+                }
+
+                var rowTouched = 0;
+
+                var totalWeight = 0m;
+                var totalPrice = 0m;
+
+                var month = Convert.ToInt32($"{DispatchProfile.DateDispatch.Year}{DispatchProfile.DateDispatch.Month.ToString().PadLeft(2, '0')}");
+                var listItemIds = new List<string>();
+                var listBagNos = new List<string>();
+                var listIOSSChecking = new List<DispatchValidateIOSSDto>();
+                var listCountryCodes = new List<DispatchValidateCountryDto>();
+                var listParticulars = new List<DispatchValidateParticularsDto>();
+                var listItemIdsForUpdate = new List<string>();
+
+                var pricer = new DispatchPricer(
+                                accNo: DispatchProfile.AccNo,
+                                postalCode: DispatchProfile.PostalCode,
+                                serviceCode: DispatchProfile.ServiceCode,
+                                productCode: DispatchProfile.ProductCode,
+                                rateOptionId: DispatchProfile.RateOptionId,
+                                paymentMode: DispatchProfile.PaymentMode);
+
+                if (pricer.ErrorMsg != "") throw new Exception(pricer.ErrorMsg);
+
+                var currency = await dbConn.Currencies.FirstOrDefaultAsync(c => c.Id == pricer.CurrencyId);
+                CurrencyId = currency.Id;
+                Currency = currency.Abbr;
+
+                #region V2 Excel Validations
+                List<DispatchRow> dispatchRows = ReadExcelFile(stream);
+
+                List<DispatchRow> preparedDispatchRows = dispatchRows
+                                                            .GroupBy(row => row.ItemId)
+                                                            .Select(group => new DispatchRow
+                                                            {
+                                                                Row = string.Join(", ", group.Select(row => row.Row)),
+                                                                PostalCode = group.First().PostalCode,
+                                                                DispatchDate = group.First().DispatchDate,
+                                                                ServiceCode = group.First().ServiceCode,
+                                                                ProductCode = group.First().ProductCode,
+                                                                BagNo = group.First().BagNo,
+                                                                CountryCode = group.First().CountryCode,
+                                                                Weight = group.Sum(row => row.Weight),
+                                                                ItemId = group.Key,
+                                                                SealNo = group.First().SealNo,
+                                                                DispatchNo = group.First().DispatchNo,
+                                                                ItemValue = group.Sum(row => row.ItemValue),
+                                                                ItemDesc = string.Join(", ", group.Select(row => row.ItemDesc)),
+                                                                RecipientName = group.First().RecipientName,
+                                                                Telephone = group.First().Telephone,
+                                                                Email = group.First().Email,
+                                                                Address = group.First().Address,
+                                                                Postcode = group.First().Postcode,
+                                                                City = group.First().City,
+                                                                AddressLine2 = group.First().AddressLine2,
+                                                                AddressNo = group.First().AddressNo,
+                                                                IdentityNo = group.First().IdentityNo,
+                                                                IdentityType = group.First().IdentityType,
+                                                                State = group.First().State,
+                                                                Length = group.First().Length,
+                                                                Width = group.First().Width,
+                                                                Height = group.First().Height,
+                                                                TaxPaymentMethod = group.First().TaxPaymentMethod,
+                                                                HSCode = group.First().HSCode,
+                                                                Quantity = group.Sum(row => row.Quantity),
+                                                                Price = group.First().Price
+                                                            }).ToList();
+
+                rowCount = preparedDispatchRows.Count;
+                foreach (DispatchRow row in preparedDispatchRows)
+                {
+                    rowTouched++;
+                    itemRow = rowTouched;
+
+                    var price = pricer.CalculatePrice(countryCode: row.CountryCode, weight: row.Weight, state: row.State, city: row.City, postcode: row.PostalCode);
+
+                    if (pricer.ErrorMsg != "") throw new Exception(pricer.ErrorMsg);
+
+                    totalWeight += row.Weight;
+                    totalPrice += price;
+
+                    listItemIds.Add(row.ItemId);
+                    if (!listBagNos.Contains(row.BagNo)) listBagNos.Add(row.BagNo);
+                    listIOSSChecking.Add(new DispatchValidateIOSSDto { Row = row.Row, TrackingNo = row.ItemId, CountryCode = row.CountryCode, IOSS = row.TaxPaymentMethod });
+                    listCountryCodes.Add(new DispatchValidateCountryDto { Id = row.ItemId, CountryCode = row.CountryCode });
+                    listParticulars.Add(new DispatchValidateParticularsDto { Id = row.ItemId, DispatchNo = row.DispatchNo, PostalCode = row.PostalCode, ServiceCode = row.ServiceCode, ProductCode = row.ProductCode });
+
+                    var blockMilestone = rowTouched % BlockSize;
+                    if (blockMilestone == 0)
+                    {
+                        //Block validation
+                        Parallel.Invoke(new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount },
+                            () => Id_IsDuplicate(ref validationResult_id_IsDuplicate, listItemIds),
+                            () => Bag_IsDuplicate(ref validationResult_bag_IsDuplicate, listBagNos),
+                            () => IOSS_Missing(ref validationResult_ioss_missing, listIOSSChecking, DispatchProfile.PostalCode[..2]),
+                            () => Id_HasInvalidPrefixSuffix(ref validationResult_id_HasInvalidPrefixSuffix, listItemIds),
+                            () => Country_IsInvalidCountry(ref validationResult_country_HasInvalidCountry, listCountryCodes),
+                            () => TrackingNo_IsPreRegistered(ref validationResult_trackingno_IsPreRegistered, listItemIds, CustomerCode, DispatchProfile.ProductCode),
+                            () => TrackingNo_IsInvalid(ref validationResult_trackingno_IsInvalid, listItemIds, CustomerCode, DispatchProfile.ProductCode, DispatchProfile.PostalCode),
+                            () => Dispatch_IsParticularsNotTally(ref validationResult_dispatch_IsParticularsNotTally, listParticulars),
+                            () =>
+                            {
+                                if (listCountryCodes.Any(u => u.CountryCode != "NG") && ServiceCode == SERVICE_DE) // bypass checking for Country Code NG
+                                {
+                                    Id_HasInvalidCheckDigit(ref validationResult_id_HasInvalidCheckDigit, listItemIds);
+                                    Id_HasInvalidLength(ref validationResult_id_HasInvalidLength, listItemIds);
+                                }
+                            },
+                            () =>
+                            {
+                                if (listCountryCodes.Any(u => u.CountryCode == "NG") && ServiceCode == SERVICE_DE) // checking for Country Code NG
+                                {
+                                    Dispatch_IsOverweight(ref validationResult_dispatch_Overweight, totalWeight);
+                                }
+                            }
+                        );
+
+                        listItemIds.Clear();
+                        listIOSSChecking.Clear();
+                        listCountryCodes.Clear();
+                        listParticulars.Clear();
+                    }
+
+                    #region Validation Progress
+
+                    var progressPercentage = Convert.ToInt32(Convert.ToDecimal(rowTouched) / Convert.ToDecimal(rowCount) * 100);
+
+                    if (progressPercentage > 0 && milestones.Contains(progressPercentage) && !percentageHistory.Contains(progressPercentage))
+                    {
+                        percentageHistory.Add(progressPercentage);
+
+                        var temp_DispatchValidation = await dbConn.DispatchValidations.FirstOrDefaultAsync(u => u.DispatchNo == DispatchProfile.DispatchNo);
+
+                        if (temp_DispatchValidation is not null)
+                        {
+                            temp_DispatchValidation.ValidationProgress = progressPercentage;
+                        }
+
+                        await dbConn.SaveChangesAsync().ConfigureAwait(false);
+                    }
+                    
+                    #endregion Validation Progress
+                }
+
+                if (listItemIds.Count > 0)
+                {
+                    //Block validation
+                    Parallel.Invoke(new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount },
+                        () => Id_IsDuplicate(ref validationResult_id_IsDuplicate, listItemIds),
+                        () => Bag_IsDuplicate(ref validationResult_bag_IsDuplicate, listBagNos),
+                        () => IOSS_Missing(ref validationResult_ioss_missing, listIOSSChecking, DispatchProfile.PostalCode[..2]),
+                        () => Id_HasInvalidPrefixSuffix(ref validationResult_id_HasInvalidPrefixSuffix, listItemIds),
+                        () => Country_IsInvalidCountry(ref validationResult_country_HasInvalidCountry, listCountryCodes),
+                        () => TrackingNo_IsPreRegistered(ref validationResult_trackingno_IsPreRegistered, listItemIds, CustomerCode, DispatchProfile.ProductCode),
+                        () => TrackingNo_IsInvalid(ref validationResult_trackingno_IsInvalid, listItemIds, CustomerCode, DispatchProfile.ProductCode, DispatchProfile.PostalCode),
+                        () => Dispatch_IsParticularsNotTally(ref validationResult_dispatch_IsParticularsNotTally, listParticulars),
+                        () =>
+                        {
+                            if (listCountryCodes.Any(u => u.CountryCode != "NG") && ServiceCode == SERVICE_DE) // bypass checking for Country Code NG
+                            {
+                                Id_HasInvalidCheckDigit(ref validationResult_id_HasInvalidCheckDigit, listItemIds);
+                                Id_HasInvalidLength(ref validationResult_id_HasInvalidLength, listItemIds);
+                            }
+                        },
+                        () =>
+                        {
+                            if (listCountryCodes.Any(u => u.CountryCode == "NG") && ServiceCode == SERVICE_DE) // checking for Country Code NG
+                            {
+                                Dispatch_IsOverweight(ref validationResult_dispatch_Overweight, totalWeight);
+                            }
+                        }
+                    );
+
+                    listItemIds.Clear();
+                    listIOSSChecking.Clear();
+                    listCountryCodes.Clear();
+                    listParticulars.Clear();
+                }
+
+                #endregion V2 Excel Validations
+
+                #region V1 Excel Validations
+                // do
+                // {
+                //     while (reader.Read())
+                //     {
+                //         if (rowTouched > 0)
+                //         {
+                //             if (reader[0] is null && ((reader[2] == null ? "" : reader[2].ToString()) != SERVICE_TS || (reader[2] == null ? "" : reader[2].ToString()) != SERVICE_DE)) break;
+                //             var strPostalCode = reader[0] == null ? "" : reader[0].ToString();
+                //             DateTime.TryParseExact(reader[1].ToString()!, "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime dateTimeCell);
+                //             var dispatchDate = DateOnly.FromDateTime(dateTimeCell);
+                //             var strServiceCode = reader[2] == null ? "" : reader[2].ToString();
+                //             var strProductCode = reader[3] == null ? "" : reader[3].ToString();
+                //             var bagNo = reader[4] == null ? "" : reader[4].ToString();
+                //             var countryCode = reader[5] == null ? "" : reader[5].ToString();
+                //             var weight = (reader[6] == null || reader[6].ToString().IsNullOrWhiteSpace()) ? 0 : Convert.ToDecimal(reader[6]);
+                //             var itemId = reader[7] == null ? "" : reader[7].ToString();
+                //             var sealNo = reader[8] == null ? "" : reader[8].ToString();
+                //             var strDispatchNo = reader[9] == null ? "" : reader[9].ToString();
+                //             var itemValue = (reader[10] == null || reader[10].ToString().IsNullOrWhiteSpace()) ? 0 : Convert.ToDecimal(reader[10]);
+                //             var itemDesc = reader[11] == null ? "" : reader[11].ToString();
+                //             var recpName = reader[12] == null ? "" : reader[12].ToString();
+                //             var telNo = reader[13] == null ? "" : reader[13].ToString();
+                //             var email = reader[14] == null ? "" : reader[14].ToString();
+                //             var address = reader[15] == null ? "" : reader[15].ToString();
+                //             var postcode = reader[16] == null ? "" : reader[16].ToString();
+                //             var city = reader[17] == null ? "" : reader[17].ToString();
+                //             var addressLine2 = reader[18] == null ? "" : reader[18].ToString();
+                //             var addressNo = reader[19] == null ? "" : reader[19].ToString();
+                //             var identityNo = reader[20] == null ? "" : reader[20].ToString();
+                //             var identityType = reader[21] == null ? "" : reader[21].ToString();
+                //             var state = reader[22] == null ? "" : reader[22].ToString();
+                //             var length = (reader[23] == null || reader[23].ToString().IsNullOrWhiteSpace()) ? 0 : Convert.ToDecimal(reader[23]);
+                //             var width = (reader[24] == null || reader[24].ToString().IsNullOrWhiteSpace()) ? 0 : Convert.ToDecimal(reader[24]);
+                //             var height = (reader[25] == null || reader[25].ToString().IsNullOrWhiteSpace()) ? 0 : Convert.ToDecimal(reader[25]);
+                //             var taxPaymentMethod = reader[26] == null ? "" : reader[26].ToString();
+                //             var hsCode = reader[27] == null ? "" : reader[27].ToString();
+                //             var qty = reader[28] == null ? 0 : Convert.ToInt32(reader[28]);
+
+                //             var price = pricer.CalculatePrice(countryCode: countryCode, weight: weight, state: state, city: city, postcode: postcode);
+
+                //             if (pricer.ErrorMsg != "") throw new Exception(pricer.ErrorMsg);
+
+                //             itemCount++;
+
+                //             totalWeight += weight;
+                //             totalPrice += price;
+
+                //             listItemIds.Add(itemId);
+                //             listItemIdsForUpdate.Add(itemId);
+                //             if (!listBagNos.Contains(bagNo)) listBagNos.Add(bagNo);
+                //             listIOSSChecking.Add(new DispatchValidateIOSSDto { Row = rowTouched.ToString(), TrackingNo = itemId, CountryCode = countryCode, IOSS = taxPaymentMethod });
+                //             listCountryCodes.Add(new DispatchValidateCountryDto { Id = itemId, CountryCode = countryCode });
+                //             listParticulars.Add(new DispatchValidateParticularsDto { Id = itemId, DispatchNo = strDispatchNo, PostalCode = strPostalCode, ServiceCode = strServiceCode, ProductCode = strProductCode });
+
+                //             var blockMilestone = rowTouched % BlockSize;
+                //             if (blockMilestone == 0)
+                //             {
+                //                 //Block validation
+                //                 Parallel.Invoke(new ParallelOptions
+                //                 { MaxDegreeOfParallelism = Environment.ProcessorCount },
+                //                     () => Id_IsDuplicate(ref validationResult_id_IsDuplicate, listItemIds),
+                //                     () => Bag_IsDuplicate(ref validationResult_bag_IsDuplicate, listBagNos),
+                //                     () => IOSS_Missing(ref validationResult_ioss_missing, listIOSSChecking, DispatchProfile.PostalCode[..2]),
+                //                     () => Id_HasInvalidPrefixSuffix(ref validationResult_id_HasInvalidPrefixSuffix, listItemIds),
+                //                     () =>
+                //                     {
+                //                         if (listCountryCodes.Any(u => u.CountryCode != "NG") && ServiceCode == SERVICE_DE) // bypass checking for Country Code NG
+                //                         {
+                //                             Id_HasInvalidCheckDigit(ref validationResult_id_HasInvalidCheckDigit, listItemIds);
+                //                             Id_HasInvalidLength(ref validationResult_id_HasInvalidLength, listItemIds);
+                //                         }
+                //                     },
+                //                     () =>
+                //                     {
+                //                         if (listCountryCodes.Any(u => u.CountryCode == "NG") && ServiceCode == SERVICE_DE) // checking for Country Code NG
+                //                         {
+                //                             Dispatch_IsOverweight(ref validationResult_dispatch_Overweight, totalWeight);
+                //                         }
+                //                     },
+                //                     () => Country_IsInvalidCountry(ref validationResult_country_HasInvalidCountry, listCountryCodes),
+                //                     () => TrackingNo_IsPreRegistered(ref validationResult_trackingno_IsPreRegistered, listItemIds, CustomerCode, DispatchProfile.ProductCode),
+                //                     () => TrackingNo_IsInvalid(ref validationResult_trackingno_IsInvalid, listItemIds, CustomerCode, DispatchProfile.ProductCode, DispatchProfile.PostalCode),
+                //                     () => Dispatch_IsParticularsNotTally(ref validationResult_dispatch_IsParticularsNotTally, listParticulars));
+
+                //                 listItemIds.Clear();
+                //                 listCountryCodes.Clear();
+                //                 listParticulars.Clear();
+                //             }
+                //             // else
+                //             // {
+                //             //     Single validation
+                //             //     Parallel.Invoke(new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount },
+                //             //        () => Id_HasInvalidCheckDigit(ref validationResult_id_HasInvalidCheckDigit, itemId));
+                //             // }
+                //         }
+
+                //         rowTouched++;
+                //         itemRow = rowTouched;
+
+                //         #region Validation Progress
+                //         var perc = Convert.ToInt32(Convert.ToDecimal(rowTouched) / Convert.ToDecimal(rowCount) * 100);
+
+                //         if (perc > 0)
+                //         {
+                //             if (milestones.Contains(perc) && !percentageHistory.Contains(perc))
+                //             {
+                //                 percentageHistory.Add(perc);
+
+                //                 Parallel.Invoke(async () =>
+                //                 {
+                //                     using db dbConn = new();
+                //                     var dispatchValidation = dbConn.DispatchValidations
+                //                         .Where(u => u.DispatchNo == DispatchProfile.DispatchNo)
+                //                         .FirstOrDefault();
+
+                //                     if (dispatchValidation is not null)
+                //                     {
+                //                         dispatchValidation.ValidationProgress = perc;
+                //                     }
+
+                //                     await dbConn.SaveChangesAsync().ConfigureAwait(false);
+                //                 });
+                //             }
+                //         }
+                //         #endregion
+                //     }
+                // } while (reader.NextResult());
+
+
+
+                // if (listItemIds.Count != 0)
+                // {
+                //     //Block validation
+                //     Parallel.Invoke(new ParallelOptions
+                //     { MaxDegreeOfParallelism = Environment.ProcessorCount },
+                //         () => Id_IsDuplicate(ref validationResult_id_IsDuplicate, listItemIds),
+                //         () => Bag_IsDuplicate(ref validationResult_bag_IsDuplicate, listBagNos),
+                //         () => IOSS_Missing(ref validationResult_ioss_missing, listIOSSChecking, DispatchProfile.PostalCode[..2]),
+                //         () => Id_HasInvalidPrefixSuffix(ref validationResult_id_HasInvalidPrefixSuffix, listItemIds),
+                //         () =>
+                //         {
+                //             if (listCountryCodes.Any(u => u.CountryCode != "NG") && ServiceCode == SERVICE_DE) // bypass checking for Country Code NG
+                //             {
+                //                 Id_HasInvalidCheckDigit(ref validationResult_id_HasInvalidCheckDigit, listItemIds);
+                //                 Id_HasInvalidLength(ref validationResult_id_HasInvalidLength, listItemIds);
+                //             }
+                //         },
+                //         () =>
+                //         {
+                //             if (listCountryCodes.Any(u => u.CountryCode == "NG") && ServiceCode == SERVICE_DE) // checking for Country Code NG
+                //             {
+                //                 Dispatch_IsOverweight(ref validationResult_dispatch_Overweight, totalWeight);
+                //             }
+                //         },
+                //         () => Country_IsInvalidCountry(ref validationResult_country_HasInvalidCountry, listCountryCodes),
+                //         () => TrackingNo_IsPreRegistered(ref validationResult_trackingno_IsPreRegistered, listItemIds, CustomerCode, DispatchProfile.ProductCode),
+                //         () => TrackingNo_IsInvalid(ref validationResult_trackingno_IsInvalid, listItemIds, CustomerCode, DispatchProfile.ProductCode, DispatchProfile.PostalCode),
+                //         () => Dispatch_IsParticularsNotTally(ref validationResult_dispatch_IsParticularsNotTally, listParticulars));
+                // }
+
+                #endregion V1 Excel Validations
+
+                bool allowUploadIfInsufficientFund = false;
+                bool allowUploadIfUnregisteredIds = true;
+
+                var appSetting_insufficientFund = dbConn.ApplicationSettings.FirstOrDefault(u => u.Name.Equals("AllowUploadIfInsufficientFund"));
+                var appSetting_unregisteredId = dbConn.ApplicationSettings.FirstOrDefault(u => u.Name.Equals("AllowUploadIfUnregisteredIds"));
+
+                if (appSetting_insufficientFund is not null) allowUploadIfInsufficientFund = appSetting_insufficientFund.Value.ToString() == "true";
+                if (appSetting_unregisteredId is not null) allowUploadIfUnregisteredIds = appSetting_unregisteredId.Value.ToString() == "true";
+
+                #region Dispatch Validation
+
+                //----- Prepare Error Details -----//
+
+                var dateValidationEnd = DateTime.Now;
+                var tookInSec = Math.Round(dateValidationEnd.Subtract(dateValidationStart).TotalSeconds, 0);
+                var wallet = await dbConn.Wallets.FirstOrDefaultAsync(x => x.Customer == CustomerCode && x.Currency == CurrencyId);
+
+                #region Validation Checking
+
+                if (wallet is not null && wallet.Balance < totalPrice)
+                {
+                    isFundLack = true;
+                    var lack = totalPrice - wallet.Balance;
+                    validationResult_wallet_InsufficientBalance.Message = $"Insufficient fund by {Currency} {lack:N2}. Your wallet balance is {Currency} {wallet.Balance:N2}. Total payment is {Currency} {totalPrice:N2}.";
+                }
+
+                if (!string.IsNullOrWhiteSpace(validationResult_dispatch_IsDuplicate.Message))
+                {
+                    isValid = false;
+                    validations.Add(validationResult_dispatch_IsDuplicate);
+                }
+
+                if (validationResult_dispatch_IsParticularsNotTally.ItemIds.Count != 0 || !string.IsNullOrWhiteSpace(validationResult_dispatch_IsParticularsNotTally.Message))
+                {
+                    isValid = false;
+                    validations.Add(validationResult_dispatch_IsParticularsNotTally);
+                }
+
+                if (!string.IsNullOrWhiteSpace(validationResult_dispatch_Overweight.Message))
+                {
+                    isValid = false;
+                    validations.Add(validationResult_dispatch_Overweight);
+                }
+
+                if (validationResult_id_IsDuplicate.ItemIds.Count != 0 || !string.IsNullOrWhiteSpace(validationResult_id_IsDuplicate.Message))
+                {
+                    isValid = false;
+                    validations.Add(validationResult_id_IsDuplicate);
+                }
+
+                if (validationResult_bag_IsDuplicate.ItemIds.Count != 0 || !string.IsNullOrWhiteSpace(validationResult_bag_IsDuplicate.Message))
+                {
+                    isValid = false;
+                    validations.Add(validationResult_bag_IsDuplicate);
+                }
+
+                if (validationResult_id_HasInvalidLength.ItemIds.Count != 0 || !string.IsNullOrWhiteSpace(validationResult_id_HasInvalidLength.Message))
+                {
+                    isValid = false;
+                    validations.Add(validationResult_id_HasInvalidLength);
+                }
+
+                if (validationResult_id_HasInvalidPrefixSuffix.ItemIds.Count != 0 || !string.IsNullOrWhiteSpace(validationResult_id_HasInvalidPrefixSuffix.Message))
+                {
+                    isValid = false;
+                    validations.Add(validationResult_id_HasInvalidPrefixSuffix);
+                }
+
+                if (validationResult_id_HasInvalidCheckDigit.ItemIds.Count != 0 || !string.IsNullOrWhiteSpace(validationResult_id_HasInvalidCheckDigit.Message))
+                {
+                    isValid = false;
+                    validations.Add(validationResult_id_HasInvalidCheckDigit);
+                }
+
+                if (validationResult_country_HasInvalidCountry.ItemIds.Count != 0 || !string.IsNullOrWhiteSpace(validationResult_country_HasInvalidCountry.Message))
+                {
+                    isValid = false;
+                    validations.Add(validationResult_country_HasInvalidCountry);
+                }
+
+                if (validationResult_ioss_missing.ItemIds.Count != 0 || !string.IsNullOrWhiteSpace(validationResult_ioss_missing.Message))
+                {
+                    isValid = false;
+                    validations.Add(validationResult_ioss_missing);
+                }
+
+                if (validationResult_trackingno_IsInvalid.ItemIds.Count != 0 || !string.IsNullOrWhiteSpace(validationResult_trackingno_IsInvalid.Message))
+                {
+                    isValid = false;
+                    validations.Add(validationResult_trackingno_IsInvalid);
+                }
+
+                if (validationResult_wallet_InsufficientBalance.ItemIds.Count != 0 || !string.IsNullOrWhiteSpace(validationResult_wallet_InsufficientBalance.Message))
+                {
+                    isValid = allowUploadIfInsufficientFund;
+                    validations.Add(validationResult_wallet_InsufficientBalance);
+                }
+
+                if (validationResult_trackingno_IsPreRegistered.ItemIds.Count != 0 || !string.IsNullOrWhiteSpace(validationResult_trackingno_IsPreRegistered.Message))
+                {
+                    isValid = allowUploadIfUnregisteredIds;
+                    validations.Add(validationResult_trackingno_IsPreRegistered);
+                }
+
+                if (!isValid)
+                {
+                    await ValidationsHandling(validations, DispatchProfile.DispatchNo, CustomerCode);
+                }
+                //---- Deduct Amount If Valid ----//
+                else
+                {
+                    if (validations.Count == 1 && validations[0].Category == "Insufficient Wallet Balance")
+                    {
+                        await ValidationsHandling(validations, DispatchProfile.DispatchNo, CustomerCode, true);
+                    }
+
+                    if (validations.Any(u => u.Category.Equals("Unregistered Tracking Number(s)")))
+                    {
+                        await ValidationsHandling(validations, DispatchProfile.DispatchNo, CustomerCode, true);
+                    }
+
+                    var initialBalance = wallet.Balance;
+                    wallet.Balance -= totalPrice;
+
+                    await dbConn.CustomerTransactions.AddAsync(new CustomerTransaction()
+                    {
+                        Wallet = wallet.Id,
+                        Customer = wallet.Customer,
+                        PaymentMode = wallet.EWalletType.ToString(),
+                        Currency = currency.Abbr,
+                        TransactionType = "Pre-Alert",
+                        Amount = -totalPrice,
+                        ReferenceNo = DispatchProfile.DispatchNo,
+                        Description = $"Initial Balance: {Currency} {initialBalance}. Deducted {Currency} {decimal.Round(totalPrice, 2, MidpointRounding.AwayFromZero)} from {wallet.Customer}'s {wallet.Id} Wallet.",
+                        TransactionDate = DateTime.Now
+                    }).ConfigureAwait(false);
+
+                    await dbConn.DispatchUsedAmounts.AddAsync(new DispatchUsedAmount()
+                    {
+                        CustomerCode = wallet.Customer,
+                        Wallet = wallet.Id,
+                        Amount = totalPrice,
+                        DispatchNo = DispatchProfile.DispatchNo,
+                        DateTime = DateTime.Now,
+                        Description = "Pre-Alert"
+                    }).ConfigureAwait(false);
+
+                    await dbConn.SaveChangesAsync();
+                }
+
+                #endregion Validation Checking
+
+                var dispatchValidation = await dbConn.DispatchValidations.FirstOrDefaultAsync(x => x.DispatchNo == DispatchProfile.DispatchNo);
+
+                if (dispatchValidation is not null)
+                {
+                    dispatchValidation.TookInSec = tookInSec;
+                    dispatchValidation.IsValid = isValid ? 1u : 0u;
+                    dispatchValidation.FilePath = FilePath;
+                    dispatchValidation.DateCompleted = dateValidationEnd;
+                    dispatchValidation.Status = DispatchValidationEnumConst.STATUS_FINISH;
+                    dispatchValidation.ValidationProgress = 100;
+                    dispatchValidation.IsFundLack = isFundLack ? 1u : 0u;
+
+                    await dbConn.SaveChangesAsync().ConfigureAwait(false);
+                }
+
+                #endregion Dispatch Validation
+
+                var queueTask = await dbConn.Queues.FirstOrDefaultAsync(x => x.Id == QueueId);
+                if (queueTask is not null)
+                {
+                    DateTime dateImportCompleted = DateTime.Now;
+
+                    queueTask.Status = QueueEnumConst.STATUS_FINISH;
+                    queueTask.ErrorMsg = null;
+                    queueTask.TookInSec = Math.Round(tookInSec, 0);
+                    queueTask.StartTime = dateValidationStart;
+                    queueTask.EndTime = dateImportCompleted;
+                    queueTask.DeleteFileOnFailed = 0;
+                    queueTask.DeleteFileOnSuccess = 0;
+
+                    if (isValid && (isFundLack == false || allowUploadIfInsufficientFund == true))
+                    {
+                        await dbConn.Queues.AddAsync(new Queue
+                        {
+                            EventType = "Upload Dispatch",
+                            FilePath = FilePath,
+                            Status = QueueEnumConst.STATUS_NEW,
+                            DateCreated = DateTime.Now,
+                            DeleteFileOnFailed = 0,
+                            DeleteFileOnSuccess = 0,
+                            StartTime = DateTime.Now,
+                            EndTime = DateTime.MinValue,
+                            TookInSec = 0,
+                        });
+                    }
+                    await dbConn.SaveChangesAsync().ConfigureAwait(false);
+                }
+
+                #endregion Validation
+            }
+            catch (Exception ex)
+            {
+                validationResult_Others.Message = ex.InnerException != null ? ex.InnerException.Message : string.Format("Row : {0} - {1}", itemRow, ex.Message);
+                validations.Add(validationResult_Others);
+
+                await LogQueueError(new QueueErrorEventArg
+                {
+                    FilePath = FilePath,
+                    ErrorMsg = ex.InnerException != null ? ex.InnerException.Message : ex.Message,
+                    Validations = validations,
+                });
+            }
+        }
+
         private static async Task ValidationsHandling(List<DispatchValidateDto> validations, string dispatchNo, string customerCode, bool successEmail = false)
         {
             string validationJSON = JsonConvert.SerializeObject(validations);
 
-            using var dbconn = new db();
-            var ChibiKey = await dbconn.ApplicationSettings.FirstOrDefaultAsync(x => x.Name.Equals("ChibiKey"));
-            var ChibiURL = await dbconn.ApplicationSettings.FirstOrDefaultAsync(x => x.Name.Equals("ChibiURL"));
+            using var dbConn = new db();
+            var ChibiKey = await dbConn.ApplicationSettings.FirstOrDefaultAsync(x => x.Name.Equals("ChibiKey"));
+            var ChibiURL = await dbConn.ApplicationSettings.FirstOrDefaultAsync(x => x.Name.Equals("ChibiURL"));
             var client = new HttpClient();
             client.DefaultRequestHeaders.Clear();
             client.DefaultRequestHeaders.Add("x-api-key", ChibiKey.Value);
@@ -1128,13 +1243,13 @@ namespace SND.SMP.DispatchValidator
                     GeneratedName = result.name ?? ""
                 };
 
-                await dbconn.Chibis.AddAsync(entity).ConfigureAwait(false);
-                await dbconn.SaveChangesAsync();
+                await dbConn.Chibis.AddAsync(entity).ConfigureAwait(false);
+                await dbConn.SaveChangesAsync();
 
-                await FileServer.InsertFileToAlbum(result.uuid, true, dbconn);
+                await FileServer.InsertFileToAlbum(result.uuid, true, dbConn);
             }
 
-            var apiUrl = await dbconn.ApplicationSettings.FirstOrDefaultAsync(x => x.Name.Equals("APIURL"));
+            var apiUrl = await dbConn.ApplicationSettings.FirstOrDefaultAsync(x => x.Name.Equals("APIURL"));
 
             if (apiUrl != null)
             {
@@ -1175,9 +1290,9 @@ namespace SND.SMP.DispatchValidator
 
         private static async Task LogQueueError(QueueErrorEventArg arg)
         {
-            using db db = new();
+            using db dbConn = new();
             #region Queue
-            var q = db.Queues
+            var q = dbConn.Queues
                 .Where(u => u.FilePath == arg.FilePath)
                 .Where(u => u.Status == QueueEnumConst.STATUS_RUNNING)
                 .FirstOrDefault();
@@ -1188,12 +1303,12 @@ namespace SND.SMP.DispatchValidator
                 q.ErrorMsg = arg.ErrorMsg;
                 q.TookInSec = 0;
 
-                await db.SaveChangesAsync().ConfigureAwait(false);
+                await dbConn.SaveChangesAsync().ConfigureAwait(false);
             }
             #endregion
 
             #region DispatchValidation
-            var dv = db.Dispatchvalidations
+            var dv = dbConn.DispatchValidations
                 .Where(u => u.FilePath == arg.FilePath)
                 .Where(u => u.Status == DispatchValidationEnumConst.STATUS_RUNNING)
                 .FirstOrDefault();
@@ -1207,7 +1322,7 @@ namespace SND.SMP.DispatchValidator
                 dv.IsFundLack = 0u;
                 dv.TookInSec = 0;
 
-                await db.SaveChangesAsync().ConfigureAwait(false);
+                await dbConn.SaveChangesAsync().ConfigureAwait(false);
 
                 await ValidationsHandling(arg.Validations, dv.DispatchNo, dv.CustomerCode);
             }
@@ -1218,10 +1333,10 @@ namespace SND.SMP.DispatchValidator
         {
             var result = false;
 
-            using db db = new();
-            db.ChangeTracker.AutoDetectChangesEnabled = false;
+            using db dbConn = new();
+            dbConn.ChangeTracker.AutoDetectChangesEnabled = false;
 
-            var existingDispatchNo = db.Itemmins.Where(u => ids.Contains(u.Id.ToUpper().Trim())).Select(u => u.Id + " (" + u.Dispatch.DispatchNo + ")").ToList();
+            var existingDispatchNo = dbConn.Itemmins.Where(u => ids.Contains(u.Id.ToUpper().Trim())).Select(u => u.Id + " (" + u.Dispatch.DispatchNo + ")").ToList();
 
             if (existingDispatchNo is not null)
             {
@@ -1393,13 +1508,13 @@ namespace SND.SMP.DispatchValidator
         {
             var result = false;
 
-            using db db = new();
-            db.ChangeTracker.AutoDetectChangesEnabled = false;
+            using db dbConn = new();
+            dbConn.ChangeTracker.AutoDetectChangesEnabled = false;
 
-            var existingBagNo = db.Bags.FirstOrDefault(u => bags.Contains(u.BagNo));
+            var existingBagNo = dbConn.Bags.FirstOrDefault(u => bags.Contains(u.BagNo));
             if (existingBagNo is not null)
             {
-                var dispatch = db.Dispatches.FirstOrDefault(u => u.Id.Equals(existingBagNo.DispatchId));
+                var dispatch = dbConn.Dispatches.FirstOrDefault(u => u.Id.Equals(existingBagNo.DispatchId));
                 validationResult.Message = $"Bag No. {existingBagNo.BagNo} already exists in the dispatch {dispatch.DispatchNo}";
                 result = true;
             }
@@ -1432,10 +1547,10 @@ namespace SND.SMP.DispatchValidator
         {
             var result = false;
 
-            using db db = new();
-            db.ChangeTracker.AutoDetectChangesEnabled = false;
+            using db dbConn = new();
+            dbConn.ChangeTracker.AutoDetectChangesEnabled = false;
 
-            var registeredItems = db.ItemTrackings.Where(u => u.CustomerCode.Equals(customerCode) &&
+            var registeredItems = dbConn.ItemTrackings.Where(u => u.CustomerCode.Equals(customerCode) &&
                                                               u.ProductCode.Equals(productCode)
                                                         ).ToList();
 
@@ -1453,8 +1568,8 @@ namespace SND.SMP.DispatchValidator
         {
             var result = false;
 
-            using db db = new();
-            db.ChangeTracker.AutoDetectChangesEnabled = false;
+            using db dbConn = new();
+            dbConn.ChangeTracker.AutoDetectChangesEnabled = false;
 
             Task<List<string>> asyncTask = GetItemTrackingIds(customerCode, postalCode, productCode);
             asyncTask.Wait();
@@ -1462,7 +1577,7 @@ namespace SND.SMP.DispatchValidator
 
             var unidentifiedItems = model.Where(a => !poolItemIds.Any(b => b.Equals(a))).ToList();
 
-            var registeredItems = db.ItemTrackings.Where(u => u.CustomerCode.Equals(customerCode) &&
+            var registeredItems = dbConn.ItemTrackings.Where(u => u.CustomerCode.Equals(customerCode) &&
                                                               u.ProductCode.Equals(productCode)).ToList();
 
             var invalidItems = unidentifiedItems.Where(a => !registeredItems.Any(b => b.TrackingNo.Equals(a)))
@@ -1524,14 +1639,14 @@ namespace SND.SMP.DispatchValidator
 
         private static async Task<List<string>> GetItemTrackingIds(string customerCode, string postalCode, string productCode)
         {
-            using db db = new();
-            db.ChangeTracker.AutoDetectChangesEnabled = false;
+            using db dbConn = new();
+            dbConn.ChangeTracker.AutoDetectChangesEnabled = false;
 
 
             List<string> paths = [];
             List<string> item = [];
 
-            var applications = db.ItemTrackingApplications.Where(x => x.CustomerCode.Equals(customerCode) &&
+            var applications = dbConn.ItemTrackingApplications.Where(x => x.CustomerCode.Equals(customerCode) &&
                                                                       x.PostalCode.Equals(postalCode) &&
                                                                       x.ProductCode.Equals(productCode));
 

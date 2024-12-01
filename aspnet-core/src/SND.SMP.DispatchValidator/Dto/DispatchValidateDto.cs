@@ -30,7 +30,7 @@ namespace SND.SMP.DispatchValidator.Dto
 
 	public class DispatchValidateIOSSDto
 	{
-		public int Row { get; set; }
+		public string Row { get; set; }
 		public string TrackingNo { get; set; }
 		public string CountryCode { get; set; }
 		public string IOSS { get; set; }

@@ -1,6 +1,6 @@
 public class DispatchRow
 {
-    public int Row { get; set; } = 0;
+    public string Row { get; set; } = string.Empty;
     public string PostalCode { get; set; } = string.Empty;
     public DateOnly DispatchDate { get; set; }
     public string ServiceCode { get; set; } = string.Empty;
