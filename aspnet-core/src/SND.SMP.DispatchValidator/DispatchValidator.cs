@@ -182,17 +182,9 @@ namespace SND.SMP.DispatchValidator
                     Height = (reader[25] == null || reader[25].ToString().IsNullOrWhiteSpace()) ? 0 : Convert.ToDecimal(reader[25]),
                     TaxPaymentMethod = reader[26] == null ? "" : reader[26].ToString(),
                     HSCode = reader[27] == null ? "" : reader[27].ToString(),
-                    Quantity = reader[28] == null ? 0 : Convert.ToInt32(reader[28]),
-                    // Price = Pricer.CalculatePrice(countryCode: reader[5]?.ToString(), weight: Convert.ToDecimal(reader[6]), state: reader[22]?.ToString(), city: reader[17]?.ToString(), postcode: reader[16]?.ToString())
+                    Quantity = reader[28] == null ? 0 : Convert.ToInt32(reader[28])
                 };
-
-                // if (Pricer.ErrorMsg != "") throw new Exception(Pricer.ErrorMsg);
-
                 rows.Add(tempRow);
-
-                // ItemCount++;
-                // TotalWeight += tempRow.Weight;
-                // TotalPrice += tempRow.Price;
             }
             return rows;
         }
@@ -619,21 +611,20 @@ namespace SND.SMP.DispatchValidator
 
                 using var reader = ExcelReaderFactory.CreateReader(stream);
 
-                var rowCount = reader.RowCount;
                 var ran = new Random();
                 var milestoneCount = 4;
                 var milestones = new List<int>();
-                var g = 0;
+                var milestone = 0;
                 var percentageHistory = new List<int>();
 
                 for (var i = 1; i <= milestoneCount; i++)
                 {
-                    g += 1 * ran.Next(15, 25);
-                    milestones.Add(g);
+                    milestone += 1 * ran.Next(15, 25);
+                    milestones.Add(milestone);
                 }
 
                 var rowTouched = 0;
-
+                var itemCount = 0;
                 var totalWeight = 0m;
                 var totalPrice = 0m;
 
@@ -660,6 +651,7 @@ namespace SND.SMP.DispatchValidator
                 Currency = currency.Abbr;
 
                 #region V2 Excel Validations
+                
                 List<DispatchRow> dispatchRows = ReadExcelFile(stream);
 
                 List<DispatchRow> preparedDispatchRows = dispatchRows
@@ -699,7 +691,7 @@ namespace SND.SMP.DispatchValidator
                                                                 Price = group.First().Price
                                                             }).ToList();
 
-                rowCount = preparedDispatchRows.Count;
+                itemCount = preparedDispatchRows.Count;
                 foreach (DispatchRow row in preparedDispatchRows)
                 {
                     rowTouched++;
@@ -756,7 +748,7 @@ namespace SND.SMP.DispatchValidator
 
                     #region Validation Progress
 
-                    var progressPercentage = Convert.ToInt32(Convert.ToDecimal(rowTouched) / Convert.ToDecimal(rowCount) * 100);
+                    var progressPercentage = Convert.ToInt32(Convert.ToDecimal(rowTouched) / Convert.ToDecimal(itemCount) * 100);
 
                     if (progressPercentage > 0 && milestones.Contains(progressPercentage) && !percentageHistory.Contains(progressPercentage))
                     {
