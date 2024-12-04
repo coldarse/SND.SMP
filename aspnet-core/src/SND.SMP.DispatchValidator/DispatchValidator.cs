@@ -1181,6 +1181,11 @@ namespace SND.SMP.DispatchValidator
                     Validations = validations,
                 });
             }
+            finally
+            {
+                // Reset FilePath
+                FilePath = "";
+            }
         }
 
         private static async Task ValidationsHandling(List<DispatchValidateDto> validations, string dispatchNo, string customerCode, bool successEmail = false)
