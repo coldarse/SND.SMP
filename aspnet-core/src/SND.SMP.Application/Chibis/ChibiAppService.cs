@@ -180,95 +180,95 @@ namespace SND.SMP.Chibis
             return true;
         }
 
-        private async Task<bool> InsertFileToAlbum(string file_uuid, bool isError, bool isDispatchTrackingUpdate, bool isInvoiceGeneration, string postalCode = null, string serviceCode = null, string productCode = null)
-        {
-            List<Album> albums = await GetDictAlbums();
-            if (isError)
-            {
-                if (albums.Count == 0)
-                {
-                    var album = await CreateAlbumAsync("ErrorDetails");
-                    await AddFileToAlbum(album.album.uuid, file_uuid).ConfigureAwait(false);
-                }
-                else
-                {
-                    var error_album = albums.FirstOrDefault(a => a.name == "ErrorDetails");
-                    if (error_album == null)
-                    {
-                        var album = await CreateAlbumAsync("ErrorDetails");
-                        await AddFileToAlbum(album.album.uuid, file_uuid).ConfigureAwait(false);
-                    }
-                    else await AddFileToAlbum(error_album.uuid, file_uuid).ConfigureAwait(false);
-                }
-            }
-            else if (isDispatchTrackingUpdate)
-            {
-                if (albums.Count == 0)
-                {
-                    var album = await CreateAlbumAsync("DispatchTrackingUpdates");
-                    await AddFileToAlbum(album.album.uuid, file_uuid).ConfigureAwait(false);
-                }
-                else
-                {
-                    var error_album = albums.FirstOrDefault(a => a.name == "DispatchTrackingUpdates");
-                    if (error_album == null)
-                    {
-                        var album = await CreateAlbumAsync("DispatchTrackingUpdates");
-                        await AddFileToAlbum(album.album.uuid, file_uuid).ConfigureAwait(false);
-                    }
-                    else await AddFileToAlbum(error_album.uuid, file_uuid).ConfigureAwait(false);
-                }
-            }
-            else if (isInvoiceGeneration)
-            {
-                if (albums.Count == 0)
-                {
-                    var album = await CreateAlbumAsync("InvoiceInfosForGeneration");
-                    await AddFileToAlbum(album.album.uuid, file_uuid).ConfigureAwait(false);
-                }
-                else
-                {
-                    var error_album = albums.FirstOrDefault(a => a.name == "InvoiceInfosForGeneration");
-                    if (error_album == null)
-                    {
-                        var album = await CreateAlbumAsync("InvoiceInfosForGeneration");
-                        await AddFileToAlbum(album.album.uuid, file_uuid).ConfigureAwait(false);
-                    }
-                    else await AddFileToAlbum(error_album.uuid, file_uuid).ConfigureAwait(false);
-                }
-            }
-            else
-            {
-                if (albums.Count == 0)
-                {
-                    if (postalCode != null) await CreateInsertPostalAlbum(postalCode[..2], file_uuid).ConfigureAwait(false);
-                    if (serviceCode != null) await CreateInsertServiceAlbum(serviceCode, file_uuid).ConfigureAwait(false);
-                    if (productCode != null) await CreateInsertProductAlbum(productCode, file_uuid).ConfigureAwait(false);
-                }
-                else
-                {
-                    if (postalCode != null)
-                    {
-                        var postal_album = albums.FirstOrDefault(a => a.name == "Postal_" + postalCode[..2]);
-                        if (postal_album == null) await CreateInsertPostalAlbum(postalCode[..2], file_uuid).ConfigureAwait(false);
-                        else await AddFileToAlbum(postal_album.uuid, file_uuid).ConfigureAwait(false);
-                    }
-                    if (serviceCode != null)
-                    {
-                        var service_album = albums.FirstOrDefault(a => a.name == "Service_" + serviceCode);
-                        if (service_album == null) await CreateInsertServiceAlbum(serviceCode, file_uuid).ConfigureAwait(false);
-                        else await AddFileToAlbum(service_album.uuid, file_uuid).ConfigureAwait(false);
-                    }
-                    if (productCode != null)
-                    {
-                        var product_album = albums.FirstOrDefault(a => a.name == "Product_" + productCode);
-                        if (product_album == null) await CreateInsertProductAlbum(productCode, file_uuid).ConfigureAwait(false);
-                        else await AddFileToAlbum(product_album.uuid, file_uuid).ConfigureAwait(false);
-                    }
-                }
-            }
-            return true;
-        }
+        // private async Task<bool> InsertFileToAlbum(string file_uuid, bool isError, bool isDispatchTrackingUpdate, bool isInvoiceGeneration, string postalCode = null, string serviceCode = null, string productCode = null)
+        // {
+        //     List<Album> albums = await GetDictAlbums();
+        //     if (isError)
+        //     {
+        //         if (albums.Count == 0)
+        //         {
+        //             var album = await CreateAlbumAsync("ErrorDetails");
+        //             await AddFileToAlbum(album.album.uuid, file_uuid).ConfigureAwait(false);
+        //         }
+        //         else
+        //         {
+        //             var error_album = albums.FirstOrDefault(a => a.name == "ErrorDetails");
+        //             if (error_album == null)
+        //             {
+        //                 var album = await CreateAlbumAsync("ErrorDetails");
+        //                 await AddFileToAlbum(album.album.uuid, file_uuid).ConfigureAwait(false);
+        //             }
+        //             else await AddFileToAlbum(error_album.uuid, file_uuid).ConfigureAwait(false);
+        //         }
+        //     }
+        //     else if (isDispatchTrackingUpdate)
+        //     {
+        //         if (albums.Count == 0)
+        //         {
+        //             var album = await CreateAlbumAsync("DispatchTrackingUpdates");
+        //             await AddFileToAlbum(album.album.uuid, file_uuid).ConfigureAwait(false);
+        //         }
+        //         else
+        //         {
+        //             var error_album = albums.FirstOrDefault(a => a.name == "DispatchTrackingUpdates");
+        //             if (error_album == null)
+        //             {
+        //                 var album = await CreateAlbumAsync("DispatchTrackingUpdates");
+        //                 await AddFileToAlbum(album.album.uuid, file_uuid).ConfigureAwait(false);
+        //             }
+        //             else await AddFileToAlbum(error_album.uuid, file_uuid).ConfigureAwait(false);
+        //         }
+        //     }
+        //     else if (isInvoiceGeneration)
+        //     {
+        //         if (albums.Count == 0)
+        //         {
+        //             var album = await CreateAlbumAsync("InvoiceInfosForGeneration");
+        //             await AddFileToAlbum(album.album.uuid, file_uuid).ConfigureAwait(false);
+        //         }
+        //         else
+        //         {
+        //             var error_album = albums.FirstOrDefault(a => a.name == "InvoiceInfosForGeneration");
+        //             if (error_album == null)
+        //             {
+        //                 var album = await CreateAlbumAsync("InvoiceInfosForGeneration");
+        //                 await AddFileToAlbum(album.album.uuid, file_uuid).ConfigureAwait(false);
+        //             }
+        //             else await AddFileToAlbum(error_album.uuid, file_uuid).ConfigureAwait(false);
+        //         }
+        //     }
+        //     else
+        //     {
+        //         if (albums.Count == 0)
+        //         {
+        //             if (postalCode != null) await CreateInsertPostalAlbum(postalCode[..2], file_uuid).ConfigureAwait(false);
+        //             if (serviceCode != null) await CreateInsertServiceAlbum(serviceCode, file_uuid).ConfigureAwait(false);
+        //             if (productCode != null) await CreateInsertProductAlbum(productCode, file_uuid).ConfigureAwait(false);
+        //         }
+        //         else
+        //         {
+        //             if (postalCode != null)
+        //             {
+        //                 var postal_album = albums.FirstOrDefault(a => a.name == "Postal_" + postalCode[..2]);
+        //                 if (postal_album == null) await CreateInsertPostalAlbum(postalCode[..2], file_uuid).ConfigureAwait(false);
+        //                 else await AddFileToAlbum(postal_album.uuid, file_uuid).ConfigureAwait(false);
+        //             }
+        //             if (serviceCode != null)
+        //             {
+        //                 var service_album = albums.FirstOrDefault(a => a.name == "Service_" + serviceCode);
+        //                 if (service_album == null) await CreateInsertServiceAlbum(serviceCode, file_uuid).ConfigureAwait(false);
+        //                 else await AddFileToAlbum(service_album.uuid, file_uuid).ConfigureAwait(false);
+        //             }
+        //             if (productCode != null)
+        //             {
+        //                 var product_album = albums.FirstOrDefault(a => a.name == "Product_" + productCode);
+        //                 if (product_album == null) await CreateInsertProductAlbum(productCode, file_uuid).ConfigureAwait(false);
+        //                 else await AddFileToAlbum(product_album.uuid, file_uuid).ConfigureAwait(false);
+        //             }
+        //         }
+        //     }
+        //     return true;
+        // }
 
         private async Task<GetAlbumDto> GetAlbumAsync(string uuid)
         {
@@ -533,7 +533,7 @@ namespace SND.SMP.Chibis
 
                 await Repository.InsertAsync(entity).ConfigureAwait(false);
 
-                await InsertFileToAlbum(result.uuid, false, false, false, postalCode, null, productCode);
+                // await InsertFileToAlbum(result.uuid, false, false, false, postalCode, null, productCode);
             }
 
             return result;
@@ -939,7 +939,7 @@ namespace SND.SMP.Chibis
 
             var jsonFile = await UploadFile(chibiUpload, fileName);
 
-            await InsertFileToAlbum(jsonFile.uuid, false, true, false).ConfigureAwait(false);
+            // await InsertFileToAlbum(jsonFile.uuid, false, true, false).ConfigureAwait(false);
 
             var existingQueuesByPath = await _queueRepository.GetAllListAsync(x => x.FilePath.Equals(jsonFile.url));
 
@@ -1001,8 +1001,8 @@ namespace SND.SMP.Chibis
 
                 var deserializedFileString = Newtonsoft.Json.JsonConvert.DeserializeObject<PreCheckDetails>(fileString);
 
-                await InsertFileToAlbum(xlsxFile.uuid, false, false, false, deserializedFileString.PostalCode, deserializedFileString.ServiceCode, deserializedFileString.ProductCode).ConfigureAwait(false);
-                await InsertFileToAlbum(jsonFile.uuid, false, false, false, deserializedFileString.PostalCode, deserializedFileString.ServiceCode, deserializedFileString.ProductCode).ConfigureAwait(false);
+                // await InsertFileToAlbum(xlsxFile.uuid, false, false, false, deserializedFileString.PostalCode, deserializedFileString.ServiceCode, deserializedFileString.ProductCode).ConfigureAwait(false);
+                // await InsertFileToAlbum(jsonFile.uuid, false, false, false, deserializedFileString.PostalCode, deserializedFileString.ServiceCode, deserializedFileString.ProductCode).ConfigureAwait(false);
 
                 var queue = await _queueRepository.FirstOrDefaultAsync(x => (x.FilePath == uploadRetryPreCheck.path) && (x.EventType == "Validate Dispatch"));
 
@@ -1049,7 +1049,7 @@ namespace SND.SMP.Chibis
 
                 var deserializedFileString = Newtonsoft.Json.JsonConvert.DeserializeObject<PreCheckDetails>(fileString);
 
-                await InsertFileToAlbum(jsonFile.uuid, false, false, false, deserializedFileString.PostalCode, deserializedFileString.ServiceCode, deserializedFileString.ProductCode).ConfigureAwait(false);
+                // await InsertFileToAlbum(jsonFile.uuid, false, false, false, deserializedFileString.PostalCode, deserializedFileString.ServiceCode, deserializedFileString.ProductCode).ConfigureAwait(false);
 
                 var queue = await _queueRepository.FirstOrDefaultAsync(x => (x.FilePath == uploadRetryPreCheck.path) && (x.EventType == "Validate Dispatch"));
 
@@ -1159,8 +1159,8 @@ namespace SND.SMP.Chibis
                 uploadPreCheck.UploadFile.fileType = "json";
                 var jsonFile = await UploadFile(uploadPreCheck.UploadFile, xlsxFile.originalName);
 
-                await InsertFileToAlbum(xlsxFile.uuid, false, false, false, uploadPreCheck.Details.PostalCode, uploadPreCheck.Details.ServiceCode, uploadPreCheck.Details.ProductCode).ConfigureAwait(false);
-                await InsertFileToAlbum(jsonFile.uuid, false, false, false, uploadPreCheck.Details.PostalCode, uploadPreCheck.Details.ServiceCode, uploadPreCheck.Details.ProductCode).ConfigureAwait(false);
+                // await InsertFileToAlbum(xlsxFile.uuid, false, false, false, uploadPreCheck.Details.PostalCode, uploadPreCheck.Details.ServiceCode, uploadPreCheck.Details.ProductCode).ConfigureAwait(false);
+                // await InsertFileToAlbum(jsonFile.uuid, false, false, false, uploadPreCheck.Details.PostalCode, uploadPreCheck.Details.ServiceCode, uploadPreCheck.Details.ProductCode).ConfigureAwait(false);
 
                 var existingQueuesByPath = await _queueRepository.GetAllListAsync(x => x.FilePath.Equals(xlsxFile.url));
 

@@ -78,7 +78,7 @@ namespace SND.SMP.DispatchValidator
                 newTask.ErrorMsg = null;
                 newTask.TookInSec = 0;
 
-                await dbConn.SaveChangesAsync().ConfigureAwait(false);
+                await dbConn.SaveChangesAsync();
             }
 
             if (!string.IsNullOrWhiteSpace(FilePath))
