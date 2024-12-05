@@ -4,13 +4,13 @@ services:
 
   dispatch_importer:
     build: ./
-    image: dannychen98/tfs_dispatch_importer:v1.0.3
+    image: dannychen98/tfs_dispatch_importer:v1.0.4
     environment:
       ConnectionStrings__Default: "server=rm-3ns047wo8pox13094go.mysql.rds.aliyuncs.com;port=3306;database=tfsdb;uid=tfs_admin;pwd=tfs@1234"
 
   dispatch_validator:
     build: ./
-    image: dannychen98/tfs_dispatch_validator:v1.0.3
+    image: dannychen98/tfs_dispatch_validator:v1.0.6
     environment:
       ConnectionStrings__Default: "server=rm-3ns047wo8pox13094go.mysql.rds.aliyuncs.com;port=3306;database=tfsdb;uid=tfs_admin;pwd=tfs@1234"
 
@@ -28,7 +28,7 @@ services:
 
   abp_host:
     build: ./
-    image: dannychen98/tfs_api:v1.1.25
+    image: dannychen98/tfs_api:v1.1.27
     environment:
       ASPNETCORE_ENVIRONMENT: "Staging"
       ASPNETCORE_Kestrel__Certificates__Default__Path: "/etc/ssl/certs/fullchain.pem"
