@@ -310,7 +310,9 @@ namespace SND.SMP.DispatchImporter
                     var blockMilestone = rowTouched % BlockSize;
                     if (blockMilestone == 0)
                     {
-                        await dbConn.Bags.AddRangeAsync(listBags.Where(u => u.Id == 0));
+                        await dbConn.Bags.AddRangeAsync(listBags.Where(u => u.Id == 0)).ConfigureAwait(false);
+                        await dbConn.SaveChangesAsync();
+
                         await dbConn.Items.AddRangeAsync(listItems.Select(u => new EF.Item
                         {
                             Id = u.TrackingNo,
