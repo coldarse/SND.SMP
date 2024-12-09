@@ -1228,8 +1228,8 @@ namespace SND.SMP.ItemTrackingReviews
                         }
                         else
                         {
-                            // Regular expression to match the pattern: two letters followed by 1-10 digits
-                            if (Regex.IsMatch(input.IOSSTax, @"^[A-Za-z]{2}\d{10}$"))
+                            // Regular expression to match the pattern: two letters followed by 1-10 digits. If not match will add into error
+                            if (!Regex.IsMatch(input.IOSSTax, @"^[A-Za-z]{2}\d{10}$"))
                             {
                                 result.Errors.Add($"The IOSS format is incorrect. The IOSS identifier should follow the format IM1234567890.");
                             }
@@ -1658,7 +1658,7 @@ namespace SND.SMP.ItemTrackingReviews
                         else
                         {
                             // Regular expression to match the pattern: two letters followed by 1-10 digits
-                            if (Regex.IsMatch(input.IOSSTax, @"^[A-Za-z]{2}\d{10}$"))
+                            if (!Regex.IsMatch(input.IOSSTax, @"^[A-Za-z]{2}\d{10}$"))
                             {
                                 result.Errors.Add($"The IOSS format is incorrect. The IOSS identifier should follow the format IM1234567890.");
                             }
