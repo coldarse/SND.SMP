@@ -62,7 +62,7 @@ public class ShipperAddress
     public string LocationCode3 { get; set; }
 }
 
-public class Shipper
+public class ShipperDetails
 {
     public ShipperAddress ShipperAddress { get; set; }
     public ShipperContact ShipperContact { get; set; }
@@ -130,7 +130,7 @@ public class SPLRequest
     public string LabelFormat { get; set; }
     public string LabelSize { get; set; }
     public Consignee Consignee { get; set; }
-    public Shipper Shipper { get; set; }
+    public ShipperDetails Shipper { get; set; }
     public List<ShipmentItem> Items { get; set; }
     public ShipmentWeight ShipmentWeight { get; set; }
     public Reference Reference { get; set; }

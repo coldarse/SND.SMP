@@ -2187,7 +2187,7 @@ namespace SND.SMP.ItemTrackingReviews
 
         [HttpPost]
         [Route("api/PreRegisterItems/SA")]
-        public async Task<OutPreRegisterItem> PreRegisterItemsSA(InPreRegisterItem input)
+        public async Task<OutPreRegisterItem> PreRegisterItemsSA(InPreRegisterItems input)
         {
             const string SUCCESS = "success";
             const string FAILED = "failed";
