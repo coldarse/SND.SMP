@@ -48,8 +48,7 @@ public class ItemDetail
     public string ItemDesc { get; set; }
     [Required]
     public int Qty { get; set; }
-    [Required]
-    public string HSCode { get; set; }
+    public string HSCode { get; set; } = "";
 }
 
 public class InPreRegisterItems : PreRegisterItems

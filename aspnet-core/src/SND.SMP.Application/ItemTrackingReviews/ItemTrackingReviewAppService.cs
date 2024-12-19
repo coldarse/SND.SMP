@@ -2229,6 +2229,16 @@ namespace SND.SMP.ItemTrackingReviews
                     var token_expiration = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("SPL_TokenExpiration"));
                     var token = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("SPL_Token"));
 
+                    var itemTotalValue = 0m;
+                    var itemTotalWeight = 0m;
+                    List<string> itemDescriptions = [];
+                    foreach (var item in input.ItemList)
+                    {
+                        itemTotalWeight += item.Weight;
+                        itemTotalValue += item.ItemValue;
+                        itemDescriptions.Add(item.ItemDesc.Trim().ToUpper());
+                    }
+
                     #region SA02
                     if (input.PostalCode == "SA02")
                     {
@@ -2237,9 +2247,9 @@ namespace SND.SMP.ItemTrackingReviews
                             result.Errors.Add("SA02 is only applicable for Service Code DE and Product Code PRT");
                         }
 
-                        if (input.ItemValue == 0)
+                        if (itemTotalValue == 0)
                         {
-                            result.Errors.Add("Please specify the Item Amount");
+                            result.Errors.Add("Please specify the Items Amount");
                         }
 
                         result.Remarks = "Please take note, this is a Cash On Delivery(COD) service.";
@@ -2290,7 +2300,7 @@ namespace SND.SMP.ItemTrackingReviews
                         if (DateTime.Now >= new DateTime(2021, 11, 1))
                         {
                             var maxItemValue = 180m;
-                            if (input.ItemValue > maxItemValue)
+                            if (itemTotalValue > maxItemValue)
                             {
                                 result.Errors.Add("Item value exceeded SAR180");
                             }
@@ -2303,13 +2313,13 @@ namespace SND.SMP.ItemTrackingReviews
 
                     foreach (var keyword in illegalItemDescKeywords)
                     {
-                        if (input.ItemDesc.ToUpper().Trim().Contains(keyword))
+                        if (itemDescriptions.Contains(keyword.ToUpper()))
                         {
                             result.Errors.Add("Contains prohibited item");
                         }
                     }
 
-                    if (input.ItemDesc.ToUpper().Trim().Contains("SEX") && !input.ItemDesc.ToUpper().Trim().Contains("SEXY"))
+                    if (itemDescriptions.Contains("SEX") && !itemDescriptions.Contains("SEXY"))
                     {
                         result.Errors.Add("Contains prohibited item");
                     }
@@ -2420,12 +2430,12 @@ namespace SND.SMP.ItemTrackingReviews
                                     BranchCode = "BR516418",
                                     AirwaybillNumber = "",
                                     ShippingDateTime = DateTime.Now,
-                                    DueDate = DateTime.Parse("2024-12-31T05:04:18.070Z"),
+                                    DueDate = DateTime.Now.AddDays(14),
                                     DescriptionOfGoods = "Clothing and Accessories",
                                     ForeignHAWB = "",
                                     NumberOfPieces = "1",
                                     Cod = 0,
-                                    CustomsDeclaredValue = input.,
+                                    CustomsDeclaredValue = Convert.ToInt32(itemTotalValue),
                                     CustomsDeclaredValueCurrency = "SAR",
                                     CodCurrnecy = "SAR",
                                     ProductType = "PPX",
@@ -2439,24 +2449,24 @@ namespace SND.SMP.ItemTrackingReviews
                                     {
                                         ConsigneeContact = new ConsigneeContact
                                         {
-                                            PersonName = "SAM",
+                                            PersonName = input.RecipientName,
                                             CompanyName = "",
-                                            PhoneNumber1 = "+601234567890",
-                                            PhoneNumber2 = "+601234567890",
-                                            CellPhone = "+601234567890",
-                                            EmailAddress = "razan@gmail.com",
+                                            PhoneNumber1 = input.RecipientContactNo,
+                                            PhoneNumber2 = "",
+                                            CellPhone = "",
+                                            EmailAddress = input.RecipientEmail,
                                             Type = "Business",
                                             CivilId = ""
                                         },
                                         ConsigneeAddress = new ConsigneeAddress
                                         {
-                                            CountryCode = "SA",
-                                            City = "Riyadh",
-                                            District = "Al Amal Dist.",
-                                            Line1 = "Riyadh 123 Main Street",
-                                            Line2 = "Apt 456",
-                                            Line3 = "Suite 789",
-                                            PostCode = "",
+                                            CountryCode = input.RecipientCountry,
+                                            City = input.RecipientCity,
+                                            District = input.RecipientState,
+                                            Line1 = input.RecipientAddress,
+                                            Line2 = "",
+                                            Line3 = "",
+                                            PostCode = input.RecipientPostcode,
                                             Longitude = "",
                                             Latitude = "",
                                             LocationCode1 = "",
@@ -2465,7 +2475,7 @@ namespace SND.SMP.ItemTrackingReviews
                                             ShortAddress = ""
                                         }
                                     },
-                                    Shipper = new Shipper
+                                    Shipper = new ShipperDetails
                                     {
                                         ShipperContact = new ShipperContact
                                         {
@@ -2492,35 +2502,6 @@ namespace SND.SMP.ItemTrackingReviews
                                             LocationCode3 = ""
                                         }
                                     },
-                                    Items = new List<ShipmentItem>
-                                    {
-                                        new ShipmentItem
-                                        {
-                                            Quantity = 1,
-                                            Weight = new Weight { Unit = 1, Value = 1 },
-                                            CustomsValue = new CustomsValue { CurrencyCode = "SAR", Value = 50 },
-                                            Comments = "",
-                                            Reference = "ITEM001",
-                                            CommodityCode = "62046200",
-                                            GoodsDescription = "Boots",
-                                            CountryOfOrigin = "GBR",
-                                            PackageType = "Box",
-                                            ContainsDangerousGoods = false
-                                        },
-                                        new ShipmentItem
-                                        {
-                                            Quantity = 1,
-                                            Weight = new Weight { Unit = 1, Value = 1 },
-                                            CustomsValue = new CustomsValue { CurrencyCode = "SAR", Value = 100 },
-                                            Comments = "",
-                                            Reference = "ITEM002",
-                                            CommodityCode = "62046200",
-                                            GoodsDescription = "Boots",
-                                            CountryOfOrigin = "GBR",
-                                            PackageType = "Box",
-                                            ContainsDangerousGoods = false
-                                        }
-                                    },
                                     ShipmentWeight = new ShipmentWeight
                                     {
                                         Value = 1,
@@ -2536,6 +2517,28 @@ namespace SND.SMP.ItemTrackingReviews
                                         ShipperNote1 = "Test"
                                     }
                                 };
+
+                                List<ShipmentItem> shipmentItems = [];
+                                int temp_count = 1;
+                                foreach (var item in input.ItemList)
+                                {
+                                    shipmentItems.Add(new ShipmentItem()
+                                    {
+                                        Quantity = item.Qty,
+                                        Weight = new Weight { Unit = 1, Value = item.Weight },
+                                        CustomsValue = new CustomsValue { CurrencyCode = "SAR", Value = item.ItemValue },
+                                        Comments = "",
+                                        Reference = "ITEM" + temp_count.ToString("D3"),
+                                        CommodityCode = "62046200",
+                                        GoodsDescription = item.ItemDesc,
+                                        CountryOfOrigin = "GBR",
+                                        PackageType = "Box",
+                                        ContainsDangerousGoods = false
+                                    });
+                                    temp_count++;
+                                }
+
+                                splRequest.Items = shipmentItems;
 
                                 List<SPLRequest> request = [];
                                 request.Add(splRequest);
@@ -2568,13 +2571,13 @@ namespace SND.SMP.ItemTrackingReviews
 
                                 if (httpstatus == HttpStatusCode.OK)
                                 {
-                                    var saResult = JsonConvert.DeserializeObject<List<SPLResponse>>(saBody);
+                                    var saResult = JsonConvert.DeserializeObject<SAResponse>(saBody);
 
                                     if (saResult != null)
                                     {
-                                        if (saResult[0].Status == "Success")
+                                        if (saResult.Message == "Success")
                                         {
-                                            newItemIdFromSPS = saResult[0].Airwaybill;
+                                            newItemIdFromSPS = saResult.Items[0].Barcode;
 
                                             if (string.IsNullOrWhiteSpace(newItemIdFromSPS)) result.Errors.Add("Insufficient Pool Item ID");
                                             else
@@ -2596,9 +2599,19 @@ namespace SND.SMP.ItemTrackingReviews
                                         }
                                         else
                                         {
-                                            result.APIItemID = "";
+                                            result.APIItemID = saResult.Status;
                                             result.Status = FAILED;
-                                            result.Errors.Add(saResult[0].Status);
+                                            if (saResult.Items.Count != 0)
+                                            {
+                                                foreach (var item in saResult.Items)
+                                                {
+                                                    result.Errors.Add(item.Message);
+                                                }
+                                            }
+                                            else
+                                            {
+                                                result.Errors.Add(saResult.Message);
+                                            }
                                         }
                                     }
                                     else
@@ -2645,12 +2658,12 @@ namespace SND.SMP.ItemTrackingReviews
                                         ServiceCode = input.ServiceCode,
                                         ProductCode = input.ProductCode,
                                         CountryCode = input.RecipientCountry,
-                                        Weight = input.Weight,
+                                        Weight = itemTotalWeight,
                                         BagNo = "",
                                         SealNo = "",
                                         Price = 0m,
-                                        ItemValue = input.ItemValue,
-                                        ItemDesc = input.ItemDesc,
+                                        ItemValue = itemTotalValue,
+                                        ItemDesc = string.Join(",", itemDescriptions),
                                         RecpName = input.RecipientName,
                                         TelNo = input.RecipientContactNo,
                                         Email = input.RecipientEmail,
@@ -2680,9 +2693,9 @@ namespace SND.SMP.ItemTrackingReviews
                                 {
                                     newItem.DispatchID = dispatchTemp.Id;
                                     newItem.DispatchDate = dispatchTemp.DispatchDate;
-                                    newItem.Weight = input.Weight;
-                                    newItem.ItemValue = input.ItemValue;
-                                    newItem.ItemDesc = input.ItemDesc;
+                                    newItem.Weight = itemTotalWeight;
+                                    newItem.ItemValue = itemTotalValue;
+                                    newItem.ItemDesc = string.Join(",", itemDescriptions);
                                     newItem.RecpName = input.RecipientName;
                                     newItem.TelNo = input.RecipientContactNo;
                                     newItem.Email = input.RecipientEmail;
@@ -2691,7 +2704,7 @@ namespace SND.SMP.ItemTrackingReviews
                                     newItem.Postcode = input.RecipientPostcode;
                                     newItem.CountryCode = input.RecipientCountry;
                                     newItem.RefNo = input.RefNo;
-                                    newItem.HSCode = input.HSCode;
+                                    newItem.HSCode = input.ItemList[0].HSCode;
                                     newItem.SenderName = input.SenderName;
                                     newItem.IOSSTax = input.IOSSTax;
                                     newItem.AddressNo = input.AddressNo;

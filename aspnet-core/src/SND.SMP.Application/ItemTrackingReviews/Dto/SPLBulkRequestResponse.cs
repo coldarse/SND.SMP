@@ -71,13 +71,13 @@ public class ShipperDetails
 public class Weight
 {
     public int Unit { get; set; }
-    public int Value { get; set; }
+    public decimal Value { get; set; }
 }
 
 public class CustomsValue
 {
     public string CurrencyCode { get; set; }
-    public int Value { get; set; }
+    public decimal Value { get; set; }
 }
 
 public class ShipmentItem
