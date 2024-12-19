@@ -921,9 +921,9 @@ namespace SND.SMP.ItemTrackingReviews
 
             var tokenRequest = new SPLTokenRequest()
             {
-                userName = username,
-                password = password,
-            }
+                userName = username.Value,
+                password = password.Value,
+            };
 
             APIRequestResponse apiRequestResponse = new()
             {
@@ -936,7 +936,7 @@ namespace SND.SMP.ItemTrackingReviews
             {
                 Method = HttpMethod.Post,
                 RequestUri = new Uri(TokenGenerationUrl.Value.Trim()),
-                Content = tokenRequest,
+                Content = new StringContent(JsonConvert.SerializeObject(tokenRequest), Encoding.UTF8, "application/json"),
             };
             using var splTokenResponse = await splTokenClient.SendAsync(splTokenRequestMessage);
             splTokenResponse.EnsureSuccessStatusCode();
@@ -953,16 +953,16 @@ namespace SND.SMP.ItemTrackingReviews
             if (splTokenResult != null)
             {
                 var token_expiration = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("SPL_TokenExpiration"));
-                token_expiration.Value = splTokenResult.expires;
+                token_expiration.Value = DateTimeOffset.FromUnixTimeSeconds(splTokenResult.Token.ExpiresIn).DateTime.ToString();
 
                 var token = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("SPL_Token"));
-                token.Value = splTokenResult.token;
+                token.Value = splTokenResult.Token.AccessToken;
 
                 await _applicationSettingRepository.UpdateAsync(token_expiration);
                 await _applicationSettingRepository.UpdateAsync(token);
                 await _applicationSettingRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
 
-                return splTokenResult.token;
+                return splTokenResult.Token.AccessToken;
             }
 
             return "";
@@ -2414,18 +2414,18 @@ namespace SND.SMP.ItemTrackingReviews
                                 saClient.DefaultRequestHeaders.Clear();
                                 saClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", saToken);
 
-                                SPLRequest splRequest = new SPLRequest
+                                SPLRequest splRequest = new()
                                 {
                                     CustomerCode = "CC102130",
                                     BranchCode = "BR516418",
                                     AirwaybillNumber = "",
-                                    ShippingDateTime = DateTime.Parse("2024-12-08T05:04:18.070Z"),
+                                    ShippingDateTime = DateTime.Now,
                                     DueDate = DateTime.Parse("2024-12-31T05:04:18.070Z"),
                                     DescriptionOfGoods = "Clothing and Accessories",
                                     ForeignHAWB = "",
                                     NumberOfPieces = "1",
                                     Cod = 0,
-                                    CustomsDeclaredValue = 10,
+                                    CustomsDeclaredValue = input.,
                                     CustomsDeclaredValueCurrency = "SAR",
                                     CodCurrnecy = "SAR",
                                     ProductType = "PPX",
@@ -2492,9 +2492,9 @@ namespace SND.SMP.ItemTrackingReviews
                                             LocationCode3 = ""
                                         }
                                     },
-                                    Items = new List<Item>
+                                    Items = new List<ShipmentItem>
                                     {
-                                        new Item
+                                        new ShipmentItem
                                         {
                                             Quantity = 1,
                                             Weight = new Weight { Unit = 1, Value = 1 },
@@ -2507,7 +2507,7 @@ namespace SND.SMP.ItemTrackingReviews
                                             PackageType = "Box",
                                             ContainsDangerousGoods = false
                                         },
-                                        new Item
+                                        new ShipmentItem
                                         {
                                             Quantity = 1,
                                             Weight = new Weight { Unit = 1, Value = 1 },
@@ -2568,13 +2568,13 @@ namespace SND.SMP.ItemTrackingReviews
 
                                 if (httpstatus == HttpStatusCode.OK)
                                 {
-                                    var saResult = JsonConvert.DeserializeObject<SAResponse>(saBody);
+                                    var saResult = JsonConvert.DeserializeObject<List<SPLResponse>>(saBody);
 
                                     if (saResult != null)
                                     {
-                                        if (saResult.Message == "Success")
+                                        if (saResult[0].Status == "Success")
                                         {
-                                            newItemIdFromSPS = saResult.Items[0].Barcode;
+                                            newItemIdFromSPS = saResult[0].Airwaybill;
 
                                             if (string.IsNullOrWhiteSpace(newItemIdFromSPS)) result.Errors.Add("Insufficient Pool Item ID");
                                             else
@@ -2596,19 +2596,9 @@ namespace SND.SMP.ItemTrackingReviews
                                         }
                                         else
                                         {
-                                            result.APIItemID = saResult.Status;
+                                            result.APIItemID = "";
                                             result.Status = FAILED;
-                                            if (saResult.Items.Count != 0)
-                                            {
-                                                foreach (var item in saResult.Items)
-                                                {
-                                                    result.Errors.Add(item.Message);
-                                                }
-                                            }
-                                            else
-                                            {
-                                                result.Errors.Add(saResult.Message);
-                                            }
+                                            result.Errors.Add(saResult[0].Status);
                                         }
                                     }
                                     else

@@ -45,18 +45,14 @@ public class InAddressDetail
     public string AdditionalNo { get; set; } = "";
 }
 
-public class SAResponse
+public class SPLResponse
 {
-    public List<OutPostItem> Items { get; set; }
     public string Status { get; set; }
+    public string Airwaybill { get; set; }
+    public int AirwaybillId { get; set; }
     public string Message { get; set; }
-}
-
-public class OutPostItem
-{
-    public string ReferenceId { get; set; }
-    public int ItemStatus { get; set; }
-    public string Message { get; set; }
-    public string Barcode { get; set; }
-    public string ItemPiecesResponse { get; set; }
+    public string ShipmentLabel { get; set; }
+    public string LabelDownloadUrl { get; set; }
+    public int? OfficeId { get; set; } // Nullable int, since officeId can be null
+    public string SortationCenter { get; set; }
 }

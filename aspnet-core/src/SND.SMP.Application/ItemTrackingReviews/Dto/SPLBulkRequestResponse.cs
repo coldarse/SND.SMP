@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+
 public class ConsigneeContact
 {
     public string PersonName { get; set; }
@@ -77,7 +80,7 @@ public class CustomsValue
     public int Value { get; set; }
 }
 
-public class Item
+public class ShipmentItem
 {
     public int Quantity { get; set; }
     public Weight Weight { get; set; }
@@ -128,7 +131,7 @@ public class SPLRequest
     public string LabelSize { get; set; }
     public Consignee Consignee { get; set; }
     public Shipper Shipper { get; set; }
-    public List<Item> Items { get; set; }
+    public List<ShipmentItem> Items { get; set; }
     public ShipmentWeight ShipmentWeight { get; set; }
     public Reference Reference { get; set; }
     public bool IncludeLabel { get; set; }
