@@ -206,5 +206,6 @@ namespace SND.SMP.Authorization
         public const string Pages_System = "Pages.System";
         public const string Pages_APIItem = "Pages.APIItem";
 
+
     }
 }
