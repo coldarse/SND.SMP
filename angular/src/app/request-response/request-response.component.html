@@ -1,0 +1,115 @@
+<div [@routerTransition]>
+    <section class='content-header'>
+        <div class='container-fluid'>
+            <div class='row'>
+                <div class='col-6'>
+                    <h1>{{ 'Request Responses' | localize }}</h1>
+                </div>
+                <div class='col-6 text-right'>
+                </div>
+            </div>
+        </div>
+    </section>
+    <section class='content px-2'>
+        <div class='container-fluid'>
+            <div class='card'>
+                <div class='card-header'>
+                    <div class='row'>
+                        <div class='col-md-6'>&emsp;</div>
+                        <div class='col-md-6'>
+                            <div class='input-group'>
+                                <div class='input-group-prepend'>
+                                    <button
+                                            type='button'
+                                            class="btn bg-olive"
+                                            (click)='getDataPage(1)'
+                                    >
+                                        <i class='fas fa-search'></i>
+                                    </button>
+                                </div>
+                                <input
+                                        type='text'
+                                        class='form-control'
+                                        name='keyword'
+                                        [placeholder]='"SearchWithThreeDot" | localize'
+                                        [(ngModel)]='keyword'
+                                        (keyup.enter)='getDataPage(1)'
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class='card-body'>
+                    <div class='table-responsive'>
+                        <table class="table table-bordered" [busy]='isTableLoading'>
+                            <thead>
+                            <tr>
+                                <th>{{ 'URL' | localize }}</th>
+                                <th>{{ 'Request' | localize }}</th>
+                                <th>{{ 'Response' | localize }}</th>
+                                <th>{{ 'Date' | localize }}</th>
+                                <th>{{ 'Duration' | localize }}</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr
+                                    *ngFor='
+                  let requestResponse of requestResponses
+                    | paginate
+                      : {
+                          id: "server",
+                          itemsPerPage: pageSize,
+                          currentPage: pageNumber,
+                          totalItems: totalItems
+                        }
+                '
+                            >
+                                <td>{{ requestResponse.url }}</td>
+                                <td>
+                                    <button class="btn bg-olive" (click)="showViewBodyDialog(requestResponse, true)">
+                                        <i class="fas fa-arrow-circle-up"></i>
+                                        &nbsp;
+                                        Request
+                                    </button>
+                                </td>
+                                <td>
+                                    <button class="btn bg-olive" (click)="showViewBodyDialog(requestResponse, false)">
+                                        <i class="fas fa-arrow-circle-down"></i>
+                                        &nbsp;
+                                        Response
+                                    </button>
+                                </td>
+                                <td>{{ requestResponse.date | date : "dd/MM/yyyy HH:mm:ss aa"  }}</td>
+                                <td>{{ requestResponse.duration }}</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class='card-footer table-card-footer bg-light border-top'>
+                    <div class='row'>
+                        <div class='col-sm-4 col-12 text-sm-left text-center'>
+                            <button class='btn btn-secondary' (click)='refresh()'>
+                                <i class='fas fa-redo-alt'></i>
+                            </button>
+                        </div>
+                        <div class='col-sm-4 col-12 text-center'>
+                            <p class='mb-0 my-2'>
+                                {{ 'TotalRecordsCount' | localize: totalItems }}
+                            </p>
+                        </div>
+                        <div class='col-sm-4 col-12'>
+                            <div class='float-sm-right m-auto'>
+                                <abp-pagination-controls
+                                        id='server'
+                                        (pageChange)='getDataPage($event)'
+                                >
+                                </abp-pagination-controls>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>

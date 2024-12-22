@@ -24,7 +24,8 @@ namespace SND.SMP.APIRequestResponses
                 .WhereIf(!input.Keyword.IsNullOrWhiteSpace(), x => 
                     x.URL.Contains(input.Keyword) ||
                     x.RequestBody.Contains(input.Keyword) ||
-                    x.ResponseBody.Contains(input.Keyword));
+                    x.ResponseBody.Contains(input.Keyword))
+                .OrderByDescending(x => x.RequestDateTime);
         }
     }
 }
