@@ -40,7 +40,7 @@ services:
 
   abp_host:
     build: ./
-    image: dannychen98/smp_api:v1.2.52
+    image: dannychen98/smp_api:v1.2.53
     environment:
       ASPNETCORE_ENVIRONMENT: "Staging"
       ConnectionStrings__Default: "server=65.21.224.66;port=3306;database=SMPDb;uid=droot;pwd=snd@1234"
@@ -57,6 +57,6 @@ services:
 
   abp_ng:
     build: ./
-    image: dannychen98/smp_ms:v1.2.27
+    image: dannychen98/smp_ms:v1.2.28
     ports:
       - "4200:80"
