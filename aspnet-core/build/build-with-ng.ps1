@@ -2,7 +2,7 @@ echo " Welcome to docker build"
 echo ""
 echo ""
 
-$ABP_HOST="dannychen98/smp_api:v1.2.51"
+$ABP_HOST="dannychen98/smp_api:v1.2.52"
 $ABP_NG="dannychen98/smp_ms:v1.2.27"
 $ABP_HOST_DOCKERFILE_PATH="src/SND.SMP.Web.Host/Dockerfile"
 $SMP_DISPATCH_1_DOCKERFILE_PATH="src/SND.SMP.DispatchImporter/Dockerfile"
@@ -60,20 +60,20 @@ $SMP_DISPATCH_6="dannychen98/item_tracking_retriever:v1.0.1"
 # echo ""
 # echo ""
 
-# cd ..
-# echo " Building docker image $ABP_HOST..."
-# docker build -t $ABP_HOST -f $ABP_HOST_DOCKERFILE_PATH . 
-# echo " Done. -- Building docker image $ABP_HOST..."
-# echo ""
-# echo ""
+cd ..
+echo " Building docker image $ABP_HOST..."
+docker build -t $ABP_HOST -f $ABP_HOST_DOCKERFILE_PATH . 
+echo " Done. -- Building docker image $ABP_HOST..."
+echo ""
+echo ""
 
-cd ..
-cd ..
-cd angular/
-echo " Building docker image $ABP_NG..."
-docker build -t $ABP_NG -f Dockerfile .
-echo " Done. -- Building docker image $ABP_NG..."
-echo ""
-echo ""
+# cd ..
+# cd ..
+# cd angular/
+# echo " Building docker image $ABP_NG..."
+# docker build -t $ABP_NG -f Dockerfile .
+# echo " Done. -- Building docker image $ABP_NG..."
+# echo ""
+# echo ""
 
 
