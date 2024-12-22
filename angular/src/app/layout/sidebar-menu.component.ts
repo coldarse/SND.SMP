@@ -69,6 +69,12 @@ export class SidebarMenuComponent extends AppComponentBase implements OnInit {
         "Pages.PostalCountry"
       ),
       new MenuItem(
+        this.l("Request Responses"),
+        "/app/request-responses",
+        "fas fa-exchange-alt",
+        "Pages.APIRequestResponse"
+      ),
+      new MenuItem(
         this.l("Queues"),
         "/app/queues",
         "fas fa-arrow-down-wide-short",

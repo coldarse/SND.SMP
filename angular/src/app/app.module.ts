@@ -161,6 +161,10 @@ import { AngularEditorModule } from "@kolkov/angular-editor";
 import { DatePipe } from "@angular/common";
 import { NgSelectModule } from '@ng-select/ng-select';
 
+import { RequestResponseComponent } from './request-response/request-response.component';
+import { ViewBodyComponent } from './request-response/view-body/view-body.component';
+import { RequestResponseService } from "@shared/service-proxies/request-responses/request-responses.service";
+
 @NgModule({
   declarations: [
     AppComponent,
@@ -253,6 +257,8 @@ import { NgSelectModule } from '@ng-select/ng-select';
     Stage4AirportComponent,
     APIItemIdComponent,
     SearchItemComponent,
+    RequestResponseComponent,
+    ViewBodyComponent
   ],
   imports: [
     CommonModule,
@@ -276,6 +282,7 @@ import { NgSelectModule } from '@ng-select/ng-select';
     /* Insert Service */
     EmailContentService,
     AirportService,
+    RequestResponseService,
     RateZoneService,
     EmailContentService,
     AirportService,

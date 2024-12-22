@@ -37,6 +37,7 @@ import { PreAlertComponent } from "./pre-alerts/pre-alerts.component";
 import { PostChecksComponent } from "./post-checks/post-checks.component";
 import { APIItemIdComponent } from "./api-item-ids/api-item-id.component";
 import { SearchItemComponent } from "./search-item/search-item.component";
+import { RequestResponseComponent } from "./request-response/request-response.component";
 
 @NgModule({
   imports:[
@@ -75,7 +76,30 @@ import { SearchItemComponent } from "./search-item/search-item.component";
             canActivate: [AppRouteGuard],
           },
           /* Insert Path */
-          { path: 'ratezones', data: { permission: 'Pages.RateZone' }, component: RateZonesComponent, canActivate: [AppRouteGuard] },
+          {
+            path: "request-responses",
+            component: RequestResponseComponent,
+            data: { permission: "Pages.APIRequestResponse" },
+            canActivate: [AppRouteGuard],
+          },
+          {
+            path: "ratezones",
+            data: { permission: "Pages.RateZone" },
+            component: RateZonesComponent,
+            canActivate: [AppRouteGuard],
+          },
+          {
+            path: "emailcontents",
+            data: { permission: "Pages.EmailContent" },
+            component: EmailContentsComponent,
+            canActivate: [AppRouteGuard],
+          },
+          {
+            path: "airports",
+            data: { permission: "Pages.Airport" },
+            component: AirportsComponent,
+            canActivate: [AppRouteGuard],
+          },
           {
             path: "item-tracking-applications",
             data: { permission: "Pages.ItemTrackingApplication" },
