@@ -953,16 +953,16 @@ namespace SND.SMP.ItemTrackingReviews
             if (splTokenResult != null)
             {
                 var token_expiration = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("SPL_TokenExpiration"));
-                token_expiration.Value = DateTimeOffset.FromUnixTimeSeconds(splTokenResult.Token.ExpiresIn).DateTime.ToString();
+                token_expiration.Value = DateTimeOffset.FromUnixTimeSeconds(splTokenResult.Token.Expires_In).DateTime.ToString();
 
                 var token = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("SPL_Token"));
-                token.Value = splTokenResult.Token.AccessToken;
+                token.Value = splTokenResult.Token.Access_Token;
 
                 await _applicationSettingRepository.UpdateAsync(token_expiration);
                 await _applicationSettingRepository.UpdateAsync(token);
                 await _applicationSettingRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
 
-                return splTokenResult.Token.AccessToken;
+                return splTokenResult.Token.Access_Token;
             }
 
             return "";
@@ -2453,7 +2453,7 @@ namespace SND.SMP.ItemTrackingReviews
                                             CompanyName = "",
                                             PhoneNumber1 = input.RecipientContactNo,
                                             PhoneNumber2 = "",
-                                            CellPhone = "",
+                                            CellPhone = input.RecipientContactNo,
                                             EmailAddress = input.RecipientEmail,
                                             Type = "Business",
                                             CivilId = ""

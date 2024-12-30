@@ -8,10 +8,10 @@ public class SPLTokenRequest
 
 public class Token
 {
-    public string AccessToken { get; set; }
-    public long ExpiresIn { get; set; }
-    public string TokenType { get; set; }
-    public string RefreshToken { get; set; }
+    public string Access_Token { get; set; }
+    public long Expires_In { get; set; }
+    public string Token_Type { get; set; }
+    public string Refresh_Token { get; set; }
 }
 
 public class SPLTokenResponse
