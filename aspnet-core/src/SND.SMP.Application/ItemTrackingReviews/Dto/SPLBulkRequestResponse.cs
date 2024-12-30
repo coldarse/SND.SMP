@@ -137,3 +137,15 @@ public class SPLRequest
     public bool IncludeLabel { get; set; }
     public bool IncludeOfficeDetails { get; set; }
 }
+
+public class SPLResponse
+{
+    public string Status { get; set; }
+    public string Airwaybill { get; set; }
+    public int AirwaybillId { get; set; }
+    public string Message { get; set; }
+    public string ShipmentLabel { get; set; }
+    public string LabelDownloadUrl { get; set; }
+    public int? OfficeId { get; set; }
+    public string SortaionCenter { get; set; }
+}

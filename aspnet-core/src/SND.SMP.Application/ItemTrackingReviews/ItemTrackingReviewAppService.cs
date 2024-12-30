@@ -2571,13 +2571,13 @@ namespace SND.SMP.ItemTrackingReviews
 
                                 if (httpstatus == HttpStatusCode.OK)
                                 {
-                                    var saResult = JsonConvert.DeserializeObject<SAResponse>(saBody);
+                                    var saResult = JsonConvert.DeserializeObject<List<SPLResponse>>(saBody);
 
                                     if (saResult != null)
                                     {
-                                        if (saResult.Message == "Success")
+                                        if (saResult[0].Status == "Success")
                                         {
-                                            newItemIdFromSPS = saResult.Items[0].Barcode;
+                                            newItemIdFromSPS = saResult[0].Airwaybill;
 
                                             if (string.IsNullOrWhiteSpace(newItemIdFromSPS)) result.Errors.Add("Insufficient Pool Item ID");
                                             else
@@ -2599,19 +2599,9 @@ namespace SND.SMP.ItemTrackingReviews
                                         }
                                         else
                                         {
-                                            result.APIItemID = saResult.Status;
+                                            result.APIItemID = saResult[0].Status;
                                             result.Status = FAILED;
-                                            if (saResult.Items.Count != 0)
-                                            {
-                                                foreach (var item in saResult.Items)
-                                                {
-                                                    result.Errors.Add(item.Message);
-                                                }
-                                            }
-                                            else
-                                            {
-                                                result.Errors.Add(saResult.Message);
-                                            }
+                                            result.Errors.Add(saResult[0].Message);
                                         }
                                     }
                                     else
