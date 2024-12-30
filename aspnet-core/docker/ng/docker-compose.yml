@@ -28,7 +28,7 @@ services:
 
   abp_host:
     build: ./
-    image: dannychen98/tfs_api:v1.1.28
+    image: dannychen98/tfs_api:v1.1.29
     environment:
       ASPNETCORE_ENVIRONMENT: "Staging"
       ASPNETCORE_Kestrel__Certificates__Default__Path: "/etc/ssl/certs/fullchain.pem"
@@ -49,6 +49,6 @@ services:
 
   abp_ng:
     build: ./
-    image: dannychen98/tfs_ms:v1.1.18
+    image: dannychen98/tfs_ms:v1.1.19
     ports:
       - "8443:443"
