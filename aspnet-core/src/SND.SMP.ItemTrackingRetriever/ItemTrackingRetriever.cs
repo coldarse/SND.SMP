@@ -191,7 +191,7 @@ namespace SND.SMP.ItemTrackingRetriever
                                     var itemTrackingEvents = db.ItemTrackingEvents.Where(x => x.TrackingNo.Equals(item.Id) && x.Country.Equals("SA")).OrderByDescending(y => y.EventTime).ToList();
 
                                     // Assign latestStatusList to new_statuses if itemTrackingEvents has no item, else filter to get new statuses.
-                                    var new_statuses = itemTrackingEvents.Count == 0 ? latestStatusList : latestStatusList.Where(x => itemTrackingEvents.All(y => !y.Status.Equals(x.EventNameEN.Trim()))).ToList();
+                                    var new_statuses = itemTrackingEvents.Count == 0 ? latestStatusList : latestStatusList.Where(x => itemTrackingEvents.All(y => !y.Status.Equals((x.EventNameEN == null ? "" : x.EventNameEN.Trim())))).ToList();
 
                                     // Get the latest stored event for incremental event number.
                                     int lasted_event = itemTrackingEvents.Count == 0 ? 0 : itemTrackingEvents.FirstOrDefault().Event;
