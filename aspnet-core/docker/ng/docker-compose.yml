@@ -34,7 +34,7 @@ services:
 
   item_tracking_retriever:
     build: ./
-    image: dannychen98/item_tracking_retriever:v1.0.1
+    image: dannychen98/item_tracking_retriever:v1.0.2
     environment:
       ConnectionStrings__Default: "server=65.21.224.66;port=3306;database=SMPDb;uid=droot;pwd=snd@1234"
 
