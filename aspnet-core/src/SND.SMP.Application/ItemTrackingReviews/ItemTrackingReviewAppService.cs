@@ -2795,7 +2795,7 @@ namespace SND.SMP.ItemTrackingReviews
                 {
                     var DevEnvironment = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("SPL_DevEnvironment"));
                     var isDevEnvironment = (DevEnvironment.Value.Trim() == "false") ? false : (DevEnvironment.Value.Trim() == "true");
-                    var ParcelGenerationUrl = isDevEnvironment ? await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("SPL_ParcelGenerationUrl_Dev")) : await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("SPL_ParcelGenerationUrl_Prod"));
+                    var ParcelGenerationUrl = isDevEnvironment ? await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("SPL_BulkParcelGenerationUrl_Dev")) : await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("SPL_BulkParcelGenerationUrl_Prod"));
                     var countryListIOSS = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("SA_EU_CountryList"));
                     var token_expiration = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("SPL_TokenExpiration"));
                     var token = await _applicationSettingRepository.FirstOrDefaultAsync(x => x.Name.Equals("SPL_Token"));
