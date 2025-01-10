@@ -54,3 +54,27 @@ public class TrackOutput
         return Status.GetHashCode();
     }
 }
+
+public class InSPLTrack
+{
+    public string Airwaybill { get; set; }
+    public string Reference { get; set; }
+    public string CustomerCode { get; set; }
+    public string BranchCode { get; set; }
+}
+
+public class OutSPLTrack
+{
+    public string Airwaybill { get; set; }
+    public string EventCode { get; set; }
+    public string Event { get; set; }
+    public string EventName { get; set; }
+    public string Supplier { get; set; }
+    public string UserName { get; set; }
+    public string Notes { get; set; }
+    public DateTime ActionDate { get; set; }
+    public string EventCountry { get; set; }
+    public string EventCity { get; set; }
+    public string EventSubCode { get; set; }
+    public string EventSubName { get; set; }
+}
