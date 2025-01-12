@@ -2570,7 +2570,7 @@ namespace SND.SMP.ItemTrackingReviews
                                 await _apiRequestResponseRepository.InsertAsync(apiRequestResponse);
                                 await _apiRequestResponseRepository.GetDbContext().SaveChangesAsync().ConfigureAwait(false);
 
-                                if (httpstatus == HttpStatusCode.OK)
+                                if (httpstatus == HttpStatusCode.Created)
                                 {
                                     var saResult = JsonConvert.DeserializeObject<SPLResponse>(saBody);
 
