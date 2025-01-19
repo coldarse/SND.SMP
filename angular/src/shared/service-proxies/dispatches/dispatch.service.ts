@@ -289,6 +289,17 @@ export class DispatchService {
       .pipe(retry(1), catchError(this.errorMessage.HandleErrorResponse));
   }
 
+  // Retrieve Commercial Invoice Excel Items
+  getCommercialInvoiceExcelItems(dispatchNo: string) {
+    return this.http
+      .get(
+        this.url +
+          `/api/services/app/Dispatch/GetCommercialInvoiceExcelItems?dispatchNo=${dispatchNo}`,
+        this.options_
+      )
+      .pipe(retry(1), catchError(this.errorMessage.HandleErrorResponse));
+  }
+
   private getFilenameFromContentDisposition(
     contentDisposition: string
   ): string {
@@ -302,5 +313,7 @@ export class DispatchService {
     }
     return matches[1].replace(/['"]/g, "");
   }
+
+
   
 }

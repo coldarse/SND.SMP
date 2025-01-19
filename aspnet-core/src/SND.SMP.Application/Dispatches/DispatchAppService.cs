@@ -3114,6 +3114,36 @@ namespace SND.SMP.Dispatches
             return itemWrapper;
         }
 
+        public async Task<List<CommercialInvoiceExcel>> GetCommercialInvoiceExcelItems(string dispatchNo)
+        {
+            List<CommercialInvoiceExcel> excel_items = [];
+
+            var dispatch = await Repository.FirstOrDefaultAsync(x => x.DispatchNo.Equals(dispatchNo)) ?? throw new UserFriendlyException($"Dispatch No {dispatchNo} not found.");
+
+            if (!dispatch.ServiceCode.Contains("DE")) throw new UserFriendlyException($"Dispatch does not have a Service Code of DE.");
+
+            var items = await _itemRepository.GetAllListAsync(x => x.DispatchID.Equals(dispatch.Id));
+
+            int count = 1;
+            foreach (Item item in items)
+            {
+                int quantity = item.Qty ?? 0;
+                decimal unitprice = item.Price ?? 0.0m;
+                decimal totalprice = Math.Round(unitprice * quantity, 2);
+
+                excel_items.Add(new CommercialInvoiceExcel()
+                {
+                    No = count,
+                    Description = item.ItemDesc,
+                    Quantity = quantity,
+                    UnitPrice = unitprice,
+                    TotalPrice = totalprice
+                });
+            }
+
+            return excel_items;
+        }
+
 
         public async Task<CustomerDispatchDetails> GetDispatchesByCustomerMonthCurrency(string customerCode, string monthYear, string currency, bool custom)
         {
