@@ -2025,6 +2025,7 @@ namespace SND.SMP.Dispatches
                     _ => $"Stage {status}",
                 };
 
+                dispatchInfo.Remark = entity.Remark;
 
                 dispatchInfo.Path = dispatchValidation.FirstOrDefault(x => x.DispatchNo.Equals(entity.DispatchNo)) is null ? "" : dispatchValidation.FirstOrDefault(x => x.DispatchNo.Equals(entity.DispatchNo)).FilePath;
 

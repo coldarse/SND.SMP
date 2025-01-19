@@ -96,6 +96,7 @@ import { UploadRetryComponent } from "./dispatch-validations/upload-retry/upload
 
 import { DispatchesComponent } from "./dispatches/dispatches.component";
 import { CreateUpdateDispatchComponent } from "./dispatches/create-update-dispatch/create-update-dispatch.component";
+import { DeDiscountValueComponent } from "./dispatches/de-discount-value/de-discount-value.component";
 import { DispatchService } from "@shared/service-proxies/dispatches/dispatch.service";
 
 import { QueuesComponent } from "./queues/queues.component";
@@ -263,7 +264,8 @@ import { RequestResponseService } from "@shared/service-proxies/request-response
     DispatchTrackingComponent,
     SearchItemComponent,
     RequestResponseComponent,
-    ViewBodyComponent
+    ViewBodyComponent,
+    DeDiscountValueComponent
   ],
   imports: [
     CommonModule,

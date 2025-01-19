@@ -90,6 +90,24 @@ namespace SND.SMP.Customers
             };
         }
 
+        public async Task<CompanyNameAndAddress> GetCompanyNameAndAddress(string customerCode)
+        {
+            var customer = await Repository.FirstOrDefaultAsync(x => x.Code.Equals(customerCode));
+
+            string address =
+                customer.CompanyName + "\n" +
+                customer.AddressLine1 + "\n" +
+                customer.AddressLine2 + "\n" +
+                customer.City + "\n" +
+                customer.State + ", " + customer.Country;
+
+            return new CompanyNameAndAddress()
+            {
+                Name = customer is null ? "" : customer.CompanyName,
+                Address = customer is null ? "" : address,
+            };
+        }
+
         public override async Task<CustomerDto> UpdateAsync(CustomerDto input)
         {
             CheckUpdatePermission();

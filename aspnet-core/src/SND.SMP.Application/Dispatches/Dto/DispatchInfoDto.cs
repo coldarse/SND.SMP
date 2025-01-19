@@ -18,4 +18,5 @@ public class DispatchInfoDto
     public string Status { get; set; }
     public string Path { get; set; }
     public int ImportProgress { get; set; }
+    public string Remark { get; set; }
 }

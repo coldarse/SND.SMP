@@ -17,6 +17,11 @@ import { Router } from "@angular/router";
 import { HttpErrorResponse, HttpResponse } from "@angular/common/http";
 import { PrePostCheckWeightComponent } from "./pre-post-check-weight/pre-post-check-weight.component";
 import { ErrorModalComponent } from "@shared/components/error-modal/error-modal.component";
+import { ChibiService } from "@shared/service-proxies/chibis/chibis.service";
+import { GenerateInvoice } from "@shared/service-proxies/invoices/model";
+import { CustomerService } from "@shared/service-proxies/customers/customer.service";
+import { DatePipe } from "@node_modules/@angular/common";
+import { DeDiscountValueComponent } from "./de-discount-value/de-discount-value.component";
 
 class PagedDispatchesRequestDto extends PagedRequestDto {
   keyword: string;
@@ -46,11 +51,14 @@ export class DispatchesComponent extends PagedListingComponentBase<DispatchDto> 
   isUndoingPostCheck = false;
   companyCode = "";
 
+  invoice_info: GenerateInvoice = {} as GenerateInvoice;
+
   constructor(
     injector: Injector,
     private router: Router,
     private _dispatchService: DispatchService,
-    private _modalService: BsModalService
+    private _modalService: BsModalService,
+    private _chibiService: ChibiService,
   ) {
     super(injector);
   }
@@ -198,40 +206,72 @@ export class DispatchesComponent extends PagedListingComponentBase<DispatchDto> 
   }
 
   undoPostCheck(dispatchNo: string) {
-    abp.message.confirm(`Undo Post Check for ${dispatchNo}`, undefined, (result: boolean) => {
-      if (result) {
-        this.isUndoingPostCheck = true;
-        this._dispatchService.undoPostCheck(dispatchNo)
-        .pipe(
-          finalize(() => {
-            this.isUndoingPostCheck = false;
-          })
-        )
-        .subscribe(() => {
-          abp.notify.success(this.l("Successfully Undo Postcheck"));
-          this.getDataPage(1);
-        },
-        (error: HttpErrorResponse) => {
-          //Handle error
-          let cc: BsModalRef;
-          cc = this._modalService.show(
-            ErrorModalComponent,
-            {
-              class: 'modal-lg',
-              initialState: {
-                title: "",
-                errorMessage: error.message,
+    abp.message.confirm(
+      `Undo Post Check for ${dispatchNo}`,
+      undefined,
+      (result: boolean) => {
+        if (result) {
+          this.isUndoingPostCheck = true;
+          this._dispatchService
+            .undoPostCheck(dispatchNo)
+            .pipe(
+              finalize(() => {
+                this.isUndoingPostCheck = false;
+              })
+            )
+            .subscribe(
+              () => {
+                abp.notify.success(this.l("Successfully Undo Postcheck"));
+                this.getDataPage(1);
               },
-            }
-          )
-        });
+              (error: HttpErrorResponse) => {
+                //Handle error
+                let cc: BsModalRef;
+                cc = this._modalService.show(ErrorModalComponent, {
+                  class: "modal-lg",
+                  initialState: {
+                    title: "",
+                    errorMessage: error.message,
+                  },
+                });
+              }
+            );
+        }
       }
-    });
+    );
   }
 
   entries(event: any) {
     this.pageSize = event.target.value;
     this.getDataPage(1);
+  }
+
+  generateCommercialInvoice(companyCode: string, dispatchNo: string) {
+    // Open Pop-Up for discount assignation
+    let deDiscountValueDislog: BsModalRef;
+    deDiscountValueDislog = this._modalService.show(
+      DeDiscountValueComponent,
+      {
+        class: "modal-lg",
+        initialState: {
+          companyCode: companyCode,
+          dispatchNo: dispatchNo
+        }
+      }
+    );
+    
+  }
+
+  deleteCommercialInvoice(invoicePath: string) {
+    // Call Delete Invoice API based on the invoice file name
+    this._chibiService.deleteInvoice(invoicePath).subscribe((data: any) => {
+      if (data) abp.notify.success(this.l("SuccessfullyDeleted"));
+      else abp.notify.error(this.l("Error Deleting"));
+    });
+  }
+
+  downloadCommercialInvoiceExcel(dispatchNo: string) {
+    // Call Generate and Download Commercial Invoice Excel API based on dispatchNo
   }
 
   protected list(
@@ -282,6 +322,7 @@ export class DispatchesComponent extends PagedListingComponentBase<DispatchDto> 
             totalCountry: element.totalCountry,
             status: element.status,
             path: element.path,
+            remark: element.remark,
           };
 
           this.dispatches.push(tempDispatch);

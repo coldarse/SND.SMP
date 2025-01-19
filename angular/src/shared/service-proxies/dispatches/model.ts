@@ -176,6 +176,7 @@ export interface DispatchInfoDto {
   status: string;
   path: string;
   importProgress: number;
+  remark: string;
 }
 
 export interface Zip {

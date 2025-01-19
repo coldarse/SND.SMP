@@ -99,6 +99,17 @@ export class CustomerService {
       .pipe(retry(1), catchError(this.errorMessage.HandleErrorResponse));
   }
 
+  //Get Company Address
+  getCompanyNameAndAddress(customerCode: string) {
+    return this.http
+      .get(
+        this.url +
+          `/api/services/app/Customer/GetCompanyNameAndAddress?customerCode=${customerCode}`,
+        this.options_
+      )
+      .pipe(retry(1), catchError(this.errorMessage.HandleErrorResponse));
+  }
+
   // Get All Customers without filter
   getAllCustomers() {
     return this.http

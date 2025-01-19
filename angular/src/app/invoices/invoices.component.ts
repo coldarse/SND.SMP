@@ -52,7 +52,7 @@ export class InvoicesComponent extends PagedListingComponentBase<InvoiceDto> {
     this._applicationSettingService
       .getValueByName("InvoiceNo")
       .subscribe((data: any) => {
-        let invoice_no = (data.result = "" ? 0 : +data.result);
+        let invoice_no = (data.result == "" ? 0 : +data.result);
 
         let createOrEditInvoiceDialog: BsModalRef;
         createOrEditInvoiceDialog = this._modalService.show(
