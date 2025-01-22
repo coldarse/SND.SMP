@@ -1,10 +1,19 @@
-import { Component, EventEmitter, Injector, OnInit, Output } from "@angular/core";
+import {
+  Component,
+  EventEmitter,
+  Injector,
+  OnInit,
+  Output,
+} from "@angular/core";
 import { AppComponentBase } from "../../../shared/app-component-base";
 import { CustomerService } from "../../../shared/service-proxies/customers/customer.service";
 import { BsModalRef, BsModalService } from "ngx-bootstrap/modal";
 import { DatePipe } from "@angular/common";
 import { GenerateInvoice } from "../../../shared/service-proxies/invoices/model";
 import { ChibiService } from "../../../shared/service-proxies/chibis/chibis.service";
+import { DispatchService } from "@shared/service-proxies/dispatches/dispatch.service";
+
+import * as XLSX from "xlsx";
 
 @Component({
   selector: "app-de-value",
@@ -20,6 +29,8 @@ export class DeDiscountValueComponent
   companyCode = "";
   dispatchNo = "";
 
+  isExcel = false;
+
   @Output() onSave = new EventEmitter<any>();
 
   invoice_info: GenerateInvoice = {} as GenerateInvoice;
@@ -29,57 +40,121 @@ export class DeDiscountValueComponent
     public _customerService: CustomerService,
     public bsModalRef: BsModalRef,
     private datePipe: DatePipe,
-    private _chibiService: ChibiService
+    private _chibiService: ChibiService,
+    private _dispatchService: DispatchService
   ) {
     super(injector);
   }
-  ngOnInit(): void {
-  }
+  ngOnInit(): void {}
 
   save() {
-    this._customerService
-      .getCompanyNameAndAddress(this.companyCode)
-      .subscribe((data: any) => {
-        this.invoice_info.customer = data.result.name;
-        this.invoice_info.billTo = data.result.address;
+    if (this.isExcel) {
+      this._dispatchService
+        .getCommercialInvoiceExcelItems(
+          this.dispatchNo,
+          this.discount.toString()
+        )
+        .subscribe((data: any) => {
+          let items = data.result;
 
-        const today = new Date();
-        let invoiceDate = this.datePipe.transform(today, "dd MMMM yyyy");
-        let invoiceNoDate = this.datePipe
-          .transform(today, "MMM yyyy")
-          .replace(" ", "")
-          .toUpperCase();
-        let invoiceNo = invoiceNoDate + "/___/" + this.dispatchNo;
+          // Function to transform headers
+          const formatHeader = (header: string): string => {
+            return header
+              .replace(/([a-z])([A-Z])/g, "$1 $2") // Add space before capital letters
+              .replace(/^./, (str) => str.toUpperCase()); // Capitalize the first letter
+          };
 
-        this.invoice_info.invoiceNo = invoiceNo;
-        this.invoice_info.invoiceDate = invoiceDate;
-        this.invoice_info.generateBy = 3; // By Items
+          // Format headers to be human-readable
+          const headers =
+            items.length > 0 ? Object.keys(items[0]).map(formatHeader) : [];
 
-        this.invoice_info.extraCharges = [];
-        this.invoice_info.dispatches = [];
+          // Convert the array of objects to a worksheet without auto-generating headers
+          const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet([], {
+            skipHeader: true,
+          }); // Start with an empty sheet
 
-        this.invoice_info.dispatches.push(this.dispatchNo);
-        this.invoice_info.extraCharges.push({
-          description: "",
-          weight: 0,
-          country: "",
-          ratePerKG: 0,
-          quantity: 0,
-          unitPrice: 0,
-          amount: this.discount,
-          currency: "",
+          // Manually add the formatted headers
+          XLSX.utils.sheet_add_aoa(ws, [headers], { origin: "A1" });
+
+          // Add the data rows
+          XLSX.utils.sheet_add_json(ws, items, {
+            origin: "A2",
+            skipHeader: true,
+          }); // Add data starting below the headers
+
+          // Auto-fit columns based on headers and data length
+          ws["!cols"] = this.fitToColumn(headers, items);
+
+          // Create a new workbook and append the worksheet
+          const wb = XLSX.utils.book_new();
+          XLSX.utils.book_append_sheet(wb, ws, "Sheet 1");
+
+          // Write the workbook to a file
+          XLSX.writeFile(wb, `CommercialInvoice_${this.dispatchNo}.xlsx`);
+
+          this.bsModalRef.hide();
+          this.onSave.emit();
         });
+    } else {
+      this.saving = true;
 
-        this._chibiService.createInvoiceQueue(this.invoice_info).subscribe(
-          () => {
-            this.notify.info(this.l("SavedSuccessfully"));
-            this.bsModalRef.hide();
-            this.onSave.emit();
-          },
-          () => {
-            this.saving = false;
-          }
-        );
-      });
+      this._customerService
+        .getCompanyNameAndAddress(this.companyCode)
+        .subscribe((data: any) => {
+          this.invoice_info.customer = data.result.name;
+          this.invoice_info.billTo = data.result.address;
+
+          const today = new Date();
+          let invoiceDate = this.datePipe.transform(today, "dd MMMM yyyy");
+          let invoiceNoDate = this.datePipe
+            .transform(today, "MMM yyyy")
+            .replace(" ", "")
+            .toUpperCase();
+          let invoiceNo = invoiceNoDate + "/___/" + this.dispatchNo;
+
+          this.invoice_info.invoiceNo = invoiceNo;
+          this.invoice_info.invoiceDate = invoiceDate;
+          this.invoice_info.generateBy = 3; // By Items
+
+          this.invoice_info.extraCharges = [];
+          this.invoice_info.dispatches = [];
+
+          this.invoice_info.dispatches.push(this.dispatchNo);
+          this.invoice_info.extraCharges.push({
+            description: "",
+            weight: 0,
+            country: "",
+            ratePerKG: 0,
+            quantity: 0,
+            unitPrice: 0,
+            amount: this.discount,
+            currency: "",
+          });
+
+          this._chibiService.createInvoiceQueue(this.invoice_info).subscribe(
+            () => {
+              this.notify.info(this.l("SavedSuccessfully"));
+              this.bsModalRef.hide();
+              this.onSave.emit();
+            },
+            () => {
+              this.saving = false;
+            }
+          );
+        });
+    }
+  }
+
+  fitToColumn(headers: string[], data: any[] = []): { width: number }[] {
+    return headers.map((header) => {
+      const maxHeaderWidth = header.length;
+      const maxDataWidth = Math.max(
+        ...data.map((item) =>
+          item[header] ? item[header].toString().length : 0
+        ),
+        maxHeaderWidth
+      );
+      return { width: maxDataWidth + 2 }; // Add padding
+    });
   }
 }

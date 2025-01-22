@@ -290,11 +290,11 @@ export class DispatchService {
   }
 
   // Retrieve Commercial Invoice Excel Items
-  getCommercialInvoiceExcelItems(dispatchNo: string) {
+  getCommercialInvoiceExcelItems(dispatchNo: string, discountValue: string) {
     return this.http
       .get(
         this.url +
-          `/api/services/app/Dispatch/GetCommercialInvoiceExcelItems?dispatchNo=${dispatchNo}`,
+          `/api/services/app/Dispatch/GetCommercialInvoiceExcelItems?dispatchNo=${dispatchNo}&discountValue=${discountValue}`,
         this.options_
       )
       .pipe(retry(1), catchError(this.errorMessage.HandleErrorResponse));

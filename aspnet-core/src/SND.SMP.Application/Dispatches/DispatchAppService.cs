@@ -3114,32 +3114,26 @@ namespace SND.SMP.Dispatches
             return itemWrapper;
         }
 
-        public async Task<List<CommercialInvoiceExcel>> GetCommercialInvoiceExcelItems(string dispatchNo)
+        public async Task<List<CommercialInvoiceExcel>> GetCommercialInvoiceExcelItems(string dispatchNo, string discountValue)
         {
-            List<CommercialInvoiceExcel> excel_items = [];
-
             var dispatch = await Repository.FirstOrDefaultAsync(x => x.DispatchNo.Equals(dispatchNo)) ?? throw new UserFriendlyException($"Dispatch No {dispatchNo} not found.");
 
             if (!dispatch.ServiceCode.Contains("DE")) throw new UserFriendlyException($"Dispatch does not have a Service Code of DE.");
 
+            decimal discount = Convert.ToDecimal(discountValue);
+
             var items = await _itemRepository.GetAllListAsync(x => x.DispatchID.Equals(dispatch.Id));
 
-            int count = 1;
-            foreach (Item item in items)
-            {
-                int quantity = item.Qty ?? 0;
-                decimal unitprice = item.Price ?? 0.0m;
-                decimal totalprice = Math.Round(unitprice * quantity, 2);
-
-                excel_items.Add(new CommercialInvoiceExcel()
+            var excel_items = items
+                .Select((item, index) => new CommercialInvoiceExcel
                 {
-                    No = count,
+                    No = index + 1,
                     Description = item.ItemDesc,
-                    Quantity = quantity,
-                    UnitPrice = unitprice,
-                    TotalPrice = totalprice
-                });
-            }
+                    Quantity = item.Qty ?? 0,
+                    UnitPrice = Math.Round((item.Price ?? 0.0m) - discount, 2),
+                    TotalPrice = Math.Round(((item.Price ?? 0.0m) - discount) * (item.Qty ?? 0), 2)
+                })
+                .ToList();
 
             return excel_items;
         }

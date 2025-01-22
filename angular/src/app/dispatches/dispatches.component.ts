@@ -23,7 +23,7 @@ import { CustomerService } from "@shared/service-proxies/customers/customer.serv
 import { DatePipe } from "@node_modules/@angular/common";
 import { DeDiscountValueComponent } from "./de-discount-value/de-discount-value.component";
 
-import * as XLSX from "xlsx";
+
 
 class PagedDispatchesRequestDto extends PagedRequestDto {
   keyword: string;
@@ -250,8 +250,7 @@ export class DispatchesComponent extends PagedListingComponentBase<DispatchDto> 
 
   generateCommercialInvoice(companyCode: string, dispatchNo: string) {
     // Open Pop-Up for discount assignation
-    let deDiscountValueDislog: BsModalRef;
-    deDiscountValueDislog = this._modalService.show(DeDiscountValueComponent, {
+    this._modalService.show(DeDiscountValueComponent, {
       class: "modal-lg",
       initialState: {
         companyCode: companyCode,
@@ -270,40 +269,16 @@ export class DispatchesComponent extends PagedListingComponentBase<DispatchDto> 
 
   downloadCommercialInvoiceExcel(dispatchNo: string) {
     // Call Generate and Download Commercial Invoice Excel API based on dispatchNo
-    
-    this._dispatchService.getCommercialInvoiceExcelItems(dispatchNo).subscribe((data: any) => {
-
-      let items = data.result;
-
-      const headers = items.length > 0 ? Object.keys(items[0]) : [];
-
-      // Convert the array of objects to a worksheet
-      const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(items, {
-        header: headers,
-      });
-  
-      // Auto-fit columns based on headers and data length
-      ws["!cols"] = this.fitToColumn(headers, items);
-  
-      // Create a new workbook and append the worksheet
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Sheet 1");
-  
-      // Write the workbook to a file
-      XLSX.writeFile(wb, `CommercialInvoice_${dispatchNo}.xlsx`);
+    this._modalService.show(DeDiscountValueComponent, {
+      class: "modal-lg",
+      initialState: {
+        dispatchNo: dispatchNo,
+        isExcel: true
+      },
     });
   }
 
-  fitToColumn(headers: string[], data: any[] = []): { width: number }[] {
-    return headers.map(header => {
-      const maxHeaderWidth = header.length;
-      const maxDataWidth = Math.max(
-        ...data.map(item => (item[header] ? item[header].toString().length : 0)),
-        maxHeaderWidth
-      );
-      return { width: maxDataWidth + 2 }; // Add padding
-    });
-  }
+  
 
   protected list(
     request: PagedDispatchesRequestDto,
