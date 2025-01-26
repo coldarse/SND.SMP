@@ -51,6 +51,7 @@ using Microsoft.EntityFrameworkCore;
 using SND.SMP.ItemTrackings;
 using SND.SMP.RateWeightBreaks;
 using SND.SMP.RateZones;
+using OfficeOpenXml.Style;
 
 namespace SND.SMP.Dispatches
 {
@@ -175,6 +176,153 @@ namespace SND.SMP.Dispatches
             };
         }
 
+        private static byte[] CreateSAManifestExcelFile(SAManifest manifest)
+        {
+            // Ensure EPPlus license is set
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
+            using var package = new ExcelPackage();
+            var worksheet = package.Workbook.Worksheets.Add("SA Manifest");
+
+            // Add header rows and merge cells for additional information
+            // Row 1: Yellow background
+            worksheet.Cells["B1"].Value = "From";
+            worksheet.Cells["B1"].Style.Fill.PatternType = ExcelFillStyle.Solid;
+            worksheet.Cells["B1"].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.Yellow);
+            worksheet.Cells["B1"].Style.Font.Bold = true;
+            worksheet.Cells["B1"].Style.Border.BorderAround(ExcelBorderStyle.Thin);
+
+            worksheet.Cells["C1"].Value = "HKG";
+            worksheet.Cells["C1"].Style.Fill.PatternType = ExcelFillStyle.Solid;
+            worksheet.Cells["C1"].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.Yellow);
+            worksheet.Cells["C1"].Style.Font.Bold = true;
+            worksheet.Cells["C1"].Style.Border.BorderAround(ExcelBorderStyle.Thin);
+
+            worksheet.Cells["D1"].Value = "To";
+            worksheet.Cells["D1"].Style.Fill.PatternType = ExcelFillStyle.Solid;
+            worksheet.Cells["D1"].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.Yellow);
+            worksheet.Cells["D1"].Style.Font.Bold = true;
+            worksheet.Cells["D1"].Style.Border.BorderAround(ExcelBorderStyle.Thin);
+
+            worksheet.Cells["E1"].Value = "RUH";
+            worksheet.Cells["E1"].Style.Fill.PatternType = ExcelFillStyle.Solid;
+            worksheet.Cells["E1"].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.Yellow);
+            worksheet.Cells["E1"].Style.Font.Bold = true;
+            worksheet.Cells["E1"].Style.Border.BorderAround(ExcelBorderStyle.Thin);
+
+            worksheet.Cells["F1"].Value = "Flight#";
+            worksheet.Cells["F1"].Style.Fill.PatternType = ExcelFillStyle.Solid;
+            worksheet.Cells["F1"].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.Yellow);
+            worksheet.Cells["F1"].Style.Font.Bold = true;
+            worksheet.Cells["F1"].Style.Border.BorderAround(ExcelBorderStyle.Thin);
+
+            // Flight No
+            worksheet.Cells["G1"].Value = manifest.Flight;
+            worksheet.Cells["G1"].Style.Fill.PatternType = ExcelFillStyle.Solid;
+            worksheet.Cells["G1"].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.Yellow);
+            worksheet.Cells["G1"].Style.Font.Bold = true;
+            worksheet.Cells["G1"].Style.Border.BorderAround(ExcelBorderStyle.Thin);
+
+
+
+            // Row 2: Additional information
+            worksheet.Cells["A2"].Value = "CBV#";
+            worksheet.Cells["A2"].Style.Fill.PatternType = ExcelFillStyle.Solid;
+            worksheet.Cells["A2"].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.Yellow);
+            worksheet.Cells["A2"].Style.Font.Bold = true;
+            worksheet.Cells["A2"].Style.Border.BorderAround(ExcelBorderStyle.Thin);
+
+            worksheet.Cells["B2"].Value = "Date";
+            worksheet.Cells["B2"].Style.Fill.PatternType = ExcelFillStyle.Solid;
+            worksheet.Cells["B2"].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.Yellow);
+            worksheet.Cells["B2"].Style.Font.Bold = true;
+            worksheet.Cells["B2"].Style.Border.BorderAround(ExcelBorderStyle.Thin);
+
+            // Date
+            worksheet.Cells["C2"].Value = manifest.Date;
+            worksheet.Cells["C2"].Style.Fill.PatternType = ExcelFillStyle.Solid;
+            worksheet.Cells["C2"].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.Yellow);
+            worksheet.Cells["C2"].Style.Font.Bold = true;
+            worksheet.Cells["C2"].Style.Border.BorderAround(ExcelBorderStyle.Thin);
+
+            worksheet.Cells["D2"].Value = "Total Bags";
+            worksheet.Cells["D2"].Style.Fill.PatternType = ExcelFillStyle.Solid;
+            worksheet.Cells["D2"].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.Yellow);
+            worksheet.Cells["D2"].Style.Font.Bold = true;
+            worksheet.Cells["D2"].Style.Border.BorderAround(ExcelBorderStyle.Thin);
+
+            // Total Bags
+            worksheet.Cells["E2"].Value = manifest.TotalBags;
+            worksheet.Cells["E2"].Style.Fill.PatternType = ExcelFillStyle.Solid;
+            worksheet.Cells["E2"].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.Yellow);
+            worksheet.Cells["E2"].Style.Font.Bold = true;
+            worksheet.Cells["E2"].Style.Border.BorderAround(ExcelBorderStyle.Thin);
+
+            worksheet.Cells["F2"].Value = "Total Weight";
+            worksheet.Cells["F2"].Style.Fill.PatternType = ExcelFillStyle.Solid;
+            worksheet.Cells["F2"].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.Yellow);
+            worksheet.Cells["F2"].Style.Font.Bold = true;
+            worksheet.Cells["F2"].Style.Border.BorderAround(ExcelBorderStyle.Thin);
+
+            // Total Weight
+            worksheet.Cells["G2"].Value = manifest.TotalBags;
+            worksheet.Cells["G2"].Style.Fill.PatternType = ExcelFillStyle.Solid;
+            worksheet.Cells["G2"].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.Yellow);
+            worksheet.Cells["G2"].Style.Font.Bold = true;
+            worksheet.Cells["G2"].Style.Border.BorderAround(ExcelBorderStyle.Thin);
+
+            // Row 4: Additional information
+            worksheet.Cells["A4"].Value = "total 1 sheet";
+            worksheet.Cells["A4"].Style.Font.Color.SetColor(System.Drawing.Color.Red);
+            worksheet.Cells["A4"].Style.Font.Bold = true;
+            worksheet.Cells["A4"].Style.Border.BorderAround(ExcelBorderStyle.Thin);
+
+            worksheet.Cells["B4:C4"].Merge = true;
+            worksheet.Cells["B4"].Value = "Shipment Type - NON DOCS";
+            worksheet.Cells["B4:C4"].Style.Border.BorderAround(ExcelBorderStyle.Thin);
+
+            // Add table headers (starting from row 4)
+            var headers = new string[]
+            {
+                "Master Airwaybill number", "Saudi Post Label Number", "Date", "Consignor",
+                "Orig", "Consignee", "Dest", "Pcs", "Contact",
+                "Weight (Kgs)", "Contents", "Value", "Currency", "Remarks"
+            };
+
+            for (int i = 0; i < headers.Length; i++)
+            {
+                worksheet.Cells[6, i + 1].Value = headers[i];
+                worksheet.Cells[6, i + 1].Style.Font.Bold = true;
+            }
+
+            // Add data starting from row 5
+            for (int row = 0; row < manifest.Items.Count; row++)
+            {
+                var item = manifest.Items[row];
+                worksheet.Cells[row + 7, 1].Value = item.MAWB;
+                worksheet.Cells[row + 7, 2].Value = item.TrackingNo;
+                worksheet.Cells[row + 7, 3].Value = item.Date;
+                worksheet.Cells[row + 7, 4].Value = item.Consignor;
+                worksheet.Cells[row + 7, 5].Value = item.Orig;
+                worksheet.Cells[row + 7, 6].Value = item.Consignee;
+                worksheet.Cells[row + 7, 7].Value = item.Dest;
+                worksheet.Cells[row + 7, 8].Value = item.Pcs;
+                worksheet.Cells[row + 7, 9].Value = item.Contact;
+                worksheet.Cells[row + 7, 10].Value = item.Weight;
+                worksheet.Cells[row + 7, 11].Value = item.Contents;
+                worksheet.Cells[row + 7, 12].Value = item.Value;
+                worksheet.Cells[row + 7, 13].Value = item.Currency;
+                worksheet.Cells[row + 7, 14].Value = item.Remarks;
+            }
+
+            // Autofit columns
+            worksheet.Cells[worksheet.Dimension.Address].AutoFitColumns();
+
+            // Save to MemoryStream
+            using var memoryStream = new MemoryStream();
+            package.SaveAs(memoryStream);
+            return memoryStream.ToArray();
+        }
         private static byte[] CreateSLManifestExcelFile(List<SLManifest> dataList)
         {
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
@@ -2040,11 +2188,128 @@ namespace SND.SMP.Dispatches
             );
         }
 
-        // [HttpGet]
-        // public async Task<IActionResult> DownloadSADispatchManifest(string dispatchNo, bool isPreCheckWeight, string mawb, decimal discountValue = 0)
-        // {
+        [HttpGet]
+        public async Task<IActionResult> DownloadSADispatchManifest(string dispatchNo, string mawb, decimal discountValue = 0)
+        {
+            string code = dispatchNo[..2];
 
-        // }
+            DateTime dateNowInMYT = DateTime.UtcNow.AddHours(8);
+            int currentYear = dateNowInMYT.Year;
+            string yearLetter = dateNowInMYT.Year.ToString().Substring(3, 1);
+            string sessionID = dateNowInMYT.ToString("yyyyMMddhhmmss");
+
+            SAManifest result = new();
+
+            var dispatch = await _dispatchRepository.FirstOrDefaultAsync(x => x.DispatchNo.Equals(dispatchNo));
+
+            var batchNo = dispatch.DispatchNo.Substring(dispatch.DispatchNo.Length - 3, 3);
+            var date = DateTime.Now.ToString("ddMMyy");
+
+            if (dispatch != null)
+            {
+                var discount = discountValue == 0 ? 0.4m : 1 - discountValue;
+
+                var discountItemValue = 187.5m;
+
+                var allItems = await _itemRepository.GetAllListAsync(x => x.DispatchID.Equals(dispatch.Id));
+
+                var items = allItems.GroupBy(x => new
+                {
+                    Id = x.Id,
+                    Address = x.Address,
+                    Postcode = x.Postcode,
+                    City = x.City,
+                    CoxntryCode = x.CountryCode,
+                    State = x.State,
+                    RecipientName = x.RecpName,
+                    RecipientTel = x.TelNo,
+                    RecipientEmail = x.Email,
+                    ItemDesc = x.ItemDesc,
+                    CityId = x.CityId,
+                    FinalOfficeId = x.FinalOfficeId
+                }).ToList();
+
+                var totalbags = allItems.GroupBy(x => x.BagNo).Count();
+
+                result.Items = [];
+
+                foreach (var group in items)
+                {
+                    var item = group.Key;
+
+                    var telNo = item.RecipientTel
+                        .Replace("+", "")
+                        .Replace("-", "")
+                        .Replace(" ", "")
+                        .Replace("(", "")
+                        .Replace(")", "")
+                        .Trim();
+
+                    var telNoMaxLength = 9;
+                    if (telNo.Length >= telNoMaxLength)
+                    {
+                        telNo = telNo.Substring(telNo.Length - telNoMaxLength, telNoMaxLength);
+                    }
+
+                    telNo = $"0{telNo}";
+
+                    decimal totalPrice = 0m;
+                    decimal totalWeight = 0m;
+
+                    totalPrice = group
+                        .Where(u => u.ItemValue != null)
+                        .Select(u => Convert.ToDecimal(u.ItemValue))
+                        .Sum();
+
+                    totalWeight = group
+                        .Where(u => u.Weight != null)
+                        .Select(u => Convert.ToDecimal(u.Weight))
+                        .Sum();
+
+                    totalPrice = totalPrice >= discountItemValue ? totalPrice : Math.Round(totalPrice * (1 - discount), 2);
+                    totalWeight = Math.Round(totalWeight, 2);
+
+                    result.Items.Add(new SAManifestItem
+                    {
+                        MAWB = mawb,
+                        TrackingNo = item.Id,
+                        Date = dispatch.DispatchDate.GetValueOrDefault().ToString("dd/MM/yyyy"),
+                        Contact = telNo,
+                        Weight = totalWeight,
+                        Contents = item.ItemDesc,
+                        Value = totalPrice
+                    });
+                }
+                var grandTotalWeight = result.Items.Sum(u => u.Weight);
+
+                result.Date = dispatch.DispatchDate.GetValueOrDefault().ToString("dd/MM/yyyy");
+                result.TotalBags = totalbags.ToString();
+                result.TotalWeight = grandTotalWeight.ToString();
+            }
+
+            using (MemoryStream zipStream = new())
+            {
+                using (ZipArchive archive = new(zipStream, ZipArchiveMode.Create, true))
+                {
+                    using (var entryStream = new MemoryStream())
+                    {
+                        using (var entry = archive.CreateEntry($"SA-{dispatch.ProductCode}-{date}-{batchNo}-Manifest.xlsx", System.IO.Compression.CompressionLevel.Optimal).Open())
+                        {
+                            byte[] excelBytes = CreateSAManifestExcelFile(result);
+                            entryStream.Write(excelBytes, 0, excelBytes.Length);
+                            entryStream.Position = 0;
+                            entryStream.CopyTo(entry);
+                        }
+                    }
+                }
+
+                byte[] zipFileBytes = zipStream.ToArray();
+                return new FileContentResult(zipFileBytes, "application/zip")
+                {
+                    FileDownloadName = $"{code}Manifest_{sessionID}.zip"
+                };
+            }
+        }
 
         [HttpGet]
         public async Task<IActionResult> DownloadDispatchManifest(string dispatchNo, bool isPreCheckWeight)
@@ -3126,22 +3391,33 @@ namespace SND.SMP.Dispatches
 
             if (!dispatch.ServiceCode.Contains("DE")) throw new UserFriendlyException($"Dispatch does not have a Service Code of DE.");
 
-            decimal discount = Convert.ToDecimal(discountValue);
+            decimal converted_discount = Convert.ToDecimal(discountValue);
+            var discount = converted_discount == 0 ? 0.4m : 1 - converted_discount;
+
+            var discountItemValue = 187.5m;
 
             var items = await _itemRepository.GetAllListAsync(x => x.DispatchID.Equals(dispatch.Id));
 
             var excel_items = items
-                .Select((item, index) => new CommercialInvoiceExcel
+                .Select((item, index) =>
                 {
-                    No = index + 1,
-                    Description = item.ItemDesc,
-                    Quantity = item.Qty ?? 0,
-                    UnitPrice = Math.Round((item.Price ?? 0.0m) - discount, 2),
-                    TotalPrice = Math.Round(((item.Price ?? 0.0m) - discount) * (item.Qty ?? 0), 2)
-                })
-                .ToList();
+                    var unitPrice = item.Price ?? 0.0m;
 
-            return excel_items;
+                    var totalPrice = unitPrice * (item.Qty ?? 1);
+
+                    var finalPrice = totalPrice >= discountItemValue ? totalPrice : Math.Round(totalPrice * (1 - discount), 2);
+
+                    return new CommercialInvoiceExcel
+                    {
+                        No = index + 1,
+                        Description = item.ItemDesc,
+                        Quantity = item.Qty ?? 0,
+                        UnitPrice = unitPrice,
+                        TotalPrice = finalPrice
+                    };
+                });
+
+            return [.. excel_items];
         }
 
 
