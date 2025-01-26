@@ -264,7 +264,12 @@ export class DispatchService {
       .pipe(retry(1), catchError(this.errorMessage.HandleErrorResponse));
   }
 
-  getDispatchesByCustomerMonthCurrency(customerCode: string, monthYear: string, currency: string, custom: boolean) {
+  getDispatchesByCustomerMonthCurrency(
+    customerCode: string,
+    monthYear: string,
+    currency: string,
+    custom: boolean
+  ) {
     return this.http
       .get(
         this.url +
@@ -277,12 +282,11 @@ export class DispatchService {
   getItemsByCurrency(dispatches: string[], generateBy: number) {
     const body = {
       dispatches: dispatches,
-      generateBy: generateBy
-    }
+      generateBy: generateBy,
+    };
     return this.http
       .post(
-        this.url +
-          `/api/services/app/Dispatch/GetItemsByCurrency`,
+        this.url + `/api/services/app/Dispatch/GetItemsByCurrency`,
         body,
         this.options_
       )
@@ -300,6 +304,21 @@ export class DispatchService {
       .pipe(retry(1), catchError(this.errorMessage.HandleErrorResponse));
   }
 
+  // Generate SA Manifest
+  downloadSADispatchManifest(
+    dispatchNo: string,
+    mawb: string,
+    discountValue: string
+  ) {
+    return this.http
+      .get(
+        this.url +
+          `/api/services/app/Dispatch/DownloadSADispatchManifest?dispatchNo=${dispatchNo}&mawb=${mawb}&discountValue=${discountValue}`,
+        { responseType: "blob", observe: "response" }
+      )
+      .pipe(retry(1), catchError(this.errorMessage.HandleErrorResponse));
+  }
+
   private getFilenameFromContentDisposition(
     contentDisposition: string
   ): string {
@@ -313,7 +332,4 @@ export class DispatchService {
     }
     return matches[1].replace(/['"]/g, "");
   }
-
-
-  
 }

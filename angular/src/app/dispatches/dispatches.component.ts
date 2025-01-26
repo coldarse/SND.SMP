@@ -148,7 +148,6 @@ export class DispatchesComponent extends PagedListingComponentBase<DispatchDto> 
             .split("filename")[1]
             .split("=")[1]
             .trim();
-          console.log(filename);
           const blob = new Blob([res.body], { type: "application/zip" });
           const url = window.URL.createObjectURL(blob);
           const a = document.createElement("a");
@@ -188,7 +187,6 @@ export class DispatchesComponent extends PagedListingComponentBase<DispatchDto> 
             .split("filename")[1]
             .split("=")[1]
             .trim();
-          console.log(filename);
           const blob = new Blob([res.body], { type: "application/zip" });
           const url = window.URL.createObjectURL(blob);
           const a = document.createElement("a");
@@ -283,6 +281,51 @@ export class DispatchesComponent extends PagedListingComponentBase<DispatchDto> 
         dispatchNo: dispatchNo,
         isExcel: true,
       },
+    });
+  }
+
+  downloadSAManifest(dispatchNo: string) {
+    let deDiscountModal: BsModalRef;
+
+    deDiscountModal = this._modalService.show(DeDiscountValueComponent, {
+      class: "modal-lg",
+      initialState: {
+        dispatchNo: dispatchNo,
+        isManifest: true,
+      },
+    });
+
+    deDiscountModal.content.onSubmit.subscribe((data: any[]) => {
+      this.isDownloadingManifest = true;
+      this._dispatchService
+        .downloadSADispatchManifest(
+          data[0],
+          data[1],
+          data[2]
+        )
+        .pipe(
+          finalize(() => {
+            this.isDownloadingManifest = false;
+          })
+        )
+        .subscribe((res: HttpResponse<Blob>) => {
+          var contentDisposition = res.headers.get("content-disposition");
+          var filename = contentDisposition
+            .split(";")[1]
+            .split("filename")[1]
+            .split("=")[1]
+            .trim();
+          const blob = new Blob([res.body], { type: "application/zip" });
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = filename;
+          a.click();
+
+          // Clean up
+          window.URL.revokeObjectURL(url);
+          abp.notify.success(this.l("Successfully Downloaded"));
+        });
     });
   }
 

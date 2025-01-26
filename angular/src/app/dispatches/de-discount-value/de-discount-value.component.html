@@ -1,39 +1,66 @@
 <form
-    class='form-horizontal'
-    autocomplete='off'
-    #deValueModal='ngForm'
-    (ngSubmit)='save()'
+  class="form-horizontal"
+  autocomplete="off"
+  #deValueModal="ngForm"
+  (ngSubmit)="save()"
 >
-    <abp-modal-header
-        [title]='("Key in Discount Value" | localize)'
-        (onCloseClick)='bsModalRef.hide()'
-    ></abp-modal-header>
-    <div class='modal-body'>
-        <div class='form-group row required'>
-            <label class='col-md-3 col-form-label' for='code'>
-            {{ 'Discount' | localize }}
-            </label>
-            <div class='col-md-9'>
-            <input
-                type='number'
-                class='form-control'
-                name='discount'
-                id='discount'
-                required
-                [(ngModel)]='discount'
-                #discountModel='ngModel'
-                #discountEl
-            />
-            </div>
-            <abp-validation-summary
-                [control]='discountModel'
-                [controlEl]='discountEl'
-            ></abp-validation-summary>
-        </div>
+  <abp-modal-header
+    [title]="
+      isManifest
+        ? ('Key in MAWB and Discount Value' | localize)
+        : ('Key in Discount Value' | localize)
+    "
+    (onCloseClick)="bsModalRef.hide()"
+  ></abp-modal-header>
+  <div class="modal-body">
+    @if (isManifest) {
+    <div class="form-group row required">
+      <label class="col-md-3 col-form-label" for="mawb">
+        {{ "MAWB" | localize }}
+      </label>
+      <div class="col-md-9">
+        <input
+          type="string"
+          class="form-control"
+          name="mawb"
+          id="mawb"
+          required
+          [(ngModel)]="mawb"
+          #mawbModel="ngModel"
+          #mawbEl
+        />
+      </div>
+      <abp-validation-summary
+        [control]="mawbModel"
+        [controlEl]="mawbEl"
+      ></abp-validation-summary>
     </div>
-    <abp-modal-footer
-    [cancelDisabled]='saving'
-    [saveDisabled]='!deValueModal.form.valid || saving'
-    (onCancelClick)='bsModalRef.hide()'
-    ></abp-modal-footer>
+    }
+    <div class="form-group row">
+      <label class="col-md-3 col-form-label" for="discount">
+        {{ "Discount" | localize }}
+      </label>
+      <div class="col-md-9">
+        <input
+          type="number"
+          class="form-control"
+          name="discount"
+          id="discount"
+          required
+          [(ngModel)]="discount"
+          #discountModel="ngModel"
+          #discountEl
+        />
+      </div>
+      <abp-validation-summary
+        [control]="discountModel"
+        [controlEl]="discountEl"
+      ></abp-validation-summary>
+    </div>
+  </div>
+  <abp-modal-footer
+    [cancelDisabled]="saving"
+    [saveDisabled]="!deValueModal.form.valid || saving"
+    (onCancelClick)="bsModalRef.hide()"
+  ></abp-modal-footer>
 </form>

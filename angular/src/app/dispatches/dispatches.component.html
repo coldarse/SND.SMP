@@ -164,6 +164,24 @@
                         <button
                           class="info-btn dropdown-item mb-1"
                           type="button"
+                          (click)="downloadSAManifest(dispatch.dispatchNo)"
+                          *ngIf="dispatch.dispatchNo.slice(0, 2) == 'SA'"
+                        >
+                          @if (!isDownloadingManifest) { Download
+                          {{ dispatch.dispatchNo.slice(0, 2) }} Manifest }
+                          @else{
+                          <div
+                            class="spinner-border spinner-border-sm"
+                            role="status"
+                          >
+                            <span class="sr-only">Loading...</span>
+                          </div>
+                          Downloading }
+                        </button>
+
+                        <button
+                          class="info-btn dropdown-item mb-1"
+                          type="button"
                           (click)="
                             downloadBag(dispatch.dispatchNo, dispatch.status)
                           "
@@ -209,39 +227,48 @@
                           </div>
                           &nbsp;Undoing Post Check }
                         </button>
-                        } @if ((dispatch.postalCode.includes("SA") || dispatch.postalCode.includes("CO")) && dispatch.serviceCode.includes("DE")) {
-                          <button
-                            type="button"
-                            class="bg-info dropdown-item"
-                            (click)="downloadCommercialInvoiceExcel(dispatch.dispatchNo)"
-                          >
-                            Download Commercial Invoice Excel
-                          </button>
-                          @if (dispatch.remark == undefined || dispatch.remark == null || dispatch.remark == "") {
-                          <button
-                            type="button"
-                            class="bg-info dropdown-item"
-                            (click)="generateCommercialInvoice(dispatch.customerCode, dispatch.dispatchNo)"
-                          >
-                            Generate Commercial Invoice
-                          </button>
-                          } @else {
-                            <a 
-                              class="bg-info dropdown-item" 
-                              [href]="dispatch.remark" 
-                              target="_blank"
-                            >
-                              {{ dispatch.remark }}
-                            </a>
-                            <button
-                              type="button"
-                              class="bg-danger dropdown-item"
-                              (click)="deleteCommercialInvoice(dispatch.remark)"
-                            >
-                              Delete Commercial Invoice
-                            </button>
-                          }
-                        }
+                        } @if ((dispatch.postalCode.includes("SA") ||
+                        dispatch.postalCode.includes("CO")) &&
+                        dispatch.serviceCode.includes("DE")) {
+                        <button
+                          type="button"
+                          class="bg-info dropdown-item"
+                          (click)="
+                            downloadCommercialInvoiceExcel(dispatch.dispatchNo)
+                          "
+                        >
+                          Download Commercial Invoice Excel
+                        </button>
+                        @if (dispatch.remark == undefined || dispatch.remark ==
+                        null || dispatch.remark == "") {
+                        <button
+                          type="button"
+                          class="bg-info dropdown-item"
+                          (click)="
+                            generateCommercialInvoice(
+                              dispatch.customerCode,
+                              dispatch.dispatchNo
+                            )
+                          "
+                        >
+                          Generate Commercial Invoice
+                        </button>
+                        } @else {
+                        <a
+                          class="bg-info dropdown-item"
+                          [href]="dispatch.remark"
+                          target="_blank"
+                        >
+                          {{ dispatch.remark }}
+                        </a>
+                        <button
+                          type="button"
+                          class="bg-danger dropdown-item"
+                          (click)="deleteCommercialInvoice(dispatch.remark)"
+                        >
+                          Delete Commercial Invoice
+                        </button>
+                        } }
                       </div>
                     </div>
                   </td>
