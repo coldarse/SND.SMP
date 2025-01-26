@@ -14,6 +14,7 @@ import { ChibiService } from "../../../shared/service-proxies/chibis/chibis.serv
 import { DispatchService } from "@shared/service-proxies/dispatches/dispatch.service";
 
 import * as XLSX from "xlsx";
+import { ApplicationSettingService } from "@shared/service-proxies/applicationsettings/applicationsetting.service";
 
 @Component({
   selector: "app-de-value",
@@ -42,7 +43,8 @@ export class DeDiscountValueComponent
     public bsModalRef: BsModalRef,
     private datePipe: DatePipe,
     private _chibiService: ChibiService,
-    private _dispatchService: DispatchService
+    private _dispatchService: DispatchService,
+    private _applicationSettingService: ApplicationSettingService
   ) {
     super(injector);
   }
@@ -133,16 +135,24 @@ export class DeDiscountValueComponent
             currency: "",
           });
 
-          this._chibiService.createInvoiceQueue(this.invoice_info).subscribe(
-            () => {
-              this.notify.info(this.l("SavedSuccessfully"));
-              this.bsModalRef.hide();
-              this.onSave.emit();
-            },
-            () => {
-              this.saving = false;
-            }
-          );
+          let added_runningNo = +this.runningNo + 1;
+
+          this._applicationSettingService
+            .updateValueByName("CommercialInvoiceNo", added_runningNo.toString())
+            .subscribe(() => {
+              this._chibiService
+                .createInvoiceQueue(this.invoice_info)
+                .subscribe(
+                  () => {
+                    this.notify.info(this.l("SavedSuccessfully"));
+                    this.bsModalRef.hide();
+                    this.onSave.emit();
+                  },
+                  () => {
+                    this.saving = false;
+                  }
+                );
+            });
         });
     }
   }
