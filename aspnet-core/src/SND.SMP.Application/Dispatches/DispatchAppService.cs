@@ -2040,6 +2040,12 @@ namespace SND.SMP.Dispatches
             );
         }
 
+        // [HttpGet]
+        // public async Task<IActionResult> DownloadSADispatchManifest(string dispatchNo, bool isPreCheckWeight, string mawb, decimal discountValue = 0)
+        // {
+
+        // }
+
         [HttpGet]
         public async Task<IActionResult> DownloadDispatchManifest(string dispatchNo, bool isPreCheckWeight)
         {

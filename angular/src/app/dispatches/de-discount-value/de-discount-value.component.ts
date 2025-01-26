@@ -28,6 +28,7 @@ export class DeDiscountValueComponent
   discount = 0;
   companyCode = "";
   dispatchNo = "";
+  runningNo: string = "1";
 
   isExcel = false;
 
@@ -107,10 +108,11 @@ export class DeDiscountValueComponent
           const today = new Date();
           let invoiceDate = this.datePipe.transform(today, "dd MMMM yyyy");
           let invoiceNoDate = this.datePipe
-            .transform(today, "MMM yyyy")
+            .transform(today, "yyyyMM")
             .replace(" ", "")
             .toUpperCase();
-          let invoiceNo = invoiceNoDate + "/___/" + this.dispatchNo;
+          this.runningNo = this.runningNo.padStart(5, "0");
+          let invoiceNo = `SMI${invoiceNoDate}${this.runningNo}`;
 
           this.invoice_info.invoiceNo = invoiceNo;
           this.invoice_info.invoiceDate = invoiceDate;

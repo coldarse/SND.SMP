@@ -22,8 +22,7 @@ import { GenerateInvoice } from "@shared/service-proxies/invoices/model";
 import { CustomerService } from "@shared/service-proxies/customers/customer.service";
 import { DatePipe } from "@node_modules/@angular/common";
 import { DeDiscountValueComponent } from "./de-discount-value/de-discount-value.component";
-
-
+import { ApplicationSettingService } from "@shared/service-proxies/applicationsettings/applicationsetting.service";
 
 class PagedDispatchesRequestDto extends PagedRequestDto {
   keyword: string;
@@ -60,7 +59,8 @@ export class DispatchesComponent extends PagedListingComponentBase<DispatchDto> 
     private router: Router,
     private _dispatchService: DispatchService,
     private _modalService: BsModalService,
-    private _chibiService: ChibiService
+    private _chibiService: ChibiService,
+    private _applicationSettingService: ApplicationSettingService
   ) {
     super(injector);
   }
@@ -249,14 +249,22 @@ export class DispatchesComponent extends PagedListingComponentBase<DispatchDto> 
   }
 
   generateCommercialInvoice(companyCode: string, dispatchNo: string) {
-    // Open Pop-Up for discount assignation
-    this._modalService.show(DeDiscountValueComponent, {
-      class: "modal-lg",
-      initialState: {
-        companyCode: companyCode,
-        dispatchNo: dispatchNo,
-      },
-    });
+    // Get Commercial Invoice Running No
+    this._applicationSettingService
+      .getValueByName("CommercialInvoiceNo")
+      .subscribe((data: any) => {
+        let commercial_invoice_no = data.result == "" ? 0 : +data.result;
+
+        // Open Pop-Up for discount assignation
+        this._modalService.show(DeDiscountValueComponent, {
+          class: "modal-lg",
+          initialState: {
+            companyCode: companyCode,
+            dispatchNo: dispatchNo,
+            runningNo: commercial_invoice_no.toString(),
+          },
+        });
+      });
   }
 
   deleteCommercialInvoice(invoicePath: string) {
@@ -273,12 +281,10 @@ export class DispatchesComponent extends PagedListingComponentBase<DispatchDto> 
       class: "modal-lg",
       initialState: {
         dispatchNo: dispatchNo,
-        isExcel: true
+        isExcel: true,
       },
     });
   }
-
-  
 
   protected list(
     request: PagedDispatchesRequestDto,
