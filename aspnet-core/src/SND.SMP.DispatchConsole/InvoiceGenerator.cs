@@ -187,16 +187,10 @@ public class InvoiceGenerator
                                     //if (rateZone is not null) rateItem = rateItem.Where(x => x.Zone.ToUpper().Trim().Equals(rateZone.FirstOrDefault().Zone.ToUpper().Trim())).ToList();
 
                                     // Postal Code == SA
-                                    if (dispatch.PostalCode.ToString().ToUpper().Contains('SA'))
+                                    if (dispatch.PostalCode.ToString().ToUpper().Contains("SA"))
                                     {
                                         var discount = 0m;
                                         var discountItemValue = 0m;
-
-                                        
-
-
-
-
 
                                     }
 

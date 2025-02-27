@@ -2,6 +2,12 @@ version: '3'
 
 services:
 
+  invoice_generator:
+    build: ./
+    image: dannychen98/invoice_generator:v1.0.0
+    environment:
+      ConnectionStrings__Default: "server=65.21.224.66;port=3306;database=SMPDb;uid=droot;pwd=snd@1234"
+
   dispatch_importer:
     build: ./
     image: dannychen98/dispatch_importer:v1.0.3
