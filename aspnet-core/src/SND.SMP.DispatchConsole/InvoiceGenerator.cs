@@ -1,5 +1,6 @@
 using System.Drawing.Text;
 using System.Net.Http.Headers;
+using iTextSharp.text.pdf;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using OfficeOpenXml.ExternalReferences;
@@ -188,15 +189,17 @@ public class InvoiceGenerator
 
                                     //if (rateZone is not null) rateItem = rateItem.Where(x => x.Zone.ToUpper().Trim().Equals(rateZone.FirstOrDefault().Zone.ToUpper().Trim())).ToList();
 
-                                    // Postal Code == SA
-                                    if (dispatch.PostalCode.ToString().ToUpper().Contains("SA"))
-                                    {
-                                        var discount = 0m;
-                                        var discountItemValue = 0m;
 
-                                    }
+                                    decimal converted_discount = invoice_info.ExtraCharges.FirstOrDefault().Amount;
+                                    var discount = converted_discount == 0 ? 0.4m : 1 - converted_discount;
 
+                                    var discountItemValue = 187.5m;
 
+                                    var unitPrice = x.Price ?? 0.0m;
+
+                                    var totalPrice = unitPrice * (x.Qty ?? 1);
+
+                                    var finalPrice = totalPrice >= discountItemValue ? totalPrice : Math.Round(totalPrice * (1 - discount), 2);
 
                                     return new SimplifiedItem()
                                     {
@@ -206,10 +209,10 @@ public class InvoiceGenerator
                                         Identifier = x.Id,
                                         Rate = ratePerKG,
                                         //Rate = (decimal)(rateItem.FirstOrDefault() is null ? 0.00m : rateItem.FirstOrDefault().ItemRate),
-                                        Quantity = 1,
+                                        Quantity = (x.Qty ?? 1),
                                         UnitPrice = unitPrice,
                                         //UnitPrice = (decimal)(rateItem.FirstOrDefault() is null ? 0.00m : rateItem.FirstOrDefault().WeightRate),
-                                        Amount = (decimal)x.Price,
+                                        Amount = finalPrice,
                                         ProductCode = x.ProductCode
                                     };
                                 }
