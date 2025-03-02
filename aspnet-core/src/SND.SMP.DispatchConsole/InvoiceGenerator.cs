@@ -89,6 +89,8 @@ public class InvoiceGenerator
             var dispatches = db.Dispatches.Where(x => invoice_info.Dispatches.Contains(x.DispatchNo)).ToList();
             List<ItemsByCurrency> items_by_currency = [];
 
+            var serviceCode = dispatches.FirstOrDefault().ServiceCode;
+
             if (invoice_info.GenerateBy.Equals(4))
             {
                 var grouped_surcharges_by_currency = invoice_info.ExtraCharges
@@ -356,7 +358,7 @@ public class InvoiceGenerator
 
                                 tempGroup.TotalAmount += item.Amount;
 
-                                var currency = db.Currencies.FirstOrDefault(c => c.Abbr.Equals(dispatches.FirstOrDefault().CurrencyId)); 
+                                var currency = db.Currencies.FirstOrDefault(c => c.Abbr.Equals(dispatches.FirstOrDefault().CurrencyId));
 
                                 var wallet = db.Wallets
                                                 .Where(u => u.Customer == dispatches.FirstOrDefault().CustomerCode)
@@ -402,8 +404,9 @@ public class InvoiceGenerator
 
             _logger.LogInformation("Started Generate PDF");
 
-            PdfGenerator generator = new();
-            MemoryStream ms = generator.GenerateInvoicePdf(invoiceInfo);
+
+            InvoicePdfLinuxGenerator generator = new();
+            MemoryStream ms = serviceCode.Equals("TS") ? generator.GenerateTSInvoicePdf(invoiceInfo) : generator.GenerateDEInvoicePdf(invoiceInfo);
 
             _logger.LogInformation("Generated PDF");
 
