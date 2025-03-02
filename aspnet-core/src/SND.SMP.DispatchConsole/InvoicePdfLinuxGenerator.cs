@@ -345,160 +345,301 @@ public class InvoicePdfLinuxGenerator
 
     public MemoryStream GenerateDEInvoicePdf(InvoiceInfo invoiceInfo)
     {
-        // try
-        // {
-        // Create a MemoryStream to hold the PDF
-        MemoryStream memoryStream = new();
-
-        // Create a PdfWriter instance to write to the MemoryStream
-        PdfWriter writer = new PdfWriter(memoryStream);
-
-        // Create a PdfDocument instance
-        PdfDocument pdfDocument = new PdfDocument(writer);
-
-        // Set the page size to A4
-        PageSize pageSize = PageSize.A4;
-
-        // Create a Document object to add content to the PDF
-        Document doc = new Document(pdfDocument, pageSize);
-        doc.SetMargins(50, 50, 50, 50); // Top, Right, Bottom, Left margins
-
-        // Initialize fonts
-        PdfFont headerFont = PdfFontFactory.CreateFont(StandardFonts.HELVETICA_BOLD);
-        PdfFont subHeaderFont = PdfFontFactory.CreateFont(StandardFonts.HELVETICA);
-
-
-        PdfFont headerLabelFont = PdfFontFactory.CreateFont(StandardFonts.HELVETICA_BOLD);
-        PdfFont headerValueFont = PdfFontFactory.CreateFont(StandardFonts.HELVETICA);
-        PdfFont tableValueFont = PdfFontFactory.CreateFont(StandardFonts.HELVETICA);
-
-        float tableFontSize = 9f;
-
-        // Create a table with a columns
-        Table headerTable = new Table(UnitValue.CreatePercentArray(new float[] { 100f })).UseAllAvailableWidth();
-        headerTable.SetBorder(Border.NO_BORDER);
-
-        // Add the company details to the second cell
-        Paragraph companyDetails = new Paragraph()
-            .Add("Signature Mail International Limited\n")
-            .SetFontSize(14)
-            .SetBold()
-            .SetFont(headerFont);
-
-        headerTable.AddCell(new Cell().Add(companyDetails)
-           .SetBorder(Border.NO_BORDER)
-           .SetTextAlignment(TextAlignment.CENTER)
-           .SetVerticalAlignment(VerticalAlignment.MIDDLE));
-
-        Paragraph companyAddress = new Paragraph()
-            .Add("A-3A-2 Seri Gembira Avenue, Jalan Senang Ria, Happy Garden, 58200 Kuala Lumpur, Malaysia.\n")
-            .SetFontSize(10)
-            .SetFont(subHeaderFont);
-
-        headerTable.AddCell(new Cell().Add(companyAddress)
-           .SetBorder(Border.NO_BORDER)
-           .SetTextAlignment(TextAlignment.CENTER)
-           .SetVerticalAlignment(VerticalAlignment.MIDDLE));
-
-        // Add the header table to the document
-        doc.Add(headerTable);
-
-        // Add a solid separator line
-        ILineDrawer solidLine = new SolidLine(1); // 1pt thickness
-                                                  // Add a separator line above the "INVOICE" title
-        LineSeparator lineSeparator = new LineSeparator(solidLine).SetMarginTop(5).SetMarginBottom(5);
-
-        doc.Add(lineSeparator);
-
-        // Add title
-        Paragraph title = new Paragraph("Commercial Invoice")
-            .SetFontSize(16)
-            .SetBold()
-            .SetUnderline(1, -3)
-            .SetTextAlignment(TextAlignment.CENTER);
-
-        doc.Add(title);
-
-        // Add some spacing
-        doc.Add(new Paragraph("\n"));
-
-        // Add consignee and invoice information
-        Table infoTable = new Table(UnitValue.CreatePercentArray(new float[] { 1.5f, 4f, 2.5f, 2f })).UseAllAvailableWidth();
-        infoTable.SetBorder(Border.NO_BORDER);
-
-        // First Row
-        infoTable.AddCell(createCell("CONSIGNEE:", TextAlignment.LEFT, true).SetBorder(Border.NO_BORDER).SetFont(headerLabelFont).SetFontSize(tableFontSize));
-        infoTable.AddCell(createCell("Saudi Pest Corporation", TextAlignment.LEFT, false).SetBorder(Border.NO_BORDER).SetFont(headerValueFont).SetFontSize(tableFontSize));
-        infoTable.AddCell(createCell("INVOICE NO:", TextAlignment.LEFT, true).SetBorder(Border.NO_BORDER).SetFont(headerLabelFont).SetFontSize(tableFontSize));
-        infoTable.AddCell(createCell("SMI202501734", TextAlignment.LEFT, false).SetBorder(Border.NO_BORDER).SetFont(headerValueFont).SetFontSize(tableFontSize));
-
-        // Second Row
-        infoTable.AddCell(createCell("ADDRESS:", TextAlignment.LEFT, true).SetBorder(Border.NO_BORDER).SetFont(headerLabelFont).SetFontSize(tableFontSize));
-        infoTable.AddCell(createCell("8228 King Abdul Aziz Road Al Amal Riyadh 12643", TextAlignment.LEFT, false).SetBorder(Border.NO_BORDER).SetFont(headerValueFont).SetFontSize(tableFontSize));
-        infoTable.AddCell(createCell("DATE:", TextAlignment.LEFT, true).SetBorder(Border.NO_BORDER).SetFont(headerLabelFont).SetFontSize(tableFontSize));
-        infoTable.AddCell(createCell("24/01/2025", TextAlignment.LEFT, false).SetBorder(Border.NO_BORDER).SetFont(headerValueFont).SetFontSize(tableFontSize));
-
-        // Third Row
-        infoTable.AddCell(createCell("", TextAlignment.LEFT, false).SetBorder(Border.NO_BORDER));  // Empty cell for spacing
-        infoTable.AddCell(createCell("", TextAlignment.LEFT, false).SetBorder(Border.NO_BORDER)); // Empty cell for spacing
-        infoTable.AddCell(createCell("TOTAL CARTON:", TextAlignment.LEFT, true).SetBorder(Border.NO_BORDER).SetFont(headerLabelFont).SetFontSize(tableFontSize));
-        infoTable.AddCell(createCell("7 CTNS", TextAlignment.LEFT, false).SetBorder(Border.NO_BORDER).SetFont(headerValueFont).SetFontSize(tableFontSize));
-
-        doc.Add(infoTable);
-
-        // Add some spacing
-        doc.Add(new Paragraph("\n"));
-
-        // Add table header
-        Table dataTable = new Table(UnitValue.CreatePercentArray(new float[] { 1, 4, 1, 2, 2 })).UseAllAvailableWidth();
-
-        float dataTableFontSize = 8f;
-        // Add headers
-        dataTable.AddHeaderCell(createCell("No.", TextAlignment.CENTER, true).SetFontSize(dataTableFontSize));
-        dataTable.AddHeaderCell(createCell("Description", TextAlignment.CENTER, true).SetFontSize(dataTableFontSize));
-        dataTable.AddHeaderCell(createCell("Qty (Pcs)", TextAlignment.CENTER, true).SetFontSize(dataTableFontSize));
-        dataTable.AddHeaderCell(createCell("Unit Price (SAR)", TextAlignment.CENTER, true).SetFontSize(dataTableFontSize));
-        dataTable.AddHeaderCell(createCell("Total Price (SAR)", TextAlignment.CENTER, true).SetFontSize(dataTableFontSize));
-
-        // Add rows
-        dataTable.AddCell(createCell("1", TextAlignment.CENTER, false).SetFontSize(dataTableFontSize));
-        dataTable.AddCell(createCell("battery", TextAlignment.LEFT, false).SetFontSize(dataTableFontSize));
-        dataTable.AddCell(createCell("1", TextAlignment.CENTER, false).SetFontSize(dataTableFontSize));
-        dataTable.AddCell(createCell("54.15", TextAlignment.CENTER, false).SetFontSize(dataTableFontSize));
-        dataTable.AddCell(createCell("54.15", TextAlignment.CENTER, false).SetFontSize(dataTableFontSize));
-
-        dataTable.AddCell(createCell("2", TextAlignment.CENTER, false).SetFontSize(dataTableFontSize));
-        dataTable.AddCell(createCell("lithium battery", TextAlignment.LEFT, false).SetFontSize(dataTableFontSize));
-        dataTable.AddCell(createCell("1", TextAlignment.CENTER, false).SetFontSize(dataTableFontSize));
-        dataTable.AddCell(createCell("15.00", TextAlignment.CENTER, false).SetFontSize(dataTableFontSize));
-        dataTable.AddCell(createCell("15.00", TextAlignment.CENTER, false).SetFontSize(dataTableFontSize));
-
-        doc.Add(dataTable);
+        MemoryStream memoryStream = new MemoryStream();
 
         try
         {
-            // Add the stamp image
-            string stampImagePath = "../../assets/SMIStamp.png"; // Update with actual path
-            ImageData stampImageData = ImageDataFactory.Create(stampImagePath);
-            Image stamp = new Image(stampImageData)
-                .ScaleToFit(50f, 50f)
-                .SetHorizontalAlignment(HorizontalAlignment.CENTER);
-            doc.Add(stamp);
+            // Wrap MemoryStream to prevent PdfWriter from closing it
+            using (var writer = new PdfWriter(new NonClosingStreamWrapper(memoryStream)))
+            {
+                using (var pdfDocument = new PdfDocument(writer))
+                {
+                    Document doc = new Document(pdfDocument, PageSize.A4);
+                    doc.SetMargins(50, 50, 50, 50); // Top, Right, Bottom, Left margins
+
+                    // Initialize fonts
+                    PdfFont headerFont = PdfFontFactory.CreateFont(StandardFonts.HELVETICA_BOLD);
+                    PdfFont subHeaderFont = PdfFontFactory.CreateFont(StandardFonts.HELVETICA);
+
+                    PdfFont headerLabelFont = PdfFontFactory.CreateFont(StandardFonts.HELVETICA_BOLD);
+                    PdfFont headerValueFont = PdfFontFactory.CreateFont(StandardFonts.HELVETICA);
+                    PdfFont tableValueFont = PdfFontFactory.CreateFont(StandardFonts.HELVETICA);
+
+                    float tableFontSize = 9f;
+
+                    // Create a table for the header
+                    Table headerTable = new Table(UnitValue.CreatePercentArray(new float[] { 100f })).UseAllAvailableWidth();
+                    headerTable.SetBorder(Border.NO_BORDER);
+
+                    // Add the company details
+                    Paragraph companyDetails = new Paragraph()
+                        .Add("Signature Mail International Limited\n")
+                        .SetFontSize(14)
+                        .SetBold()
+                        .SetFont(headerFont);
+
+                    headerTable.AddCell(new Cell().Add(companyDetails)
+                       .SetBorder(Border.NO_BORDER)
+                       .SetTextAlignment(TextAlignment.CENTER)
+                       .SetVerticalAlignment(VerticalAlignment.MIDDLE));
+
+                    Paragraph companyAddress = new Paragraph()
+                        .Add("A-3A-2 Seri Gembira Avenue, Jalan Senang Ria, Happy Garden, 58200 Kuala Lumpur, Malaysia.\n")
+                        .SetFontSize(10)
+                        .SetFont(subHeaderFont);
+
+                    headerTable.AddCell(new Cell().Add(companyAddress)
+                       .SetBorder(Border.NO_BORDER)
+                       .SetTextAlignment(TextAlignment.CENTER)
+                       .SetVerticalAlignment(VerticalAlignment.MIDDLE));
+
+                    // Add header table to document
+                    doc.Add(headerTable);
+
+                    // Add a separator line
+                    ILineDrawer solidLine = new SolidLine(1);
+                    LineSeparator lineSeparator = new LineSeparator(solidLine).SetMarginTop(5).SetMarginBottom(5);
+                    doc.Add(lineSeparator);
+
+                    // Add title
+                    Paragraph title = new Paragraph("Commercial Invoice")
+                        .SetFontSize(16)
+                        .SetBold()
+                        .SetUnderline(1, -3)
+                        .SetTextAlignment(TextAlignment.CENTER);
+                    doc.Add(title);
+
+                    // Add some spacing
+                    doc.Add(new Paragraph("\n"));
+
+                    // Add consignee and invoice details
+                    Table infoTable = new Table(UnitValue.CreatePercentArray(new float[] { 1.5f, 4f, 2.5f, 2f })).UseAllAvailableWidth();
+                    infoTable.SetBorder(Border.NO_BORDER);
+
+                    infoTable.AddCell(createCell("CONSIGNEE:", TextAlignment.LEFT, true).SetFontSize(tableFontSize));
+                    infoTable.AddCell(createCell("Saudi Pest Corporation", TextAlignment.LEFT, false).SetFontSize(tableFontSize));
+                    infoTable.AddCell(createCell("INVOICE NO:", TextAlignment.LEFT, true).SetFontSize(tableFontSize));
+                    infoTable.AddCell(createCell("SMI202501734", TextAlignment.LEFT, false).SetFontSize(tableFontSize));
+
+                    infoTable.AddCell(createCell("ADDRESS:", TextAlignment.LEFT, true).SetFontSize(tableFontSize));
+                    infoTable.AddCell(createCell("8228 King Abdul Aziz Road Al Amal Riyadh 12643", TextAlignment.LEFT, false).SetFontSize(tableFontSize));
+                    infoTable.AddCell(createCell("DATE:", TextAlignment.LEFT, true).SetFontSize(tableFontSize));
+                    infoTable.AddCell(createCell("24/01/2025", TextAlignment.LEFT, false).SetFontSize(tableFontSize));
+
+                    infoTable.AddCell(createCell("TOTAL CARTON:", TextAlignment.LEFT, true).SetFontSize(tableFontSize));
+                    infoTable.AddCell(createCell("7 CTNS", TextAlignment.LEFT, false).SetFontSize(tableFontSize));
+
+                    doc.Add(infoTable);
+
+                    // Add some spacing
+                    doc.Add(new Paragraph("\n"));
+
+                    // Add table headers
+                    Table dataTable = new Table(UnitValue.CreatePercentArray(new float[] { 1, 4, 1, 2, 2 })).UseAllAvailableWidth();
+                    float dataTableFontSize = 8f;
+
+                    dataTable.AddHeaderCell(createCell("No.", TextAlignment.CENTER, true).SetFontSize(dataTableFontSize));
+                    dataTable.AddHeaderCell(createCell("Description", TextAlignment.CENTER, true).SetFontSize(dataTableFontSize));
+                    dataTable.AddHeaderCell(createCell("Qty (Pcs)", TextAlignment.CENTER, true).SetFontSize(dataTableFontSize));
+                    dataTable.AddHeaderCell(createCell("Unit Price (SAR)", TextAlignment.CENTER, true).SetFontSize(dataTableFontSize));
+                    dataTable.AddHeaderCell(createCell("Total Price (SAR)", TextAlignment.CENTER, true).SetFontSize(dataTableFontSize));
+
+                    // Add sample rows
+                    dataTable.AddCell(createCell("1", TextAlignment.CENTER, false).SetFontSize(dataTableFontSize));
+                    dataTable.AddCell(createCell("Battery", TextAlignment.LEFT, false).SetFontSize(dataTableFontSize));
+                    dataTable.AddCell(createCell("1", TextAlignment.CENTER, false).SetFontSize(dataTableFontSize));
+                    dataTable.AddCell(createCell("54.15", TextAlignment.CENTER, false).SetFontSize(dataTableFontSize));
+                    dataTable.AddCell(createCell("54.15", TextAlignment.CENTER, false).SetFontSize(dataTableFontSize));
+
+                    doc.Add(dataTable);
+
+                    try
+                    {
+                        // Add the stamp image
+                        string stampImagePath = "../../assets/SMIStamp.png";
+                        ImageData stampImageData = ImageDataFactory.Create(stampImagePath);
+                        Image stamp = new Image(stampImageData)
+                            .ScaleToFit(50f, 50f)
+                            .SetHorizontalAlignment(HorizontalAlignment.CENTER);
+                        doc.Add(stamp);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("Error adding stamp: " + ex.Message);
+                    }
+
+                    // Close the document
+                    doc.Close();
+                }
+            }
+
+            // Reset stream position for reading
+            memoryStream.Position = 0;
         }
-        catch (Exception ex) { }
-
-
-        // Close the document
-        doc.Close();
-
-        // Optional: Reset the memory stream position
-        memoryStream.Position = 0;
+        catch (Exception ex)
+        {
+            Console.WriteLine("PDF Generation Error: " + ex.Message);
+        }
 
         return memoryStream;
-
-        // }
-        // catch { }
     }
+
+    // public MemoryStream GenerateDEInvoicePdf(InvoiceInfo invoiceInfo)
+    // {
+    //     // try
+    //     // {
+    //     // Create a MemoryStream to hold the PDF
+    //     MemoryStream memoryStream = new();
+
+    //     // Create a PdfWriter instance to write to the MemoryStream
+    //     PdfWriter writer = new PdfWriter(memoryStream);
+
+    //     // Create a PdfDocument instance
+    //     PdfDocument pdfDocument = new PdfDocument(writer);
+
+    //     // Set the page size to A4
+    //     PageSize pageSize = PageSize.A4;
+
+    //     // Create a Document object to add content to the PDF
+    //     Document doc = new Document(pdfDocument, pageSize);
+    //     doc.SetMargins(50, 50, 50, 50); // Top, Right, Bottom, Left margins
+
+    //     // Initialize fonts
+    //     PdfFont headerFont = PdfFontFactory.CreateFont(StandardFonts.HELVETICA_BOLD);
+    //     PdfFont subHeaderFont = PdfFontFactory.CreateFont(StandardFonts.HELVETICA);
+
+
+    //     PdfFont headerLabelFont = PdfFontFactory.CreateFont(StandardFonts.HELVETICA_BOLD);
+    //     PdfFont headerValueFont = PdfFontFactory.CreateFont(StandardFonts.HELVETICA);
+    //     PdfFont tableValueFont = PdfFontFactory.CreateFont(StandardFonts.HELVETICA);
+
+    //     float tableFontSize = 9f;
+
+    //     // Create a table with a columns
+    //     Table headerTable = new Table(UnitValue.CreatePercentArray(new float[] { 100f })).UseAllAvailableWidth();
+    //     headerTable.SetBorder(Border.NO_BORDER);
+
+    //     // Add the company details to the second cell
+    //     Paragraph companyDetails = new Paragraph()
+    //         .Add("Signature Mail International Limited\n")
+    //         .SetFontSize(14)
+    //         .SetBold()
+    //         .SetFont(headerFont);
+
+    //     headerTable.AddCell(new Cell().Add(companyDetails)
+    //        .SetBorder(Border.NO_BORDER)
+    //        .SetTextAlignment(TextAlignment.CENTER)
+    //        .SetVerticalAlignment(VerticalAlignment.MIDDLE));
+
+    //     Paragraph companyAddress = new Paragraph()
+    //         .Add("A-3A-2 Seri Gembira Avenue, Jalan Senang Ria, Happy Garden, 58200 Kuala Lumpur, Malaysia.\n")
+    //         .SetFontSize(10)
+    //         .SetFont(subHeaderFont);
+
+    //     headerTable.AddCell(new Cell().Add(companyAddress)
+    //        .SetBorder(Border.NO_BORDER)
+    //        .SetTextAlignment(TextAlignment.CENTER)
+    //        .SetVerticalAlignment(VerticalAlignment.MIDDLE));
+
+    //     // Add the header table to the document
+    //     doc.Add(headerTable);
+
+    //     // Add a solid separator line
+    //     ILineDrawer solidLine = new SolidLine(1); // 1pt thickness
+    //                                               // Add a separator line above the "INVOICE" title
+    //     LineSeparator lineSeparator = new LineSeparator(solidLine).SetMarginTop(5).SetMarginBottom(5);
+
+    //     doc.Add(lineSeparator);
+
+    //     // Add title
+    //     Paragraph title = new Paragraph("Commercial Invoice")
+    //         .SetFontSize(16)
+    //         .SetBold()
+    //         .SetUnderline(1, -3)
+    //         .SetTextAlignment(TextAlignment.CENTER);
+
+    //     doc.Add(title);
+
+    //     // Add some spacing
+    //     doc.Add(new Paragraph("\n"));
+
+    //     // Add consignee and invoice information
+    //     Table infoTable = new Table(UnitValue.CreatePercentArray(new float[] { 1.5f, 4f, 2.5f, 2f })).UseAllAvailableWidth();
+    //     infoTable.SetBorder(Border.NO_BORDER);
+
+    //     // First Row
+    //     infoTable.AddCell(createCell("CONSIGNEE:", TextAlignment.LEFT, true).SetBorder(Border.NO_BORDER).SetFont(headerLabelFont).SetFontSize(tableFontSize));
+    //     infoTable.AddCell(createCell("Saudi Pest Corporation", TextAlignment.LEFT, false).SetBorder(Border.NO_BORDER).SetFont(headerValueFont).SetFontSize(tableFontSize));
+    //     infoTable.AddCell(createCell("INVOICE NO:", TextAlignment.LEFT, true).SetBorder(Border.NO_BORDER).SetFont(headerLabelFont).SetFontSize(tableFontSize));
+    //     infoTable.AddCell(createCell("SMI202501734", TextAlignment.LEFT, false).SetBorder(Border.NO_BORDER).SetFont(headerValueFont).SetFontSize(tableFontSize));
+
+    //     // Second Row
+    //     infoTable.AddCell(createCell("ADDRESS:", TextAlignment.LEFT, true).SetBorder(Border.NO_BORDER).SetFont(headerLabelFont).SetFontSize(tableFontSize));
+    //     infoTable.AddCell(createCell("8228 King Abdul Aziz Road Al Amal Riyadh 12643", TextAlignment.LEFT, false).SetBorder(Border.NO_BORDER).SetFont(headerValueFont).SetFontSize(tableFontSize));
+    //     infoTable.AddCell(createCell("DATE:", TextAlignment.LEFT, true).SetBorder(Border.NO_BORDER).SetFont(headerLabelFont).SetFontSize(tableFontSize));
+    //     infoTable.AddCell(createCell("24/01/2025", TextAlignment.LEFT, false).SetBorder(Border.NO_BORDER).SetFont(headerValueFont).SetFontSize(tableFontSize));
+
+    //     // Third Row
+    //     infoTable.AddCell(createCell("", TextAlignment.LEFT, false).SetBorder(Border.NO_BORDER));  // Empty cell for spacing
+    //     infoTable.AddCell(createCell("", TextAlignment.LEFT, false).SetBorder(Border.NO_BORDER)); // Empty cell for spacing
+    //     infoTable.AddCell(createCell("TOTAL CARTON:", TextAlignment.LEFT, true).SetBorder(Border.NO_BORDER).SetFont(headerLabelFont).SetFontSize(tableFontSize));
+    //     infoTable.AddCell(createCell("7 CTNS", TextAlignment.LEFT, false).SetBorder(Border.NO_BORDER).SetFont(headerValueFont).SetFontSize(tableFontSize));
+
+    //     doc.Add(infoTable);
+
+    //     // Add some spacing
+    //     doc.Add(new Paragraph("\n"));
+
+    //     // Add table header
+    //     Table dataTable = new Table(UnitValue.CreatePercentArray(new float[] { 1, 4, 1, 2, 2 })).UseAllAvailableWidth();
+
+    //     float dataTableFontSize = 8f;
+    //     // Add headers
+    //     dataTable.AddHeaderCell(createCell("No.", TextAlignment.CENTER, true).SetFontSize(dataTableFontSize));
+    //     dataTable.AddHeaderCell(createCell("Description", TextAlignment.CENTER, true).SetFontSize(dataTableFontSize));
+    //     dataTable.AddHeaderCell(createCell("Qty (Pcs)", TextAlignment.CENTER, true).SetFontSize(dataTableFontSize));
+    //     dataTable.AddHeaderCell(createCell("Unit Price (SAR)", TextAlignment.CENTER, true).SetFontSize(dataTableFontSize));
+    //     dataTable.AddHeaderCell(createCell("Total Price (SAR)", TextAlignment.CENTER, true).SetFontSize(dataTableFontSize));
+
+    //     // Add rows
+    //     dataTable.AddCell(createCell("1", TextAlignment.CENTER, false).SetFontSize(dataTableFontSize));
+    //     dataTable.AddCell(createCell("battery", TextAlignment.LEFT, false).SetFontSize(dataTableFontSize));
+    //     dataTable.AddCell(createCell("1", TextAlignment.CENTER, false).SetFontSize(dataTableFontSize));
+    //     dataTable.AddCell(createCell("54.15", TextAlignment.CENTER, false).SetFontSize(dataTableFontSize));
+    //     dataTable.AddCell(createCell("54.15", TextAlignment.CENTER, false).SetFontSize(dataTableFontSize));
+
+    //     dataTable.AddCell(createCell("2", TextAlignment.CENTER, false).SetFontSize(dataTableFontSize));
+    //     dataTable.AddCell(createCell("lithium battery", TextAlignment.LEFT, false).SetFontSize(dataTableFontSize));
+    //     dataTable.AddCell(createCell("1", TextAlignment.CENTER, false).SetFontSize(dataTableFontSize));
+    //     dataTable.AddCell(createCell("15.00", TextAlignment.CENTER, false).SetFontSize(dataTableFontSize));
+    //     dataTable.AddCell(createCell("15.00", TextAlignment.CENTER, false).SetFontSize(dataTableFontSize));
+
+    //     doc.Add(dataTable);
+
+    //     try
+    //     {
+    //         // Add the stamp image
+    //         string stampImagePath = "../../assets/SMIStamp.png"; // Update with actual path
+    //         ImageData stampImageData = ImageDataFactory.Create(stampImagePath);
+    //         Image stamp = new Image(stampImageData)
+    //             .ScaleToFit(50f, 50f)
+    //             .SetHorizontalAlignment(HorizontalAlignment.CENTER);
+    //         doc.Add(stamp);
+    //     }
+    //     catch (Exception ex) { }
+
+
+    //     // Close the document
+    //     doc.Close();
+
+    //     // Optional: Reset the memory stream position
+    //     memoryStream.Position = 0;
+
+    //     return memoryStream;
+
+    //     // }
+    //     // catch { }
+    // }
 
     private static Cell createCell(System.String content, TextAlignment alignment, System.Boolean bold)
     {
@@ -510,5 +651,30 @@ public class InvoicePdfLinuxGenerator
         return new Cell().Add(paragraph).SetTextAlignment(alignment).SetPadding(1);
     }
 
+}
+
+public class NonClosingStreamWrapper : Stream
+{
+    private readonly Stream _innerStream;
+
+    public NonClosingStreamWrapper(Stream innerStream)
+    {
+        _innerStream = innerStream;
+    }
+
+    public override bool CanRead => _innerStream.CanRead;
+    public override bool CanSeek => _innerStream.CanSeek;
+    public override bool CanWrite => _innerStream.CanWrite;
+    public override long Length => _innerStream.Length;
+    public override long Position { get => _innerStream.Position; set => _innerStream.Position = value; }
+
+    public override void Flush() => _innerStream.Flush();
+    public override int Read(byte[] buffer, int offset, int count) => _innerStream.Read(buffer, offset, count);
+    public override long Seek(long offset, SeekOrigin origin) => _innerStream.Seek(offset, origin);
+    public override void SetLength(long value) => _innerStream.SetLength(value);
+    public override void Write(byte[] buffer, int offset, int count) => _innerStream.Write(buffer, offset, count);
+
+    // Override Dispose to prevent closing the underlying stream
+    protected override void Dispose(bool disposing) { /* Do nothing to prevent closing */ }
 }
 
